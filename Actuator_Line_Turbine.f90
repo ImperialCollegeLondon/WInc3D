@@ -1,5 +1,6 @@
 module actuator_line_turbine
- 
+
+    use actuator_line_model_utils
     use Airfoils
     use actuator_line_element
 
@@ -54,14 +55,13 @@ contains
     real :: SVec(3), theta
     integer :: Nstations, iblade, Istation,ielem
 
-    write(*,*) 'Entering set_turbine_geometry'
 
-    write(*,*) 'Turbine Name : ', turbine%name 
-    write(*,*) '============================='
-    write(*,*) 'Number of Blades : ', turbine%Nblades
-    write(*,*) 'Origin           : ', turbine%origin
-    write(*,*) 'Axis of Rotation : ', turbine%RotN
- 
+    write(6,*) 'Turbine Name : ', adjustl(turbine%name)
+    write(6,*) '-------------------------------------------------------------------'
+    write(6,*) 'Number of Blades : ', turbine%Nblades
+    write(6,*) 'Origin           : ', turbine%origin
+    write(6,*) 'Axis of Rotation : ', turbine%RotN
+    write(6,*) '-------------------------------------------------------------------'
     call read_actuatorline_geometry(turbine%blade_geom_file,turbine%Rmax,SVec,rR,ctoR,pitch,thick,Nstations)
     ! Make sure that the spanwise is [0 0 1]
     Svec = (/0.0,0.0,1.0/)
@@ -70,7 +70,7 @@ contains
     theta=2*pi/turbine%Nblades
     do iblade=1,turbine%Nblades
     call allocate_actuatorline(Turbine%blade(iblade),Nstations)
-    turbine%blade(iblade)%name=trim(turbine%name)//'_blade'//int2str(iblade)
+    turbine%blade(iblade)%name=trim(turbine%name)//'_blade_'//int2str(iblade)
     
     turbine%blade(iblade)%COR(1:3)=turbine%origin(1:3)
     turbine%blade(iblade)%L=turbine%Rmax
@@ -171,8 +171,6 @@ contains
     
     call Compute_Turbine_RotVel(turbine)
     
-    write(*,*) 'Exiting set_turbine_geometry'
-
     end subroutine set_turbine_geometry
     
     subroutine compute_performance(turbine)
@@ -239,8 +237,6 @@ contains
     turbine%CTR=Torq_tot/(0.5*turbine%A*turbine%Rmax*turbine%Uref**2.0)
     turbine%CP= abs(turbine%CTR)*turbine%TSR
      
-    write(*,*) 'Exiting compute_performance'
-
     end subroutine compute_performance
     
     subroutine Compute_Turbine_EndEffects(turbine)
@@ -324,7 +320,6 @@ contains
     type(TurbineType),intent(inout) :: turbine
     integer :: iblade,ielem
     real :: wRotX,wRotY,wRotZ,Rx,Ry,Rz,ublade,vblade,wblade
-    write(*,*) 'Entering Compute_Turbine_Local_Vel '
     
     !========================================================
     ! Compute Element local rotational velocity
@@ -353,8 +348,6 @@ contains
     end do
     end do
     
-    write(*,*) 'Exiting Compute_Turbine_Local_Vel '
-
     end subroutine Compute_Turbine_RotVel
 
     subroutine rotate_turbine(turbine,Axis,theta)
@@ -369,7 +362,6 @@ contains
     real :: xtmp,ytmp,ztmp, txtmp, tytmp, tztmp
     ! Rotates data in blade arrays. Rotate element end geometry and recalculate element geometry.
 
-    write(*,*) 'Entering rotate_turbines'
         
     nrx=Axis(1)
     nry=Axis(2)
@@ -407,7 +399,6 @@ contains
         call make_actuatorline_geometry(turbine%Blade(j))
     end do 
     
-    write(*,*) 'Exiting rotate_turbine'
     end subroutine rotate_turbine  
     
 end module actuator_line_turbine 

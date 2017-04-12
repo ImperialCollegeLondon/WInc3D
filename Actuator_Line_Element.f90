@@ -136,7 +136,6 @@ end type ActuatorLineType
     real :: SVec(3), length 
     integer :: Nstations, Istation, ielem
 
-    write(*,*) 'Entering set_actuatorline_geometry'
 
     write(*,*) 'Actuatorline Name : ', actuatorline%name 
     write(*,*) '========================================'
@@ -195,7 +194,6 @@ end type ActuatorLineType
     call dystl_init_LB(actuatorline%E_LB_Model(ielem))
     end do
     
-    write(*,*) 'Exiting set_actuatorline_geometry'
 
     end subroutine set_actuatorline_geometry
     
@@ -213,7 +211,6 @@ end type ActuatorLineType
     real :: CLdyn,CDdyn,CNAM,CTAM,CMAM
     integer :: ielem
   
-    write(*,*) 'Entering Compute_Forces '
      
     !===========================================================
     ! Assign global values to local values (to make life easier
@@ -357,7 +354,6 @@ end type ActuatorLineType
     act_line%EUn_last(ielem)=urdn 
     end do 
 
-    write(*,*) 'Exiting Compute_Forces'
 
     end subroutine compute_Actuatorline_Forces
 
@@ -371,7 +367,6 @@ end type ActuatorLineType
         real :: CN,CT,FN,FT,FX,Fy,Fz
         integer :: ielem
     
-        write(*,*) 'Entering compute_tower_forces'
         call random_number(rand)
         do ielem=1,tower%NElem
     
@@ -438,7 +433,6 @@ end type ActuatorLineType
          
         enddo
 
-        write(*,*) 'Exiting compute_tower_forces'
 
     end subroutine compute_Tower_Forces
 
@@ -486,7 +480,6 @@ end type ActuatorLineType
     real,dimension(NData) ::  Thicks, diffthicks
     integer :: ielem,idata,imin,imax,iint
 
-    write(*,*) 'Entering populate_blade_airfoils'    
     ! We need to interpolate from two or more 
     
     do ielem=1,NElem
@@ -517,7 +510,6 @@ end type ActuatorLineType
 
     end do 
 
-    write(*,*) 'Exiting populate_blade_airfoils'
 
     end subroutine populate_blade_airfoils
     
@@ -532,7 +524,6 @@ end type ActuatorLineType
     real :: xtmp,ytmp,ztmp, txtmp, tytmp, tztmp
     ! Rotates data in blade arrays. Rotate element end geometry and recalculate element geometry.
 
-    write(1,*) 'Entering rotate_actuatorline'
         
     ! Specify the rotation axis and the normal vector of rotation
     
@@ -569,7 +560,6 @@ end type ActuatorLineType
   
     end do
     
-    write(*,*) 'Exiting rotate_actuatorline'
 
     end subroutine rotate_actuatorline
 
@@ -620,7 +610,6 @@ end type ActuatorLineType
     real :: sEM, tEM, nEM 
     real :: sE(3), tE(3), normE(3), P1(3), P2(3), P3(3), P4(3), V1(3), V2(3), V3(3), V4(3), A1(3), A2(3)
 
-    write(*,*) 'Entering make_actuatorline_geometry'
     ! Calculates element geometry from element end geometry
     nbe=blade%NElem
 
@@ -692,7 +681,6 @@ end type ActuatorLineType
     blade%ETtoC(nej-1)=0.5*(blade%thick(nej)+blade%thick(nej-1))
     blade%Epitch(nej-1)=0.5*(blade%pitch(nej)+blade%pitch(nej-1))
     end do
-    write(*,*) 'Exiting make_actuatorline_geometry'
 
     end subroutine make_actuatorline_geometry 
     

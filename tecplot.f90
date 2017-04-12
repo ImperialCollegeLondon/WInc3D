@@ -8,7 +8,7 @@ subroutine tecplot_write(ux1,uy1,uz1,phi1)
     use variables
     use decomp_2d
     use decomp_2d_io
-    
+    use actuator_line_model_utils 
     
     implicit none
     real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux1,uy1,uz1,phi1

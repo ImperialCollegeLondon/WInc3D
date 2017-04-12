@@ -48,7 +48,7 @@ module variables
 !2-->every 2 mesh nodes
 !4-->every 4 mesh nodes
 !nvisu = size for visualization collection
-integer,parameter :: nx=128,ny=129,nz=84
+integer,parameter :: nx=260,ny=49,nz=48
 integer,parameter :: nstat=1,nvisu=1
 integer,parameter :: p_row=1,p_col=1
 integer,parameter :: nxm=nx,nym=ny-1,nzm=nz 
@@ -135,7 +135,7 @@ module param
 use decomp_2d, only : mytype
 
   integer :: nclx,ncly,nclz
-  integer :: ifft, ivirt,istret,iforc_entree,iturb, ialm
+  integer :: ifft, ivirt,istret,iforc_entree,iturb, ialm, Nturbines
   integer :: itype, iskew, iin, nscheme, ifirst, ilast, iles
   integer :: isave,ilit,idebmod, imodulo, idemarre, icommence, irecord
   integer :: iscalar
@@ -145,7 +145,8 @@ use decomp_2d, only : mytype
   real(mytype) :: t,xxk1,xxk2
   integer :: itr,itime
   character :: filesauve*80, filenoise*80, &
-       nchamp*80,filepath*80, fileturb*80, filevisu*80 
+       nchamp*80,filepath*80, fileturb*80, filevisu*80
+  character,dimension(100) ::TurbinesPath*80  ! We assign a maximum number of 100 turbines
   real(mytype), dimension(5) :: adt,bdt,cdt,gdt
 end module param
 

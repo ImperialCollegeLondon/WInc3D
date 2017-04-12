@@ -50,14 +50,9 @@ contains
     ! airfoil array
     !GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG
     type(AirfoilType),intent(INOUT) :: airfoil
-
-    write(*,*) 'In airfoils_init'
-    
+ 
     call allocate_airfoil(airfoil,MaxAOAVals,MaxReVals)
-
     call read_airfoil(airfoil)
-    write(*,*) 'Airfoil section title : ', airfoil%aftitle
-    write(*,*) 'Exiting airfoils_init'
 
     end subroutine airfoil_init_data
 

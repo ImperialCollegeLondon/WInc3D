@@ -1,7 +1,7 @@
 module actuator_line_model
 
     ! Use the actuator_line Modules
-    use decomp_2d, only: mytype
+    use decomp_2d, only: mytype, nrank
     use actuator_line_model_utils 
     use airfoils
     use actuator_line_element
@@ -22,22 +22,25 @@ module actuator_line_model
 
 contains
 
-    subroutine actuator_line_model_init(turbine_options,dt)
+    subroutine actuator_line_model_init(Nturbines,turbines_file,dt)
 
         implicit none
-        character(len=*), intent(in) :: turbine_options 
+        integer :: Nturbines
+        character(len=80),dimension(100),intent(in) :: turbines_file 
         real(mytype), intent(in) :: dt
         integer :: itur,ial 
+        if (nrank==0) then        
+        write(6,*) '====================================================='
+        write(6,*) 'Initializing the Actuator Line Model'
+        write(6,*) 'Developed by G. Deskos 2015-2017'
+        write(6,*) 'gd1414@ic.ac.uk'
+        write(6,*) '====================================================='
+        end if
         
-        write(*,*) '======================================='
-        write(*,*) 'Initializing the Actuator Line Model'
-        write(*,*) 'Developed by G. Deskos 2015-2017'
-        write(*,*) 'gd1414@ic.ac.uk'
-        write(*,*) '======================================='
-
         !### Specify Turbines
-        !call get_turbine_options
-
+        Ntur=Nturbines
+        write(6,*) 'Number of turbines : ', Ntur
+        call get_turbine_options(turbines_file)
         if (Ntur>0) then 
             do itur=1,Ntur
             call set_turbine_geometry(Turbine(itur))
@@ -97,111 +100,117 @@ contains
     
     end subroutine actuator_line_model_write_output
 
-    !subroutine get_turbine_options(options)
+    subroutine get_turbine_options(turbines_path)
 
-    !    implicit none
+        implicit none
 
-    !    character(len=*), intent(in) :: options 
-    !    character(len=100), allocatable :: turbine_path(:)
-    !    integer :: i,j,k
-    !    integer, parameter :: MaxReadLine = 1000    
-    !    integer :: nfoils
+        character(len=80),dimension(100),intent(in) :: turbines_path 
+        integer :: i,j,k
+        integer, parameter :: MaxReadLine = 1000    
+        integer :: nfoils
+        !-------------------------------------
+        ! Dummy variables
+        !-------------------------------------
+        character(len=100) :: name, blade_geom, tower_geom, afname
+        real(mytype), dimension(3) :: origin
+        integer :: numblades,numfoil,towerFlag, TypeFlag, OperFlag, RotFlag, AddedMassFlag, DynStallFlag, EndEffectsFlag
+        real(mytype) :: toweroffset,tower_drag,tower_lift,tower_strouhal, uref, tsr
+        NAMELIST/TurbineSpecs/name,origin,numblades,blade_geom,numfoil,afname,towerFlag,towerOffset, &
+            tower_geom,tower_drag,tower_lift,tower_strouhal,TypeFlag, OperFlag, tsr, uref,RotFlag, AddedMassFlag, &
+        DynStallFlag,EndEffectsFlag
 
-    !    write(*,*) 'Entering get_turbine_options'
+        write(6,*) 'Loading the turbine options ...'
+    
+        ! Allocate Turbines Arrays
+        Allocate(Turbine(Ntur))
+        ! ==========================================
+        ! Get Turbines' options and INITIALIZE THEM
+        ! ==========================================
+        do i=1, Ntur 
+        open(100,File=turbines_path(i))
+        read(100,nml=TurbineSpecs)
+        Turbine(i)%name=name
+        Turbine(i)%ID=i    
+        Turbine(i)%origin=origin
+        Turbine(i)%NBlades=numblades
+        Turbine(i)%blade_geom_file=blade_geom
 
-    !    Ntur = option_count("/turbine_models/actuator_line_model/turbine")
-    !    write(6,*) 'Number of Turbines : ', Ntur
+        ! Allocate Blades
+        Allocate(Turbine(i)%Blade(Turbine(i)%NBlades))
+        ! Count how many Airfoil Sections are available
+        nfoils = numfoil
+        if(nfoils==0) then
+            write(6,*) "You need to provide at least one static_foils_data entry for the computation of the blade forces"
+           stop 
+        end if
+        ! Allocate the memory of the Airfoils
 
-    !    ! Allocate Turbines Arrays
-    !    Allocate(Turbine(Ntur))
-    !    Allocate(turbine_path(Ntur))
+        do j=1,Turbine(i)%NBlades
+        Turbine(i)%Blade(j)%NAirfoilData=nfoils
+        Allocate(Turbine(i)%Blade(j)%AirfoilData(nfoils))
+        do k=1, Turbine(i)%Blade(j)%NAirfoilData
+    
+        Turbine(i)%Blade(j)%AirfoilData(k)%afname=afname
+        ! Read and Store Airfoils
+        call airfoil_init_data(Turbine(i)%Blade(j)%AirfoilData(k))
+        end do
+        end do
 
-    !    ! ==========================================
-    !    ! Get Turbines' options and INITIALIZE THEM
-    !    ! ==========================================
-    !    do i=1, Ntur 
-    !    turbine_path(i)="/turbine_models/actuator_line_model/turbine["//int2str(i-1)//"]"
-    !    call get_option("/turbine_models/actuator_line_model/turbine["//int2str(i-1)//"]/name",Turbine(i)%name)
-    !    Turbine(i)%ID=i    
-    !    !##################################### Blade Specs #############################################   
-    !    call get_option("/turbine_models/actuator_line_model/turbine["//int2str(i-1)//"]/location/",Turbine(i)%origin) 
-    !    call get_option("/turbine_models/actuator_line_model/turbine["//int2str(i-1)//"]/Blades/number_of_blades/",Turbine(i)%NBlades)
-    !    call get_option("/turbine_models/actuator_line_model/turbine["//int2str(i-1)//"]/Blades/blade_geometry/file_name",Turbine(i)%blade_geom_file)
+    ! ## Tower ##
+        if (towerFlag==1) then
+            Turbine(i)%Has_Tower=.true.
+            Turbine(i)%TowerOffset=toweroffset
+            Turbine(i)%Tower%geom_file=tower_geom
+            Turbine(i)%TowerDrag=tower_drag
+            Turbine(i)%TowerLift=tower_lift
+            Turbine(i)%TowerStrouhal=tower_strouhal
+       endif
 
-    !    ! Allocate Blades
-    !    Allocate(Turbine(i)%Blade(Turbine(i)%NBlades))
-    !    ! Count how many Airfoil Sections are available
-    !    nfoils = option_count("/turbine_models/actuator_line_model/turbine["//int2str(i-1)//"]/Blades/static_foil_data/foil")
-    !    if(nfoils==0) then
-    !        write(*,*) "You need to provide at least one static_foils_data entry for the computation of the blade forces"
-    !        exit
-    !    end if
-    !    write(*,*) 'Number of Static Foil Data available  for the analysis of the blades: ', nfoils
-    !    ! Allocate the memory of the Airfoils
-
-    !    do j=1,Turbine(i)%NBlades
-    !    Turbine(i)%Blade(j)%NAirfoilData=nfoils
-    !    Allocate(Turbine(i)%Blade(j)%AirfoilData(nfoils))
-    !    do k=1, Turbine(i)%Blade(j)%NAirfoilData
-    !    call get_option(trim(turbine_path(i))//"/Blades/static_foil_data/foil["//int2str(k-1)//"]/foil_file",Turbine(i)%Blade(j)%AirfoilData(k)%afname)
-    !    ! Read and Store Airfoils
-    !    call airfoil_init_data(Turbine(i)%Blade(j)%AirfoilData(k))
-    !    end do
-    !    end do
-
-    !    ! ## Tower ##
-    !    if (have_option("/turbine_models/actuator_line_model/turbine["//int2str(i-1)//"]/tower")) then
-    !        Turbine(i)%Has_Tower=.true.
-    !        call get_option("/turbine_models/actuator_line_model/turbine["//int2str(i-1)//"]/tower/offset",Turbine(i)%TowerOffset)
-    !        call get_option("/turbine_models/actuator_line_model/turbine["//int2str(i-1)//"]/tower/tower_geometry/file_name",Turbine(i)%Tower%geom_file)
-    !        call get_option("/turbine_models/actuator_line_model/turbine["//int2str(i-1)//"]/tower/tower_loading/Drag_coeff",Turbine(i)%TowerDrag)
-    !        call get_option("/turbine_models/actuator_line_model/turbine["//int2str(i-1)//"]/tower/tower_loading/Lift_coeff",Turbine(i)%TowerLift)
-    !        call get_option("/turbine_models/actuator_line_model/turbine["//int2str(i-1)//"]/tower/tower_loading/Strouhal_number",Turbine(i)%TowerStrouhal)
-    !    endif
-
-    !    !#############2  Get turbine_specs #################
-    !    ! Check the typ of Turbine (choose between Horizontal and Vertical Axis turbines) 
-    !    if(have_option(trim(turbine_path(i))//"/type/Horizontal_Axis")) then
-    !        Turbine(i)%Type='Horizontal_Axis'
-    !        Turbine(i)%RotN=(/1.0,0.0,0.0/)   
+    !#############2  Get turbine_specs #################
+    ! Check the typ of Turbine (choose between Horizontal and Vertical Axis turbines) 
+    if(TypeFlag==1) then
+            Turbine(i)%Type='Horizontal_Axis'
+            Turbine(i)%RotN=(/1.0,0.0,0.0/)   
     !        call get_option(trim(turbine_path(i))//"/type/Horizontal_Axis/hub_tilt_angle",Turbine(i)%hub_tilt_angle) 
     !        call get_option(trim(turbine_path(i))//"/type/Horizontal_Axis/blade_cone_angle",Turbine(i)%blade_cone_angle)
     !        call get_option(trim(turbine_path(i))//"/type/Horizontal_Axis/yaw_angle",Turbine(i)%yaw_angle)
-    !    elseif(have_option(trim(turbine_path(i))//"/type/Vertical_Axis")) then
+    elseif(TypeFlag==2) then
     !        call get_option(trim(turbine_path(i))//"/type/Vertical_Axis/axis_of_rotation",Turbine(i)%RotN) 
     !        call get_option(trim(turbine_path(i))//"/type/Vertical_Axis/distance_from_axis",Turbine(i)%dist_from_axis)
-    !    else
-    !        write(*,*) "You should not be here"
-    !        exit 
-    !    end if
+            write(6,*) 'Not ready yet'
+            stop
+    else
+            write(6,*) "You should not be here"
+            stop 
+    end if
 
-    !    !##############3 Get Operation Options ######################
-    !    if (have_option(trim(turbine_path(i))//"/operation/constant_rotational_velocity")) then
-    !        Turbine(i)%Is_constant_rotation_operated= .true.
-    !        call get_option("/turbine_models/actuator_line_model/turbine["//int2str(i-1)//"]/operation/constant_rotational_velocity/Uref",Turbine(i)%Uref)
-    !        call get_option("/turbine_models/actuator_line_model/turbine["//int2str(i-1)//"]/operation/constant_rotational_velocity/TSR",Turbine(i)%TSR)
-    !        if(have_option(trim(turbine_path(i))//"/operation/constant_rotational_velocity/rotation_direction/clockwise")) then
-    !            Turbine(i)%IsClockwise=.true.
-    !        elseif(have_option(trim(turbine_path(i))//"/operation/constant_rotational_velocity/rotation_direction/counter_clockwise")) then
-    !            Turbine(i)%IsCounterClockwise=.true.
-    !            Turbine(i)%RotN=-Turbine(i)%RotN
-    !        else
-    !            write(*,*) "You should not be here. The options are clockwise and counterclockwise"
-    !            stop
-    !        endif 
-    !    else if(have_option(trim("turbine_models/actuator_line_model/turbine["//int2str(i-1)//"]")//"/operation/force_based_rotational_velocity")) then
-    !        Turbine(i)%Is_force_based_operated = .true. 
-    !    else
-    !        write(*,*) "At the moment only the constant and the force_based rotational velocity models are supported"
-    !        stop
-    !    endif
+    !##############3 Get Operation Options ######################
+        if (OperFlag==1) then
+            Turbine(i)%Is_constant_rotation_operated= .true.
+            Turbine(i)%Uref=uref
+            Turbine(i)%TSR=tsr
+            if(RotFlag==1) then
+                Turbine(i)%IsClockwise=.true.
+            elseif(RotFlag==2) then
+                Turbine(i)%IsCounterClockwise=.true.
+                Turbine(i)%RotN=-Turbine(i)%RotN
+       else
+                write(6,*) "You should not be here. The options are clockwise and counterclockwise"
+                stop
+       endif 
+       else if(OperFlag==2) then
+            Turbine(i)%Is_force_based_operated = .true. 
+        else
+            write(*,*) "At the moment only the constant and the force_based rotational velocity models are supported"
+            stop
+        endif
 
-    !    !##################4 Get Unsteady Modelling Options ##################
-    !    if(have_option(trim(turbine_path(i))//"/Blades/added_mass")) then
-    !        do j=1,Turbine(i)%NBlades
-    !        Turbine(i)%Blade(j)%do_added_mass=.true.
-    !        end do
-    !    endif
+    !##################4 Get Unsteady Modelling Options ##################
+        if(AddedMassFlag==1) then
+            do j=1,Turbine(i)%NBlades
+            Turbine(i)%Blade(j)%do_added_mass=.true.
+            end do
+        endif
 
     !    if(have_option(trim(turbine_path(i))//"/Blades/dynamic_stall")) then
     !        do j=1,Turbine(i)%NBlades
@@ -235,11 +244,11 @@ contains
     !            endif 
     !        endif
     !    endif
-    !    end do
+        end do
 
     !    write(6,*) 'Exiting get_turbine_options'
 
-    !end subroutine get_turbine_options 
+    end subroutine get_turbine_options 
 
     !subroutine get_actuatorline_options
 
@@ -314,7 +323,7 @@ contains
     subroutine actuator_line_model_update(current_time,dt)
 
         implicit none
-        real, intent(inout) :: current_time, dt
+        real(mytype),intent(inout) :: current_time, dt
         integer :: i,j, Nstation
         real :: theta 
         ! This routine updates the location of the actuator lines

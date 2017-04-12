@@ -32,7 +32,7 @@
 !
 !********************************************************************
 !
-subroutine parameter()
+subroutine parameter(InputFN)
 !
 !********************************************************************
   
@@ -43,10 +43,18 @@ USE decomp_2d
 
 implicit none
 
+character(len=*),intent(in):: InputFN 
 real(mytype) :: re, theta, cfl,cf2 
 integer :: longueur ,impi,j
 character :: a*80
 
+! Have you heard of NAMELISTs ?
+NAMELIST/FlowParam/xlx,yly,zlz,re,sc,u1,u2,noise,noise1,dt
+NAMELIST/FlowConfig/nclx,ncly,nclz,itype,iin,ifirst,ilast,nscheme,istret, &
+    beta,iskew,iscalar
+NAMELIST/FileParam/ilit,isave,imodulo
+NAMELIST/IBMParam/ivirt,cex,cey,cez,ra
+NAMELIST/ALMParam/ialm,NTurbines,TurbinesPath
 #ifdef DOUBLE_PREC 
 pi=dacos(-1.d0) 
 #else
@@ -55,56 +63,14 @@ pi=acos(-1.)
 
 twopi=2.*pi
 
-1000 format(a,80x) 
-1003 format(a,80x)
-open(10,file='incompact3d.prm',status='unknown',form='formatted') 
-read (10,1000) a 
-read (10,1000) a 
-read (10,1000) a 
-read (10,*) xlx
-read (10,*) yly 
-read (10,*) zlz 
-read (10,*) re 
-read (10,*) sc
-read (10,*) u1 
-read (10,*) u2 
-read (10,*) noise 
-read (10,*) noise1
-read (10,*) dt
-read (10,1000) a 
-read (10,1000) a 
-read (10,1000) a 
-read (10,*) nclx 
-read (10,*) ncly 
-read (10,*) nclz 
-read (10,*) itype 
-read (10,*) iin
-read (10,*) ifirst
-read (10,*) ilast
-read (10,*) nscheme
-read (10,*) istret
-read (10,*) beta
-read (10,*) iskew
-read (10,*) iscalar
-read (10,1000) a 
-read (10,1000) a 
-read (10,1000) a 
-read (10,*) ilit 
-read (10,*) isave
-read (10,*) imodulo
-read (10,1000) a 
-read (10,1000) a 
-read (10,1000) a 
-read (10,*) ivirt
-read (10,*) cex 
-read (10,*) cey 
-read (10,*) cez 
-read (10,*) ra 
-read (10,1000) a 
-read (10,1000) a 
-read (10,1000) a 
-read (10,*) ialm
-read (10,1000) a 
+! We may need to set some default values in case the input file
+! does not include them
+open(10,file=InputFN) 
+read(10,nml=FlowParam)
+read(10,nml=FlowConfig)
+read(10,nml=FileParam)
+read(10,nml=IBMParam)
+read(10,nml=ALMParam)
 close(10) 
 if (nrank==0) then
 print *,'==========================================================='

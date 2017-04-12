@@ -217,7 +217,7 @@ contains
 
     character(20) function int2str(num)
       integer, intent(in)::num
-      character(2) :: str 
+      character(20) :: str 
       ! convert integer to string using formatted write
       write(str, '(i20)') num
       int2str = adjustl(str)

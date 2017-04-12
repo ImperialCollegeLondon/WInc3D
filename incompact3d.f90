@@ -52,6 +52,9 @@ implicit none
 integer :: code,nlock,i,j,k,ii,bcx,bcy,bcz,fh,ierror
 real(mytype) :: x,y,z,tmp1
 double precision :: t1,t2
+integer :: ErrFlag, nargin, FNLength, status, DecInd
+logical :: back
+character(len=80) :: InputFN, FNBase
 character(len=20) :: filename
 
 TYPE(DECOMP_INFO) :: phG,ph1,ph2,ph3,ph4
@@ -61,7 +64,24 @@ call decomp_2d_init(nx,ny,nz,p_row,p_col)
 !start from 1 == true
 call init_coarser_mesh_statS(nstat,nstat,nstat,.true.)
 call init_coarser_mesh_statV(nvisu,nvisu,nvisu,.true.)
-call parameter()
+
+!==========================================================================
+! Handle Input file
+nargin=command_argument_count()
+if (nargin <1) then
+    write(6,*) 'Please call the program with the name of the input file on the command line Ex. Incompact3d input.prm'
+    stop
+endif
+
+call get_command_argument(1,InputFN,FNLength,status)
+back=.true.
+FNBase=inputFN((index(InputFN,'/',back)+1):len(InputFN))
+DecInd=index(FNBase,'.',back)
+if (DecInd >1) then
+    FNBase=FNBase(1:(DecInd-1))
+end if
+!===========================================================================
+call parameter(InputFN)
 
 call init_variables
 
@@ -113,11 +133,13 @@ call decomp_info_init(nxm, ny, nz, ph2)
 call decomp_info_init(nxm, nym, nz, ph3) 
 
 !GD
-!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>.
+!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ! Initialize the Turbine Model
 if (ialm==1) then
-  call actuator_line_model_init('options.alm',dt)  
+  call actuator_line_model_init(Nturbines,TurbinesPath,dt)  
+  call initialize_actuator_source 
 endif
+!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 do itime=ifirst,ilast
    t=(itime-1)*dt
@@ -150,7 +172,9 @@ do itime=ifirst,ilast
       call pre_correc(ux1,uy1,uz1)
       
       if(ialm==1) then !>> GDeskos Turbine model
-      
+          ! First we need to ask for the velocities
+          
+          call actuator_line_model_update(t,dt)
       endif
 
       if (ivirt==1) then !solid body old school
@@ -204,7 +228,14 @@ do itime=ifirst,ilast
       !call VISU_PRE (pp3,ta1,tb1,di1,ta2,tb2,di2,&
       !     ta3,di3,nxmsize,nymsize,nzmsize,phG,ph2,ph3,uvisu) 
       call tecplot_write(ux1,uy1,uz1,phi1) 
+      if (ialm==1) then
+        if (nrank==0) then
+            call actuator_line_model_write_output(0) ! Write First time step
+        end if
+      endif
    endif
+   
+
       
 enddo
 
