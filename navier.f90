@@ -338,8 +338,8 @@ byx1=0.;byy1=0.;byz1=0.
 bzx1=0.;bzy1=0.;bzz1=0. 
 
 !ITYPE=1 --> Constant flow field
-!ITYPE=2 --> Channel flow
-!ITYPE=3 --> Wake flow
+!ITYPE=2 --> Laminar profile 1-y^2 
+!ITYPE=3 --> Turbulent profile 
 !ITYPE=4 --> Mixing layer with splitter plate
 !ITYPE=5 --> Channel flow
 !ITYPE=6 --> Taylor Green vortices

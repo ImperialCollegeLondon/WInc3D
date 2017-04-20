@@ -59,9 +59,9 @@ subroutine tecplot_write(ux1,uy1,uz1,phi1)
       write(2018,*) 'TITLE = "Simulation"'
       write(2018,*) 'Variables="X","Y","Z","ux","uy","uz"'
       write(2018,*) 'Zone I= ',nx, ', J=', ny, ', K =',nz,', F=POINT'
-      do k=1,nz
-        do j=1,ny
-            do i=1,nx
+      do k=1,xsize(3)
+        do j=1,xsize(2)
+            do i=1,xsize(1)
             write(2018,*) dx*i , dy*j, dz*k, ux1(i,j,k), uy1(i,j,k), uz1(i,j,k)
             enddo
         enddo

@@ -140,6 +140,8 @@ if (ialm==1) then
   call initialize_actuator_source 
 endif
 !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+write(*,*) xsize(1), xsize(2), xsize(3)
+stop
 
 do itime=ifirst,ilast
    t=(itime-1)*dt
@@ -172,8 +174,8 @@ do itime=ifirst,ilast
       call pre_correc(ux1,uy1,uz1)
       
       if(ialm==1) then !>> GDeskos Turbine model
-          ! First we need to ask for the velocities
-          
+          ! First we need to ask for the velocities    
+            
           call actuator_line_model_update(t,dt)
       endif
 

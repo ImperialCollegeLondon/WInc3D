@@ -254,12 +254,15 @@ tc1(:,:,:)=tc1(:,:,:)+tf1(:,:,:)
 !tg1(:,:,:)=tg1(:,:,:)-2./18.*uy1(:,:,:)
 !th1(:,:,:)=th1(:,:,:)-2./18.*ux1(:,:,:)
 
+if (ialm==1) then
+    if (nrank==1) print *, 'Adding the Turbine Forcing', itime
+    tg1(:,:,:)=tg1(:,:,:)-0.05 ! This adds a global forcing
+endif
 
-!FINAL SUM: DIFF TERMS + CONV TERMS
+! FINAL SUM: DIFF TERMS + CONV TERMS
 ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)
 tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)
 tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)
-
 
 end subroutine convdiff
 
@@ -400,5 +403,4 @@ if (nscheme==4) then
    endif
 endif
 
-
- end subroutine scalar
+end subroutine scalar

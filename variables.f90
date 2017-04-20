@@ -46,6 +46,9 @@ real(mytype), save, allocatable, dimension(:,:,:) :: gx1, gy1, gz1, hx1, hy1, hz
 real(mytype), save, allocatable, dimension(:,:,:) :: px1, py1, pz1
 real(mytype), save, allocatable, dimension(:,:,:) :: ep1
 
+! define the Momentum Source arrays for the three directions
+real(mytype), save, allocatable, dimension(:,:,:) :: FTx, FTy, FTz
+
 !arrays for statistic collection
 real(mytype), save, allocatable, dimension(:,:,:) :: umean,vmean,wmean,uumean,vvmean,wwmean,uvmean,uwmean,vwmean,tmean
 real(mytype), save, allocatable, dimension(:,:,:) :: phimean, phiphimean
@@ -129,6 +132,11 @@ contains
     allocate(dpdzy1(xsize(1),xsize(3)),dpdzyn(xsize(1),xsize(3)))
     allocate(dpdxz1(xsize(1),xsize(2)),dpdxzn(xsize(1),xsize(2)))
     allocate(dpdyz1(xsize(1),xsize(2)),dpdyzn(xsize(1),xsize(2)))
+
+!arrays for the turbine momentum source
+    allocate(FTx(xsize(1),xsize(2),xsize(3)))
+    allocate(FTy(xsize(1),xsize(2),xsize(3)))
+    allocate(FTz(xsize(1),xsize(2),xsize(3)))
 
 !arrays for statistic collection!pay attention to the size!
     allocate (umean(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))
