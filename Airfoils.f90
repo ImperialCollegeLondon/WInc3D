@@ -1,32 +1,33 @@
 module Airfoils 
 
+  use decomp_2d, only: mytype
   use actuator_line_model_utils
 
   implicit none
-  real, parameter :: conrad = pi / 180.0 
-  real, parameter :: condeg = 180.0 / pi  
+  real(mytype), parameter :: conrad = pi / 180.0 
+  real(mytype), parameter :: condeg = 180.0 / pi  
   
   type AirfoilType
   
   ! Naming and others
   character(len=100) :: afname, aftitle ! Title for each airfoil section 
   integer :: camb ! Camber flag for each section
-  real    :: tc      ! Thickness to chord ration for each section
-  real    :: alzer   ! Zero lift AOA for each section
+  real(mytype):: tc      ! Thickness to chord ration for each section
+  real(mytype):: alzer   ! Zero lift AOA for each section
   
   ! Airfoild section coefficient data
-  real, allocatable :: TA(:,:)   ! Table AOA values
-  real, allocatable :: TCL(:,:)  ! Table CL values
-  real, allocatable :: TCD(:,:)  ! Table CD values
-  real, allocatable :: TCM(:,:)  ! Table Cm values
-  real, allocatable :: TRE(:)    ! Table Reynolds Number values  
+  real(mytype), allocatable :: TA(:,:)   ! Table AOA values
+  real(mytype), allocatable :: TCL(:,:)  ! Table CL values
+  real(mytype), allocatable :: TCD(:,:)  ! Table CD values
+  real(mytype), allocatable :: TCM(:,:)  ! Table Cm values
+  real(mytype), allocatable :: TRE(:)    ! Table Reynolds Number values  
   integer, allocatable :: nTBL(:)   ! Number of AOA values for each Re number, in each section data table
   integer  :: nRET   ! Number of Re number values in each section data table
 
   ! Airfoil parameterss for Leishman-Beddoes Dynamic stall model
-  real, allocatable :: CLaData(:)
-  real, allocatable :: CLCritPData(:)
-  real, allocatable :: CLCritNData(:)
+  real(mytype), allocatable :: CLaData(:)
+  real(mytype), allocatable :: CLCritPData(:)
+  real(mytype), allocatable :: CLCritNData(:)
 
   end type AirfoilType
  
@@ -92,7 +93,7 @@ contains
     character(len=100) :: ReadLine
     logical :: NotDone, NotBlank
     integer :: EOF, CI, i, ii, jj
-    real :: temp, temp1(1000,4)
+    real(mytype) :: temp, temp1(1000,4)
 
 
     open(15, file = airfoil%afname)
@@ -283,10 +284,10 @@ contains
         !       
         ! GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG
         type(AirfoilType),intent(IN) :: airfoil
-        real,intent(IN) :: alpha, Re
-        real,intent(OUT) :: CN, CT, CM25, CL, CD
+        real(mytype),intent(IN) :: alpha, Re
+        real(mytype),intent(OUT) :: CN, CT, CM25, CL, CD
 
-        write(6,*) 'Entering compute_StaticLoads'
+        !write(6,*) 'Entering compute_StaticLoads'
 
         !========================================================
         ! Find Static Coefficients by interpolation Static Loads
@@ -298,7 +299,7 @@ contains
         CT=-CL*sin(alpha)+CD*cos(alpha) 
  
         return
-        write(6,*) 'Exiting compute_StaticLoads'
+        !write(6,*) 'Exiting compute_StaticLoads'
 
     end subroutine compute_StaticLoads
  
@@ -306,16 +307,16 @@ contains
         
         implicit none
 
-        real,intent(IN) :: RE, ALPHA
-        real,intent(OUT):: CL, CD, CM25
+        real(mytype),intent(IN) :: RE, ALPHA
+        real(mytype),intent(OUT):: CL, CD, CM25
         integer :: i,j               
-        real :: XRE, XA 
-        real,dimension(2) :: CLA,CDA,CM25A                                      
+        real(mytype) :: XRE, XA 
+        real(mytype),dimension(2) :: CLA,CDA,CM25A                                      
         type(AirfoilType),intent(IN) :: airfoil 
         integer :: U1, X1, iUB, iLB, NTB, L1
         logical :: NotDone                                               
         
-        write(6,*) 'Entering intp subroutine'
+        !write(6,*) 'Entering intp subroutine'
     ! INTERPOLATE ON RE NO. AND ANGLE OF ATTACK TO GET AIRFOIL CHARACTERISTICS                                            
         CLA(:)=0.0                                                        
         CDA(:)=0.0  
@@ -339,8 +340,8 @@ contains
                         NotDone=.false.                                                       
                         iLB=iUB                                                           
                         XRE=0.0                                                           
-write(6,*) 'Warning : The upper Reynolds number available data was exceeded. Calculate CD,CL,CM with : Re = ', airfoil%TRE(iUB)
-                    exit
+!write(6,*) 'Warning : The upper Reynolds number available data was exceeded. Calculate CD,CL,CM with : Re = ', airfoil%TRE(iUB)
+                    exit 
                     else    
                         ! No upper bound, increment and continue                                
                         iUB=iUB+1
@@ -353,7 +354,7 @@ write(6,*) 'Warning : The upper Reynolds number available data was exceeded. Cal
             iUB=1                                                             
             XRE=0.0                                                                                               
             !airfoil%ILXTP=1
-    write(6,*) 'Warning : The lower Reynolds number available data was exceeded. Calculate CD,CL,CM with : Re = ', airfoil%TRE(iLB)
+    !write(6,*) 'Warning : The lower Reynolds number available data was exceeded. Calculate CD,CL,CM with : Re = ', airfoil%TRE(iLB)
         end if
         ! INTERPOLATE ON THE ANGLE OF ATTACK                               
         I=1                                                               
@@ -391,16 +392,16 @@ write(6,*) 'Warning : The upper Reynolds number available data was exceeded. Cal
         CD=CDA(1)+XRE*(CDA(2)-CDA(1))  
         CM25=CM25A(1)+XRE*(CM25A(2)-CM25A(1))
 
-        write(6,*) 'Exiting intp subroutine'
+        !write(6,*) 'Exiting intp subroutine'
     END SUBROUTINE EvalStaticCoeff
 
     Subroutine EvalStaticStallParams(airfoil,Re,CLCritP,CLCritN,CLAlpha)
 
         implicit none
         type(AirfoilType),intent(IN) :: airfoil
-        real,intent(in) :: Re
-        real, intent(out) :: CLcritP, CLcritN, CLAlpha
-        real :: XRE
+        real(mytype),intent(in) :: Re
+        real(mytype), intent(out) :: CLcritP, CLcritN, CLAlpha
+        real(mytype) :: XRE
         integer :: iUB, iLB
         logical :: NotDone 
 

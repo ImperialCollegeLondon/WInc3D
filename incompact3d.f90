@@ -140,14 +140,18 @@ if (ialm==1) then
   call initialize_actuator_source 
 endif
 !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-write(*,*) xsize(1), xsize(2), xsize(3)
-stop
 
 do itime=ifirst,ilast
    t=(itime-1)*dt
    if (nrank==0) then
       write(*,1001) itime,t
 1001  format('Time step =',i7,', Time unit =',F9.3)
+   endif
+      
+   if(ialm==1) then !>> GDeskos Turbine model
+      ! First we need to ask for the velocities    
+      call Compute_Momentum_Source_Term_pointwise(1,xsize(1),1,xsize(2),1,xsize(3))            
+      call actuator_line_model_update(t,dt)
    endif
    
    do itr=1,iadvance_time
@@ -173,12 +177,6 @@ do itime=ifirst,ilast
 
       call pre_correc(ux1,uy1,uz1)
       
-      if(ialm==1) then !>> GDeskos Turbine model
-          ! First we need to ask for the velocities    
-            
-          call actuator_line_model_update(t,dt)
-      endif
-
       if (ivirt==1) then !solid body old school
          !we are in X-pencil
          call corgp_IBM(ux1,uy1,uz1,px1,py1,pz1,1)
@@ -224,11 +222,11 @@ do itime=ifirst,ilast
         px1,py1,pz1,phis1,hx1,hy1,hz1,phiss1,phG,1)
      
    if (mod(itime,imodulo)==0) then
-      !call VISU_INSTA(ux1,uy1,uz1,phi1,ta1,tb1,tc1,td1,te1,tf1,tg1,th1,ti1,di1,&
-      !     ta2,tb2,tc2,td2,te2,tf2,tg2,th2,ti2,tj2,di2,&
-      !     ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3,phG,uvisu)
-      !call VISU_PRE (pp3,ta1,tb1,di1,ta2,tb2,di2,&
-      !     ta3,di3,nxmsize,nymsize,nzmsize,phG,ph2,ph3,uvisu) 
+      call VISU_INSTA(ux1,uy1,uz1,phi1,ta1,tb1,tc1,td1,te1,tf1,tg1,th1,ti1,di1,&
+           ta2,tb2,tc2,td2,te2,tf2,tg2,th2,ti2,tj2,di2,&
+           ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3,phG,uvisu)
+      call VISU_PRE (pp3,ta1,tb1,di1,ta2,tb2,di2,&
+           ta3,di3,nxmsize,nymsize,nzmsize,phG,ph2,ph3,uvisu) 
       call tecplot_write(ux1,uy1,uz1,phi1) 
       if (ialm==1) then
         if (nrank==0) then

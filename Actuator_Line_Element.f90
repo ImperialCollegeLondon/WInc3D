@@ -1,5 +1,6 @@
 module actuator_line_element
-    
+
+    use decomp_2d, only: mytype
     use actuator_line_model_utils 
     use airfoils
     use dynstall_legacy
@@ -11,85 +12,85 @@ type ActuatorLineType
 
     ! Station parameters
     logical :: FlipN =.false.           ! Flip Normal
-    real, allocatable :: QCx(:)         ! Blade quarter-chord line x coordinates at element ends
-    real, allocatable :: QCy(:)         ! Blade quarter-chord line y coordinates at element ends
-    real, allocatable :: QCz(:)         ! Blade quarter-chord line z coordinates at element ends
-    real, allocatable :: tx(:)          ! Blade unit tangent vector (rearward chord line direction) x-comp at element ends
-    real, allocatable :: ty(:)          ! Blade unit tangent vector (rearward chord line direction) y-comp at element ends 
-    real, allocatable :: tz(:)          ! Blade unit tangent vector (rearward chord line direction) z-comp at element ends  
-    real, allocatable :: C(:)           ! Blade chord length at element ends
-    real, allocatable :: thick(:)       ! Blade thickness at element ends
-    real, allocatable :: pitch(:)       ! Blade station pitch at element ends
+    real(mytype), allocatable :: QCx(:)         ! Blade quarter-chord line x coordinates at element ends
+    real(mytype), allocatable :: QCy(:)         ! Blade quarter-chord line y coordinates at element ends
+    real(mytype), allocatable :: QCz(:)         ! Blade quarter-chord line z coordinates at element ends
+    real(mytype), allocatable :: tx(:)          ! Blade unit tangent vector (rearward chord line direction) x-comp at element ends
+    real(mytype), allocatable :: ty(:)          ! Blade unit tangent vector (rearward chord line direction) y-comp at element ends 
+    real(mytype), allocatable :: tz(:)          ! Blade unit tangent vector (rearward chord line direction) z-comp at element ends  
+    real(mytype), allocatable :: C(:)           ! Blade chord length at element ends
+    real(mytype), allocatable :: thick(:)       ! Blade thickness at element ends
+    real(mytype), allocatable :: pitch(:)       ! Blade station pitch at element ends
 
     ! Element parameters 
-    real, allocatable :: PEx(:)         ! Element centre x coordinates
-    real, allocatable :: PEy(:)         ! Element centre y coordinates
-    real, allocatable :: PEz(:)         ! Element centre z coordinates
-    real, allocatable :: tEx(:)         ! Element unit tangent vector (rearward chord line direction) x-component
-    real, allocatable :: tEy(:)         ! Element unit tangent vector (rearward chord line direction) y-component
-    real, allocatable :: tEz(:)         ! Element unit tangent vector (rearward chord line direction) z-component
-    real, allocatable :: nEx(:)         ! Element unit normal vector x-component
-    real, allocatable :: nEy(:)         ! Element unit normal vector y-component
-    real, allocatable :: nEz(:)         ! Element unit normal vector z-component
-    real, allocatable :: sEx(:)         ! Element unit spanwise vector x-component 
-    real, allocatable :: sEy(:)         ! Element unit spanwise vector y-component
-    real, allocatable :: sEz(:)         ! Element unit spanwise vector z-component
-    real, allocatable :: EC(:)          ! Element chord lenght
-    real, allocatable :: EDS(:)         ! Element spanwise distance (length)
-    real, allocatable :: EArea(:)       ! Element Area
-    real, allocatable :: Eepsilon(:)    ! Element Force Projection Parameter
-    real, allocatable :: ERdist(:)      ! Element Distance from the origin 
-    real, allocatable :: ETtoC(:)       ! Element thickness to Chord ratio
+    real(mytype), allocatable :: PEx(:)         ! Element centre x coordinates
+    real(mytype), allocatable :: PEy(:)         ! Element centre y coordinates
+    real(mytype), allocatable :: PEz(:)         ! Element centre z coordinates
+    real(mytype), allocatable :: tEx(:)         ! Element unit tangent vector (rearward chord line direction) x-component
+    real(mytype), allocatable :: tEy(:)         ! Element unit tangent vector (rearward chord line direction) y-component
+    real(mytype), allocatable :: tEz(:)         ! Element unit tangent vector (rearward chord line direction) z-component
+    real(mytype), allocatable :: nEx(:)         ! Element unit normal vector x-component
+    real(mytype), allocatable :: nEy(:)         ! Element unit normal vector y-component
+    real(mytype), allocatable :: nEz(:)         ! Element unit normal vector z-component
+    real(mytype), allocatable :: sEx(:)         ! Element unit spanwise vector x-component 
+    real(mytype), allocatable :: sEy(:)         ! Element unit spanwise vector y-component
+    real(mytype), allocatable :: sEz(:)         ! Element unit spanwise vector z-component
+    real(mytype), allocatable :: EC(:)          ! Element chord lenght
+    real(mytype), allocatable :: EDS(:)         ! Element spanwise distance (length)
+    real(mytype), allocatable :: EArea(:)       ! Element Area
+    real(mytype), allocatable :: Eepsilon(:)    ! Element Force Projection Parameter
+    real(mytype), allocatable :: ERdist(:)      ! Element Distance from the origin 
+    real(mytype), allocatable :: ETtoC(:)       ! Element thickness to Chord ratio
     
     ! Angle of Attack, Pitch, local Reynolds number and relative velocity
-    real, allocatable :: Epitch(:)      ! Element pitch angle
-    real, allocatable :: EAOA(:)        ! Element Current angle of Attack (used in added mass terms)
-    real, allocatable :: EAOAdot(:)     ! Element AOA rate of change
-    real, allocatable :: EUn(:)         ! Element Current normal velocity (used in added mass terms)
-    real, allocatable :: EUndot(:)         ! Element Current normal velocity (used in added mass terms)
-    real, allocatable :: EAOA_LAST(:)   ! Element Last angle of Attack (used in added mass terms)
-    real, allocatable :: EUn_LAST(:)    ! Element Last normal velocity (used in added mass terms)
-    real, allocatable :: ERe(:)         ! Element local Reynolds number
-    real, allocatable :: EUr(:)         ! Element local Reynolds number
+    real(mytype), allocatable :: Epitch(:)      ! Element pitch angle
+    real(mytype), allocatable :: EAOA(:)        ! Element Current angle of Attack (used in added mass terms)
+    real(mytype), allocatable :: EAOAdot(:)     ! Element AOA rate of change
+    real(mytype), allocatable :: EUn(:)         ! Element Current normal velocity (used in added mass terms)
+    real(mytype), allocatable :: EUndot(:)         ! Element Current normal velocity (used in added mass terms)
+    real(mytype), allocatable :: EAOA_LAST(:)   ! Element Last angle of Attack (used in added mass terms)
+    real(mytype), allocatable :: EUn_LAST(:)    ! Element Last normal velocity (used in added mass terms)
+    real(mytype), allocatable :: ERe(:)         ! Element local Reynolds number
+    real(mytype), allocatable :: EUr(:)         ! Element local Reynolds number
     
     ! Velocity of the Fluid at the actuator Line Locations
-    real, allocatable :: EVx(:)         ! Element Local fluid Velocity in the global x-direction
-    real, allocatable :: EVy(:)         ! Element Local fluid Velocity in the global y-direction
-    real, allocatable :: EVz(:)         ! Element Local fluid Velocity in the global z-direction
+    real(mytype), allocatable :: EVx(:)         ! Element Local fluid Velocity in the global x-direction
+    real(mytype), allocatable :: EVy(:)         ! Element Local fluid Velocity in the global y-direction
+    real(mytype), allocatable :: EVz(:)         ! Element Local fluid Velocity in the global z-direction
      
     ! Body Velocity of the Actuator Line 
-    real, allocatable :: EVbx(:)        ! Element Local body Velocity in the global x-direction
-    real, allocatable :: EVby(:)       ! Element Local body Velocity in the global y-direction
-    real, allocatable :: EVbz(:)        ! Element Local body Velocity in the global z-direction
-    real, allocatable :: EObx(:)        ! Element Local body angular Velocity in the global x-direction
-    real, allocatable :: EOby(:)       ! Element Local body angular Velocity in the global y-direction
-    real, allocatable :: EObz(:)        ! Element Local body angular Velocity in the global z-direction
+    real(mytype), allocatable :: EVbx(:)        ! Element Local body Velocity in the global x-direction
+    real(mytype), allocatable :: EVby(:)       ! Element Local body Velocity in the global y-direction
+    real(mytype), allocatable :: EVbz(:)        ! Element Local body Velocity in the global z-direction
+    real(mytype), allocatable :: EObx(:)        ! Element Local body angular Velocity in the global x-direction
+    real(mytype), allocatable :: EOby(:)       ! Element Local body angular Velocity in the global y-direction
+    real(mytype), allocatable :: EObz(:)        ! Element Local body angular Velocity in the global z-direction
     
     ! Element Forces CD, CL CM25 
-    real, allocatable :: ECD(:)         ! Element Drag Coefficient
-    real, allocatable :: ECL(:)         ! Element Lift Coefficient 
-    real, allocatable :: ECLcirc(:)     ! Element Circulation Lift Coefficient
-    real, allocatable :: ECM(:)         ! Element Moment Coefficient
-    real, allocatable :: ECN(:)         ! Element Normal Force Coefficient
-    real, allocatable :: ECT(:)         ! Element Tangential Force Coefficient 
+    real(mytype), allocatable :: ECD(:)         ! Element Drag Coefficient
+    real(mytype), allocatable :: ECL(:)         ! Element Lift Coefficient 
+    real(mytype), allocatable :: ECLcirc(:)     ! Element Circulation Lift Coefficient
+    real(mytype), allocatable :: ECM(:)         ! Element Moment Coefficient
+    real(mytype), allocatable :: ECN(:)         ! Element Normal Force Coefficient
+    real(mytype), allocatable :: ECT(:)         ! Element Tangential Force Coefficient 
     
     ! Element Circulation Gamma 
-    real, allocatable :: EGamma(:)     ! Element Circulation (Gamma)
+    real(mytype), allocatable :: EGamma(:)     ! Element Circulation (Gamma)
     
     ! Element Forces in the nts direction
-    real, allocatable :: EFn(:)         ! Element Force in the normal direction
-    real, allocatable :: EFt(:)         ! Element Force in the tangential direction (rearward chord line direction) 
-    real, allocatable :: EMS(:)         ! Element Moment 
+    real(mytype), allocatable :: EFn(:)         ! Element Force in the normal direction
+    real(mytype), allocatable :: EFt(:)         ! Element Force in the tangential direction (rearward chord line direction) 
+    real(mytype), allocatable :: EMS(:)         ! Element Moment 
 
     ! Element Forces and Torque in the xyz direction
-    real, allocatable :: EFx(:)         ! Element Force in the global x-direction
-    real, allocatable :: EFy(:)         ! Element Force in the global y-direction
-    real, allocatable :: EFz(:)         ! Element Force in the global z-direction
+    real(mytype), allocatable :: EFx(:)         ! Element Force in the global x-direction
+    real(mytype), allocatable :: EFy(:)         ! Element Force in the global y-direction
+    real(mytype), allocatable :: EFz(:)         ! Element Force in the global z-direction
 
     ! Influence Matrix for rbf interpolations
-    real, allocatable ::A_rbf(:,:)     
+    real(mytype), allocatable ::A_rbf(:,:)     
 
-    real, allocatable :: EEndeffects_factor(:) ! End effects factor for the blade (initialize as one)
+    real(mytype), allocatable :: EEndeffects_factor(:) ! End effects factor for the blade (initialize as one)
 
     ! Element Airfoil Data
     type(AirfoilType), allocatable :: EAirfoil(:) ! Element Airfoil 
@@ -98,16 +99,16 @@ type ActuatorLineType
     type(LB_Type), allocatable :: E_LB_Model(:)   ! Element Leishman-Beddoes Model
     
     ! Forces and Torques on the ActuatorLine 
-    real :: Fx     ! Element Force in the global x-direction
-    real :: Fy     ! Element Force in the global y-direction
-    real :: Fz     ! Element Force in the global z-direction
+    real(mytype) :: Fx     ! Element Force in the global x-direction
+    real(mytype) :: Fy     ! Element Force in the global y-direction
+    real(mytype) :: Fz     ! Element Force in the global z-direction
 
-    real :: Area   ! Effective Airfoil Area
-    real :: L 
+    real(mytype) :: Area   ! Effective Airfoil Area
+    real(mytype) :: L 
     ! Degrees of Freedom
     
-    real :: COR(3)       ! Center of Rotation
-    real :: SpanWise(3)   ! Point of Rotation
+    real(mytype) :: COR(3)       ! Center of Rotation
+    real(mytype) :: SpanWise(3)   ! Point of Rotation
    
     ! Unsteady Loading
     logical :: do_added_mass=.false.
@@ -116,13 +117,13 @@ type ActuatorLineType
 
     ! Blade/Actuator_line Pitch
     logical :: pitch_control=.false.
-    real    :: pitch_start_time
-    real    :: pitch_end_time
+    real(mytype)    :: pitch_start_time
+    real(mytype)    :: pitch_end_time
 
     ! Harmonic Pitch control parameters
-    real    :: angular_pitch_freq
-    real    :: pitch_angle_init
-    real    :: pitchAmp
+    real(mytype)    :: angular_pitch_freq
+    real(mytype)    :: pitch_angle_init
+    real(mytype)    :: pitchAmp
 
 end type ActuatorLineType
 
@@ -132,8 +133,8 @@ end type ActuatorLineType
 
     implicit none
     type(ActuatorLineType),intent(inout) :: actuatorline
-    real, allocatable :: rR(:),ctoR(:),pitch(:),thick(:)
-    real :: SVec(3), length 
+    real(mytype), allocatable :: rR(:),ctoR(:),pitch(:),thick(:)
+    real(mytype) :: SVec(3), length 
     integer :: Nstations, Istation, ielem
 
 
@@ -202,13 +203,13 @@ end type ActuatorLineType
        
     implicit none
     type(ActuatorLineType),intent(inout) :: act_line
-    real,intent(in) ::visc,dt,time
-    real :: wRotX,wRotY,wRotZ,ub,vb,wb,u,v,w
-    real :: xe,ye,ze,nxe,nye,nze,txe,tye,tze,sxe,sye,sze,ElemArea,ElemChord
-    real :: urdn,urdc,ur,alpha,ds
-    real :: CL,CD,CN,CT,CM25,MS,FN,FT,FX,Fy,Fz
-    real :: dal,dUn
-    real :: CLdyn,CDdyn,CNAM,CTAM,CMAM
+    real(mytype),intent(in) ::visc,dt,time
+    real(mytype) :: wRotX,wRotY,wRotZ,ub,vb,wb,u,v,w
+    real(mytype) :: xe,ye,ze,nxe,nye,nze,txe,tye,tze,sxe,sye,sze,ElemArea,ElemChord
+    real(mytype) :: urdn,urdc,ur,alpha,ds
+    real(mytype) :: CL,CD,CN,CT,CM25,MS,FN,FT,FX,Fy,Fz
+    real(mytype) :: dal,dUn
+    real(mytype) :: CLdyn,CDdyn,CNAM,CTAM,CMAM
     integer :: ielem
   
      
@@ -258,7 +259,7 @@ end type ActuatorLineType
     act_line%EAOA(ielem)=alpha
     act_line%EUn(ielem)=urdn 
     
-    if(act_line%EAOA_Last(ielem)<-665) then
+    if(act_line%EAOA_Last(ielem)<-665.0) then
     dal=0.0
     dUn=0.0
     else
@@ -271,11 +272,13 @@ end type ActuatorLineType
     !====================================
     ! Correct for flow curvature
     !====================================
+
          
     !====================================
     ! Compute the Aerofoil Coefficients
     !====================================
     call compute_StaticLoads(act_line%EAirfoil(ielem),alpha,act_line%ERe(ielem),CN,CT,CM25,CL,CD)  
+ 
 
     !===============================================
     ! Correct for dynamic stall 
@@ -284,7 +287,7 @@ end type ActuatorLineType
     call LB_DynStall(act_line%EAirfoil(ielem),act_line%E_LB_Model(ielem),CL,CD,alpha,alpha,act_line%ERe(ielem),CLdyn,CDdyn) 
     CL=CLdyn
     CD=CDdyn
-    ds=2*ur*dt/ElemChord
+    ds=2.0*ur*dt/ElemChord
     call LB_UpdateStates(act_line%E_LB_Model(ielem),act_line%EAirfoil(ielem),act_line%ERE(ielem),ds)
     end if
     
@@ -360,11 +363,11 @@ end type ActuatorLineType
     subroutine compute_Tower_Forces(tower,visc,time,CL,CD,Str)
         implicit none
         type(ActuatorLineType),intent(inout) :: tower
-        real,intent(in) ::visc, time, CL, CD, Str
-        real :: rand(3000)
-        real :: xe,ye,ze,nxe,nye,nze,txe,tye,tze,sxe,sye,sze,ElemArea
-        real :: u,v,w,ub,vb,wb,urdn,urdc,ur,Diameter,freq,alpha
-        real :: CN,CT,FN,FT,FX,Fy,Fz
+        real(mytype),intent(in) ::visc, time, CL, CD, Str
+        real(mytype) :: rand(3000)
+        real(mytype) :: xe,ye,ze,nxe,nye,nze,txe,tye,tze,sxe,sye,sze,ElemArea
+        real(mytype) :: u,v,w,ub,vb,wb,urdn,urdc,ur,Diameter,freq,alpha
+        real(mytype) :: CN,CT,FN,FT,FX,Fy,Fz
         integer :: ielem
     
         call random_number(rand)
@@ -440,8 +443,8 @@ end type ActuatorLineType
 
     implicit none
     type(ActuatorLineType),intent(INOUT) :: act_line
-    real :: pitch_angle !Pitch in degrees
-    real :: R(3,3), t(3,1)
+    real(mytype) :: pitch_angle !Pitch in degrees
+    real(mytype) :: R(3,3), t(3,1)
     integer :: istation, Nstation
     
     !> Change the pitch angle by changing n,t and s unit vectors
@@ -451,7 +454,7 @@ end type ActuatorLineType
 
     pitch_angle=act_line%pitch(istation)
     !> Define the Pitch Rotation Matrix
-    R=reshape((/cos(pitch_angle*pi/180.0),0.0,-sin(pitch_angle*pi/180.0),0.0,1.0,0.0,sin(pitch_angle*pi/180.0),0.0,cos(pitch_angle*pi/180.0)/),(/3,3/))
+    R=reshape((/cos(pitch_angle*pi/180.0),0.0d0,-sin(pitch_angle*pi/180.0),0.0d0,1.0d0,0.0d0,sin(pitch_angle*pi/180.0),0.0d0,cos(pitch_angle*pi/180.0)/),(/3,3/))
     t(1,1)=act_line%tx(istation)
     t(2,1)=act_line%ty(istation)
     t(3,1)=act_line%tz(istation)     
@@ -476,8 +479,8 @@ end type ActuatorLineType
     integer,intent(IN) :: NElem,NData
     type(AirfoilType),dimension(NElem) :: EAirfoil
     type(AirfoilType),dimension(NData):: AirfoilData
-    real,dimension(NElem),intent(in) ::  ETtoC
-    real,dimension(NData) ::  Thicks, diffthicks
+    real(mytype),dimension(NElem),intent(in) ::  ETtoC
+    real(mytype),dimension(NData) ::  Thicks, diffthicks
     integer :: ielem,idata,imin,imax,iint
 
     ! We need to interpolate from two or more 
@@ -517,11 +520,11 @@ end type ActuatorLineType
 
     implicit none
     type(ActuatorLineType),intent(inout) :: actuatorline
-    real,intent(in) :: origin(3), rotN(3)
-    real :: theta,nrx,nry,nrz,px,py,pz 
+    real(mytype),intent(in) :: origin(3), rotN(3)
+    real(mytype) :: theta,nrx,nry,nrz,px,py,pz 
     integer :: ielem
-    real :: vrx,vry,vrz,VMag
-    real :: xtmp,ytmp,ztmp, txtmp, tytmp, tztmp
+    real(mytype) :: vrx,vry,vrz,VMag
+    real(mytype) :: xtmp,ytmp,ztmp, txtmp, tytmp, tztmp
     ! Rotates data in blade arrays. Rotate element end geometry and recalculate element geometry.
 
         
@@ -552,7 +555,7 @@ end type ActuatorLineType
         tztmp=actuatorline%tz(ielem)
     
     ! Tangent vectors
-        Call QuatRot(txtmp,tytmp,tztmp,theta,nrx,nry,nrz,0.0,0.0,0.0,vrx,vry,vrz)
+        Call QuatRot(txtmp,tytmp,tztmp,theta,nrx,nry,nrz,0.0d0,0.0d0,0.0d0,vrx,vry,vrz)
         VMag=sqrt(vrx**2+vry**2+vrz**2)
         actuatorline%tx(ielem)=vrx/VMag                                      
         actuatorline%ty(ielem)=vry/VMag                                  
@@ -567,9 +570,9 @@ end type ActuatorLineType
     
     implicit none
     character(len=100),intent(in)  :: FN ! FileName of the geometry file
-    real,dimension(3) :: SpanwiseVec
-    real, allocatable,intent(out) :: rR(:),ctoR(:),pitch(:),thick(:)  
-    real, intent(out) :: Rmax  
+    real(mytype),dimension(3) :: SpanwiseVec
+    real(mytype), allocatable,intent(out) :: rR(:),ctoR(:),pitch(:),thick(:)  
+    real(mytype), intent(out) :: Rmax  
     integer, intent(out) :: Nstations
     integer :: i
     character(1000) :: ReadLine
@@ -607,8 +610,8 @@ end type ActuatorLineType
 
     type(ActuatorLineType),intent(INOUT) :: blade ! For simplity I leave it as blade. In fact this is an actuator line 
     integer :: nbe, nej, j
-    real :: sEM, tEM, nEM 
-    real :: sE(3), tE(3), normE(3), P1(3), P2(3), P3(3), P4(3), V1(3), V2(3), V3(3), V4(3), A1(3), A2(3)
+    real(mytype) :: sEM, tEM, nEM 
+    real(mytype) :: sE(3), tE(3), normE(3), P1(3), P2(3), P3(3), P4(3), V1(3), V2(3), V3(3), V4(3), A1(3), A2(3)
 
     ! Calculates element geometry from element end geometry
     nbe=blade%NElem

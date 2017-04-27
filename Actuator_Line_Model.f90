@@ -14,7 +14,7 @@ module actuator_line_model
     type(ActuatorLineType), allocatable, save :: Actuatorline(:)
     type(TurbineType), allocatable, save :: Turbine(:) ! Turbine 
     integer,save :: Ntur, Nal ! Number of the turbines 
-    real :: DeltaT, Visc, ctime
+    real(mytype),save :: DeltaT, Visc, ctime
     logical,save :: actuator_line_model_writeFlag=.true.
 
     public :: actuator_line_model_init, actuator_line_model_write_output, &
@@ -170,7 +170,7 @@ contains
     ! Check the typ of Turbine (choose between Horizontal and Vertical Axis turbines) 
     if(TypeFlag==1) then
             Turbine(i)%Type='Horizontal_Axis'
-            Turbine(i)%RotN=(/1.0,0.0,0.0/)   
+            Turbine(i)%RotN=[1.0d0,0.0d0,0.0d0]   
     !        call get_option(trim(turbine_path(i))//"/type/Horizontal_Axis/hub_tilt_angle",Turbine(i)%hub_tilt_angle) 
     !        call get_option(trim(turbine_path(i))//"/type/Horizontal_Axis/blade_cone_angle",Turbine(i)%blade_cone_angle)
     !        call get_option(trim(turbine_path(i))//"/type/Horizontal_Axis/yaw_angle",Turbine(i)%yaw_angle)
@@ -325,7 +325,7 @@ contains
         implicit none
         real(mytype),intent(inout) :: current_time, dt
         integer :: i,j, Nstation
-        real :: theta 
+        real(mytype) :: theta 
         ! This routine updates the location of the actuator lines
 
         ctime=current_time

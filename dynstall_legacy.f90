@@ -9,24 +9,24 @@ module dynstall_legacy
     
     logical :: StallFlag = .false.
    
-    real :: dp
-    real :: dF
-    real :: dCNv
-    real :: sLEv
+    real(mytype) :: dp
+    real(mytype) :: dF
+    real(mytype) :: dCNv
+    real(mytype) :: sLEv
     integer :: LESepState
-    real :: CLRef 
-    real :: CLRefLE
-    real :: CLCritP
-    real :: CLCritN
+    real(mytype) :: CLRef 
+    real(mytype) :: CLRefLE
+    real(mytype) :: CLCritP
+    real(mytype) :: CLCritN
     integer :: CLRateFlag
-    real :: Fstat
-    real :: F
-    real :: cv
-    real :: dcv
-    real :: CLRef_Last
-    real :: CLRefLE_Last
-    real :: Fstat_Last
-    real :: cv_Last
+    real(mytype) :: Fstat
+    real(mytype) :: F
+    real(mytype) :: cv
+    real(mytype) :: dcv
+    real(mytype) :: CLRef_Last
+    real(mytype) :: CLRefLE_Last
+    real(mytype) :: Fstat_Last
+    real(mytype) :: cv_Last
 
     ! Additional LB diagnostic output
     integer, dimension(9) :: LB_LogicOutputs
@@ -65,10 +65,10 @@ module dynstall_legacy
     ! RefFlag defines whether to output reference CL or ideal CL
     ! CLa is reference lift slope (per radian) to be used for reference CL (ideal CLa is 2*pi)
     implicit none
-    real :: AOA, AOA0, CLa
+    real(mytype) :: AOA, AOA0, CLa
     integer :: RefFlag
-    real :: CLID
-    real :: IDS, aID, d1, CLaI, aIDc
+    real(mytype) :: CLID
+    real(mytype) :: IDS, aID, d1, CLaI, aIDc
 
     aID=AOA-AOA0
     call Force180(aID)
@@ -103,7 +103,7 @@ module dynstall_legacy
     
         implicit none
 
-        real :: a
+        real(mytype) :: a
         ! alpha in radians
         if (a>pi) then
             a=a-2.0*pi
@@ -118,9 +118,9 @@ module dynstall_legacy
 
         type(LB_Type),intent(inout) :: lb
         type(AirfoilType),intent(in) :: airfoil
-        real, intent(in) :: Re, ds
+        real(mytype), intent(in) :: Re, ds
         integer :: i, nei, j, IsBE
-        real :: Tf,TfRef,Tp,TvRef, Tv, TvL
+        real(mytype) :: Tf,TfRef,Tp,TvRef, Tv, TvL
 
         ! Set model parameters. All of these are potentially a function of Mach
         ! and are set to low mach values...
@@ -269,9 +269,9 @@ subroutine LB_DynStall(airfoil,lb,CLstat,CDstat,alphaL,alpha5,Re,CL,CD)
     implicit none
     type(AirfoilType) :: airfoil       ! Airfoil structure
     type(LB_Type) :: lb                ! Leishmann-Beddoes model structure
-    real :: CLstat, CDstat, alphaL, alpha5, Re, CL, CD
-    real :: AOA0, CLID, Trans, dCLRefLE, dAOARefLE, AOARefLE, CLstatF, C, C1, CLIDF 
-    real :: CLRatio, CLsep, CLF, dCDF, KD, CLa, NOF, dCLv, dCDv, acut, CLCritP, CLCritN
+    real(mytype) :: CLstat, CDstat, alphaL, alpha5, Re, CL, CD
+    real(mytype) :: AOA0, CLID, Trans, dCLRefLE, dAOARefLE, AOARefLE, CLstatF, C, C1, CLIDF 
+    real(mytype) :: CLRatio, CLsep, CLF, dCDF, KD, CLa, NOF, dCLv, dCDv, acut, CLCritP, CLCritN
 
     ! Airfoil data
     AOA0=airfoil%alzer
@@ -351,7 +351,7 @@ subroutine LB_DynStall(airfoil,lb,CLstat,CDstat,alphaL,alpha5,Re,CL,CD)
         lb%LB_LogicOutputs(3)=2
     end if
     CLF=CLsep+CLID*0.25*(lb%F+2.0*sqrt(lb%F))
-    dCDF=KD*(CLstat-CLF)*sign(1.0,CLstat)
+    dCDF=KD*(CLstat-CLF)*sign(1.0d0,CLstat)
 
     ! LE vortex lift component, dCNv is a lagged change in the added normal force due
     ! to LE vortex shedding. Assumed to affect lift coeff as an added circulation...
@@ -364,7 +364,7 @@ subroutine LB_DynStall(airfoil,lb,CLstat,CDstat,alphaL,alpha5,Re,CL,CD)
     ! If the sign of dcv is opposite the reference LE CL, set to zero to disallow negative vorticity from shedding from the leading edge. Also, limit the model 
     ! at AOA>acut or if the magnitude of the reference CL is decreasing...
     acut=50.0*conrad
-    if (sign(1.0,lb%dcv*lb%CLRefLE)<0 .OR. abs(alphaL-AOA0)>acut .OR. lb%CLRateFlag<0) then
+    if (sign(1.0d0,lb%dcv*lb%CLRefLE)<0 .OR. abs(alphaL-AOA0)>acut .OR. lb%CLRateFlag<0) then
         lb%dcv=0.0
 
         ! Test logic

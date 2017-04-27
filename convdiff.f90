@@ -38,6 +38,7 @@ subroutine convdiff(ux1,uy1,uz1,ta1,tb1,tc1,td1,te1,tf1,tg1,th1,ti1,di1,&
 ! 
 !********************************************************************
 USE param
+USE var, only: FTx, FTy, FTz 
 USE variables
 USE decomp_2d
 
@@ -256,13 +257,12 @@ tc1(:,:,:)=tc1(:,:,:)+tf1(:,:,:)
 
 if (ialm==1) then
     if (nrank==1) print *, 'Adding the Turbine Forcing', itime
-    tg1(:,:,:)=tg1(:,:,:)-0.05 ! This adds a global forcing
 endif
 
 ! FINAL SUM: DIFF TERMS + CONV TERMS
-ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)
-tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)
-tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)
+ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)+FTx(:,:,:)
+tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)+FTy(:,:,:)
+tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)+FTz(:,:,:)
 
 end subroutine convdiff
 

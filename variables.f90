@@ -49,11 +49,11 @@ real(mytype), save, allocatable, dimension(:,:,:) :: ep1
 ! define the Momentum Source arrays for the three directions
 real(mytype), save, allocatable, dimension(:,:,:) :: FTx, FTy, FTz
 
-!arrays for statistic collection
+! arrays for statistic collection
 real(mytype), save, allocatable, dimension(:,:,:) :: umean,vmean,wmean,uumean,vvmean,wwmean,uvmean,uwmean,vwmean,tmean
 real(mytype), save, allocatable, dimension(:,:,:) :: phimean, phiphimean
 
-!arrays for visualization
+! arrays for visualization
 real(mytype), save, allocatable, dimension(:,:,:) :: uvisu
 
 ! define all work arrays here

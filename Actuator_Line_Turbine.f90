@@ -12,35 +12,35 @@ type TurbineType
     character(len=100) :: type
     integer :: ID
     integer :: NBlades
-    real, dimension(3) :: RotN, origin ! Rotational vectors in the normal and perpendicular directions
-    real :: hub_tilt_angle, blade_cone_angle, yaw_angle 
-    real :: Rmax ! Reference radius, velocity, viscosity
-    real :: A   ! Rotor area
-    real :: angularVel,TSR,Uref
-    real :: AzimAngle=0.0
-    real :: dist_from_axis=0.0
+    real(mytype), dimension(3) :: RotN, origin ! Rotational vectors in the normal and perpendicular directions
+    real(mytype) :: hub_tilt_angle, blade_cone_angle, yaw_angle 
+    real(mytype) :: Rmax ! Reference radius, velocity, viscosity
+    real(mytype) :: A   ! Rotor area
+    real(mytype) :: angularVel,TSR,Uref
+    real(mytype) :: AzimAngle=0.0
+    real(mytype) :: dist_from_axis=0.0
     integer :: No_rev=0.0
     logical :: Is_constant_rotation_operated = .false. ! For a constant rotational velocity (in Revolutions Per Minute)
     logical :: Is_force_based_operated = .false. ! For a forced based rotational velocity (Computed during the simulation)
     logical :: IsClockwise = .false.
     logical :: IsCounterClockwise = .false. 
     logical :: Has_Tower=.false.
-    real :: Towerheight, TowerOffset, TowerDrag, TowerLift, TowerStrouhal
+    real(mytype) :: Towerheight, TowerOffset, TowerDrag, TowerLift, TowerStrouhal
     logical :: Has_BladeEndEffectModelling=.false.
     logical :: do_tip_correction=.false.
     logical :: do_root_correction=.false.
     logical :: EndEffectModel_is_Glauret=.false.
     logical :: EndEffectModel_is_Shen=.false.
-    real :: ShenCoeff_c1, ShenCoeff_c2
+    real(mytype) :: ShenCoeff_c1, ShenCoeff_c2
     type(ActuatorLineType), allocatable :: Blade(:)
     type(AirfoilType), allocatable :: AirfoilData(:)
     type(ActuatorLineType) :: tower
-    real :: CP  ! Power coefficient 
-    real :: CTR ! Torque coefficient 
-    real :: CFx ! Fx coefficient 
-    real :: CFy ! Fy coefficient 
-    real :: CFz ! Fz coefficient 
-    real :: CT  ! Thrust coefficient    
+    real(mytype) :: CP  ! Power coefficient 
+    real(mytype) :: CTR ! Torque coefficient 
+    real(mytype) :: CFx ! Fx coefficient 
+    real(mytype) :: CFy ! Fy coefficient 
+    real(mytype) :: CFz ! Fz coefficient 
+    real(mytype) :: CT  ! Thrust coefficient    
     
 end type TurbineType
     
@@ -51,8 +51,8 @@ contains
 
     implicit none
     type(TurbineType),intent(inout) :: turbine
-    real, allocatable :: rR(:),ctoR(:),pitch(:),thick(:)
-    real :: SVec(3), theta
+    real(mytype), allocatable :: rR(:),ctoR(:),pitch(:),thick(:)
+    real(mytype) :: SVec(3), theta
     integer :: Nstations, iblade, Istation,ielem
 
 
@@ -64,7 +64,7 @@ contains
     write(6,*) '-------------------------------------------------------------------'
     call read_actuatorline_geometry(turbine%blade_geom_file,turbine%Rmax,SVec,rR,ctoR,pitch,thick,Nstations)
     ! Make sure that the spanwise is [0 0 1]
-    Svec = (/0.0,0.0,1.0/)
+    Svec = [0.0,0.0,1.0]
     ! Make sure that origin is [0,0,0] : we set everything to origin 0 and then translate the
     ! turbine to the actual origin(this is for simplicity)
     theta=2*pi/turbine%Nblades
@@ -75,7 +75,7 @@ contains
     turbine%blade(iblade)%COR(1:3)=turbine%origin(1:3)
     turbine%blade(iblade)%L=turbine%Rmax
     turbine%blade(iblade)%NElem=Nstations-1 
-    
+    write(*,*) 'Before loop' 
     do istation=1,Nstations
     turbine%blade(iblade)%QCx(istation)=rR(istation)*turbine%Rmax*Svec(1)+turbine%blade(iblade)%COR(1)+turbine%dist_from_axis
     turbine%blade(iblade)%QCy(istation)=rR(istation)*turbine%Rmax*Svec(2)+turbine%blade(iblade)%COR(2)
@@ -100,10 +100,13 @@ contains
 
     ! Rotate Blade 1 to forme the other blades 
     call rotate_actuatorline(turbine%blade(iblade),turbine%blade(iblade)%COR,turbine%RotN,(iblade-1)*theta)   
+
     
     call make_actuatorline_geometry(turbine%blade(iblade))
+
     ! Populate element Airfoils 
     call populate_blade_airfoils(turbine%blade(iblade)%NElem,turbine%Blade(iblade)%NAirfoilData,turbine%Blade(iblade)%EAirfoil,turbine%Blade(iblade)%AirfoilData,turbine%Blade(iblade)%ETtoC)
+    write(*,*) 'after loop' 
     
     turbine%Blade(iblade)%EAOA_LAST(:)=-666
     turbine%Blade(iblade)%Eepsilon(:)=0.0
@@ -117,9 +120,9 @@ contains
     end do 
     ! Rotate the turbine according to the tilt and yaw angle
     ! Yaw
-    call rotate_turbine(turbine,(/0.0,0.0,-1.0/),turbine%yaw_angle*pi/180.0)
+    !call rotate_turbine(turbine,(/0.0d0,0.0d0,-1.0d0/),turbine%yaw_angle*pi/180.0d0)
     ! Tilt
-    call rotate_turbine(turbine,(/0.0,-1.0,0.0/),turbine%hub_tilt_angle*pi/180.0)
+    !call rotate_turbine(turbine,(/0.0d0,-1.0d0,0.0d0/),turbine%hub_tilt_angle*pi/180.0d0)
 
     end do
 
@@ -129,7 +132,7 @@ contains
     if(turbine%has_Tower) then
     call read_actuatorline_geometry(turbine%tower%geom_file,turbine%Towerheight,SVec,rR,ctoR,pitch,thick,Nstations)
     ! Make sure that the spanwise is [0 0 1]
-    Svec = (/0.0,0.0,1.0/)
+    Svec = (/0.0,1.0,0.0/)
     
     call allocate_actuatorline(Turbine%Tower,Nstations)
     turbine%tower%name=trim(turbine%name)//'_tower'
@@ -139,8 +142,8 @@ contains
     
     do istation=1,Nstations
     turbine%Tower%QCx(istation)= turbine%Tower%COR(1) + turbine%TowerOffset  
-    turbine%Tower%QCy(istation)= turbine%Tower%COR(2)
-    turbine%Tower%QCz(istation)= turbine%Tower%COR(3) - rR(istation)*turbine%Towerheight*Svec(3)
+    turbine%Tower%QCy(istation)= turbine%Tower%COR(2) - rR(istation)*turbine%Towerheight*Svec(2) 
+    turbine%Tower%QCz(istation)= turbine%Tower%COR(3) 
     turbine%Tower%tx(istation)= 1.0    
     turbine%Tower%ty(istation)= 0.0    
     turbine%Tower%tz(istation)= 0.0
@@ -177,9 +180,9 @@ contains
 
     implicit none
     type(TurbineType), intent(inout) :: turbine
-    real :: Torque_i,FX_i,FY_i,FZ_i,fx_tot,fy_tot,fz_tot,torq_tot 
-    real :: xe,ye,ze,o1,o2,o3,fx,fy,fz,trx,try,trz,te,ms,sxe,sye,sze
-    real :: rotx,roty,rotz
+    real(mytype) :: Torque_i,FX_i,FY_i,FZ_i,fx_tot,fy_tot,fz_tot,torq_tot 
+    real(mytype) :: xe,ye,ze,o1,o2,o3,fx,fy,fz,trx,try,trz,te,ms,sxe,sye,sze
+    real(mytype) :: rotx,roty,rotz
     integer :: iblade, ielem
     write(*,*) 'In calculate_performance'
 
@@ -244,8 +247,8 @@ contains
     implicit none
     type(TurbineType),intent(inout) :: turbine
     integer :: iblade,ielem
-    real ::g1,alpha,pitch,F,Froot,Ftip,rtip, rroot, phi, axis_mag
-    real :: nxe,nye,nze,txe,tye,tze,sxe,sye,sze,u,v,w,ub,vb,wb,urdc,urdn,ur
+    real(mytype) ::g1,alpha,pitch,F,Froot,Ftip,rtip, rroot, phi, axis_mag
+    real(mytype) :: nxe,nye,nze,txe,tye,tze,sxe,sye,sze,u,v,w,ub,vb,wb,urdc,urdn,ur
     
     
     do iblade=1,turbine%Nblades
@@ -319,7 +322,7 @@ contains
     implicit none
     type(TurbineType),intent(inout) :: turbine
     integer :: iblade,ielem
-    real :: wRotX,wRotY,wRotZ,Rx,Ry,Rz,ublade,vblade,wblade
+    real(mytype) :: wRotX,wRotY,wRotZ,Rx,Ry,Rz,ublade,vblade,wblade
     
     !========================================================
     ! Compute Element local rotational velocity
@@ -354,12 +357,12 @@ contains
     
     implicit none
     type(TurbineType),intent(inout) :: turbine
-    real,intent(in) :: Axis(3)
-    real,intent(in) :: theta
-    real :: nrx,nry,nrz,px,py,pz 
+    real(mytype),intent(in) :: Axis(3)
+    real(mytype),intent(in) :: theta
+    real(mytype) :: nrx,nry,nrz,px,py,pz 
     integer :: j,ielem,i
-    real :: vrx,vry,vrz,VMag
-    real :: xtmp,ytmp,ztmp, txtmp, tytmp, tztmp
+    real(mytype) :: vrx,vry,vrz,VMag
+    real(mytype) :: xtmp,ytmp,ztmp, txtmp, tytmp, tztmp
     ! Rotates data in blade arrays. Rotate element end geometry and recalculate element geometry.
 
         
@@ -388,7 +391,7 @@ contains
         tztmp=turbine%Blade(j)%tz(ielem)
         
         ! Tangent vectors (rotated assuming the origina as 0)
-        Call QuatRot(txtmp,tytmp,tztmp,theta,nrx,nry,nrz,0.0,0.0,0.0,vrx,vry,vrz)
+        Call QuatRot(txtmp,tytmp,tztmp,theta,nrx,nry,nrz,0.0d0,0.0d0,0.0d0,vrx,vry,vrz)
         VMag=sqrt(vrx**2+vry**2+vrz**2)
         turbine%Blade(j)%tx(ielem)=vrx/VMag                                      
         turbine%Blade(j)%ty(ielem)=vry/VMag                                  

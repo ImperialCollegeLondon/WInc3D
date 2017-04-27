@@ -6,6 +6,7 @@ subroutine tecplot_write(ux1,uy1,uz1,phi1)
 
     use param
     use variables
+    use var, only: FTx,FTy,FTz
     use decomp_2d
     use decomp_2d_io
     use actuator_line_model_utils 
@@ -57,12 +58,12 @@ subroutine tecplot_write(ux1,uy1,uz1,phi1)
       write(filename,999) itime/imodulo
       open(2018,file=filename//'.dat') 
       write(2018,*) 'TITLE = "Simulation"'
-      write(2018,*) 'Variables="X","Y","Z","ux","uy","uz"'
+      write(2018,*) 'Variables="X","Y","Z","ux","uy","uz","Sx","Sy","Sz"'
       write(2018,*) 'Zone I= ',nx, ', J=', ny, ', K =',nz,', F=POINT'
       do k=1,xsize(3)
         do j=1,xsize(2)
             do i=1,xsize(1)
-            write(2018,*) dx*i , dy*j, dz*k, ux1(i,j,k), uy1(i,j,k), uz1(i,j,k)
+            write(2018,*) (i-1)*dx , dy*(j-1), dz*(k-1), ux1(i,j,k), uy1(i,j,k), uz1(i,j,k), FTx(i,j,k), FTy(i,j,k), FTz(i,j,k)
             enddo
         enddo
       end do

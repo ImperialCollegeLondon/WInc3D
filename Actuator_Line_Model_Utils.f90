@@ -1,8 +1,9 @@
 module actuator_line_model_utils
-
+    
+    use decomp_2d, only: mytype
     implicit none
     ! Define parameters for ALM
-    real, parameter :: pi=3.14159265359    
+    real(mytype), parameter :: pi=3.14159265359    
 
     public QuatRot, cross, IsoKernel, AnIsoKernel, int2str
 
@@ -10,7 +11,7 @@ contains
  
     SUBROUTINE cross(ax,ay,az,bx,by,bz,cx,cy,cz) 
 
-        real ax,ay,az,bx,by,bz,cx,cy,cz 
+        real(mytype) ax,ay,az,bx,by,bz,cx,cy,cz 
 
         cx = ay*bz - az*by
         cy = az*bx - ax*bz
@@ -30,11 +31,11 @@ contains
    ! % vR: Rotated vector
 
    implicit none
-   real,intent(in) :: vx,vy,vz,Theta,Rx,Ry,Rz,Ox,Oy,Oz
-   real,intent(inout):: vRx,vRy,vRz     
-   real :: nRx,nRy,nRz 
-   real :: p(4,1), pR(4,1), q(4), qbar(4), RMag, vOx, vOy, vOz
-   real :: QL(4,4), QbarR(4,4)
+   real(mytype),intent(in) :: vx,vy,vz,Theta,Rx,Ry,Rz,Ox,Oy,Oz
+   real(mytype),intent(inout):: vRx,vRy,vRz     
+   real(mytype) :: nRx,nRy,nRz 
+   real(mytype) :: p(4,1), pR(4,1), q(4), qbar(4), RMag, vOx, vOy, vOz
+   real(mytype) :: QL(4,4), QbarR(4,4)
     
    ! Force normalize nR
    RMag=sqrt(Rx**2.0+Ry**2.0+Rz**2.0)
@@ -46,7 +47,7 @@ contains
    vOx=vx-Ox
    vOy=vy-Oy
    vOz=vz-Oz
-   p=reshape((/0.0,vOx,vOy,vOz/),(/4,1/))
+   p=reshape([0.0d0,vOx,vOy,vOz],[4,1])
    
    ! Rotation quaternion and conjugate
     q=(/cos(Theta/2),nRx*sin(Theta/2),nRy*sin(Theta/2),nRz*sin(Theta/2)/)
@@ -73,13 +74,13 @@ contains
     subroutine IDW(Ncol,Xcol,Ycol,Zcol,Fxcol,Fycol,Fzcol,p,Xmesh,Ymesh,Zmesh,Fxmesh,Fymesh,Fzmesh)
         implicit none
         integer, intent(in) :: Ncol
-        real, dimension(Ncol),intent(in) :: Xcol,Ycol,Zcol,Fxcol,Fycol,Fzcol 
-        real, intent(in) :: Xmesh,Ymesh,Zmesh
+        real(mytype), dimension(Ncol),intent(in) :: Xcol,Ycol,Zcol,Fxcol,Fycol,Fzcol 
+        real(mytype), intent(in) :: Xmesh,Ymesh,Zmesh
         integer,intent(in) :: p
-        real, intent(inout) :: Fxmesh,Fymesh,Fzmesh
+        real(mytype), intent(inout) :: Fxmesh,Fymesh,Fzmesh
         
-        real,dimension(Ncol) :: d(Ncol), w(Ncol)
-        real ::  wsum
+        real(mytype),dimension(Ncol) :: d(Ncol), w(Ncol)
+        real(mytype) ::  wsum
         integer :: i,imin
 
         wsum=0.0
@@ -107,12 +108,12 @@ contains
 
     end subroutine IDW
 
-    real function IsoKernel(dr,epsilon_par,dim)
+    real(mytype) function IsoKernel(dr,epsilon_par,dim)
     
         implicit none
-        integer,intent(in) :: dim
-        real,intent(in) ::dr, epsilon_par
-
+        integer, intent(in) :: dim
+        real(mytype), intent(in) :: dr, epsilon_par
+            
             if(dim==2) then    
             IsoKernel = 1.0/(epsilon_par**2*pi)*exp(-(dr/epsilon_par)**2.0)
             elseif(dim==3) then
@@ -124,11 +125,11 @@ contains
         
     end function IsoKernel
     
-    real function AnIsoKernel(dx,dy,dz,nx,ny,nz,tx,ty,tz,sx,sy,sz,ec,et,es)
+    real(mytype) function AnIsoKernel(dx,dy,dz,nx,ny,nz,tx,ty,tz,sx,sy,sz,ec,et,es)
     
         implicit none
-        real,intent(in) :: dx,dy,dz,nx,ny,nz,tx,ty,tz,sx,sy,sz,ec,et,es
-        real :: n,t,s
+        real(mytype),intent(in) :: dx,dy,dz,nx,ny,nz,tx,ty,tz,sx,sy,sz,ec,et,es
+        real(mytype) :: n,t,s
 
         n=dx*nx+dy*ny+dz*nz ! normal projection
         t=dx*tx+dy*ty+dz*tz ! Chordwise projection

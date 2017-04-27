@@ -1,14 +1,15 @@
 
 module actuator_line_source
 
+    use decomp_2d, only: mytype
     use actuator_line_model_utils
     use actuator_line_model
 
     implicit none
-    real,save :: constant_epsilon, meshFactor, thicknessFactor,chordFactor
-    real, allocatable :: Sx(:),Sy(:),Sz(:),Sc(:),Se(:),Sh(:),Su(:),Sv(:),Sw(:),SFX(:),SFY(:),SFZ(:)
-    real, allocatable :: Snx(:),Sny(:),Snz(:),Stx(:),Sty(:),Stz(:),Ssx(:),Ssy(:),Ssz(:),Ssegm(:) 
-    real, allocatable :: A(:,:)
+    real(mytype),save :: constant_epsilon, meshFactor, thicknessFactor,chordFactor
+    real(mytype),save, allocatable :: Sx(:),Sy(:),Sz(:),Sc(:),Se(:),Sh(:),Su(:),Sv(:),Sw(:),SFX(:),SFY(:),SFZ(:)
+    real(mytype),save, allocatable :: Snx(:),Sny(:),Snz(:),Stx(:),Sty(:),Stz(:),Ssx(:),Ssy(:),Ssz(:),Ssegm(:) 
+    real(mytype),save, allocatable :: A(:,:)
     logical, allocatable :: inside_the_domain(:)
     integer :: NSource
     logical, save :: rbf_interpolation=.false.
@@ -26,50 +27,22 @@ contains
     integer :: counter,itur,iblade,ielem,ial
     
     write(*,*) 'Entering initialize_source_terms'  
-    !> Get Source term parameters
-    !if (have_option("/turbine_models/actuator_line_model/source_terms_interpolation/radial_basis_function_interpolation")) then
-    !    rbf_interpolation=.true.
-    !    has_constant_epsilon=.true.
-    !    call get_option("/turbine_models/actuator_line_model/source_terms_interpolation/radial_basis_function_interpolation/constant_epsilon",constant_epsilon)
-    !else if (have_option("/turbine_models/actuator_line_model/source_terms_interpolation/pointwise_interpolation")) then
-    !    pointwise_interpolation=.true.
-    !    if (have_option("/turbine_models/actuator_line_model/source_terms_interpolation/pointwise_interpolation/constant_epsilon")) then
-    !        has_constant_epsilon=.true.
-    !        call get_option("/turbine_models/actuator_line_model/source_terms_interpolation/pointwise_interpolation/constant_epsilon",constant_epsilon)
-    !    else if (have_option("/turbine_models/actuator_line_model/source_terms_interpolation/pointwise_interpolation/mesh_based_epsilon")) then
-    !        has_mesh_based_epsilon=.true.
-    !        call get_option("/turbine_models/actuator_line_model/source_terms_interpolation/pointwise_interpolation/mesh_based_epsilon/meshFactor",meshFactor,default=2.00)
-    !        call get_option("/turbine_models/actuator_line_model/source_terms_interpolation/pointwise_interpolation/mesh_based_epsilon/chordFactor",chordFactor,default=0.25)
-    !    else 
-    !        write(*,*) "Source term parameters not set"
-    !        stop
-    !    end if
-    !    if(have_option("/turbine_models/actuator_line_model/source_terms_interpolation/pointwise_interpolation/mesh_based_epsilon/anisotropic_source")) then
-    !        anisotropic_projection=.true.
-    !    endif
-    !else
-    !    write(*,*) "Source term parameters not set"
-    !    stop
-    !end if
 
     counter=0
     if (Ntur>0) then
-        do itur=1,Ntur
-            
+        do itur=1,Ntur    
             ! Blades
             do iblade=1,Turbine(itur)%Nblades
                 do ielem=1,Turbine(itur)%Blade(iblade)%Nelem
                 counter=counter+1
                 end do
             end do
-            
             ! Tower 
             if(turbine(itur)%has_tower) then
                 do ielem=1,Turbine(itur)%Tower%Nelem
                 counter=counter+1
                 end do
             endif
-        
         end do
     endif
     
@@ -85,6 +58,7 @@ contains
     allocate(Snx(NSource),Sny(NSource),Snz(NSource),Stx(Nsource),Sty(NSource),Stz(NSource),Ssx(NSource),Ssy(NSource),Ssz(NSource),Ssegm(NSource))
     allocate(A(NSource,NSource))
     allocate(inside_the_domain(NSource))
+     
     write(*,*) 'exiting initialize_source_terms'
 
     end subroutine initialize_actuator_source
@@ -254,6 +228,99 @@ contains
     endif
   
     end subroutine get_forces
+    
+    subroutine Compute_Momentum_Source_Term_pointwise(nxstart,nxend,nystart,nyend,nzstart,nzend)
+
+        use decomp_2d, only: mytype, nrank
+        use param 
+        use var, only: ux1, ux2, ux3, FTx, FTy, FTz
+        
+        implicit none
+        integer, intent(in) :: nxstart,nxend,nystart,nyend,nzstart,nzend
+        real(mytype) :: xmesh, ymesh,zmesh
+        real(mytype) :: dist, epsilon, Kernel
+        real(mytype) :: min_dist
+        integer :: min_i,min_j,min_k
+        integer :: i,j,k, isource
+
+        ! First we need to compute the locations
+        call get_locations 
+
+        !do isource=1,NSource
+
+        !dist=1e6
+        !if((Sx(isource)>(nxstart-1)*dx).and.(Sx(isource)<nxend*dx).and.(Sy(isource)>(nystart-1)*dy).and.(Sy(isource)<(nyend-1)*dy).and.(Sz(isource)>(nzstart-1)*dz).and.(Sz(isource)<nzend*dz)) then
+        !    write(*,*) 'Warning: I own this node'
+        !    do k=nzstart,nzend
+        !    do j=nystart,nyend
+        !    do i=nxstart,nxend
+        !    xmesh=(i-1)*dx
+        !    ymesh=(j-1)*dy
+        !    zmesh=(k-1)*dz
+        !    dist = sqrt((Sx(isource)-xmesh)**2+(Sy(isource)-ymesh)**2+(Sz(isource)-zmesh)**2) 
+        !    
+        !    if (dist<min_dist) then
+        !        min_dist=dist
+        !        min_i=i
+        !        min_j=j
+        !        min_k=k
+        !    endif
+        !    
+        !    enddo
+        !    enddo
+        !    enddo
+        !    
+        !    Su(isource)=ux1(min_i,min_j,min_k)
+        !    Sv(isource)=uy1(min_i,min_j,min_k)
+        !    Sw(isource)=uw1(min_i,min_j,min_k)
+        !    write(*,*) Su(isource), Sv(isource), Sw(isource)
+        !else
+        !    write(*,*) 'Warning: I dont own this node'
+        !endif
+        !enddo
+        !
+        !stop
+
+        ! Zero the Source term at each time step
+        FTx(:,:,:)=0.0
+        FTy(:,:,:)=0.0
+        FTz(:,:,:)=0.0
+        Su(:)=10.0
+        Sv(:)=0.0
+        Sw(:)=0.0
+        Visc=xnu
+        write(*,*) Visc
+        !## Send the velocities to the 
+        call set_vel
+        !## Compute forces
+        call actuator_line_model_compute_forces
+        !## Get Forces
+        call get_forces
+
+        do isource=1,NSource
+            !## Add the source term
+            do k=nzstart,nzend
+            do j=nystart,nyend
+            do i=nxstart,nxend
+            xmesh=(i-1)*dx
+            ymesh=(j-1)*dy
+            zmesh=(k-1)*dz
+            dist = sqrt((Sx(isource)-xmesh)**2+(Sy(isource)-ymesh)**2+(Sz(isource)-zmesh)**2)
+            epsilon=3.0*dz 
+            if (dist<5.0*epsilon) then
+                Kernel= 1.0/(epsilon**3.0*pi**1.5)*dexp(-(dist/epsilon)**2.0)            
+            else
+                Kernel=0.0
+            endif
+            ! First apply a constant lift to induce the 
+            FTx(i,j,k)=FTx(i,j,k)-SFx(isource)*Kernel
+            FTy(i,j,k)=FTy(i,j,k)-SFy(isource)*Kernel
+            FTz(i,j,k)=FTz(i,j,k)-SFz(isource)*Kernel
+            enddo
+            enddo
+            enddo
+        enddo
+        end subroutine Compute_Momentum_Source_Term_pointwise
 
     !subroutine Compute_Momentum_Source_Term_RBF
  

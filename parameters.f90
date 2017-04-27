@@ -129,7 +129,6 @@ endif
  1110 format(' Object length     : ',F6.2)
  1113 format(' Schmidt number    : ',F6.2)
 endif
-xnu=1./re 
    
 if (nclx==0) dx=xlx/nx 
 if (nclx==1 .or. nclx==2) dx=xlx/(nx-1.) 
@@ -142,6 +141,8 @@ dy2=dy*dy
    if (nclz==1.or.nclz==2) dz=zlz/(nz-1.) 
    dz2=dz*dz
 #endif
+
+xnu=u1/re
 
 if (istret.eq.0) then
    do j=1,ny
