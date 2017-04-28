@@ -101,7 +101,7 @@ do ijk=1,nvect1
 enddo
 uvisu=0.
 call fine_to_coarseV(1,di1,uvisu)
-990 format('vort',I3.3)
+990 format('vort',I4.4)
 write(filename, 990) itime/imodulo
 call decomp_2d_write_one(1,uvisu,filename,2)
 !call decomp_2d_write_one(nx_global,ny_global,nz_global,&
@@ -112,21 +112,21 @@ call decomp_2d_write_one(1,uvisu,filename,2)
 !VELOCITY
 uvisu=0.
 call fine_to_coarseV(1,ux1,uvisu)
-993 format('ux',I3.3)
+993 format('ux',I4.4)
       write(filename, 993) itime/imodulo
 call decomp_2d_write_one(1,uvisu,filename,2)
 !call decomp_2d_write_one(nx_global,ny_global,nz_global,&
 !           1,ux1,filename)
 uvisu=0.
 call fine_to_coarseV(1,uy1,uvisu)
-994 format('uy',I3.3)
+994 format('uy',I4.4)
       write(filename, 994) itime/imodulo
 call decomp_2d_write_one(1,uvisu,filename,2)
 !call decomp_2d_write_one(nx_global,ny_global,nz_global,&
 !           1,uy1,filename)
 uvisu=0.
 call fine_to_coarseV(1,uz1,uvisu)
-995 format('uz',I3.3)
+995 format('uz',I4.4)
       write(filename, 995) itime/imodulo
 call decomp_2d_write_one(1,uvisu,filename,2)
 !call decomp_2d_write_one(nx_global,ny_global,nz_global,&
@@ -138,7 +138,7 @@ call decomp_2d_write_one(1,uvisu,filename,2)
 if (iscalar==1) then
 uvisu=0.
 call fine_to_coarseV(1,phi1,uvisu)
-996 format('phi',I3.3)
+996 format('phi',I4.4)
    write(filename, 996) itime/imodulo
    call decomp_2d_write_one(1,uvisu,filename,2)
 !   call decomp_2d_write_one(nx_global,ny_global,nz_global,&
@@ -300,7 +300,7 @@ call interi6(tb1,ta1,di1,sx,cifip6,cisip6,ciwip6,cifx6,cisx6,ciwx6,&
 !PRESSURE
 uvisu=0.
 call fine_to_coarseV(1,tb1,uvisu)
-990 format('pp',I3.3)
+990 format('pp',I4.4)
       write(filename, 990) itime/imodulo
 call decomp_2d_write_one(1,uvisu,filename,2)
 !call decomp_2d_write_one(nx_global,ny_global,nz_global,&

@@ -373,7 +373,19 @@ if (itype.eq.2) then
 endif
 
 if (itype.eq.3) then
-   
+   do k=1,xsize(3)
+      z=(k+xstart(3)-1-1)*dz
+   do j=1,xsize(2)
+      if (istret.eq.0) y=(j+xstart(2)-1-1)*dy-yly/2.
+      if (istret.ne.0) y=yp(j+xstart(2)-1)-yly/2.
+!      print *,nrank,j+xstart(2)-1,yp(j+xstart(2)-1),1.-y*y
+      do i=1,xsize(1)
+         x=(i-1)*dx
+         ux1(i,j,k)=1.875-15*y*y+30*y*y*y*y
+         uy1(i,j,k)=0.1*dexp(-((x-xlx/2.0)/xlx)**2)*dexp(-(y/yly)**2*cos(4.0*(z-zlz/2.0))) 
+      enddo
+   enddo
+   enddo
 endif
 
 if (itype.eq.4) then

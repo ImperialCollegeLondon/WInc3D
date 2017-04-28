@@ -233,6 +233,7 @@ contains
 
         use decomp_2d, only: mytype, nrank
         use param 
+        use variables, only: yp
         use var, only: ux1, ux2, ux3, FTx, FTy, FTz
         
         implicit none
@@ -285,7 +286,7 @@ contains
         FTx(:,:,:)=0.0
         FTy(:,:,:)=0.0
         FTz(:,:,:)=0.0
-        Su(:)=10.0
+        Su(:)=1.0
         Sv(:)=0.0
         Sw(:)=0.0
         Visc=xnu

@@ -150,7 +150,7 @@ do itime=ifirst,ilast
       
    if(ialm==1) then !>> GDeskos Turbine model
       ! First we need to ask for the velocities    
-      call Compute_Momentum_Source_Term_pointwise(1,xsize(1),1,xsize(2),1,xsize(3))            
+      call Compute_Momentum_Source_Term_pointwise(xstart(1),xend(1),xstart(2),xend(2),xstart(3),xend(3))            
       call actuator_line_model_update(t,dt)
    endif
    
@@ -227,7 +227,7 @@ do itime=ifirst,ilast
            ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3,phG,uvisu)
       call VISU_PRE (pp3,ta1,tb1,di1,ta2,tb2,di2,&
            ta3,di3,nxmsize,nymsize,nzmsize,phG,ph2,ph3,uvisu) 
-      call tecplot_write(ux1,uy1,uz1,phi1) 
+      !call tecplot_write(ux1,uy1,uz1,phi1) 
       if (ialm==1) then
         if (nrank==0) then
             call actuator_line_model_write_output(0) ! Write First time step

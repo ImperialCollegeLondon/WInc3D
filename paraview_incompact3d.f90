@@ -38,7 +38,7 @@ program visu_paraview
   enddo
   if (istret==1) then
      print *,'We need to read the yp.dat file'
-     open(12,file='yp1.dat',form='formatted',status='unknown')
+     open(12,file='yp.dat',form='formatted',status='unknown')
      do j=1,ny
         read(12,*) yp(j)
      enddo
@@ -89,7 +89,7 @@ program visu_paraview
      dig1 =   ifile/1000 + 48
      dig2 = ( ifile - 1000*( ifile/1000 ) )/100 + 48
      dig3 = ( ifile - 100*( ifile/100 ) )/10 + 48
-     dig4 = ( ifile - 10*( ifile/10 ) )/1 + 48
+    dig4 = ( ifile - 10*( ifile/10 ) )/1 + 48
      chits(1:4) = char(dig1)//char(dig2)//char(dig3)//char(dig4)    
 
 !IF THE DATA ARE STORED WITH 3 DIGITS, IE UX001,UX002,ETC.

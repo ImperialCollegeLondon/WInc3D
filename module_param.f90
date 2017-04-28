@@ -51,7 +51,7 @@ module variables
 integer,parameter :: nx=240,ny=49,nz=48
 integer,parameter :: nstat=1,nvisu=1
 integer,parameter :: p_row=1,p_col=1
-integer,parameter :: nxm=nx,nym=ny-1,nzm=nz 
+integer,parameter :: nxm=nx,nym=ny-1,nzm=nz
 !end module variables
 
 !module filter
