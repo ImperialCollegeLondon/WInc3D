@@ -302,11 +302,12 @@ contains
             do k=nzstart,nzend
             do j=nystart,nyend
             do i=nxstart,nxend
-            xmesh=(i-1)*dx
-            ymesh=(j-1)*dy
-            zmesh=(k-1)*dz
+            xmesh=(i+nxstart-1)*dx
+            if (istret.eq.0) ymesh=(j+nystart-1)*dy
+            if (istret.ne.0) ymesh=yp(j+nystart-1)
+            zmesh=(k+nzstart-1)*dz
             dist = sqrt((Sx(isource)-xmesh)**2+(Sy(isource)-ymesh)**2+(Sz(isource)-zmesh)**2)
-            epsilon=3.0*dz 
+            epsilon=2.0*dz 
             if (dist<5.0*epsilon) then
                 Kernel= 1.0/(epsilon**3.0*pi**1.5)*dexp(-(dist/epsilon)**2.0)            
             else
