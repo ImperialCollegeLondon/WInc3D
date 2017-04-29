@@ -108,20 +108,35 @@ program visu_paraview
 !DOUBLE PRECISION-->Precision=8
      write(nfil,*)'            <Attribute Name="ux" Center="Node">'
      write(nfil,*)'               <DataItem Format="Binary" '
-     write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
+     write(nfil,*)'                DataType="Float" Precision="4" Endian="little"'
      write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
      write(nfil,*)'                  ux'//chits
      write(nfil,*)'               </DataItem>'
      write(nfil,*)'            </Attribute>'
 
-!it is possible to add as much field as you want
-!    write(nfil,*)'            <Attribute Name="uy" Center="Node">'
-!    write(nfil,*)'               <DataItem Format="Binary" '
-!    write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
-!    write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
-!    write(nfil,*)'                  uy'//chits
-!    write(nfil,*)'               </DataItem>'
-!    write(nfil,*)'            </Attribute>'
+    write(nfil,*)'            <Attribute Name="uy" Center="Node">'
+    write(nfil,*)'               <DataItem Format="Binary" '
+    write(nfil,*)'                DataType="Float" Precision="4" Endian="little"'
+    write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
+    write(nfil,*)'                  uy'//chits
+    write(nfil,*)'               </DataItem>'
+    write(nfil,*)'            </Attribute>'
+
+    write(nfil,*)'            <Attribute Name="uz" Center="Node">'
+    write(nfil,*)'               <DataItem Format="Binary" '
+    write(nfil,*)'                DataType="Float" Precision="4" Endian="little"'
+    write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
+    write(nfil,*)'                  uz'//chits
+    write(nfil,*)'               </DataItem>'
+    write(nfil,*)'            </Attribute>'
+    
+    write(nfil,*)'            <Attribute Name="vort" Center="Node">'
+    write(nfil,*)'               <DataItem Format="Binary" '
+    write(nfil,*)'                DataType="Float" Precision="4" Endian="little"'
+    write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
+    write(nfil,*)'                  vort'//chits
+    write(nfil,*)'               </DataItem>'
+    write(nfil,*)'            </Attribute>'
 
      write(nfil,*)'        </Grid>'
 
