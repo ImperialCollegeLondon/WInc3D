@@ -364,7 +364,7 @@ contains
         integer :: i,j
         ! Zero the Source Term at each time step
 
-        write(*,*) 'Entering the actuator_line_model_compute_forces'
+        !write(*,*) 'Entering the actuator_line_model_compute_forces'
 
         if (Ntur>0) then
 
@@ -396,7 +396,7 @@ contains
             end do
         end if
 
-        write(*,*) 'Exiting actuator_line_model_compute_forces'
+        !write(*,*) 'Exiting actuator_line_model_compute_forces'
         return
 
     end subroutine actuator_line_model_compute_forces

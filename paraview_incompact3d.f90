@@ -154,30 +154,6 @@ program visu_paraview
      write(nfil,*)'               </DataItem>'
      write(nfil,*)'            </Attribute>'
      
-     write(nfil,*)'            <Attribute Name="FTx" Center="Node">'
-     write(nfil,*)'               <DataItem Format="Binary" '
-     write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
-     write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
-     write(nfil,*)'                  FTx'//chits
-     write(nfil,*)'               </DataItem>'
-     write(nfil,*)'            </Attribute>'
-     
-     write(nfil,*)'            <Attribute Name="FTy" Center="Node">'
-     write(nfil,*)'               <DataItem Format="Binary" '
-     write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
-     write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
-     write(nfil,*)'                  FTy'//chits
-     write(nfil,*)'               </DataItem>'
-     write(nfil,*)'            </Attribute>'
-
-     write(nfil,*)'            <Attribute Name="FTz" Center="Node">'
-     write(nfil,*)'               <DataItem Format="Binary" '
-     write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
-     write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
-     write(nfil,*)'                  FTz'//chits
-     write(nfil,*)'               </DataItem>'
-     write(nfil,*)'            </Attribute>'
-
      write(nfil,*)'        </Grid>'
 
   enddo

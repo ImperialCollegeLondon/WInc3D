@@ -78,7 +78,7 @@ contains
     turbine%blade(iblade)%COR(1:3)=turbine%origin(1:3)
     turbine%blade(iblade)%L=turbine%Rmax
     turbine%blade(iblade)%NElem=Nstations-1 
-    write(*,*) 'Before loop' 
+    
     do istation=1,Nstations
     turbine%blade(iblade)%QCx(istation)=rR(istation)*turbine%Rmax*Svec(1)+turbine%blade(iblade)%COR(1)+turbine%dist_from_axis
     turbine%blade(iblade)%QCy(istation)=rR(istation)*turbine%Rmax*Svec(2)+turbine%blade(iblade)%COR(2)
@@ -109,7 +109,6 @@ contains
 
     ! Populate element Airfoils 
     call populate_blade_airfoils(turbine%blade(iblade)%NElem,turbine%Blade(iblade)%NAirfoilData,turbine%Blade(iblade)%EAirfoil,turbine%Blade(iblade)%AirfoilData,turbine%Blade(iblade)%ETtoC)
-    write(*,*) 'after loop' 
     
     turbine%Blade(iblade)%EAOA_LAST(:)=-666
     turbine%Blade(iblade)%Eepsilon(:)=0.0
@@ -187,7 +186,7 @@ contains
     real(mytype) :: xe,ye,ze,o1,o2,o3,fx,fy,fz,trx,try,trz,te,ms,sxe,sye,sze
     real(mytype) :: rotx,roty,rotz
     integer :: iblade, ielem
-    write(*,*) 'In calculate_performance'
+    !write(*,*) 'In calculate_performance'
 
     RotX=turbine%RotN(1)
     RotY=turbine%RotN(2)

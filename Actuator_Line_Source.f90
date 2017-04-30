@@ -236,7 +236,7 @@ contains
         implicit none
         real(mytype) :: xmesh, ymesh,zmesh
         real(mytype) :: dist, epsilon, Kernel
-        real(mytype) :: min_dist 
+        real(mytype) :: min_dist, ymax,ymin,zmin,zmax 
         integer :: min_i,min_j,min_k
         integer :: i,j,k, isource, ierr
 
@@ -248,18 +248,24 @@ contains
         Sv(:)=0.0
         Sw(:)=0.0
         ! This is not optimum but works
+        ! Define the domain
+        ymin=xstart(2)*dy-dy
+        ymax=xend(2)*dy
+        zmin=xstart(3)*dz-dz
+        zmax=xend(3)*dz
+        
         do isource=1,NSource
         
         min_dist=1e6
-        if((Sx(isource)>=(xstart(1)-1)*dx).and.(Sx(isource)<xend(1)*dx).and.(Sy(isource)>=(xstart(2)-1)*dy).and.(Sy(isource)<(xend(2)*dy)).and.(Sz(isource)>=(xstart(3)-1)*dz).and.(Sz(isource)<xend(3)*dz)) then
+        if((Sy(isource)>=ymin).and.(Sy(isource)<=ymax).and.(Sz(isource)>=zmin).and.(Sz(isource)<=zmax)) then
             !write(*,*) 'Warning: I own this node'
             do k=1,xsize(3)
+            zmesh=(k+xstart(3)-1)*dz 
             do j=1,xsize(2)
-            do i=1,xsize(1)
-            xmesh=(i-1)*dx
             if (istret.eq.0) ymesh=(j+xstart(2)-1-1)*dy
             if (istret.ne.0) ymesh=yp(j+xstart(2)-1)
-            zmesh=(k+xstart(3)-1)*dz
+            do i=1,xsize(1)
+            xmesh=(i-1)*dx
             dist = sqrt((Sx(isource)-xmesh)**2+(Sy(isource)-ymesh)**2+(Sz(isource)-zmesh)**2) 
             if (dist<min_dist) then
                 min_dist=dist
@@ -281,7 +287,7 @@ contains
             !write(*,*) 'Warning: I do not own this node' 
         endif
         enddo
-            
+           
         call MPI_ALLREDUCE(Su_part,Su,Nsource,MPI_REAL8,MPI_SUM, &
             MPI_COMM_WORLD,ierr)
         call MPI_ALLREDUCE(Sv_part,Sv,Nsource,MPI_REAL8,MPI_SUM, &
@@ -304,15 +310,15 @@ contains
         do isource=1,NSource
             !## Add the source term
             do k=1,xsize(3)
+            zmesh=(k+xstart(3)-1)*dz
             do j=1,xsize(2)
+            if (istret.eq.0) ymesh=(j+xstart(2)-1-1)*dy
+            if (istret.ne.0) ymesh=yp(j+xstart(2)-1) 
             do i=1,xsize(1)
             xmesh=(i-1)*dx
-            if (istret.eq.0) ymesh=(j+xstart(2)-1-1)*dy
-            if (istret.ne.0) ymesh=yp(j+xstart(2)-1)
-            zmesh=(k+xstart(3)-1)*dz
             dist = sqrt((Sx(isource)-xmesh)**2+(Sy(isource)-ymesh)**2+(Sz(isource)-zmesh)**2)
-            epsilon=2.0*dz 
-            if (dist<5.0*epsilon) then
+            epsilon=2.0*(dx*dy*dz)**(1.0/3.0) 
+            if (dist<10.0*epsilon) then
                 Kernel= 1.0/(epsilon**3.0*pi**1.5)*dexp(-(dist/epsilon)**2.0)            
             else
                 Kernel=0.0
