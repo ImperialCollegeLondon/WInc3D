@@ -8,6 +8,7 @@ module actuator_line_source
     implicit none
     real(mytype),save :: constant_epsilon, meshFactor, thicknessFactor,chordFactor
     real(mytype),save, allocatable :: Sx(:),Sy(:),Sz(:),Sc(:),Se(:),Sh(:),Su(:),Sv(:),Sw(:),SFX(:),SFY(:),SFZ(:)
+    real(mytype),save, allocatable :: Su_part(:),Sv_part(:),Sw_part(:)
     real(mytype),save, allocatable :: Snx(:),Sny(:),Snz(:),Stx(:),Sty(:),Stz(:),Ssx(:),Ssy(:),Ssz(:),Ssegm(:) 
     real(mytype),save, allocatable :: A(:,:)
     logical, allocatable :: inside_the_domain(:)
@@ -26,8 +27,6 @@ contains
     implicit none
     integer :: counter,itur,iblade,ielem,ial
     
-    write(*,*) 'Entering initialize_source_terms'  
-
     counter=0
     if (Ntur>0) then
         do itur=1,Ntur    
@@ -55,12 +54,11 @@ contains
     endif
     NSource=counter
     allocate(Sx(NSource),Sy(NSource),Sz(NSource),Sc(Nsource),Su(NSource),Sv(NSource),Sw(NSource),Se(NSource),Sh(NSource),Sfx(NSource),Sfy(NSource),Sfz(NSource))
+    allocate(Su_part(NSource),Sv_part(NSource),Sw_part(NSource))
     allocate(Snx(NSource),Sny(NSource),Snz(NSource),Stx(Nsource),Sty(NSource),Stz(NSource),Ssx(NSource),Ssy(NSource),Ssz(NSource),Ssegm(NSource))
     allocate(A(NSource,NSource))
     allocate(inside_the_domain(NSource))
      
-    write(*,*) 'exiting initialize_source_terms'
-
     end subroutine initialize_actuator_source
 
     subroutine get_locations
@@ -143,7 +141,6 @@ contains
     implicit none
     integer :: counter,itur,iblade,ielem,ial
     
-    write(*,*) 'Entering set_vel'
     counter=0
     if (Ntur>0) then
         do itur=1,Ntur
@@ -182,7 +179,6 @@ contains
         end do
     endif
 
-    write(*,*) 'Exiting set_vel'
   
     end subroutine set_vel
     
@@ -229,68 +225,75 @@ contains
   
     end subroutine get_forces
     
-    subroutine Compute_Momentum_Source_Term_pointwise(nxstart,nxend,nystart,nyend,nzstart,nzend)
+    subroutine Compute_Momentum_Source_Term_pointwise
 
-        use decomp_2d, only: mytype, nrank
+        use decomp_2d, only: mytype, xstart, xend, xsize
+        use MPI
         use param 
         use variables, only: yp
-        use var, only: ux1, ux2, ux3, FTx, FTy, FTz
+        use var, only: ux1, uy1, uz1, FTx, FTy, FTz
         
         implicit none
-        integer, intent(in) :: nxstart,nxend,nystart,nyend,nzstart,nzend
         real(mytype) :: xmesh, ymesh,zmesh
         real(mytype) :: dist, epsilon, Kernel
-        real(mytype) :: min_dist
+        real(mytype) :: min_dist 
         integer :: min_i,min_j,min_k
-        integer :: i,j,k, isource
+        integer :: i,j,k, isource, ierr
 
         ! First we need to compute the locations
         call get_locations 
+        
+        ! Zero the velocities
+        Su(:)=0.0
+        Sv(:)=0.0
+        Sw(:)=0.0
+        ! This is not optimum but works
+        do isource=1,NSource
+        
+        min_dist=1e6
+        if((Sx(isource)>=(xstart(1)-1)*dx).and.(Sx(isource)<xend(1)*dx).and.(Sy(isource)>=(xstart(2)-1)*dy).and.(Sy(isource)<(xend(2)*dy)).and.(Sz(isource)>=(xstart(3)-1)*dz).and.(Sz(isource)<xend(3)*dz)) then
+            !write(*,*) 'Warning: I own this node'
+            do k=1,xsize(3)
+            do j=1,xsize(2)
+            do i=1,xsize(1)
+            xmesh=(i-1)*dx
+            if (istret.eq.0) ymesh=(j+xstart(2)-1-1)*dy
+            if (istret.ne.0) ymesh=yp(j+xstart(2)-1)
+            zmesh=(k+xstart(3)-1)*dz
+            dist = sqrt((Sx(isource)-xmesh)**2+(Sy(isource)-ymesh)**2+(Sz(isource)-zmesh)**2) 
+            if (dist<min_dist) then
+                min_dist=dist
+                min_i=i
+                min_j=j
+                min_k=k
+            endif 
+            enddo
+            enddo
+            enddo
 
-        !do isource=1,NSource
-
-        !dist=1e6
-        !if((Sx(isource)>(nxstart-1)*dx).and.(Sx(isource)<nxend*dx).and.(Sy(isource)>(nystart-1)*dy).and.(Sy(isource)<(nyend-1)*dy).and.(Sz(isource)>(nzstart-1)*dz).and.(Sz(isource)<nzend*dz)) then
-        !    write(*,*) 'Warning: I own this node'
-        !    do k=nzstart,nzend
-        !    do j=nystart,nyend
-        !    do i=nxstart,nxend
-        !    xmesh=(i-1)*dx
-        !    ymesh=(j-1)*dy
-        !    zmesh=(k-1)*dz
-        !    dist = sqrt((Sx(isource)-xmesh)**2+(Sy(isource)-ymesh)**2+(Sz(isource)-zmesh)**2) 
-        !    
-        !    if (dist<min_dist) then
-        !        min_dist=dist
-        !        min_i=i
-        !        min_j=j
-        !        min_k=k
-        !    endif
-        !    
-        !    enddo
-        !    enddo
-        !    enddo
-        !    
-        !    Su(isource)=ux1(min_i,min_j,min_k)
-        !    Sv(isource)=uy1(min_i,min_j,min_k)
-        !    Sw(isource)=uw1(min_i,min_j,min_k)
-        !    write(*,*) Su(isource), Sv(isource), Sw(isource)
-        !else
-        !    write(*,*) 'Warning: I dont own this node'
-        !endif
-        !enddo
-        !
-        !stop
+            Su_part(isource)=ux1(min_i,min_j,min_k)
+            Sv_part(isource)=uy1(min_i,min_j,min_k)
+            Sw_part(isource)=uz1(min_i,min_j,min_k)
+        else
+            Su_part(isource)=0.0
+            Sv_part(isource)=0.0
+            Sw_part(isource)=0.0
+            !write(*,*) 'Warning: I do not own this node' 
+        endif
+        enddo
+            
+        call MPI_ALLREDUCE(Su_part,Su,Nsource,MPI_REAL8,MPI_SUM, &
+            MPI_COMM_WORLD,ierr)
+        call MPI_ALLREDUCE(Sv_part,Sv,Nsource,MPI_REAL8,MPI_SUM, &
+            MPI_COMM_WORLD,ierr)
+        call MPI_ALLREDUCE(Sw_part,Sw,Nsource,MPI_REAL8,MPI_SUM, &
+            MPI_COMM_WORLD,ierr)
 
         ! Zero the Source term at each time step
         FTx(:,:,:)=0.0
         FTy(:,:,:)=0.0
         FTz(:,:,:)=0.0
-        Su(:)=1.0
-        Sv(:)=0.0
-        Sw(:)=0.0
         Visc=xnu
-        write(*,*) Visc
         !## Send the velocities to the 
         call set_vel
         !## Compute forces
@@ -300,13 +303,13 @@ contains
 
         do isource=1,NSource
             !## Add the source term
-            do k=nzstart,nzend
-            do j=nystart,nyend
-            do i=nxstart,nxend
-            xmesh=(i+nxstart-1)*dx
-            if (istret.eq.0) ymesh=(j+nystart-1)*dy
-            if (istret.ne.0) ymesh=yp(j+nystart-1)
-            zmesh=(k+nzstart-1)*dz
+            do k=1,xsize(3)
+            do j=1,xsize(2)
+            do i=1,xsize(1)
+            xmesh=(i-1)*dx
+            if (istret.eq.0) ymesh=(j+xstart(2)-1-1)*dy
+            if (istret.ne.0) ymesh=yp(j+xstart(2)-1)
+            zmesh=(k+xstart(3)-1)*dz
             dist = sqrt((Sx(isource)-xmesh)**2+(Sy(isource)-ymesh)**2+(Sz(isource)-zmesh)**2)
             epsilon=2.0*dz 
             if (dist<5.0*epsilon) then

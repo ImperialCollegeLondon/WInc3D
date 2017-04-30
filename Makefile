@@ -82,7 +82,7 @@ else
 OBJ =	$(SRC:.f90=.o)
 endif	
 
-all: incompact3d
+all: incompact3d visualize
 
 alloc_shm.o: alloc_shm.c
 	$(CC) $(CFLAGS) -c $<
@@ -96,9 +96,11 @@ incompact3d : $(OBJ)
 %.o : %.f90
 	$(FC) $(OPTFC) $(OPTIONS) $(INC) $(DEBUG) -c $<
 	
+visualize :
+	gfortran paraview_incompact3d.f90 -o visualize 
 .PHONY: clean 
 clean:
-	rm -f *.o *.mod incompact3d
+	rm -f *.o *.mod incompact3d visualize
 
 .PHONY: realclean
 realclean: clean

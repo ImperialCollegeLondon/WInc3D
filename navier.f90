@@ -383,6 +383,7 @@ if (itype.eq.3) then
          x=(i-1)*dx
          ux1(i,j,k)=1.875-15*y*y+30*y*y*y*y
          uy1(i,j,k)=0.1*dexp(-((x-xlx/2.0)/xlx)**2)*dexp(-(y/yly)**2*cos(4.0*(z-zlz/2.0))) 
+         uz1(i,j,k)=0.0
       enddo
    enddo
    enddo

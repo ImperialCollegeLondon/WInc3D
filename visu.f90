@@ -39,6 +39,7 @@ subroutine VISU_INSTA (ux1,uy1,uz1,phi1,ta1,tb1,tc1,td1,te1,tf1,tg1,th1,ti1,di1,
 !############################################################################
 
 USE param
+USE var, only: FTx, FTy, FTz
 USE variables
 USE decomp_2d
 USE decomp_2d_io
@@ -47,7 +48,7 @@ implicit none
 
 TYPE(DECOMP_INFO) :: phG
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux1,uy1,uz1,phi1
-real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ta1,tb1,tc1,td1,te1,tf1,tg1,th1,ti1,di1
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ta1,tb1,tc1,td1,te1,tf1,tg1,th1,ti1,di1,tmp1
 real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: ta2,tb2,tc2,td2,te2,tf2,tg2,th2,ti2,tj2,di2
 real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3
 real(mytype),dimension(xszV(1),xszV(2),xszV(3)) :: uvisu 
@@ -109,6 +110,24 @@ call decomp_2d_write_one(1,uvisu,filename,2)
 !############################################################################
 
 !############################################################################
+! Q-criterion
+tmp1=0.
+do ijk=1,nvect1
+        tmp1(ijk,1,1)=ta1(ijk,1,1)*ta1(ijk,1,1)+te1(ijk,1,1)*te1(ijk,1,1)+ti1(ijk,1,1)*ti1(ijk,1,1)+ &
+            2*(td1(ijk,1,1)*tb1(ijk,1,1)+tg1(ijk,1,1)*tc1(ijk,1,1)+th1(ijk,1,1)*tf1(ijk,1,1))
+        tmp1(ijk,1,1)=tmp1(ijk,1,1)*0.5
+enddo
+uvisu=0.
+call fine_to_coarseV(1,tmp1,uvisu)
+991 format('qcrit',I4.4)
+write(filename, 991) itime/imodulo
+call decomp_2d_write_one(1,uvisu,filename,2)
+!call decomp_2d_write_one(nx_global,ny_global,nz_global,&
+!     1,di1,filename)
+!############################################################################
+
+
+!############################################################################
 !VELOCITY
 uvisu=0.
 call fine_to_coarseV(1,ux1,uvisu)
@@ -145,6 +164,24 @@ call fine_to_coarseV(1,phi1,uvisu)
 !        1,phi1,filename)
 endif
 !############################################################################
+!  ALM Momentum Source term
+if (ialm==1) then
+uvisu=0.
+call fine_to_coarseV(1,FTx,uvisu)
+997 format('Ftx',I4.4)
+write(filename, 997) itime/imodulo
+call decomp_2d_write_one(1,uvisu,filename,2)    
+uvisu=0.
+call fine_to_coarseV(1,FTy,uvisu)
+998 format('Fty',I4.4)
+write(filename, 998) itime/imodulo
+call decomp_2d_write_one(1,uvisu,filename,2)    
+uvisu=0.
+call fine_to_coarseV(1,FTz,uvisu)
+999 format('Ftz',I4.4)
+write(filename, 999) itime/imodulo
+call decomp_2d_write_one(1,uvisu,filename,2)    
+end if
 
 !############################################################################
 !PRESSURE

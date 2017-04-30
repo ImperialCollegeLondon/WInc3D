@@ -64,13 +64,13 @@ program visu_paraview
   write(nfil,*)'        Dimensions="',nz,ny,nx,'">'
   write(nfil,*)'    </Topology>'
   write(nfil,*)'    <Geometry name="geo" Type="VXVYVZ">'
-  write(nfil,*)'    <DataItem Dimensions="',nx,'" NumberType="Float" Precision="4" Format="XML">'
+  write(nfil,*)'    <DataItem Dimensions="',nx,'" NumberType="Float" Precision="8" Format="XML">'
   write(nfil,*)'    ',y1(:) 
   write(nfil,*)'    </DataItem>'
-  write(nfil,*)'    <DataItem Dimensions="',ny,'" NumberType="Float" Precision="4" Format="XML">'
+  write(nfil,*)'    <DataItem Dimensions="',ny,'" NumberType="Float" Precision="8" Format="XML">'
   write(nfil,*)'    ',yp(:) 
   write(nfil,*)'    </DataItem>'
-  write(nfil,*)'    <DataItem Dimensions="',nz,'" NumberType="Float" Precision="4" Format="XML">'
+  write(nfil,*)'    <DataItem Dimensions="',nz,'" NumberType="Float" Precision="8" Format="XML">'
   write(nfil,*)'    ',y3(:) 
   write(nfil,*)'    </DataItem>'
   write(nfil,*)'    </Geometry>'
@@ -108,35 +108,75 @@ program visu_paraview
 !DOUBLE PRECISION-->Precision=8
      write(nfil,*)'            <Attribute Name="ux" Center="Node">'
      write(nfil,*)'               <DataItem Format="Binary" '
-     write(nfil,*)'                DataType="Float" Precision="4" Endian="little"'
+     write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
      write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
      write(nfil,*)'                  ux'//chits
      write(nfil,*)'               </DataItem>'
      write(nfil,*)'            </Attribute>'
+     
+     write(nfil,*)'            <Attribute Name="uy" Center="Node">'
+     write(nfil,*)'               <DataItem Format="Binary" '
+     write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
+     write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
+     write(nfil,*)'                  uy'//chits
+     write(nfil,*)'               </DataItem>'
+     write(nfil,*)'            </Attribute>'
+     
+     write(nfil,*)'            <Attribute Name="uz" Center="Node">'
+     write(nfil,*)'               <DataItem Format="Binary" '
+     write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
+     write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
+     write(nfil,*)'                  uz'//chits
+     write(nfil,*)'               </DataItem>'
+     write(nfil,*)'            </Attribute>'
+     
+     write(nfil,*)'            <Attribute Name="pp" Center="Node">'
+     write(nfil,*)'               <DataItem Format="Binary" '
+     write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
+     write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
+     write(nfil,*)'                  pp'//chits
+     write(nfil,*)'               </DataItem>'
+     write(nfil,*)'            </Attribute>'
+     
+     write(nfil,*)'            <Attribute Name="vort" Center="Node">'
+     write(nfil,*)'               <DataItem Format="Binary" '
+     write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
+     write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
+     write(nfil,*)'                  vort'//chits
+     write(nfil,*)'               </DataItem>'
+     write(nfil,*)'            </Attribute>'
+     
+     write(nfil,*)'            <Attribute Name="qcrit" Center="Node">'
+     write(nfil,*)'               <DataItem Format="Binary" '
+     write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
+     write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
+     write(nfil,*)'                  qcrit'//chits
+     write(nfil,*)'               </DataItem>'
+     write(nfil,*)'            </Attribute>'
+     
+     write(nfil,*)'            <Attribute Name="FTx" Center="Node">'
+     write(nfil,*)'               <DataItem Format="Binary" '
+     write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
+     write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
+     write(nfil,*)'                  FTx'//chits
+     write(nfil,*)'               </DataItem>'
+     write(nfil,*)'            </Attribute>'
+     
+     write(nfil,*)'            <Attribute Name="FTy" Center="Node">'
+     write(nfil,*)'               <DataItem Format="Binary" '
+     write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
+     write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
+     write(nfil,*)'                  FTy'//chits
+     write(nfil,*)'               </DataItem>'
+     write(nfil,*)'            </Attribute>'
 
-    write(nfil,*)'            <Attribute Name="uy" Center="Node">'
-    write(nfil,*)'               <DataItem Format="Binary" '
-    write(nfil,*)'                DataType="Float" Precision="4" Endian="little"'
-    write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
-    write(nfil,*)'                  uy'//chits
-    write(nfil,*)'               </DataItem>'
-    write(nfil,*)'            </Attribute>'
-
-    write(nfil,*)'            <Attribute Name="uz" Center="Node">'
-    write(nfil,*)'               <DataItem Format="Binary" '
-    write(nfil,*)'                DataType="Float" Precision="4" Endian="little"'
-    write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
-    write(nfil,*)'                  uz'//chits
-    write(nfil,*)'               </DataItem>'
-    write(nfil,*)'            </Attribute>'
-    
-    write(nfil,*)'            <Attribute Name="vort" Center="Node">'
-    write(nfil,*)'               <DataItem Format="Binary" '
-    write(nfil,*)'                DataType="Float" Precision="4" Endian="little"'
-    write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
-    write(nfil,*)'                  vort'//chits
-    write(nfil,*)'               </DataItem>'
-    write(nfil,*)'            </Attribute>'
+     write(nfil,*)'            <Attribute Name="FTz" Center="Node">'
+     write(nfil,*)'               <DataItem Format="Binary" '
+     write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
+     write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
+     write(nfil,*)'                  FTz'//chits
+     write(nfil,*)'               </DataItem>'
+     write(nfil,*)'            </Attribute>'
 
      write(nfil,*)'        </Grid>'
 

@@ -1,5 +1,6 @@
 module actuator_line_turbine
-
+    
+    use decomp_2d, only: mytype, nrank
     use actuator_line_model_utils
     use Airfoils
     use actuator_line_element
@@ -55,13 +56,15 @@ contains
     real(mytype) :: SVec(3), theta
     integer :: Nstations, iblade, Istation,ielem
 
-
+    if (nrank==0) then        
     write(6,*) 'Turbine Name : ', adjustl(turbine%name)
     write(6,*) '-------------------------------------------------------------------'
     write(6,*) 'Number of Blades : ', turbine%Nblades
     write(6,*) 'Origin           : ', turbine%origin
     write(6,*) 'Axis of Rotation : ', turbine%RotN
     write(6,*) '-------------------------------------------------------------------'
+    end if
+
     call read_actuatorline_geometry(turbine%blade_geom_file,turbine%Rmax,SVec,rR,ctoR,pitch,thick,Nstations)
     ! Make sure that the spanwise is [0 0 1]
     Svec = [0.0,0.0,1.0]
