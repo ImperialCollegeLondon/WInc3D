@@ -231,7 +231,7 @@ do itime=ifirst,ilast
            ta3,di3,nxmsize,nymsize,nzmsize,phG,ph2,ph3,uvisu) 
       if (ialm==1) then
         if (nrank==0) then
-            call actuator_line_model_write_output(0) ! Write First time step
+            call actuator_line_model_write_output(itime/imodulo) ! Write the Turbine Statistics 
         end if
       endif
    endif
