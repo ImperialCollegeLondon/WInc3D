@@ -1014,7 +1014,7 @@ call transpose_y_to_x(sgsz2,sgsz1)
 !call transpose_y_to_x(sgsy2,sgsy1)
 !call transpose_y_to_x(sgsz2,sgsz1)
 
-call test_sgs_min_max(sgsx1,sgsy1,sgsz1,2)
+!call test_sgs_min_max(sgsx1,sgsy1,sgsz1,2)
 
 !call transpose_x_to_y(ux1,ux2)
 !call transpose_x_to_y(uy1,uy2)

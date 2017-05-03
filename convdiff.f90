@@ -313,6 +313,9 @@ ta1(:,:,:)=ta1(:,:,:)+td1(:,:,:)
 tb1(:,:,:)=tb1(:,:,:)+te1(:,:,:)
 tc1(:,:,:)=tc1(:,:,:)+tf1(:,:,:)
 
+jLES=1
+JADV=1
+write(*,*) jLES, JADV
 !FINAL SUM: DIFF TERMS + CONV TERMS
 if(itime==1) then
     ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)
