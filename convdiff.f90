@@ -255,8 +255,10 @@ tc1(:,:,:)=tc1(:,:,:)+tf1(:,:,:)
 !tg1(:,:,:)=tg1(:,:,:)-2./18.*uy1(:,:,:)
 !th1(:,:,:)=th1(:,:,:)-2./18.*ux1(:,:,:)
 
-if (ialm==1) then
-    if (nrank==1) print *, 'Adding the Turbine Forcing', itime
+if (ialm/=1) then
+    FTx(:,:,:)=0.0
+    FTy(:,:,:)=0.0
+    FTz(:,:,:)=0.0
 endif
 
 ! FINAL SUM: DIFF TERMS + CONV TERMS
