@@ -49,7 +49,7 @@ module variables
 !4-->every 4 mesh nodes
 !nvisu = size for visualization collection
 integer,parameter :: nx=480,ny=97,nz=96
-integer,parameter :: nstat=2,nvisu=1
+integer,parameter :: nstat=1,nvisu=1
 integer,parameter :: p_row=8,p_col=1
 integer,parameter :: nxm=nx-1,nym=ny-1,nzm=nz-1
 !end module variables
@@ -65,6 +65,7 @@ real(mytype), dimension(nz) :: fifz,ficz,fibz,fiffz,fibbz,fiz1z,fiz2z
 real(mytype), dimension(nz,2) ::filaz,filazp
 real(mytype), dimension(nz) :: fifzp,ficzp,fibzp,fiffzp,fibbzp
 integer, dimension(200) :: idata
+real(mytype), dimension(p_col*p_row) :: Cs
 
 !module derivative
 real(mytype), dimension(nx) :: ffx,fcx,fbx,sfx,scx,sbx,fsx,fwx,ssx,swx
@@ -97,6 +98,9 @@ real(mytype), save, allocatable, dimension(:,:) :: bxx1,bxy1,bxz1,bxxn,bxyn,bxzn
 real(mytype), save, allocatable, dimension(:,:) :: byx1,byy1,byz1,byxn,byyn,byzn
 real(mytype), save, allocatable, dimension(:,:) :: bzx1,bzy1,bzz1,bzxn,bzyn,bzzn
 
+!module enspec
+real(mytype), dimension(3,7000) :: uensp,vensp,wensp
+
 !module derpres
 real(mytype),dimension(nxm) :: cfx6,ccx6,cbx6,cfxp6,ciwxp6,csxp6,&
      cwxp6,csx6,cwx6,cifx6,cicx6,cisx6   
@@ -125,7 +129,7 @@ complex(mytype), dimension(nx) :: xkx,xk2,exs
 !module mesh
 real(mytype), dimension(ny) :: ppy,pp2y,pp4y
 real(mytype), dimension(ny) :: ppyi,pp2yi,pp4yi
-real(mytype), dimension(ny) :: yp,ypi
+real(mytype), dimension(ny) :: yp,ypi,del
 real(mytype), dimension(ny) :: yeta,yetai
 real(mytype) :: alpha,beta
 end module variables
@@ -136,18 +140,20 @@ use decomp_2d, only : mytype
 
   integer :: nclx,ncly,nclz
   integer :: ifft, ivirt,istret,iforc_entree,iturb, ialm, Nturbines
-  integer :: itype, iskew, iin, nscheme, ifirst, ilast, iles
-  integer :: isave,ilit,idebmod, imodulo, idemarre, icommence, irecord
-  integer :: iscalar
+  integer :: itype, iskew, iin, nscheme, ifirst, ilast, iles, jLES, jADV
+  integer :: isave,ilit,srestart,idebmod, imodulo, idemarre, icommence, irecord
+  integer :: iscalar,ilag,npif,izap
   integer :: nxboite, istat,iread,iadvance_time 
   real(mytype) :: xlx,yly,zlz,dx,dy,dz,dx2,dy2,dz2
   real(mytype) :: dt,xnu,noise,noise1,pi,twopi,u1,u2,sc
   real(mytype) :: t,xxk1,xxk2
+  real(mytype) :: smagcst, walecst,dys
   integer :: itr,itime
+  character :: dirname*80
   character :: filesauve*80, filenoise*80, &
-       nchamp*80,filepath*80, fileturb*80, filevisu*80
-  character,dimension(100) ::TurbinesPath*80  ! We assign a maximum number of 100 turbines
-  real(mytype), dimension(5) :: adt,bdt,cdt,gdt
+       nchamp*80,filepath*80, fileturb*80, filevisu*80 
+  character, dimension(100) :: turbinesPath*80 ! Assign a maximum number of 100 turbines
+   real(mytype), dimension(5) :: adt,bdt,cdt,gdt
 end module param
 
 module IBM
@@ -156,6 +162,24 @@ use decomp_2d, only : mytype
 
   real(mytype) :: cex,cey,cez,ra
 end module IBM
+
+module complex_geometry
+
+use decomp_2d, only : mytype
+use variables, only : nx,ny,nz
+
+  integer     ,parameter                  :: nobjmax=4
+  integer     ,dimension          (ny,nz) :: nobjx
+  integer     ,dimension          (nx,nz) :: nobjy
+  integer     ,dimension          (nx,ny) :: nobjz
+  integer     ,dimension(0:nobjmax,ny,nz) :: nxipif,nxfpif
+  integer     ,dimension(0:nobjmax,nx,nz) :: nyipif,nyfpif
+  integer     ,dimension(0:nobjmax,nx,ny) :: nzipif,nzfpif
+  real(mytype),dimension(  nobjmax,ny,nz) :: xi,xf
+  real(mytype),dimension(  nobjmax,nx,nz) :: yi,yf
+  real(mytype),dimension(  nobjmax,nx,ny) :: zi,zf
+end module complex_geometry
+
 
 module derivX
 

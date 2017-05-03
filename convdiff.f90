@@ -32,35 +32,55 @@
 
 !********************************************************************
 !
-subroutine convdiff(ux1,uy1,uz1,ta1,tb1,tc1,td1,te1,tf1,tg1,th1,ti1,di1,&
-     ux2,uy2,uz2,ta2,tb2,tc2,td2,te2,tf2,tg2,th2,ti2,tj2,di2,&
-     ux3,uy3,uz3,ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3)
+subroutine convdiff(ux1,uy1,uz1,uxt,uyt,uzt,ep1,divdiva,curldiva,ta1,tb1,tc1,&
+     td1,te1,tf1,tg1,th1,ti1,di1,ux2,uy2,uz2,ta2,tb2,tc2,td2,te2,tf2,tg2,th2,&
+     ti2,tj2,di2,ux3,uy3,uz3,ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3,nut1,ucx1,&
+     ucy1,ucz1,tmean,sgszmean,sgsxmean,sgsymean,eadvxmean,eadvymean,eadvzmean)
 ! 
 !********************************************************************
 USE param
-USE var, only: FTx, FTy, FTz 
 USE variables
 USE decomp_2d
+USE decomp_2d_io
 
 
 implicit none
 
-real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux1,uy1,uz1
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux1,uy1,uz1,ep1,ucx1,ucy1,ucz1
+real(mytype),dimension(xsize(1),xsize(2),xsize(3),25) :: uxt,uyt,uzt
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ta1,tb1,tc1,td1,te1,tf1,tg1,th1,ti1,di1
 real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: ux2,uy2,uz2 
 real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: ta2,tb2,tc2,td2,te2,tf2,tg2,th2,ti2,tj2,di2
 real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: ux3,uy3,uz3
 real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3
 
+!LES Arrays
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: sxx1,syy1,szz1,&
+sxy1,sxz1,syz1
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: asxx1,asyy1,aszz1,&
+asxy1,asxz1,asyz1
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: nut1
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: sgsx1,sgsy1,sgsz1,eadvx1,eadvy1,eadvz1
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: gxx1,gyx1,gzx1,&
+gxy1,gyy1,gzy1,gxz1,gyz1,gzz1
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: srt_smag
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: dsmagcst
+
+!STATISTICS Arrays
+real(mytype),dimension(xszS(1),xszS(2),xszS(3)) :: tmean,sgszmean,sgsxmean,sgsymean
+real(mytype),dimension(xszS(1),xszS(2),xszS(3)) :: divdiva,curldiva,eadvxmean,eadvymean,eadvzmean
+real(mytype),dimension(xszV(1),xszV(2),xszV(3)) :: uvisu
+
 integer :: ijk,nvect1,nvect2,nvect3,i,j,k
+character(len=20) :: filename
 real(mytype) :: x,y,z
 
-
+ta1=0.;tb1=0.;tc1=0.
 
 nvect1=xsize(1)*xsize(2)*xsize(3)
 nvect2=ysize(1)*ysize(2)*ysize(3)
 nvect3=zsize(1)*zsize(2)*zsize(3)
- 
+
 if (iskew==0) then !UROTU!
 !WORK X-PENCILS
    call derx (ta1,uy1,di1,sx,ffxp,fsxp,fwxp,xsize(1),xsize(2),xsize(3),1)
@@ -92,6 +112,48 @@ if (iskew==0) then !UROTU!
            ux3(ijk,1,1)*(te3(ijk,1,1)-tb3(ijk,1,1))
    enddo
 else !SKEW!
+!LES Model Calculations
+if (jLES.ne.0) then !LES Modelling
+
+sgsx1=0.;sgsy1=0.;sgsz1=0.
+eadvx1=0.;eadvy1=0.;eadvz1=0.
+dsmagcst=0.
+end if
+
+!CLASSIC SMAGORINSKY (plus required rates)
+
+call smag(ux1,uy1,uz1,gxx1,gyx1,gzx1,gxy1,gyy1,gzy1,gxz1,gyz1,gzz1,&
+sxx1,syy1,szz1,sxy1,sxz1,syz1,srt_smag,nut1,ta2,ta3,di1,di2,di3)
+
+if (jLES == 2) then !WALE
+
+call wale(gxx1,gyx1,gzx1,gxy1,gyy1,gzy1,gxz1,gyz1,gzz1,srt_smag,nut1)
+
+endif
+
+if (jLES == 3 .OR. jLES == 5) then !DYNAMIC SMAGORINSKY
+
+call dynsmag(ux1,uy1,uz1,ep1,sxx1,syy1,szz1,sxy1,sxz1,syz1,&
+srt_smag,dsmagcst,nut1,di1,ta1,tb1,tc1,td1,ta2,tb2,tc2,td2,te2,tf2,&
+tg2,th2,ti2,di2,ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3)
+
+endif
+
+
+!SGS Calculation Over!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+ta1=0.;tb1=0.;tc1=0.
+td1=0.;te1=0.;tf1=0.
+
+ta2=0.;tb2=0.;tc2=0.
+td2=0.;te2=0.;tf2=0.
+tj2=0.
+
+ta3=0.;tb3=0.;tc3=0.
+td3=0.;te3=0.;tf3=0.
+
+!SKEW CONVECTIVE TERMS!
 !WORK X-PENCILS
    do ijk=1,nvect1
       ta1(ijk,1,1)=ux1(ijk,1,1)*ux1(ijk,1,1)
@@ -108,7 +170,7 @@ else !SKEW!
    do ijk=1,nvect1
       ta1(ijk,1,1)=0.5*td1(ijk,1,1)+0.5*ux1(ijk,1,1)*ta1(ijk,1,1)
       tb1(ijk,1,1)=0.5*te1(ijk,1,1)+0.5*ux1(ijk,1,1)*tb1(ijk,1,1)
-      tc1(ijk,1,1)=0.5*tf1(ijk,1,1)+0.5*ux1(ijk,1,1)*tc1(ijk,1,1)      
+      tc1(ijk,1,1)=0.5*tf1(ijk,1,1)+0.5*ux1(ijk,1,1)*tc1(ijk,1,1)
    enddo
 
    call transpose_x_to_y(ux1,ux2)
@@ -123,16 +185,16 @@ else !SKEW!
       te2(ijk,1,1)=uy2(ijk,1,1)*uy2(ijk,1,1)
       tf2(ijk,1,1)=uz2(ijk,1,1)*uy2(ijk,1,1)
    enddo
-   call dery (tg2,td2,di2,sy,ffy,fsy,fwy,ppy,ysize(1),ysize(2),ysize(3),0) 
+   call dery (tg2,td2,di2,sy,ffy,fsy,fwy,ppy,ysize(1),ysize(2),ysize(3),0)
    call dery (th2,te2,di2,sy,ffyp,fsyp,fwyp,ppy,ysize(1),ysize(2),ysize(3),1)
-   call dery (ti2,tf2,di2,sy,ffy,fsy,fwy,ppy,ysize(1),ysize(2),ysize(3),0) 
-   call dery (td2,ux2,di2,sy,ffyp,fsyp,fwyp,ppy,ysize(1),ysize(2),ysize(3),1) 
+   call dery (ti2,tf2,di2,sy,ffy,fsy,fwy,ppy,ysize(1),ysize(2),ysize(3),0)
+   call dery (td2,ux2,di2,sy,ffyp,fsyp,fwyp,ppy,ysize(1),ysize(2),ysize(3),1)
    call dery (te2,uy2,di2,sy,ffy,fsy,fwy,ppy,ysize(1),ysize(2),ysize(3),0)
-   call dery (tf2,uz2,di2,sy,ffyp,fsyp,fwyp,ppy,ysize(1),ysize(2),ysize(3),1) 
+   call dery (tf2,uz2,di2,sy,ffyp,fsyp,fwyp,ppy,ysize(1),ysize(2),ysize(3),1)
    do ijk=1,nvect2
       ta2(ijk,1,1)=ta2(ijk,1,1)+0.5*tg2(ijk,1,1)+0.5*uy2(ijk,1,1)*td2(ijk,1,1)
       tb2(ijk,1,1)=tb2(ijk,1,1)+0.5*th2(ijk,1,1)+0.5*uy2(ijk,1,1)*te2(ijk,1,1)
-      tc2(ijk,1,1)=tc2(ijk,1,1)+0.5*ti2(ijk,1,1)+0.5*uy2(ijk,1,1)*tf2(ijk,1,1)      
+      tc2(ijk,1,1)=tc2(ijk,1,1)+0.5*ti2(ijk,1,1)+0.5*uy2(ijk,1,1)*tf2(ijk,1,1)
    enddo
    call transpose_y_to_z(ux2,ux3)
    call transpose_y_to_z(uy2,uy3)
@@ -155,7 +217,7 @@ else !SKEW!
    do ijk=1,nvect3
       ta3(ijk,1,1)=ta3(ijk,1,1)+0.5*tg3(ijk,1,1)+0.5*uz3(ijk,1,1)*td3(ijk,1,1)
       tb3(ijk,1,1)=tb3(ijk,1,1)+0.5*th3(ijk,1,1)+0.5*uz3(ijk,1,1)*te3(ijk,1,1)
-      tc3(ijk,1,1)=tc3(ijk,1,1)+0.5*ti3(ijk,1,1)+0.5*uz3(ijk,1,1)*tf3(ijk,1,1)   
+      tc3(ijk,1,1)=tc3(ijk,1,1)+0.5*ti3(ijk,1,1)+0.5*uz3(ijk,1,1)*tf3(ijk,1,1)
    enddo
 endif
 !ALL THE CONVECTIVE TERMS ARE IN TA3, TB3 and TC3
@@ -184,7 +246,7 @@ ti2(:,:,:)=tf2(:,:,:)
 
 !DIFFUSIVE TERMS IN Y
 !-->for ux
-if (istret.ne.0) then 
+if (istret.ne.0) then
    call deryy (td2,ux2,di2,sy,sfyp,ssyp,swyp,ysize(1),ysize(2),ysize(3),1)
    call dery (te2,ux2,di2,sy,ffyp,fsyp,fwyp,ppy,ysize(1),ysize(2),ysize(3),1)
    do k=1,ysize(3)
@@ -195,10 +257,10 @@ if (istret.ne.0) then
    enddo
    enddo
 else
-   call deryy (td2,ux2,di2,sy,sfyp,ssyp,swyp,ysize(1),ysize(2),ysize(3),1) 
+   call deryy (td2,ux2,di2,sy,sfyp,ssyp,swyp,ysize(1),ysize(2),ysize(3),1)
 endif
 !-->for uy
-if (istret.ne.0) then 
+if (istret.ne.0) then
    call deryy (te2,uy2,di2,sy,sfy,ssy,swy,ysize(1),ysize(2),ysize(3),0)
    call dery (tf2,uy2,di2,sy,ffy,fsy,fwy,ppy,ysize(1),ysize(2),ysize(3),0)
    do k=1,ysize(3)
@@ -209,10 +271,10 @@ if (istret.ne.0) then
    enddo
    enddo
 else
-   call deryy (te2,uy2,di2,sy,sfy,ssy,swy,ysize(1),ysize(2),ysize(3),0) 
+   call deryy (te2,uy2,di2,sy,sfy,ssy,swy,ysize(1),ysize(2),ysize(3),0)
 endif
 !-->for uz
-if (istret.ne.0) then 
+if (istret.ne.0) then
    call deryy (tf2,uz2,di2,sy,sfyp,ssyp,swyp,ysize(1),ysize(2),ysize(3),1)
    call dery (tj2,uz2,di2,sy,ffyp,fsyp,fwyp,ppy,ysize(1),ysize(2),ysize(3),1)
    do k=1,ysize(3)
@@ -223,7 +285,7 @@ if (istret.ne.0) then
    enddo
    enddo
 else
-   call deryy (tf2,uz2,di2,sy,sfyp,ssyp,swyp,ysize(1),ysize(2),ysize(3),1) 
+   call deryy (tf2,uz2,di2,sy,sfyp,ssyp,swyp,ysize(1),ysize(2),ysize(3),1)
 endif
 
 ta2(:,:,:)=ta2(:,:,:)+td2(:,:,:)
@@ -251,20 +313,27 @@ ta1(:,:,:)=ta1(:,:,:)+td1(:,:,:)
 tb1(:,:,:)=tb1(:,:,:)+te1(:,:,:)
 tc1(:,:,:)=tc1(:,:,:)+tf1(:,:,:)
 
-!if (nrank==1) print *,'WARNING rotating channel',itime
-!tg1(:,:,:)=tg1(:,:,:)-2./18.*uy1(:,:,:)
-!th1(:,:,:)=th1(:,:,:)-2./18.*ux1(:,:,:)
-
-if (ialm/=1) then
-    FTx(:,:,:)=0.0
-    FTy(:,:,:)=0.0
-    FTz(:,:,:)=0.0
+!FINAL SUM: DIFF TERMS + CONV TERMS
+if(itime==1) then
+    ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)
+    tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)
+    tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)
+else
+    if(jLES==0) then
+        ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)
+        tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)
+        tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)
+    else !LES MODEL
+        ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)+sgsx1(:,:,:)
+        tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)+sgsy1(:,:,:)
+        tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)+sgsz1(:,:,:)
+        if(jADV==1) then
+            ta1(:,:,:)=ta1(:,:,:)+eadvx1(:,:,:)
+            tb1(:,:,:)=tb1(:,:,:)+eadvy1(:,:,:)
+            tc1(:,:,:)=tc1(:,:,:)+eadvz1(:,:,:)
+        endif
+    endif
 endif
-
-! FINAL SUM: DIFF TERMS + CONV TERMS
-ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)+FTx(:,:,:)
-tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)+FTy(:,:,:)
-tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)+FTz(:,:,:)
 
 end subroutine convdiff
 
@@ -405,4 +474,6 @@ if (nscheme==4) then
    endif
 endif
 
-end subroutine scalar
+
+ end subroutine scalar
+
