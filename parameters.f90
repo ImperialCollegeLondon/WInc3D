@@ -51,7 +51,7 @@ character :: a*80
 ! Have you heard of NAMELISTs ?
 NAMELIST/FlowParam/xlx,yly,zlz,re,sc,u1,u2,noise,noise1,dt
 NAMELIST/FlowConfig/nclx,ncly,nclz,itype,iin,ifirst,ilast,nscheme,istret, &
-    beta,iskew,iscalar
+    beta,iskew,iscalar, jles, jadv
 NAMELIST/FileParam/ilit,isave,imodulo
 NAMELIST/IBMParam/ivirt,cex,cey,cez,ra
 NAMELIST/ALMParam/ialm,NTurbines,TurbinesPath

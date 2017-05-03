@@ -39,6 +39,7 @@ subroutine convdiff(ux1,uy1,uz1,uxt,uyt,uzt,ep1,divdiva,curldiva,ta1,tb1,tc1,&
 ! 
 !********************************************************************
 USE param
+USE var, only: FTx, FTy, FTz
 USE variables
 USE decomp_2d
 USE decomp_2d_io
@@ -313,9 +314,6 @@ ta1(:,:,:)=ta1(:,:,:)+td1(:,:,:)
 tb1(:,:,:)=tb1(:,:,:)+te1(:,:,:)
 tc1(:,:,:)=tc1(:,:,:)+tf1(:,:,:)
 
-jLES=1
-JADV=1
-write(*,*) jLES, JADV
 !FINAL SUM: DIFF TERMS + CONV TERMS
 if(itime==1) then
     ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)
@@ -336,6 +334,13 @@ else
             tc1(:,:,:)=tc1(:,:,:)+eadvz1(:,:,:)
         endif
     endif
+endif
+
+! If the turbine model is on add the momentum source term
+if (ialm==1) then
+    ta1(:,:,:)=ta1(:,:,:)+FTx(:,:,:)
+    tb1(:,:,:)=tb1(:,:,:)+FTy(:,:,:)
+    tc1(:,:,:)=tc1(:,:,:)+FTz(:,:,:)
 endif
 
 end subroutine convdiff

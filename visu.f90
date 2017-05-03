@@ -165,23 +165,23 @@ call fine_to_coarseV(1,phi1,uvisu)
 endif
 !############################################################################
 !  ALM Momentum Source term
-if (ialm==1) then
-uvisu=0.
-call fine_to_coarseV(1,FTx,uvisu)
-997 format('Ftx',I4.4)
-write(filename, 997) itime/imodulo
-call decomp_2d_write_one(1,uvisu,filename,2)    
-uvisu=0.
-call fine_to_coarseV(1,FTy,uvisu)
-998 format('Fty',I4.4)
-write(filename, 998) itime/imodulo
-call decomp_2d_write_one(1,uvisu,filename,2)    
-uvisu=0.
-call fine_to_coarseV(1,FTz,uvisu)
-999 format('Ftz',I4.4)
-write(filename, 999) itime/imodulo
-call decomp_2d_write_one(1,uvisu,filename,2)    
-end if
+!if (ialm==1) then
+!uvisu=0.
+!call fine_to_coarseV(1,FTx,uvisu)
+!997 format('Ftx',I4.4)
+!write(filename, 997) itime/imodulo
+!call decomp_2d_write_one(1,uvisu,filename,2)    
+!uvisu=0.
+!call fine_to_coarseV(1,FTy,uvisu)
+!998 format('Fty',I4.4)
+!write(filename, 998) itime/imodulo
+!call decomp_2d_write_one(1,uvisu,filename,2)    
+!uvisu=0.
+!call fine_to_coarseV(1,FTz,uvisu)
+!999 format('Ftz',I4.4)
+!write(filename, 999) itime/imodulo
+!call decomp_2d_write_one(1,uvisu,filename,2)    
+!end if
 
 !############################################################################
 !PRESSURE
