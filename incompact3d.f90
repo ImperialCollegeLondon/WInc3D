@@ -85,6 +85,8 @@ call parameter(InputFN)
 
 call init_variables
 
+if(jLES==3.OR.jLES==5) call filter()
+
 call schemes()
 
 if (nclx==0) then

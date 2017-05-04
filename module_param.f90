@@ -49,8 +49,8 @@ module variables
 !4-->every 4 mesh nodes
 !nvisu = size for visualization collection
 integer,parameter :: nx=481,ny=97,nz=97
-integer,parameter :: nstat=1,nvisu=1
-integer,parameter :: p_row=8,p_col=1
+integer,parameter :: nstat=2,nvisu=1
+integer,parameter :: p_row=12,p_col=1
 integer,parameter :: nxm=nx-1,nym=ny-1,nzm=nz-1
 !end module variables
 
@@ -148,6 +148,7 @@ use decomp_2d, only : mytype
   real(mytype) :: dt,xnu,noise,noise1,pi,twopi,u1,u2,sc
   real(mytype) :: t,xxk1,xxk2
   real(mytype) :: smagcst, walecst,dys
+  real(mytype) :: eps_factor ! Smoothing factor 
   integer :: itr,itime
   character :: dirname*80
   character :: filesauve*80, filenoise*80, &

@@ -54,7 +54,7 @@ NAMELIST/FlowConfig/nclx,ncly,nclz,itype,iin,ifirst,ilast,nscheme,istret, &
     beta,iskew,iscalar, jles, jadv
 NAMELIST/FileParam/ilit,isave,imodulo
 NAMELIST/IBMParam/ivirt,cex,cey,cez,ra
-NAMELIST/ALMParam/ialm,NTurbines,TurbinesPath
+NAMELIST/ALMParam/ialm,NTurbines,TurbinesPath,eps_factor
 #ifdef DOUBLE_PREC 
 pi=dacos(-1.d0) 
 #else

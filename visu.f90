@@ -111,17 +111,17 @@ call decomp_2d_write_one(1,uvisu,filename,2)
 
 !############################################################################
 ! Q-criterion
-tmp1=0.
-do ijk=1,nvect1
-        tmp1(ijk,1,1)=ta1(ijk,1,1)*ta1(ijk,1,1)+te1(ijk,1,1)*te1(ijk,1,1)+ti1(ijk,1,1)*ti1(ijk,1,1)+ &
-            2*(td1(ijk,1,1)*tb1(ijk,1,1)+tg1(ijk,1,1)*tc1(ijk,1,1)+th1(ijk,1,1)*tf1(ijk,1,1))
-        tmp1(ijk,1,1)=tmp1(ijk,1,1)*0.5
-enddo
-uvisu=0.
-call fine_to_coarseV(1,tmp1,uvisu)
-991 format('qcrit',I4.4)
-write(filename, 991) itime/imodulo
-call decomp_2d_write_one(1,uvisu,filename,2)
+!tmp1=0.
+!do ijk=1,nvect1
+!        tmp1(ijk,1,1)=ta1(ijk,1,1)*ta1(ijk,1,1)+te1(ijk,1,1)*te1(ijk,1,1)+ti1(ijk,1,1)*ti1(ijk,1,1)+ &
+!            2*(td1(ijk,1,1)*tb1(ijk,1,1)+tg1(ijk,1,1)*tc1(ijk,1,1)+th1(ijk,1,1)*tf1(ijk,1,1))
+!        tmp1(ijk,1,1)=tmp1(ijk,1,1)*0.5
+!enddo
+!uvisu=0.
+!call fine_to_coarseV(1,tmp1,uvisu)
+!991 format('qcrit',I4.4)
+!write(filename, 991) itime/imodulo
+!call decomp_2d_write_one(1,uvisu,filename,2)
 !call decomp_2d_write_one(nx_global,ny_global,nz_global,&
 !     1,di1,filename)
 !############################################################################

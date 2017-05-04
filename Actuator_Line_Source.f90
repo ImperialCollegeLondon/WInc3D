@@ -317,7 +317,7 @@ contains
             do i=1,xsize(1)
             xmesh=(i-1)*dx
             dist = sqrt((Sx(isource)-xmesh)**2+(Sy(isource)-ymesh)**2+(Sz(isource)-zmesh)**2)
-            epsilon=2.0*(dx*dy*dz)**(1.0/3.0) 
+            epsilon=eps_factor*(dx*dy*dz)**(1.0/3.0) 
             if (dist<10.0*epsilon) then
                 Kernel= 1.0/(epsilon**3.0*pi**1.5)*dexp(-(dist/epsilon)**2.0)            
             else
