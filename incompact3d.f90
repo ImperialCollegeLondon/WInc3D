@@ -82,6 +82,9 @@ if (DecInd >1) then
 end if
 !===========================================================================
 call parameter(InputFN)
+if(nrank==0) then
+if (jLES==0) write(*,*) 'DNS/Implicit LES with xxnu = 1 / ', rxxnu
+endif
 
 if (jLES==1.OR.jLES==2.OR.jLES==3) call init_explicit_les() 
 
