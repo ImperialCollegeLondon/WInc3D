@@ -62,16 +62,6 @@ pi=acos(-1.)
 #endif
 
 twopi=2.*pi
-
-! We may need to set some default values in case the input file
-! does not include them
-open(10,file=InputFN) 
-read(10,nml=FlowParam)
-read(10,nml=FlowConfig)
-read(10,nml=FileParam)
-read(10,nml=IBMParam)
-read(10,nml=ALMParam)
-close(10) 
 ! IF variables are not set we will need to give them some default values
 xlx=1.0
 yly=1.0
@@ -98,6 +88,15 @@ isave=100
 imodulo=100
 ivirt=0
 ialm=0
+! READ PARAMETERS FROM FILE
+open(10,file=InputFN) 
+read(10,nml=FlowParam)
+read(10,nml=FlowConfig)
+read(10,nml=FileParam)
+read(10,nml=IBMParam)
+read(10,nml=ALMParam)
+close(10) 
+
 
 if (nrank==0) then
 print *,'==========================================================='

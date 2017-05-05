@@ -136,7 +136,7 @@ sxx1,syy1,szz1,sxy1,sxz1,syz1,srt_smag,nut1,ta2,ta3,di1,di2,di3)
 ! Then adapt the smagorinsky coefficient near the boundaries
 call wale(gxx1,gyx1,gzx1,gxy1,gyy1,gzy1,gxz1,gyz1,gzz1,srt_smag,nut1)
 
-elseif (jLES == 3 .OR. jLES == 5) then !DYNAMIC SMAGORINSKY
+elseif (jLES == 3) then !DYNAMIC SMAGORINSKY
 
 call dynsmag(ux1,uy1,uz1,ep1,sxx1,syy1,szz1,sxy1,sxz1,syz1,&
 srt_smag,dsmagcst,nut1,di1,ta1,tb1,tc1,td1,ta2,tb2,tc2,td2,te2,tf2,&
