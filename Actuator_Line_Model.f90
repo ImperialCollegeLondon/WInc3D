@@ -39,7 +39,9 @@ contains
         
         !### Specify Turbines
         Ntur=Nturbines
+        if (nrank==0) then
         write(6,*) 'Number of turbines : ', Ntur
+        endif
         call get_turbine_options(turbines_file)
         if (Ntur>0) then 
             do itur=1,Ntur
@@ -119,8 +121,10 @@ contains
             tower_geom,tower_drag,tower_lift,tower_strouhal,TypeFlag, OperFlag, tsr, uref,RotFlag, AddedMassFlag, &
         DynStallFlag,EndEffectsFlag
 
-        write(6,*) 'Loading the turbine options ...'
-    
+        if (nrank==0) then
+            write(6,*) 'Loading the turbine options ...'
+        endif
+        
         ! Allocate Turbines Arrays
         Allocate(Turbine(Ntur))
         ! ==========================================

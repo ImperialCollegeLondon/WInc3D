@@ -30,6 +30,36 @@
 !    Methods in Fluids, vol 67 (11), pp 1735-1757
 !################################################################################
 
+subroutine init_explicit_les
+
+    USE param
+    USE variables
+    USE decomp_2d
+
+    implicit none
+
+    if(nrank==0) then
+    write(*,*) ' '
+    write(*,*) '++++++++++++++++++++++++++++++++'
+    write(*,*) 'Initializing explicit LES Filter'
+        if(jLES==1) then
+        write(*,*) ' Classic Smagorinsky is used ... '
+        write(*,*) ' Smagorinsky constant = ', smagcst
+        write(*,*) ' Filter Size / Grid Size = ', FSGS
+        else if (jLES==2) then
+        write(*,*) ' Wall-adaptive LES (WALES) is used ... '
+        else if (jLES==3) then
+        write(*,*) ' Dynamic Smagorinsky is used ... '
+        endif
+    write(*,*) '++++++++++++++++++++++++++++++++'
+    write(*,*) ' '
+    endif 
+
+    if (istret.eq.0) del(:)=FSGS*(dx*dy*dz)**(1.0/3.0)
+
+end subroutine
+
+
 !************************************************************
 !
 subroutine smag(ux1,uy1,uz1,gxx1,gyx1,gzx1,gxy1,gyy1,gzy1,gxz1,gyz1,gzz1,&
@@ -129,8 +159,6 @@ srt_smag(:,:,:) = sxx1(:,:,:)*sxx1(:,:,:)+syy1(:,:,:)*syy1(:,:,:) &
 
 !if (nrank==0) print *, "srt_smag = ",maxval(srt_smag)
 
-
-if (jLES == 1) then !SMAGORINSKY
 call transpose_x_to_y(srt_smag,srt_smag2)
 do k=1,ysize(3)
 do j=1,ysize(2)
@@ -140,7 +168,6 @@ enddo
 enddo
 enddo
 call transpose_y_to_x(nut2,nut1)
-endif
 
 end subroutine smag
 

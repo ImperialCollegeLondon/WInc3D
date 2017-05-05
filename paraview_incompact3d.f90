@@ -145,15 +145,7 @@ program visu_paraview
      write(nfil,*)'                  vort'//chits
      write(nfil,*)'               </DataItem>'
      write(nfil,*)'            </Attribute>'
-     
-     write(nfil,*)'            <Attribute Name="qcrit" Center="Node">'
-     write(nfil,*)'               <DataItem Format="Binary" '
-     write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
-     write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
-     write(nfil,*)'                  qcrit'//chits
-     write(nfil,*)'               </DataItem>'
-     write(nfil,*)'            </Attribute>'
-     
+      
      write(nfil,*)'        </Grid>'
 
   enddo

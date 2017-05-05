@@ -83,9 +83,9 @@ end if
 !===========================================================================
 call parameter(InputFN)
 
-call init_variables
+if (jLES==1.OR.jLES==2.OR.jLES==3) call init_explicit_les() 
 
-if(jLES==3.OR.jLES==5) call filter()
+call init_variables
 
 call schemes()
 
@@ -151,7 +151,7 @@ do itime=ifirst,ilast
 1001  format(' Time step =',i7,', Time unit =',F9.3)
       write(*,*) '========================================'
    endif
-      
+
    if(ialm==1) then !>> GDeskos Turbine model
       ! First we need to ask for the velocities    
       call Compute_Momentum_Source_Term_pointwise!(xstart(1),xend(1),xstart(2),xend(2),xstart(3),xend(3))            
