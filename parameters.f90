@@ -52,7 +52,7 @@ character :: a*80
 NAMELIST/FlowParam/xlx,yly,zlz,re,sc,u1,u2,noise,noise1,dt
 NAMELIST/FlowConfig/nclx,ncly,nclz,itype,iin,ifirst,ilast,nscheme,istret, &
     beta,iskew,iscalar, jles, FSGS, jadv, smagcst, walecst, rxxnu 
-NAMELIST/FileParam/ilit,isave,imodulo
+NAMELIST/FileParam/ilit,isave,imodulo, mean_spinup_time
 NAMELIST/IBMParam/ivirt,cex,cey,cez,ra
 NAMELIST/ALMParam/ialm,NTurbines,TurbinesPath,eps_factor
 #ifdef DOUBLE_PREC 
@@ -67,7 +67,7 @@ twopi=2.*pi
 xlx=1.0
 yly=1.0
 zlz=1.0
-re=100
+re=1000
 nclx=0
 ncly=2
 nclz=0
@@ -84,11 +84,12 @@ jles=0
 FSGS=2.0
 smagcst=0.1
 walecst=0.5
-ilit=100
+ilit=0
 isave=100
 imodulo=100
 ivirt=0
 ialm=0
+eps_factor=2.0
 rxxnu=3.0
 
 ! READ PARAMETERS FROM FILE

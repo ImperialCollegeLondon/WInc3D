@@ -146,7 +146,7 @@ use decomp_2d, only : mytype
   integer :: nxboite, istat,iread,iadvance_time 
   real(mytype) :: xlx,yly,zlz,dx,dy,dz,dx2,dy2,dz2
   real(mytype) :: dt,xnu,noise,noise1,pi,twopi,u1,u2,sc
-  real(mytype) :: t,xxk1,xxk2
+  real(mytype) :: t,xxk1,xxk2, mean_spinup_time
   real(mytype) :: smagcst, walecst,dys, FSGS, rxxnu
   real(mytype) :: eps_factor ! Smoothing factor 
   integer :: itr,itime
