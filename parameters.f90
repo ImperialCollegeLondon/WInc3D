@@ -51,7 +51,7 @@ character :: a*80
 ! Have you heard of NAMELISTs ?
 NAMELIST/FlowParam/xlx,yly,zlz,re,sc,u1,u2,noise,noise1,dt
 NAMELIST/FlowConfig/nclx,ncly,nclz,itype,iin,ifirst,ilast,nscheme,istret, &
-    beta,iskew,iscalar, jles, FSGS, jadv, smagcst, walecst 
+    beta,iskew,iscalar, jles, FSGS, jadv, smagcst, walecst, rxxnu 
 NAMELIST/FileParam/ilit,isave,imodulo
 NAMELIST/IBMParam/ivirt,cex,cey,cez,ra
 NAMELIST/ALMParam/ialm,NTurbines,TurbinesPath,eps_factor
@@ -62,6 +62,7 @@ pi=acos(-1.)
 #endif
 
 twopi=2.*pi
+
 ! IF variables are not set we will need to give them some default values
 xlx=1.0
 yly=1.0
@@ -88,6 +89,8 @@ isave=100
 imodulo=100
 ivirt=0
 ialm=0
+rxxnu=3.0
+
 ! READ PARAMETERS FROM FILE
 open(10,file=InputFN) 
 read(10,nml=FlowParam)
@@ -96,7 +99,6 @@ read(10,nml=FileParam)
 read(10,nml=IBMParam)
 read(10,nml=ALMParam)
 close(10) 
-
 
 if (nrank==0) then
 print *,'==========================================================='
