@@ -276,6 +276,9 @@ contains
             enddo
             enddo
             enddo
+            
+            ! Once we know the closest point we need to 
+            
 
             Su_part(isource)=ux1(min_i,min_j,min_k)
             Sv_part(isource)=uy1(min_i,min_j,min_k)
