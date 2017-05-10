@@ -252,23 +252,30 @@ contains
         Sw(:)=0.0
         ! This is not optimum but works
         ! Define the domain
-        ymin=xstart(2)*dy-dy
+            
+        if (istret.eq.0) then 
+        ymin=(xstart(2)-1)*dy
         ymax=xend(2)*dy
-        zmin=xstart(3)*dz-dz
-        zmax=xend(3)*dz
-        
+        else
+        ymin=yp(xstart(2))
+        ymax=yp(xend(2))
+        endif
+
+        zmin=(xstart(3)-1)*dz
+        zmax=(xend(3)-1)*dz
+         
         do isource=1,NSource
         
         min_dist=1e6
         if((Sy(isource)>=ymin).and.(Sy(isource)<=ymax).and.(Sz(isource)>=zmin).and.(Sz(isource)<=zmax)) then
             !write(*,*) 'Warning: I own this node'
-            do k=1,xsize(3)
-            zmesh=(k+xstart(3)-1)*dz 
-            do j=1,xsize(2)
-            if (istret.eq.0) ymesh=(j+xstart(2)-1-1)*dy
-            if (istret.ne.0) ymesh=yp(j+xstart(2)-1)
-            do i=1,xsize(1)
-            xmesh=(i+xstart(1)-1)*dx
+            do k=xstart(3),xend(3)
+            zmesh=(k-1)*dz 
+            do j=xstart(2),xend(2)
+            if (istret.eq.0) ymesh=(j-1)*dy
+            if (istret.ne.0) ymesh=yp(j)
+            do i=xstart(1),xend(1)
+            xmesh=(i-1)*dx
             dist = sqrt((Sx(isource)-xmesh)**2+(Sy(isource)-ymesh)**2+(Sz(isource)-zmesh)**2) 
             
             if (dist<min_dist) then
@@ -288,65 +295,65 @@ contains
             stop
             endif 
 
-            if(Sx(isource)>(min_i+xstart(1)-1)*dx) then
+            if(Sx(isource)>(min_i-1)*dx) then
                 i_lower=min_i
                 i_upper=min_i+1
-            else if(Sx(isource)<(min_i+xstart(1)-1)*dx) then
+            else if(Sx(isource)<(min_i-1)*dx) then
                 i_lower=min_i-1
                 i_upper=min_i
-            else if(Sx(isource)==(min_i+xstart(1)-1)*dx) then
+            else if(Sx(isource)==(min_i-1)*dx) then
                 i_lower=min_i
                 i_upper=min_i
             endif
              
             if (istret.eq.0) then 
-            if(Sy(isource)>(min_j+xstart(2)-1-1)*dy) then
+            if(Sy(isource)>(min_j-1)*dy) then
                 j_lower=min_j
                 j_upper=min_j+1
-            else if(Sy(isource)<(min_j+xstart(2)-1-1)*dy) then
+            else if(Sy(isource)<(min_j-1)*dy) then
                 j_lower=min_j-1
                 j_upper=min_j
-            else if (Sy(isource)==(min_j+xstart(2)-1-1)*dy) then
+            else if (Sy(isource)==(min_j-1)*dy) then
                 j_lower=min_j
                 j_upper=min_j
             endif
             else
             
-            if(Sy(isource)>yp(min_j+xstart(2)-1)*dy) then
+            if(Sy(isource)>yp(min_j)) then
                 j_lower=min_j
                 j_upper=min_j+1
-            else if(Sy(isource)<yp(min_j+xstart(2)-1)*dy) then
+            else if(Sy(isource)<yp(min_j)) then
                 j_lower=min_j-1
                 j_upper=min_j
-            else if (Sy(isource)==yp(min_j+xstart(2)-1)*dy) then
+            else if (Sy(isource)==yp(min_j)) then
                 j_lower=min_j
                 j_upper=min_j
             endif
             endif
             
-            if(Sz(isource)>(min_k+xstart(3)-1)*dz) then
+            if(Sz(isource)>(min_k-1)*dz) then
                 k_lower=min_k
                 k_upper=min_k+1
-            else if(Sz(isource)<(min_k+xstart(3)-1)*dz) then
+            else if(Sz(isource)<(min_k-1)*dz) then
                 k_lower=min_k-1
                 k_upper=min_k
-            else if (Sz(isource)==(min_k+xstart(3)-1)*dz) then
+            else if (Sz(isource)==(min_k-1)*dz) then
                 k_lower=min_k
                 k_upper=min_k
             endif
 
             ! Prepare for interpolation
-            x0=(i_lower+xstart(1)-1)*dx
-            x1=(i_upper+xstart(1)-1)*dx
+            x0=(i_lower-1)*dx
+            x1=(i_upper-1)*dx
             if (istret.eq.0) then
-            y0=(j_lower+xstart(2)-1-1)*dy
-            y1=(j_upper+xstart(2)-1-1)*dy
+            y0=(j_lower-1)*dy
+            y1=(j_upper-1)*dy
             else
-            y0=yp(j_lower+xstart(2)-1)*dy
-            y1=yp(j_upper+xstart(2)-1)*dy
+            y0=yp(j_lower)
+            y1=yp(j_upper)
             endif
-            z0=(k_lower+xstart(3)-1)*dz
-            z1=(k_upper+xstart(3)-1)*dz
+            z0=(k_lower-1)*dz
+            z1=(k_upper-1)*dz
 
             x=Sx(isource)
             y=Sy(isource)
@@ -431,13 +438,13 @@ contains
 
             !## Add the source term
             do k=1,xsize(3)
-            zmesh=(k+xstart(3)-1)*dz
+            zmesh=(k+xstart(3)-1-1)*dz
             do j=1,xsize(2)
-            if (istret.eq.0) ymesh=(j+xstart(2)-1-1)*dy
-            if (istret.ne.0) ymesh=yp(j+xstart(2)-1) 
+            if (istret.eq.0) ymesh=(xstart(2)+j-1-1)*dy
+            if (istret.ne.0) ymesh=yp(xstart(2)+j-1) 
             do i=1,xsize(1)
-            xmesh=(i+xstart(1)-1)*dx
-            
+            xmesh=(i-1)*dx
+
             do isource=1,NSource
             
             dist = sqrt((Sx(isource)-xmesh)**2+(Sy(isource)-ymesh)**2+(Sz(isource)-zmesh)**2)
