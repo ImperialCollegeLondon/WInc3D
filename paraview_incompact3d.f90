@@ -7,20 +7,33 @@ program visu_paraview
   integer(4) :: nfiles, icrfile, file1, filen, ifile, dig1, dig2, dig3, dig4
   real(4), allocatable :: yp(:),y1(:),y3(:)
   integer(4) :: i, j, k, num, aig, ii, nfil,istret,nclx, ncly, nclz
+  integer :: ErrFlag, nargin, FNLength, status, DecInd
+  logical :: back
+  character(len=80) :: InputFN, FNBase
 
   character(4) :: chits
-
-  write (*,*) 'nx, ny, nz   - Incompact3D'
-  read (*,*) nx, ny, nz
-  write (*,*) 'xlx, yly, zlz   - Incompact3D'
-  read (*,*) xlx, yly, zlz
-  write (*,*) 'nclx, ncly, nclz   - Incompact3D'
-  read (*,*) nclx, ncly, nclz
-  write (*,*) 'n files, first file, last file'
-  read (*,*) nfiles,file1, filen
-  write (*,*) 'Stretching in the y direction (Y=1/N=0)?'
-  read (*,*) istret
-
+  NAMELIST/PostProcess/nx,ny,nz,xlx,yly,zlz,nclx,ncly,nclz,istret,nfiles,file1,filen
+ !==========================================================================
+ ! Handle Input file
+ nargin=command_argument_count()
+ if (nargin <1) then
+     write(6,*) 'Please call the program with the name of the input file on the command line Ex. Incompact3d input.prm'
+     stop
+ endif
+ 
+ call get_command_argument(1,InputFN,FNLength,status)
+ back=.true.
+ FNBase=inputFN((index(InputFN,'/',back)+1):len(InputFN))
+ DecInd=index(FNBase,'.',back)
+ if (DecInd >1) then
+     FNBase=FNBase(1:(DecInd-1))
+ end if
+ !===========================================================================
+  
+  
+  open(10,file=InputFN) 
+  read(10,nml=PostProcess)
+  close(10) 
 
   if (nclx==0) dx=xlx/nx
   if (nclx==1 .or. nclx==2) dx=xlx/(nx-1.)
