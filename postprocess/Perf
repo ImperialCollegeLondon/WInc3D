@@ -24,6 +24,21 @@ from numpy import genfromtxt
 import matplotlib.pyplot as plt
 from math import sqrt
 
+###
+#Define functions
+def comp_perf(FILENAME):
+    Angle=[];
+    Rev=[];
+    Cp=[];
+    Ct=[];
+    for i in range(nstart,nend):
+        A=np.genfromtxt('ALM/'+str(i)+'/'+FILENAME,skip_header=1,delimiter=",")
+        Rev.append(A[0])
+        Angle.append(A[0]*360)
+        Cp.append(A[6])
+
+    return Angle, Cp
+
 # ====================================
 # Parser Arguments
 # ====================================
@@ -31,32 +46,18 @@ parser = argparse.ArgumentParser(description="Script that reads from one or more
 parser.add_argument("-v","--verbose",action="store_true",help="Prints a script description on the screen")
 parser.add_argument("-p","--plot",action="store_true",help="Plots the Cp versus the TSR")
 parser.add_argument("-w","--write",help="Write results in a .dat file",type=str)
-parser.add_argument("FILENAME", type=str, help="Filename, should end with .load")
+parser.add_argument("FILENAME", type=str, help="Filename, should end with .perf")
+parser.add_argument("FIRST", type=int, help="First time step")
+parser.add_argument("LAST", type=int, help="Last time step")
 
 args = parser.parse_args()
-input_file = args.FILENAME
+name = args.FILENAME
+nstart= args.FIRST
+nend= args.LAST
 
-def comp_perf(name):
-    Angle=[];
-    Rev=[];
-    Cp=[];
-    Ct=[];
-    for i in range(1,73):
-        A=np.genfromtxt(FILENAME,skip_header=1,delimiter=",")
-        Rev.append(A[0])
-        Angle.append(A[0]*360)
-        Cp.append(A[6])
+Angle_1,Cp_1=comp_perf(name)
+plt.plot(Angle_1,Cp_1,'k.-')
+plt.show()
 
-    return Angle, Cp
 
-if __name__ == "__main__":
-    if len(sys.argv)>1:
-        if sys.argv[1]=="perf":
-            Angle_1,Cp_1=comp_perf("Front")
-            plt.plot(Angle_1,Cp_1)
-        elif sys.argv[1]=="wake":
-            print("not ready yet")
-    else:
-        print("dont know what to do")
 
-    plt.show()
