@@ -1,0 +1,62 @@
+#!/usr/bin/env python
+"""
+Scrip that plots Performance and Drag for the axial-flow
+turbine actuator line
+"""
+#!/usr/bin/env python
+# 
+# Georgios (Yorgos) Deskos
+# This script reads the .load files and plots the loads
+import os, glob
+import shutil
+import sys
+import string
+import filecmp
+import difflib
+import subprocess
+import math
+import re
+import argparse
+import csv
+import time
+import numpy as np
+from numpy import genfromtxt
+import matplotlib.pyplot as plt
+from math import sqrt
+
+# ====================================
+# Parser Arguments
+# ====================================
+parser = argparse.ArgumentParser(description="Script that reads from one or more files and plots Blade load statistics")
+parser.add_argument("-v","--verbose",action="store_true",help="Prints a script description on the screen")
+parser.add_argument("-p","--plot",action="store_true",help="Plots the Cp versus the TSR")
+parser.add_argument("-w","--write",help="Write results in a .dat file",type=str)
+parser.add_argument("FILENAME", type=str, help="Filename, should end with .load")
+
+args = parser.parse_args()
+input_file = args.FILENAME
+
+def comp_perf(name):
+    Angle=[];
+    Rev=[];
+    Cp=[];
+    Ct=[];
+    for i in range(1,73):
+        A=np.genfromtxt(FILENAME,skip_header=1,delimiter=",")
+        Rev.append(A[0])
+        Angle.append(A[0]*360)
+        Cp.append(A[6])
+
+    return Angle, Cp
+
+if __name__ == "__main__":
+    if len(sys.argv)>1:
+        if sys.argv[1]=="perf":
+            Angle_1,Cp_1=comp_perf("Front")
+            plt.plot(Angle_1,Cp_1)
+        elif sys.argv[1]=="wake":
+            print("not ready yet")
+    else:
+        print("dont know what to do")
+
+    plt.show()
