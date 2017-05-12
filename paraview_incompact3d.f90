@@ -185,8 +185,7 @@ program visu_paraview
      write(nfil,*)'            </Attribute>'
      endif
 
-     if(ivirt>1) then
-     
+     if(ivirt>0) then     
      write(nfil,*)'            <Attribute Name="IBM" Center="Node">'
      write(nfil,*)'               <DataItem Format="Binary" '
      write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'

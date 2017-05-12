@@ -123,7 +123,7 @@ real(mytype),dimension(nz) :: cibi6z,cifip6z,cisip6z,ciwip6z,cisi6z,ciwi6z
 
 !module waves
 complex(mytype), dimension(nz/2+1) :: zkz,zk2,ezs
-complex(mytype), dimension(ny) :: yky,yk2,eys	
+complex(mytype), dimension(ny) :: yky,yk2,eys
 complex(mytype), dimension(nx) :: xkx,xk2,exs
 
 !module mesh
@@ -139,7 +139,7 @@ module param
 use decomp_2d, only : mytype
 
   integer :: nclx,ncly,nclz
-  integer :: ifft, ivirt,istret,iforc_entree,iturb, ialm, Nturbines
+  integer :: ifft, ivirt,istret,iforc_entree,iturb, ialm, Nturbines, NActuatorlines
   integer :: itype, iskew, iin, nscheme, ifirst, ilast, iles, jLES, jADV
   integer :: isave,ilit,srestart,idebmod, imodulo, idemarre, icommence, irecord
   integer :: iscalar,ilag,npif,izap
@@ -153,7 +153,7 @@ use decomp_2d, only : mytype
   character :: dirname*80
   character :: filesauve*80, filenoise*80, &
        nchamp*80,filepath*80, fileturb*80, filevisu*80 
-  character, dimension(100) :: turbinesPath*80 ! Assign a maximum number of 100 turbines
+  character, dimension(100) :: turbinesPath*80, ActuatorlinesPath*80 ! Assign a maximum number of 100 turbines and alms
    real(mytype), dimension(5) :: adt,bdt,cdt,gdt
 end module param
 

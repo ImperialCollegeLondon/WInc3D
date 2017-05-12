@@ -141,7 +141,7 @@ call decomp_info_init(nxm, nym, nz, ph3)
 !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ! Initialize the Turbine Model
 if (ialm==1) then
-  call actuator_line_model_init(Nturbines,TurbinesPath,dt)  
+  call actuator_line_model_init(Nturbines,Nactuatorlines,TurbinesPath,ActuatorlinesPath,dt)  
   call initialize_actuator_source 
 endif
 !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

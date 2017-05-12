@@ -22,11 +22,11 @@ module actuator_line_model
 
 contains
 
-    subroutine actuator_line_model_init(Nturbines,turbines_file,dt)
+    subroutine actuator_line_model_init(Nturbines,Nactuatorlines,turbines_file,actuatorlines_file,dt)
 
         implicit none
-        integer :: Nturbines
-        character(len=80),dimension(100),intent(in) :: turbines_file 
+        integer :: Nturbines, Nactuatorlines
+        character(len=80),dimension(100),intent(in) :: turbines_file, actuatorlines_file 
         real(mytype), intent(in) :: dt
         integer :: itur,ial 
         if (nrank==0) then        
@@ -50,7 +50,11 @@ contains
         endif
 
         !### Speficy Actuator Lines
-        !call get_actuatorline_options 
+        Nal=NActuatorlines
+        if (nrank==0) then
+        write(6,*) 'Number of actuator lines : ', Nal
+        endif
+        call get_actuatorline_options(actuatorlines_file) 
         if(Nal>0) then
             do ial=1,Nal
             call set_actuatorline_geometry(actuatorline(ial))
@@ -246,57 +250,56 @@ contains
 
     end subroutine get_turbine_options 
 
-    !subroutine get_actuatorline_options
+    subroutine get_actuatorline_options(actuatorline_path)
 
-    !    implicit none
+       implicit none
 
-    !    integer :: i,k
-    !    integer, parameter :: MaxReadLine = 1000    
-    !    character(len=100), allocatable :: actuatorline_path(:)
+       integer :: i,k
+       integer, parameter :: MaxReadLine = 1000    
+       character(len=80), dimension(100),intent(in) :: actuatorline_path
+        !-------------------------------------
+        ! Dummy variables
+        !-------------------------------------
+        character(len=100) :: name, actuatorline_geom, afname
+        real(mytype), dimension(3) :: origin
+        integer :: numfoil, AddedMassFlag, DynStallFlag, EndEffectsFlag, RandomWalkForcingFlag
+        NAMELIST/TurbineSpecs/name,origin, actuatorline_geom,numfoil,afname, AddedMassFlag, &
+            RandomWalkForcingFlag, DynStallFlag,EndEffectsFlag
 
-    !    write(6,*) 'Entering get_actuatorline_options'
 
-    !    Nal = option_count("/turbine_models/actuator_line_model/actuatorline")
-    !    write(6,*) 'Number of Actuatorlines : ', Nal
+        ! Allocate Turbines Arrays
+       allocate(actuatorline(Nal))
 
-    !    ! Allocate Turbines Arrays
-    !    allocate(actuatorline(Nal))
-    !    Allocate(actuatorline_path(Nal))
+        ! ==========================================
+        ! Get Turbines' options and INITIALIZE THEM
+        ! ==========================================
+        do i=1, Nal
+        Actuatorline(i)%name=name
+        Actuatorline(i)%COR=origin
+        Actuatorline(i)%geom_file=actuatorline_geom
 
-    !    ! ==========================================
-    !    ! Get Turbines' options and INITIALIZE THEM
-    !    ! ==========================================
-    !    do i=1, Nal
-    !    actuatorline_path(i)="/turbine_models/actuator_line_model/actuatorline["//int2str(i-1)//"]"
-    !    call get_option("/turbine_models/actuator_line_model/actuatorline["//int2str(i-1)//"]/name",Actuatorline(i)%name)
-    !    call get_option("/turbine_models/actuator_line_model/actuatorline["//int2str(i-1)//"]/location/",Actuatorline(i)%COR) 
-    !    call get_option("/turbine_models/actuator_line_model/actuatorline["//int2str(i-1)//"]/geometry_file/file_name",Actuatorline(i)%geom_file)
+        ! Count how many Airfoil Sections are available
+        Actuatorline(i)%NAirfoilData=numfoil 
+        ! Allocate the memory of the Airfoils
+        Allocate(Actuatorline(i)%AirfoilData(Actuatorline(i)%NAirfoilData))
 
-    !    ! Count how many Airfoil Sections are available
-    !    Actuatorline(i)%NAirfoilData=option_count("/turbine_models/actuator_line_model/actuatorline["//int2str(i-1)//"]/airfoil_sections/section") 
-    !    write(*,*) 'Number of Airfoils available : ', Actuatorline(i)%NAirfoilData
-    !    ! Allocate the memory of the Airfoils
-    !    Allocate(Actuatorline(i)%AirfoilData(Actuatorline(i)%NAirfoilData))
+        do k=1, Actuatorline(i)%NAirfoilData
 
-    !    do k=1, Actuatorline(i)%NAirfoilData
+         Actuatorline(i)%AirfoilData(k)%afname=afname
 
-    !    call get_option(trim(Actuatorline_path(i))//"/airfoil_sections/section["//int2str(k-1)//"]/airfoil_file",Actuatorline(i)%AirfoilData(k)%afname)
+        ! Read and Store Airfoils
+        call airfoil_init_data(Actuatorline(i)%AirfoilData(k))
+        end do
 
-    !    ! Read and Store Airfoils
-    !    call airfoil_init_data(Actuatorline(i)%AirfoilData(k))
-    !    end do
+        !##################4 Get Dynamic Loads Modelling Options ##################
+        if(AddedMassFlag==1) then
+            Actuatorline%do_added_mass=.true.
+        endif
 
-    !    !##################4 Get Dynamic Loads Modelling Options ##################
-    !    if(have_option(trim(actuatorline_path(i))//"/added_mass")) then
-    !        Actuatorline%do_added_mass=.true.
-    !    endif
-
-    !    if(have_option(trim(actuatorline_path(i))//"/dynamic_stall")) then
-    !        Actuatorline%do_dynamic_stall=.true.
-    !        if(have_option(trim(actuatorline_path(i))//"/dynamic_stall/do_calcAlphaEquiv")) then
-    !            Actuatorline%do_DynStall_AlphaEquiv=.true.
-    !        endif
-    !    endif
+        if(DynStallFlag==1) then
+            Actuatorline%do_dynamic_stall=.true.
+        endif
+    
     !    !##################4 Get Pitching Opions ##################
     !    if(have_option(trim(actuatorline_path(i))//"/pitch_control")) then
     !        Actuatorline%pitch_control=.true.
@@ -310,11 +313,9 @@ contains
     !        endif
     !    endif
 
-    !    end do
+        end do
 
-    !    write(*,*) 'Exiting get_actuatorline_options'
-
-    !end subroutine get_actuatorline_options 
+    end subroutine get_actuatorline_options 
 
     subroutine actuator_line_model_update(current_time,dt)
 

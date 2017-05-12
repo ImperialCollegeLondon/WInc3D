@@ -909,10 +909,10 @@ do i=1,xsize(1)
 xm=(i-1)*dx 
 r=sqrt((xm-cex)*(xm-cex)+(ym-cey)*(ym-cey)) 
 if (r<=ra) then
-    ux(i,j,k)=0.
-    uy(i,j,k)=0. 
-    uz(i,j,k)=0.
-    ep1(i,j,k)=1. 
+   ux(i,j,k)=0.
+   uy(i,j,k)=0. 
+   uz(i,j,k)=0.
+   ep1(i,j,k)=1. 
 endif
 enddo
 enddo
