@@ -113,9 +113,9 @@ if (iskew==0) then !UROTU!
            ux3(ijk,1,1)*(te3(ijk,1,1)-tb3(ijk,1,1))
    enddo
 else !SKEW!
+!############################## STARTING LES TERMS #######################
 !LES Model Calculations
 if (jLES.ne.0) then !LES Modelling
-
 sgsx1=0.;sgsy1=0.;sgsz1=0.
 eadvx1=0.;eadvy1=0.;eadvz1=0.
 dsmagcst=0.
@@ -157,8 +157,9 @@ tj2=0.
 
 ta3=0.;tb3=0.;tc3=0.
 td3=0.;te3=0.;tf3=0.
-
+!########################## ENDING LES TERMS ##################################
 !SKEW CONVECTIVE TERMS!
+
 !WORK X-PENCILS
    do ijk=1,nvect1
       ta1(ijk,1,1)=ux1(ijk,1,1)*ux1(ijk,1,1)
@@ -319,26 +320,26 @@ tb1(:,:,:)=tb1(:,:,:)+te1(:,:,:)
 tc1(:,:,:)=tc1(:,:,:)+tf1(:,:,:)
 
 !FINAL SUM: DIFF TERMS + CONV TERMS
-if(itime==1) then
+!if(itime==1) then
+!    ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)
+!    tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)
+!    tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)
+!else
+if(jLES==0) then ! DNS or Implicit LES
     ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)
     tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)
     tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)
-else
-    if(jLES==0) then
-        ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)
-        tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)
-        tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)
-    else !LES MODEL
-        ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)+sgsx1(:,:,:)
-        tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)+sgsy1(:,:,:)
-        tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)+sgsz1(:,:,:)
-        if(jADV==1) then
-            ta1(:,:,:)=ta1(:,:,:)+eadvx1(:,:,:)
-            tb1(:,:,:)=tb1(:,:,:)+eadvy1(:,:,:)
-            tc1(:,:,:)=tc1(:,:,:)+eadvz1(:,:,:)
-        endif
-    endif
+else ! Explicit LES MODEL
+    ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)+sgsx1(:,:,:)
+    tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)+sgsy1(:,:,:)
+    tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)+sgsz1(:,:,:)
+    !if(jADV==1) then
+    !    ta1(:,:,:)=ta1(:,:,:)+eadvx1(:,:,:)
+    !    tb1(:,:,:)=tb1(:,:,:)+eadvy1(:,:,:)
+    !    tc1(:,:,:)=tc1(:,:,:)+eadvz1(:,:,:)
+    !endif
 endif
+!endif
 
 ! If the turbine model is on add the momentum source term
 if (ialm==1) then

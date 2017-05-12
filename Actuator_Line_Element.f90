@@ -114,6 +114,7 @@ type ActuatorLineType
     logical :: do_added_mass=.false.
     logical :: do_dynamic_stall=.false.
     logical :: do_DynStall_AlphaEquiv=.false.
+    logical :: do_random_walk_forcing=.false.
 
     ! Blade/Actuator_line Pitch
     logical :: pitch_control=.false.
@@ -210,8 +211,10 @@ end type ActuatorLineType
     real(mytype) :: CL,CD,CN,CT,CM25,MS,FN,FT,FX,Fy,Fz
     real(mytype) :: dal,dUn
     real(mytype) :: CLdyn,CDdyn,CNAM,CTAM,CMAM
+    real(mytype) :: rand(3000), freq, Strouhal ! To add random walk on the lift/drag coefficients
     integer :: ielem
   
+    call random_number(rand)
      
     !===========================================================
     ! Assign global values to local values (to make life easier
@@ -279,7 +282,6 @@ end type ActuatorLineType
     !====================================
     call compute_StaticLoads(act_line%EAirfoil(ielem),alpha,act_line%ERe(ielem),CN,CT,CM25,CL,CD)  
  
-
     !===============================================
     ! Correct for dynamic stall 
     !=============================================== 
@@ -312,7 +314,15 @@ end type ActuatorLineType
     ! when it is not activated
     ! ========================================================================
     CL=CL*act_line%EEndeffects_factor(ielem)
-        
+    
+    ! Apply Random walk on the Lift and drag forces
+    if(act_line%do_random_walk_forcing) then
+    Strouhal=0.17 
+    freq=Strouhal*ur/max(ElemChord,0.0001)
+    CL=CL*(1+0.1*sin(2.0*pi*freq*time)+0.05*(-1.0+2.0*rand(ielem)))
+    CD=CD*(1+0.05*(-1.0+2.0*rand(ielem)))
+    endif
+
     ! Tangential and normal coeffs
     CN=CL*cos(alpha)+CD*sin(alpha)                                   
     CT=-CL*sin(alpha)+CD*cos(alpha) 
@@ -407,7 +417,7 @@ end type ActuatorLineType
             tower%ERE(ielem)=ur*Diameter/visc
             freq=Str*ur/max(Diameter,0.0001)
             tower%ECL(ielem)=CL*sin(2.0*freq*pi*time)
-            tower%ECL(ielem)=tower%ECL(ielem)*(1.0+0.25*(-1.0+2.0*rand(ielem)))
+            tower%ECL(ielem)=tower%ECL(ielem)*(1.0+0.05*(-1.0+2.0*rand(ielem)))
             tower%ECD(ielem)=CD
             CN=tower%ECL(ielem)*cos(alpha)+tower%ECD(ielem)*sin(alpha)                                   
             CT=-tower%ECL(ielem)*sin(alpha)+tower%ECD(ielem)*cos(alpha) 

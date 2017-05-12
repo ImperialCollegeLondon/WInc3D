@@ -48,10 +48,12 @@ implicit none
 integer  :: i,j,k
 real(mytype) :: fpi2,alpha2,diskc,diskm,dpis3,kppkc,kppkm,xxnu
 
-alfa1x= 2.
-af1x  =-(5./2.  )/dx
-bf1x  = (   2.  )/dx
-cf1x  = (1./2.  )/dx
+! First derivative single sided coeffs
+! f_1'+2*f_2'=1/(2*dx)*(-5f_1+4.0*f_2+f_3+0.0*f_4)
+alfa1x= 2. ! multiplies f_2'
+af1x  =-(5./2.  )/dx ! multiplies f_1
+bf1x  = (   2.  )/dx ! multiplies f_2
+cf1x  = (1./2.  )/dx ! multiplies f_3
 df1x  = 0.
 alfa2x= 1./4.
 af2x  = (3./4.  )/dx
@@ -65,11 +67,14 @@ afmx  = (3./4.  )/dx
 alfaix= 1./3.
 afix  = (7./9.  )/dx
 bfix  = (1./36. )/dx
+
+! Second Derivative three point formulations for no-slip and slip BCs
 alsa1x= 11.
 as1x  = (13.    )/dx2
 bs1x  =-(27.    )/dx2
 cs1x  = (15.    )/dx2
 ds1x  =-(1.     )/dx2
+
 alsa2x= 1./10.
 as2x  = (6./5.  )/dx2
 alsa3x= 2./11.
@@ -91,16 +96,18 @@ bstx  = (3./44. )/dx2
 !bsix  = (3./44. )/dx2
 !csix  = 0.
 !NUMERICAL DISSIPATION (see publications for help)
-xxnu = 1.0/rxxnu
-dpis3=2*pi/3
-kppkc=pi*pi/xxnu+pi*pi
-kppkm=dpis3*dpis3*exp(-((pi-dpis3)/(0.3*pi-dpis3))**2)/xxnu+dpis3*dpis3
+xxnu = 1.0/rxxnu        ! Dissipation coefficient nu_o/nu 
+dpis3=2*pi/3            ! 2*kc/3 where kc=pi/dx (will be added next this is just the coeffs)
+kppkc=pi*pi/xxnu+pi*pi  ! k''(kc) = (1+nu_o/nu)*kc^2
+kppkm=dpis3*dpis3*exp(-((pi-dpis3)/(0.3*pi-dpis3))**2)/xxnu+dpis3*dpis3 ! k''(km)=(1+c1*nu_o/nu)*4*pi/9
 diskc=kppkc
 diskm=kppkm
 alpha2=(64.*diskm-27.*diskc-96.)/(64.*diskm-54.*diskc+48.)
 asix=(54.*diskc-15.*diskc*diskm+12.)/(64.*diskm-54.*diskc+48.)
 bsix=(192.*diskm-216.*diskc+24.*diskc*diskm-48.)/(64.*diskm-54.*diskc+48.)
 csix=9.*(6.*diskc-diskc*diskm-12.)/(64.*diskm-54.*diskc+48.)
+
+! These coefficients exist also in schemes_dns.f90
 alsaix=alpha2
 asix=asix/dx2
 bsix=bsix/(4.*dx2)
