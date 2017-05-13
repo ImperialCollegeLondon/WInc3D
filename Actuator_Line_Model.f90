@@ -116,15 +116,15 @@ contains
         character(len=100) :: name, blade_geom, tower_geom, afname
         real(mytype), dimension(3) :: origin
         integer :: numblades,numfoil,towerFlag, TypeFlag, OperFlag, RotFlag, AddedMassFlag, DynStallFlag, EndEffectsFlag
-        real(mytype) :: toweroffset,tower_drag,tower_lift,tower_strouhal, uref, tsr
+        real(mytype) :: toweroffset,tower_drag,tower_lift,tower_strouhal, uref, tsr, RandomWalkForcingFlag, ShenC1, ShenC2 
         NAMELIST/TurbineSpecs/name,origin,numblades,blade_geom,numfoil,afname,towerFlag,towerOffset, &
             tower_geom,tower_drag,tower_lift,tower_strouhal,TypeFlag, OperFlag, tsr, uref,RotFlag, AddedMassFlag, &
-        DynStallFlag,EndEffectsFlag
+            RandomWalkForcingFlag, DynStallFlag,EndEffectsFlag, ShenC1, ShenC2
 
         if (nrank==0) then
             write(6,*) 'Loading the turbine options ...'
         endif
-        
+
         ! Allocate Turbines Arrays
         Allocate(Turbine(Ntur))
         ! ==========================================
@@ -145,7 +145,7 @@ contains
         nfoils = numfoil
         if(nfoils==0) then
             write(6,*) "You need to provide at least one static_foils_data entry for the computation of the blade forces"
-           stop 
+            stop 
         end if
         ! Allocate the memory of the Airfoils
 
@@ -153,14 +153,14 @@ contains
         Turbine(i)%Blade(j)%NAirfoilData=nfoils
         Allocate(Turbine(i)%Blade(j)%AirfoilData(nfoils))
         do k=1, Turbine(i)%Blade(j)%NAirfoilData
-    
+
         Turbine(i)%Blade(j)%AirfoilData(k)%afname=afname
         ! Read and Store Airfoils
         call airfoil_init_data(Turbine(i)%Blade(j)%AirfoilData(k))
         end do
         end do
 
-    ! ## Tower ##
+        ! ## Tower ##
         if (towerFlag==1) then
             Turbine(i)%Has_Tower=.true.
             Turbine(i)%TowerOffset=toweroffset
@@ -168,27 +168,27 @@ contains
             Turbine(i)%TowerDrag=tower_drag
             Turbine(i)%TowerLift=tower_lift
             Turbine(i)%TowerStrouhal=tower_strouhal
-       endif
+        endif
 
-    !#############2  Get turbine_specs #################
-    ! Check the typ of Turbine (choose between Horizontal and Vertical Axis turbines) 
-    if(TypeFlag==1) then
+        !#############2  Get turbine_specs #################
+        ! Check the typ of Turbine (choose between Horizontal and Vertical Axis turbines) 
+        if(TypeFlag==1) then
             Turbine(i)%Type='Horizontal_Axis'
             Turbine(i)%RotN=[1.0d0,0.0d0,0.0d0]   
-    !        call get_option(trim(turbine_path(i))//"/type/Horizontal_Axis/hub_tilt_angle",Turbine(i)%hub_tilt_angle) 
-    !        call get_option(trim(turbine_path(i))//"/type/Horizontal_Axis/blade_cone_angle",Turbine(i)%blade_cone_angle)
-    !        call get_option(trim(turbine_path(i))//"/type/Horizontal_Axis/yaw_angle",Turbine(i)%yaw_angle)
-    elseif(TypeFlag==2) then
-    !        call get_option(trim(turbine_path(i))//"/type/Vertical_Axis/axis_of_rotation",Turbine(i)%RotN) 
-    !        call get_option(trim(turbine_path(i))//"/type/Vertical_Axis/distance_from_axis",Turbine(i)%dist_from_axis)
+            !        call get_option(trim(turbine_path(i))//"/type/Horizontal_Axis/hub_tilt_angle",Turbine(i)%hub_tilt_angle) 
+            !        call get_option(trim(turbine_path(i))//"/type/Horizontal_Axis/blade_cone_angle",Turbine(i)%blade_cone_angle)
+            !        call get_option(trim(turbine_path(i))//"/type/Horizontal_Axis/yaw_angle",Turbine(i)%yaw_angle)
+        elseif(TypeFlag==2) then
+            !        call get_option(trim(turbine_path(i))//"/type/Vertical_Axis/axis_of_rotation",Turbine(i)%RotN) 
+            !        call get_option(trim(turbine_path(i))//"/type/Vertical_Axis/distance_from_axis",Turbine(i)%dist_from_axis)
             write(6,*) 'Not ready yet'
             stop
-    else
+        else
             write(6,*) "You should not be here"
             stop 
-    end if
+        end if
 
-    !##############3 Get Operation Options ######################
+        !##############3 Get Operation Options ######################
         if (OperFlag==1) then
             Turbine(i)%Is_constant_rotation_operated= .true.
             Turbine(i)%Uref=uref
@@ -198,59 +198,51 @@ contains
             elseif(RotFlag==2) then
                 Turbine(i)%IsCounterClockwise=.true.
                 Turbine(i)%RotN=-Turbine(i)%RotN
-       else
+            else
                 write(6,*) "You should not be here. The options are clockwise and counterclockwise"
                 stop
-       endif 
-       else if(OperFlag==2) then
+            endif 
+        else if(OperFlag==2) then
             Turbine(i)%Is_force_based_operated = .true. 
         else
             write(*,*) "At the moment only the constant and the force_based rotational velocity models are supported"
             stop
         endif
 
-    !##################4 Get Unsteady Modelling Options ##################
+        !##################4 Get Unsteady Effects Modelling Options ##################
+        if(RandomWalkForcingFlag==1) then
+            do j=1,Turbine(i)%NBlades
+            Turbine(i)%Blade(j)%do_random_walk_forcing=.true.  
+            end do
+        endif
+        
         if(AddedMassFlag==1) then
             do j=1,Turbine(i)%NBlades
             Turbine(i)%Blade(j)%do_added_mass=.true.
             end do
         endif
 
-    !    if(have_option(trim(turbine_path(i))//"/Blades/dynamic_stall")) then
-    !        do j=1,Turbine(i)%NBlades
-    !        Turbine(i)%Blade(j)%do_dynamic_stall=.true.  
-    !        if(have_option(trim(turbine_path(i))//"/Blades/dynamic_stall/do_calcAlphaEquiv")) then
-    !            Turbine(i)%Blade(j)%do_DynStall_AlphaEquiv=.true.
-    !        endif
-    !        end do
-    !    endif
+        if(DynStallFlag==1) then
+            do j=1,Turbine(i)%NBlades
+            Turbine(i)%Blade(j)%do_dynamic_stall=.true.  
+            end do
+        endif
 
-    !    if(have_option(trim(turbine_path(i))//"/Blades/BladeEndEffects")) then
-    !        Turbine(i)%Has_BladeEndEffectModelling=.true.
-    !        if(have_option(trim(turbine_path(i))//"/Blades/BladeEndEffects/tip_correction")) then
-    !            Turbine(i)%do_tip_correction=.true.
-    !            if(have_option(trim(turbine_path(i))//"/Blades/BladeEndEffects/tip_correction/Glauret")) then
-    !                Turbine(i)%EndEffectModel_is_Glauret=.true.
-    !            else if(have_option(trim(turbine_path(i))//"/Blades/BladeEndEffects/tip_correction/ShenEtAl2005")) then
-    !                Turbine(i)%EndEffectModel_is_Shen=.true.
-    !                call get_option(trim(turbine_path(i))//"/Blades/BladeEndEffects/tip_correction/ShenEtAl2005/c1",Turbine(i)%ShenCoeff_c1)
-    !                call get_option(trim(turbine_path(i))//"/Blades/BladeEndEffects/tip_correction/ShenEtAl2005/c2",Turbine(i)%ShenCoeff_c2)
-    !            endif
-    !        endif
-    !        if(have_option(trim(turbine_path(i))//"/Blades/BladeEndEffects/root_correction")) then
-    !            Turbine(i)%do_root_correction=.true.
-    !            if(have_option(trim(turbine_path(i))//"/Blades/BladeEndEffects/root_correction/Glauret")) then
-    !                Turbine(i)%EndEffectModel_is_Glauret=.true.
-    !            else if(have_option(trim(turbine_path(i))//"/Blades/BladeEndEffects/root_correction/ShenEtAl2005")) then
-    !                Turbine(i)%EndEffectModel_is_Shen=.true.
-    !                call get_option(trim(turbine_path(i))//"Blades/BladeEndEffects/root_correction/ShenEtAl2005/c1",Turbine(i)%ShenCoeff_c1)
-    !                call get_option(trim(turbine_path(i))//"Blades/BladeEndEffects/root_correction/ShenEtAl2005/c2",Turbine(i)%ShenCoeff_c2)
-    !            endif 
-    !        endif
-    !    endif
+        if(EndEffectsFlag==1) then
+            Turbine(i)%Has_BladeEndEffectModelling=.true.
+            Turbine(i)%do_tip_correction=.true.
+            Turbine(i)%do_root_correction=.true.
+            Turbine(i)%EndEffectModel_is_Glauret=.true.
+        else if(EndEffectsFlag==2) then
+            Turbine(i)%Has_BladeEndEffectModelling=.true.
+            Turbine(i)%do_tip_correction=.true.
+            Turbine(i)%do_root_correction=.true.
+            Turbine(i)%EndEffectModel_is_Shen=.true.
+            Turbine(i)%ShenCoeff_c1=ShenC1
+            Turbine(i)%ShenCoeff_c2=ShenC2
+        endif
+
         end do
-
-    !    write(6,*) 'Exiting get_turbine_options'
 
     end subroutine get_turbine_options 
 

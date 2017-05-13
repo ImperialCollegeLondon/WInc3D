@@ -47,9 +47,9 @@ implicit none
 
 integer  :: i,j,k
 real(mytype) :: fpi2
-
-alfa1x= 2.
-af1x  =-(5./2.  )/dx
+! Coefficients for the 6th Order Scheme
+alfa1x= 2.              ! 
+af1x  =-(5./2.  )/dx    ! 
 bf1x  = (   2.  )/dx
 cf1x  = (1./2.  )/dx
 df1x  = 0.
