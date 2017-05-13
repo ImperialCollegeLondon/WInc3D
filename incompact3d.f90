@@ -243,11 +243,13 @@ do itime=ifirst,ilast
            ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3,phG,uvisu)
       call VISU_PRE (pp3,ta1,tb1,di1,ta2,tb2,di2,&
            ta3,di3,nxmsize,nymsize,nzmsize,phG,ph2,ph3,uvisu) 
-      if (ialm==1) then
-        if (nrank==0) then
-            call actuator_line_model_write_output(itime/imodulo) ! Write the Turbine Statistics 
-        end if
-      endif
+   endif
+
+   if (ialm==1) then
+    if (nrank==0) then
+       !call actuator_line_turbine_write_output(turbine(itur),dir)
+       call actuator_line_model_write_output(itime) ! Write the Turbine Statistics 
+    end if
    endif
    
 
