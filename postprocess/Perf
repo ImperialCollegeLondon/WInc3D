@@ -3,7 +3,6 @@
 Scrip that plots Performance and Drag for the axial-flow
 turbine actuator line
 """
-#!/usr/bin/env python
 # 
 # Georgios (Yorgos) Deskos
 # This script reads the .load files and plots the loads
@@ -49,15 +48,22 @@ parser.add_argument("-w","--write",help="Write results in a .dat file",type=str)
 parser.add_argument("FILENAME", type=str, help="Filename, should end with .perf")
 parser.add_argument("FIRST", type=int, help="First time step")
 parser.add_argument("LAST", type=int, help="Last time step")
+parser.add_argument("TimeStep", type=float,help="Time step of sampling")
 
 args = parser.parse_args()
 name = args.FILENAME
 nstart= args.FIRST
 nend= args.LAST
+timestep=args.TimeStep
 
 Angle_1,Cp_1=comp_perf(name)
+# Apply a fft to find frequency
+sp=np.fft.fft(Cp_1)
+freq=np.fft.fftfreq(len(Cp_1))
+
+plt.subplot(1,2,1)
 plt.plot(Angle_1,Cp_1,'k.-')
+plt.subplot(1,2,2)
+plt.loglog(freq,sp.real)
+
 plt.show()
-
-
-
