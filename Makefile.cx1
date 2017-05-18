@@ -1,0 +1,84 @@
+#=======================================================================
+# Makefile for Incompact3D
+#=======================================================================
+#SET COMPILER AND VERSION BASED ON WHETHER a HPC or local PC is used
+HOST=$(shell domainname | sed 's/\.//g')
+HOSTCX1=cx1hpcicacuk
+HOSTCX2=cx2hpcicacuk
+
+OPTIONS = -DDOUBLE_PREC
+
+HOST=cx1hpcicacuk
+
+FFT = fftw3
+FFTW3_INCLUDE = 
+FFTW3_LIB = -lfftw3 -lfftw3f
+
+FC = mpif90
+OPTFC = -O3 -xAVX -cpp
+CC=cc
+CFLAGS= -O3 -xAVX
+
+#include PATH 
+ ifeq ($(FFT),generic)
+   INC=
+ else ifeq ($(FFT),fftw3)
+   INC=$(FFTW3_INCLUDE)
+ else ifeq ($(FFT),essl)
+   INC=$(ESSL_INCLUDE)
+ endif
+ 
+ # library path
+ ifeq ($(FFT),generic)
+    LIBFFT=
+ else ifeq ($(FFT),fftw3)
+    LIBFFT=$(FFTW3_LIB)
+ else ifeq ($(FFT),essl)
+    LIBFFT=$(ESSL_LIB)
+ endif
+
+
+SRC = decomp_2d.f90 glassman.f90 fft_$(FFT).f90 module_param.f90 io.f90 variables.f90 poisson.f90 les_models.f90 schemes_les.f90 convdiff.f90 Actuator_Line_Model_Utils.f90 Airfoils.f90 dynstall_legacy.f90 Actuator_Line_Element.f90 Actuator_Line_Turbine.f90 Actuator_Line_Write_Output.f90 Actuator_Line_Model.f90 Actuator_Line_Source.f90 incompact3d.f90 navier.f90 filter.f90 derive.f90 parameters.f90 tools.f90 visu.f90 tecplot.f90
+
+ifneq (,$(findstring DSHM,$(OPTIONS)))
+SRC := FreeIPC.f90 $(SRC)  
+OBJ =	$(SRC:.f90=.o) alloc_shm.o FreeIPC_c.o
+else
+OBJ =	$(SRC:.f90=.o)
+endif	
+
+OPTION=$(OPTIONS)
+from:=-D
+to:=-WF,-D
+TMP=$(subst $(from),$(to),$(OPTIONS))
+ifeq ($(PLATFORM),bgp_xlf)
+   OPTION=$(TMP)
+endif
+ifeq ($(PLATFORM),bgq_xlf)
+   OPTION=$(TMP)
+endif
+
+
+all: incompact3d visualize
+
+alloc_shm.o: alloc_shm.c
+	$(CC) $(CFLAGS) -c $<
+
+FreeIPC_c.o: FreeIPC_c.c
+	$(CC) $(CFLAGS) -c $<
+
+incompact3d : $(OBJ)
+	$(FC) -O3 -o $@ $(OBJ) $(LIBFFT) $(LIBS) $(DEBUG)
+
+%.o : %.f90
+	$(FC) $(OPTFC) $(OPTIONS) $(INC) $(DEBUG) -c $<
+	
+visualize :
+	gfortran paraview_incompact3d.f90 -o visualize 
+.PHONY: clean 
+clean:
+	rm -f *.o *.mod incompact3d visualize
+
+.PHONY: realclean
+realclean: clean
+	rm -f *~ \#*\#

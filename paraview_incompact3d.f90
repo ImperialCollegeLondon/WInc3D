@@ -2,7 +2,7 @@ program visu_paraview
 
   implicit none
 
-  integer(4) :: nx,ny,nz
+  integer(4) :: nx,ny,nz, ialm, ivirt
   real(4) :: xlx,yly,zlz,dt,dx,dy,dz
   integer(4) :: nfiles, icrfile, file1, filen, ifile, dig1, dig2, dig3, dig4
   real(4), allocatable :: yp(:),y1(:),y3(:)
@@ -12,7 +12,7 @@ program visu_paraview
   character(len=80) :: InputFN, FNBase
 
   character(4) :: chits
-  NAMELIST/PostProcess/nx,ny,nz,xlx,yly,zlz,nclx,ncly,nclz,istret,nfiles,file1,filen
+  NAMELIST/PostProcess/nx,ny,nz,xlx,yly,zlz,nclx,ncly,nclz,istret,nfiles,file1,filen,ialm,ivirt
  !==========================================================================
  ! Handle Input file
  nargin=command_argument_count()
@@ -49,7 +49,7 @@ program visu_paraview
   do i=1,nx
      y1(i)=(i-1)*dx
   enddo
-  if (istret==1) then
+  if (istret>1) then
      print *,'We need to read the yp.dat file'
      open(12,file='yp.dat',form='formatted',status='unknown')
      do j=1,ny
@@ -158,7 +158,8 @@ program visu_paraview
      write(nfil,*)'                  vort'//chits
      write(nfil,*)'               </DataItem>'
      write(nfil,*)'            </Attribute>'
-     
+    
+     if(ialm==1) then
      write(nfil,*)'            <Attribute Name="Ftx" Center="Node">'
      write(nfil,*)'               <DataItem Format="Binary" '
      write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
@@ -182,9 +183,21 @@ program visu_paraview
      write(nfil,*)'                  Ftz'//chits
      write(nfil,*)'               </DataItem>'
      write(nfil,*)'            </Attribute>'
-      
-     write(nfil,*)'        </Grid>'
+     endif
 
+     if(ivirt>1) then
+     
+     write(nfil,*)'            <Attribute Name="IBM" Center="Node">'
+     write(nfil,*)'               <DataItem Format="Binary" '
+     write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
+     write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
+     write(nfil,*)'                  IBM'//chits
+     write(nfil,*)'               </DataItem>'
+     write(nfil,*)'            </Attribute>'
+
+     endif
+     write(nfil,*)'        </Grid>'
+    
   enddo
   write(nfil,'(/)')
   write(nfil,*)'    </Grid>'

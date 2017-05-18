@@ -39,7 +39,7 @@ subroutine VISU_INSTA (ux1,uy1,uz1,phi1,ta1,tb1,tc1,td1,te1,tf1,tg1,th1,ti1,di1,
 !############################################################################
 
 USE param
-USE var, only: FTx, FTy, FTz
+USE var, only: FTx, FTy, FTz, ep1
 USE variables
 USE decomp_2d
 USE decomp_2d_io
@@ -190,6 +190,17 @@ call fine_to_coarseV(1,ftz1,uvisu)
 write(filename, 999) itime/imodulo
 call decomp_2d_write_one(1,uvisu,filename,2)    
 end if
+
+!##########################
+! Immersed Boundary Method
+!##########################
+if (ivirt==1) then
+uvisu=0.
+call fine_to_coarseV(1,ep1,uvisu)
+1000 format('IBM',I4.4)
+write(filename, 1000) itime/imodulo
+call decomp_2d_write_one(1,uvisu,filename,2)    
+endif
 
 !############################################################################
 !PRESSURE
