@@ -146,6 +146,11 @@ if (ialm==1) then
 endif
 !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
+!GD
+if (iprobe==1) then
+    call init_probe
+endif
+
 do itime=ifirst,ilast
    t=(itime-1)*dt
    if (nrank==0) then
@@ -157,7 +162,7 @@ do itime=ifirst,ilast
 
    if(ialm==1) then !>> GDeskos Turbine model
       ! First we need to ask for the velocities    
-      call Compute_Momentum_Source_Term_pointwise!(xstart(1),xend(1),xstart(2),xend(2),xstart(3),xend(3))            
+      call Compute_Momentum_Source_Term_pointwise            
       call actuator_line_model_update(t,dt)
    endif
    
@@ -229,9 +234,12 @@ do itime=ifirst,ilast
 
    enddo
 
-   if (t>=mean_spinup_time) then
-   call STATISTIC(ux1,uy1,uz1,phi1,ta1,umean,vmean,wmean,phimean,uumean,vvmean,wwmean,&
-        uvmean,uwmean,vwmean,phiphimean,tmean)
+   if (t>=spinup_time) then
+       call STATISTIC(ux1,uy1,uz1,phi1,ta1,umean,vmean,wmean,phimean,uumean,vvmean,wwmean,&
+           uvmean,uwmean,vwmean,phiphimean,tmean)
+       if(iprobe==1) then
+           call probe(ux1,uy1,uz1,phi1)
+       endif
    endif
 
    if (mod(itime,isave)==0) call restart(ux1,uy1,uz1,ep1,pp3,phi1,gx1,gy1,gz1,&

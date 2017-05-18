@@ -1,66 +1,153 @@
 #!/usr/bin/env python
 """
-Script that computes the velocity profiles from
-Incompact3D
+Script that extracts the mean velocity from Incompact3D
+Author : Georgios (Yorgos) Deskos 2017
 """
+import math
+import argparse
+import csv
+import f90nml
 import numpy as np
 from scipy import interpolate
 import matplotlib.pyplot as plt
 
-ufile=open("ux0200","rb")
-vfile=open("uy0200","rb")
-wfile=open("uz0200","rb")
-vortfile=open("vort0200","rb")
+# ====================================
+# Parser Arguments
+# ====================================
+parser = argparse.ArgumentParser(description="Script to extract wake statistics from *.dat files")
+parser.add_argument("-v","--verbose",action="store_true",help="Print location")
+parser.add_argument("-p","--plot",action="store_true",help="Plots the wake profiles")
+parser.add_argument("-w","--write",action="store_true",help="Write results in a .csv file")
+parser.add_argument("FILENAME", type=str, help="Filename, should end with .pprc")
 
-ux=np.fromfile(ufile,dtype=np.float64)
-uy=np.fromfile(vfile,dtype=np.float64)
-uz=np.fromfile(wfile,dtype=np.float64)
-vort=np.fromfile(vortfile,dtype=np.float64)
+args = parser.parse_args()
+name = args.FILENAME
 
-# Turn vectors into 3D arrays
-nx=589
-ny=121
-nz=133
-dx=11.76/(nx-1)
-dy=2.0/(ny-1)
-dz=2.7/(nz-1)
+# Read the fortran nml (NAMELIST)
+nml=f90nml.read(name)
 
+with open(name) as nml_file:
+    nml = f90nml.read(nml_file)
+
+nx=nml['PostProcess']['nx']
+ny=nml['PostProcess']['ny']
+nz=nml['PostProcess']['nz']
+xlx=nml['PostProcess']['xlx']
+yly=nml['PostProcess']['yly']
+zlz=nml['PostProcess']['zlz']
+
+# This is not valid for always
+nxd=nx-1
+nyd=ny-1
+nzd=nz-1
+
+dx=xlx/nxd
+dy=yly/nyd
+dz=zlz/nzd
+
+
+# UMEAN - Average velocities for u, v and w
+ufile=open("umean.dat","rb")
+vfile=open("vmean.dat","rb")
+wfile=open("wmean.dat","rb")
+# uu - Average of the squares of the velocities u, v and w
+# This is not the <u'u'> etc.
+# To compute the <u'u'> we need to do <u'u'>=<uu> - <u><u>
+# and similarly for the other quantities
+uufile=open("uumean.dat","rb")
+vvfile=open("vvmean.dat","rb")
+wwfile=open("wwmean.dat","rb")
+uvfile=open("vvmean.dat","rb")
+uwfile=open("wwmean.dat","rb")
+vwfile=open("wwmean.dat","rb")
+# vu, wu, wv are ommited due to symmetry
+
+# Reading the binary files into numpy vectors
+umean=np.fromfile(ufile,dtype=np.float64)
+vmean=np.fromfile(vfile,dtype=np.float64)
+wmean=np.fromfile(wfile,dtype=np.float64)
+uumean=np.fromfile(uufile,dtype=np.float64)
+vvmean=np.fromfile(vvfile,dtype=np.float64)
+wwmean=np.fromfile(wwfile,dtype=np.float64)
+uvmean=np.fromfile(uvfile,dtype=np.float64)
+vwmean=np.fromfile(vwfile,dtype=np.float64)
+vwmean=np.fromfile(vwfile,dtype=np.float64)
+
+
+# Initialising the 3D arrays to map the velocities etc.
 x=np.zeros((nx,ny,nz))
 y=np.zeros((nx,ny,nz))
 z=np.zeros((nx,ny,nz))
+uav=np.zeros((nx,ny,nz))
+vav=np.zeros((nx,ny,nz))
+wav=np.zeros((nx,ny,nz))
+upup=np.zeros((nx,ny,nz))
+vpvp=np.zeros((nx,ny,nz))
+wpwp=np.zeros((nx,ny,nz))
 
-u=np.zeros((nx,ny,nz))
-v=np.zeros((nx,ny,nz))
-w=np.zeros((nx,ny,nz))
-omega=np.zeros((nx,ny,nz))
 
+Nsteps=nml['PostProcess']['NSteps']
+
+# Compute average quantities
+if args.verbose:
+    print('Computing the average quantities \n')
 for i in range(0,nx):
     for j in range(0,ny):
         for k in range(0,nz):
             x[i,j,k]=i*dx
             y[i,j,k]=j*dy
             z[i,j,k]=k*dz
-            u[i,j,k]=ux[i+nx*(j+ny*k)]
-            v[i,j,k]=uy[i+nx*(j+ny*k)]
-            w[i,j,k]=uz[i+nx*(j+ny*k)]
-            omega[i,j,k]=vort[i+nx*(j+ny*k)]
+            uav[i,j,k]=umean[i+nx*(j+ny*k)]/Nsteps
+            vav[i,j,k]=vmean[i+nx*(j+ny*k)]/Nsteps
+            wav[i,j,k]=wmean[i+nx*(j+ny*k)]/Nsteps
+            upup[i,j,k]=uumean[i+nx*(j+ny*k)]/Nsteps-uav[i,j,k]*uav[i,j,k]
+            vpvp[i,j,k]=vvmean[i+nx*(j+ny*k)]/Nsteps-vav[i,j,k]*vav[i,j,k]
+            wpwp[i,j,k]=wwmean[i+nx*(j+ny*k)]/Nsteps-wav[i,j,k]*wav[i,j,k]
 
-# Find profiles
-R=0.45
-xloc=2+2.0*R
 
-ixloc=np.where(abs(x[:,0,0]-xloc)==abs(x[:,0,0]-xloc).min())
-print(ixloc)
-jxloc=np.where(abs(y[0,:,0]-0.82)==abs(y[0,:,0]-0.82).min())
-print(jxloc)
 
-print(u[ixloc,jxloc,:])
-print(z[ixloc,jxloc,:])
+D=nml['PostProcess']['D']
+Uinf=nml['PostProcess']['Uinf']
+xloc=nml['PostProcess']['xloc']
+yloc=nml['PostProcess']['yloc']
+zloc=nml['PostProcess']['zloc']
+R=D/2.0
 
-#exit()
+
+for i in range(len(xloc)):
+    print('Computing statistics at location ' + str(float(xloc[i]))+'...\n')
+    
+    ixloc=np.where(abs(x[:,0,0]-xloc[i])==abs(x[:,0,0]-xloc[i]).min())
+    jxloc=np.where(abs(y[0,:,0]-yloc[i])==abs(y[0,:,0]-yloc[i]).min())
+   
+    if args.write:     
+        with open('meanu_'+str(xloc[i])+'.csv','w') as fout:
+            fout.write('# y/R u/U')
+            for iwake in range(nz):
+                zR=float(-zlz/(2.0*R)+z[ixloc,jxloc,iwake]/R)
+                uU=float(uav[ixloc,jxloc,iwake]/Uinf)
+                fout.write(str(zR)+','+str(uU)+'\n')
+        
+        with open('meanupup_'+str(xloc[i])+'.csv','w') as fout:
+            fout.write('# y/R upup/U^2')
+            for iwake in range(nz):
+                zR=float(-zlz/(2.0*R)+z[ixloc,jxloc,iwake]/R)
+                upupU2=float(upup[ixloc,jxloc,iwake]/Uinf**2)
+                fout.write(str(zR)+','+str(upupU2)+'\n')
+    
+    if args.plot:    
+        plt.figure(1)
+        plt.plot(-zlz/(2.0*R)+z[ixloc,jxloc,:].reshape(nz,1)/R,uav[ixloc,jxloc,:].reshape(nz,1)/Uinf,'k')
+        plt.show()
+
+        plt.figure(2)
+        plt.plot(-zlz/(2.0*R)+z[ixloc,jxloc,:].reshape(nz,1)/R,upup[ixloc,jxloc,:].reshape(nz,1)/Uinf**2,'k')
+        plt.show()
+
+exit()
 
 plt.figure()
-plt.pcolormesh(x[:,49,:],z[:,49,:],u[:,49,:],cmap=plt.get_cmap('jet'))
+plt.pcolormesh(x[:,49,:],z[:,49,:],upup[:,49,:],cmap=plt.get_cmap('jet'))
 plt.colorbar()
 plt.xlim(0,11.76)
 plt.ylim(0,2.7)

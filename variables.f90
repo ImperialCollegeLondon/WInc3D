@@ -51,6 +51,10 @@ real(mytype), save, allocatable, dimension(:,:,:,:) :: uxt,uyt,uzt
 ! define the Momentum Source arrays for the three directions
 real(mytype), save, allocatable, dimension(:,:,:) :: FTx, FTy, FTz
 
+! define Probe location and velocity/scalar quantities
+real(mytype), save, allocatable, dimension(:) :: xprobe,yprobe,zprobe,uprobe,vprobe,wprobe
+real(mytype), save, allocatable, dimension(:) :: uprobe_part,vprobe_part,wprobe_part
+
 !arrays for statistic collection
 real(mytype), save, allocatable, dimension(:,:,:) :: umean,vmean,wmean,uumean,vvmean,wwmean,uvmean,uwmean,vwmean,tmean
 real(mytype), save, allocatable, dimension(:,:,:) :: phimean, phiphimean

@@ -51,10 +51,11 @@ character :: a*80
 ! Have you heard of NAMELISTs ?
 NAMELIST/FlowParam/xlx,yly,zlz,re,sc,u1,u2,noise,noise1,dt
 NAMELIST/FlowConfig/nclx,ncly,nclz,itype,iin,ifirst,ilast,nscheme,istret, &
-    beta,iskew,iscalar, jles, FSGS, jadv, smagcst, walecst, rxxnu 
-NAMELIST/FileParam/ilit,isave,imodulo, mean_spinup_time
+    beta,iskew,iscalar,jles,FSGS,jadv,smagcst,walecst,rxxnu 
+NAMELIST/FileParam/ilit,isave,imodulo
 NAMELIST/IBMParam/ivirt,cex,cey,cez,ra
 NAMELIST/ALMParam/ialm,NTurbines,TurbinesPath,NActuatorlines,ActuatorlinesPath,eps_factor
+NAMELIST/StatParam/spinup_time,iprobe,Probelistfile, nsampling 
 #ifdef DOUBLE_PREC 
 pi=dacos(-1.d0) 
 #else

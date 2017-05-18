@@ -132,6 +132,8 @@ real(mytype), dimension(ny) :: ppyi,pp2yi,pp4yi
 real(mytype), dimension(ny) :: yp,ypi,del
 real(mytype), dimension(ny) :: yeta,yetai
 real(mytype) :: alpha,beta
+
+
 end module variables
 
 module param
@@ -143,10 +145,12 @@ use decomp_2d, only : mytype
   integer :: itype, iskew, iin, nscheme, ifirst, ilast, iles, jLES, jADV
   integer :: isave,ilit,srestart,idebmod, imodulo, idemarre, icommence, irecord
   integer :: iscalar,ilag,npif,izap
+  integer :: iprobe, Nprobes, Nsampling
+  character :: Probelistfile*80
   integer :: nxboite, istat,iread,iadvance_time 
   real(mytype) :: xlx,yly,zlz,dx,dy,dz,dx2,dy2,dz2
   real(mytype) :: dt,xnu,noise,noise1,pi,twopi,u1,u2,sc
-  real(mytype) :: t,xxk1,xxk2, mean_spinup_time
+  real(mytype) :: t,xxk1,xxk2, spinup_time
   real(mytype) :: smagcst, walecst,dys, FSGS, rxxnu
   real(mytype) :: eps_factor ! Smoothing factor 
   integer :: itr,itime

@@ -31,8 +31,7 @@ CFLAGS= -O3 -xAVX
     LIBFFT=$(ESSL_LIB)
  endif
 
-
-SRC = decomp_2d.f90 glassman.f90 fft_$(FFT).f90 module_param.f90 io.f90 variables.f90 poisson.f90 les_models.f90 schemes_les.f90 convdiff.f90 Actuator_Line_Model_Utils.f90 Airfoils.f90 dynstall_legacy.f90 Actuator_Line_Element.f90 Actuator_Line_Turbine.f90 Actuator_Line_Write_Output.f90 Actuator_Line_Model.f90 Actuator_Line_Source.f90 incompact3d.f90 navier.f90 filter.f90 derive.f90 parameters.f90 tools.f90 visu.f90 tecplot.f90
+SRC = decomp_2d.f90 glassman.f90 fft_$(FFT).f90 module_param.f90 io.f90 variables.f90 poisson.f90 les_models.f90 schemes_les.f90 convdiff.f90 acl_utils.f90 airfoils.f90 dynstall.f90 acl_elem.f90 acl_turb.f90 acl_out.f90 acl_model.f90 acl_source.f90 incompact3d.f90 navier.f90 filter.f90 derive.f90 parameters.f90 tools.f90 visu.f90 probe.f90 
 
 ifneq (,$(findstring DSHM,$(OPTIONS)))
 SRC := FreeIPC.f90 $(SRC)  
