@@ -147,9 +147,9 @@ endif
 !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 !GD
-if (iprobe==1) then
-    call init_probe
-endif
+!if (iprobe==1) then
+!    call init_probe
+!endif
 
 do itime=ifirst,ilast
    t=(itime-1)*dt
@@ -161,9 +161,16 @@ do itime=ifirst,ilast
    endif
 
    if(ialm==1) then !>> GDeskos Turbine model
-      ! First we need to ask for the velocities    
+      ! First we need to ask for the velocities  
+      if (nrank==0) then
+          write(6,*) '' 
+          write(6,*) 'Unsteady ACtuator Line Model INFO:'
+      endif
       call Compute_Momentum_Source_Term_pointwise            
       call actuator_line_model_update(t,dt)
+      if (nrank==0) then
+          write(6,*) '' 
+      endif
    endif
    
    do itr=1,iadvance_time
@@ -237,9 +244,9 @@ do itime=ifirst,ilast
    if (t>=spinup_time) then
        call STATISTIC(ux1,uy1,uz1,phi1,ta1,umean,vmean,wmean,phimean,uumean,vvmean,wwmean,&
            uvmean,uwmean,vwmean,phiphimean,tmean)
-       if(iprobe==1) then
-           call probe(ux1,uy1,uz1,phi1)
-       endif
+!       if(iprobe==1) then
+!           call probe(ux1,uy1,uz1,phi1)
+!       endif
    endif
 
    if (mod(itime,isave)==0) call restart(ux1,uy1,uz1,ep1,pp3,phi1,gx1,gy1,gz1,&
@@ -255,8 +262,7 @@ do itime=ifirst,ilast
 
    if (ialm==1) then
     if (nrank==0) then
-       !call actuator_line_turbine_write_output(turbine(itur),dir)
-       call actuator_line_model_write_output(itime) ! Write the Turbine Statistics 
+       call actuator_line_model_write_output(itime/imodulo) ! Write the Turbine Statistics 
     end if
    endif
    

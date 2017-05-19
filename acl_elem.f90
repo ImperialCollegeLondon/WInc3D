@@ -9,6 +9,7 @@ type ActuatorLineType
     integer :: NElem                    ! Number of Elements of the Blade
     character(len=100):: name           ! Actuator line name
     character(len=100):: geom_file      ! Actuator line file name (is not used for the turbines)
+    character(len=80):: dynstallfile    ! Dynstallfile to load options
 
     ! Station parameters
     logical :: FlipN =.false.           ! Flip Normal
@@ -93,10 +94,10 @@ type ActuatorLineType
     real(mytype), allocatable :: EEndeffects_factor(:) ! End effects factor for the blade (initialize as one)
 
     ! Element Airfoil Data
-    type(AirfoilType), allocatable :: EAirfoil(:) ! Element Airfoil 
+    type(AirfoilType), allocatable :: EAirfoil(:)      ! Element Airfoil 
     integer :: NAirfoilData
-    type(AirfoilType), allocatable :: AirfoilData(:) ! Element Airfoil 
-    type(LB_Type), allocatable :: E_LB_Model(:)   ! Element Leishman-Beddoes Model
+    type(AirfoilType), allocatable :: AirfoilData(:)   ! Element Airfoil 
+    type(LB_Type), allocatable :: EDynStall_Model(:)        ! Element Dynamic Stall Model
     
     ! Forces and Torques on the ActuatorLine 
     real(mytype) :: Fx     ! Element Force in the global x-direction
@@ -147,23 +148,22 @@ end type ActuatorLineType
     call allocate_actuatorline(actuatorline,Nstations)
    
     actuatorline%SpanWise=SVec
-    actuatorline%COR=[0.0, 0.0, 0.0]
     actuatorline%L=length
 
     ! The directions of vectors etc are just hacked ...
     actuatorline%Nelem=Nstations-1 
     do istation=1,Nstations
-    actuatorline%QCx(istation)=rR(istation)*length*Svec(1)
-    actuatorline%QCy(istation)=rR(istation)*length*Svec(2)
-    actuatorline%QCz(istation)=rR(istation)*length*Svec(3)      
+    actuatorline%QCx(istation)=rR(istation)*length*Svec(1)+actuatorline%COR(1)
+    actuatorline%QCy(istation)=rR(istation)*length*Svec(2)+actuatorline%COR(2)
+    actuatorline%QCz(istation)=rR(istation)*length*Svec(3)+actuatorline%COR(3)
     
     if(actuatorline%pitch_control) then
          pitch(istation)=actuatorline%pitch_angle_init   
     endif
 
     actuatorline%tx(istation)= cos(pitch(istation)/180.0*pi)    
-    actuatorline%ty(istation)= 0.0
-    actuatorline%tz(istation)= -sin(pitch(istation)/180.0*pi)     
+    actuatorline%ty(istation)= -sin(pitch(istation)/180.0*pi)     
+    actuatorline%tz(istation)= 0.0     
 
     actuatorline%C(istation)=ctoR(istation)*length
     actuatorline%thick(istation)=thick(istation)
@@ -192,9 +192,12 @@ end type ActuatorLineType
     
     actuatorline%EAOA_LAST(:)=-666.0
     
+    ! If for stall
+    if (actuatorline%do_dynamic_stall) then
     do ielem=1,actuatorline%Nelem
-    call dystl_init_LB(actuatorline%E_LB_Model(ielem))
+    call dystl_init_LB(actuatorline%EDynstall_Model(ielem),actuatorline%dynstallfile)
     end do
+    endif
     
 
     end subroutine set_actuatorline_geometry
@@ -210,7 +213,7 @@ end type ActuatorLineType
     real(mytype) :: urdn,urdc,ur,alpha,ds
     real(mytype) :: CL,CD,CN,CT,CM25,MS,FN,FT,FX,Fy,Fz
     real(mytype) :: dal,dUn
-    real(mytype) :: CLdyn,CDdyn,CNAM,CTAM,CMAM
+    real(mytype) :: CLdyn,CDdyn, CM25dyn, CNAM,CTAM,CMAM
     real(mytype) :: rand(3000), freq, Strouhal ! To add random walk on the lift/drag coefficients
     integer :: ielem
   
@@ -286,7 +289,7 @@ end type ActuatorLineType
     ! Correct for dynamic stall 
     !=============================================== 
     if(act_line%do_dynamic_stall) then 
-    !call LB_DynStall(act_line%EAirfoil(ielem),act_line%E_LB_Model(ielem),CL,CD,alpha,alpha,act_line%ERe(ielem),CLdyn,CDdyn) 
+    !call LeishmanBeddoesCorrect(act_line%E_LB_Model(ielem),act_line%EAirfoil(ielem),time,dt,ur,ElemChord,alpha,act_line%ERe(ielem),CLdyn,CDdyn,CM25dyn)
     CL=CLdyn
     CD=CDdyn
     ds=2.0*ur*dt/ElemChord
@@ -735,7 +738,7 @@ end type ActuatorLineType
     allocate(actuatorline%ETtoC(NElem))
     allocate(actuatorline%Eepsilon(NElem))
     allocate(actuatorline%EAirfoil(Nelem))
-    allocate(actuatorline%E_LB_Model(Nelem))
+    allocate(actuatorline%EDynstall_Model(Nelem))
     allocate(actuatorline%ERdist(Nelem))
     allocate(actuatorline%EVx(NElem))
     allocate(actuatorline%EVy(NElem))
