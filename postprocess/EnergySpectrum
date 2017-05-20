@@ -1,0 +1,40 @@
+#!/usr/bin/env python
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import fft, arange
+
+def autocor(x):
+    s = np.fft.fft(x)
+    return np.real(np.fft.ifft(s*np.conjugate(s)))/np.var(x)
+
+def Spectrum(y,Fs):
+    n=len(y)
+    k=arange(n)
+    T=n/Fs
+    frq=k/T
+    frq=frq[range(n/2)]
+
+    Y=fft(y)/n
+    Y=Y[range(n/2)]
+
+ufile=open("ux0200","rb")
+vfile=open("uy0200","rb")
+wfile=open("uz0200","rb")
+
+u=np.fromfile(ufile,dtype=np.float64)
+v=np.fromfile(vfile,dtype=np.float64)
+w=np.fromfile(wfile,dtype=np.float64)
+
+E=0.5*(u**2+v**2+w**2)
+k=np.pi/0.02
+
+s=np.fft.fft(E)
+sp=np.real(s*np.conjugate(s))
+freq=np.fft.fftfreq(E.shape[-1],k)
+freqInertial=np.linspace(.00000010,0.001,100)
+Inertial=freqInertial**(-5.0/3.0)
+plt.loglog(freq,sp,freqInertial,Inertial)
+plt.legend
+plt.show()
+

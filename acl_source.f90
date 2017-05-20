@@ -237,7 +237,10 @@ contains
         real(mytype) :: xmesh, ymesh,zmesh
         real(mytype) :: dist, epsilon, Kernel
         real(mytype) :: min_dist, ymax,ymin,zmin,zmax 
+        real(mytype) :: x0,y0,z0,x1,y1,z1,x,y,z,u000,u100,u001,u101,u010,u110,u011,u111
+        real(mytype) :: t1,t2, alm_proj_time
         integer :: min_i,min_j,min_k
+        integer :: i_lower, j_lower, k_lower, i_upper, j_upper, k_upper
         integer :: i,j,k, isource, ierr
 
         ! First we need to compute the locations
@@ -249,37 +252,157 @@ contains
         Sw(:)=0.0
         ! This is not optimum but works
         ! Define the domain
-        ymin=xstart(2)*dy-dy
+            
+        if (istret.eq.0) then 
+        ymin=(xstart(2)-1)*dy
         ymax=xend(2)*dy
-        zmin=xstart(3)*dz-dz
-        zmax=xend(3)*dz
-        
+        else
+        ymin=yp(xstart(2))
+        ymax=yp(xend(2))
+        endif
+
+        zmin=(xstart(3)-1)*dz
+        zmax=(xend(3)-1)*dz
+         
         do isource=1,NSource
         
         min_dist=1e6
         if((Sy(isource)>=ymin).and.(Sy(isource)<=ymax).and.(Sz(isource)>=zmin).and.(Sz(isource)<=zmax)) then
             !write(*,*) 'Warning: I own this node'
-            do k=1,xsize(3)
-            zmesh=(k+xstart(3)-1)*dz 
-            do j=1,xsize(2)
-            if (istret.eq.0) ymesh=(j+xstart(2)-1-1)*dy
-            if (istret.ne.0) ymesh=yp(j+xstart(2)-1)
-            do i=1,xsize(1)
+            do k=xstart(3),xend(3)
+            zmesh=(k-1)*dz 
+            do j=xstart(2),xend(2)
+            if (istret.eq.0) ymesh=(j-1)*dy
+            if (istret.ne.0) ymesh=yp(j)
+            do i=xstart(1),xend(1)
             xmesh=(i-1)*dx
             dist = sqrt((Sx(isource)-xmesh)**2+(Sy(isource)-ymesh)**2+(Sz(isource)-zmesh)**2) 
+            
             if (dist<min_dist) then
                 min_dist=dist
                 min_i=i
                 min_j=j
                 min_k=k
-            endif 
-            enddo
-            enddo
-            enddo
+            endif
 
-            Su_part(isource)=ux1(min_i,min_j,min_k)
-            Sv_part(isource)=uy1(min_i,min_j,min_k)
-            Sw_part(isource)=uz1(min_i,min_j,min_k)
+            enddo
+            enddo
+            enddo
+            
+            if(Sy(isource)>ymax.or.Sy(isource)<ymin) then
+            write(*,*) 'In processor ', nrank
+            write(*,*) 'Sy =', Sy(isource),'is not within the', ymin, ymax, 'limits'
+            stop
+            endif 
+
+            if(Sx(isource)>(min_i-1)*dx) then
+                i_lower=min_i
+                i_upper=min_i+1
+            else if(Sx(isource)<(min_i-1)*dx) then
+                i_lower=min_i-1
+                i_upper=min_i
+            else if(Sx(isource)==(min_i-1)*dx) then
+                i_lower=min_i
+                i_upper=min_i
+            endif
+             
+            if (istret.eq.0) then 
+            if(Sy(isource)>(min_j-1)*dy) then
+                j_lower=min_j
+                j_upper=min_j+1
+            else if(Sy(isource)<(min_j-1)*dy) then
+                j_lower=min_j-1
+                j_upper=min_j
+            else if (Sy(isource)==(min_j-1)*dy) then
+                j_lower=min_j
+                j_upper=min_j
+            endif
+            else
+            
+            if(Sy(isource)>yp(min_j)) then
+                j_lower=min_j
+                j_upper=min_j+1
+            else if(Sy(isource)<yp(min_j)) then
+                j_lower=min_j-1
+                j_upper=min_j
+            else if (Sy(isource)==yp(min_j)) then
+                j_lower=min_j
+                j_upper=min_j
+            endif
+            endif
+            
+            if(Sz(isource)>(min_k-1)*dz) then
+                k_lower=min_k
+                k_upper=min_k+1
+            else if(Sz(isource)<(min_k-1)*dz) then
+                k_lower=min_k-1
+                k_upper=min_k
+            else if (Sz(isource)==(min_k-1)*dz) then
+                k_lower=min_k
+                k_upper=min_k
+            endif
+
+            ! Prepare for interpolation
+            x0=(i_lower-1)*dx
+            x1=(i_upper-1)*dx
+            if (istret.eq.0) then
+            y0=(j_lower-1)*dy
+            y1=(j_upper-1)*dy
+            else
+            y0=yp(j_lower)
+            y1=yp(j_upper)
+            endif
+            z0=(k_lower-1)*dz
+            z1=(k_upper-1)*dz
+
+            x=Sx(isource)
+            y=Sy(isource)
+            z=Sz(isource)
+             
+            if(x>x1.or.x<x0.or.y>y1.or.y<y0.or.z>z1.or.z<z0) then 
+                write(*,*) 'x0, x1, x', x0, x1, x
+                write(*,*) 'y0, y1, y', y0, y1, y
+                write(*,*) 'z0, z1, z', z0, z1, z
+                write(*,*) 'Problem with the trilinear interpolation'; 
+                stop
+            endif
+            ! Apply interpolation kernels from 8 neighboring nodes    
+            Su_part(isource)= trilinear_interpolation(x0,y0,z0, &
+                                                  x1,y1,z1, &
+                                                  x,y,z, &
+                                                  ux1(i_lower,j_lower,k_lower), &
+                                                  ux1(i_upper,j_lower,k_lower), &
+                                                  ux1(i_lower,j_lower,k_upper), &
+                                                  ux1(i_upper,j_lower,k_upper), &
+                                                  ux1(i_lower,j_upper,k_lower), &
+                                                  ux1(i_upper,j_upper,k_lower), &
+                                                  ux1(i_lower,j_upper,k_upper), &
+                                                  ux1(i_upper,j_upper,k_upper))
+            
+          Sv_part(isource)= trilinear_interpolation(x0,y0,z0, &
+                                                  x1,y1,z1, &
+                                                  x,y,z, &
+                                                  uy1(i_lower,j_lower,k_lower), &
+                                                  uy1(i_upper,j_lower,k_lower), &
+                                                  uy1(i_lower,j_lower,k_upper), &
+                                                  uy1(i_upper,j_lower,k_upper), &
+                                                  uy1(i_lower,j_upper,k_lower), &
+                                                  uy1(i_upper,j_upper,k_lower), &
+                                                  uy1(i_lower,j_upper,k_upper), &
+                                                  uy1(i_upper,j_upper,k_upper))
+          
+        Sw_part(isource)= trilinear_interpolation(x0,y0,z0, &
+                                                  x1,y1,z1, &
+                                                  x,y,z, &
+                                                  uz1(i_lower,j_lower,k_lower), &
+                                                  uz1(i_upper,j_lower,k_lower), &
+                                                  uz1(i_lower,j_lower,k_upper), &
+                                                  uz1(i_upper,j_lower,k_upper), &
+                                                  uz1(i_lower,j_upper,k_lower), &
+                                                  uz1(i_upper,j_upper,k_lower), &
+                                                  uz1(i_lower,j_upper,k_upper), &
+                                                  uz1(i_upper,j_upper,k_upper))
+ 
         else
             Su_part(isource)=0.0
             Sv_part(isource)=0.0
@@ -306,18 +429,26 @@ contains
         call actuator_line_model_compute_forces
         !## Get Forces
         call get_forces
+        
+        if(nrank==0) then
+            write(*,*) 'Projecting the AL Momentum Source term ... '
+        endif
+        t1 = MPI_WTIME()
 
-        do isource=1,NSource
+
             !## Add the source term
             do k=1,xsize(3)
-            zmesh=(k+xstart(3)-1)*dz
+            zmesh=(k+xstart(3)-1-1)*dz
             do j=1,xsize(2)
-            if (istret.eq.0) ymesh=(j+xstart(2)-1-1)*dy
-            if (istret.ne.0) ymesh=yp(j+xstart(2)-1) 
+            if (istret.eq.0) ymesh=(xstart(2)+j-1-1)*dy
+            if (istret.ne.0) ymesh=yp(xstart(2)+j-1) 
             do i=1,xsize(1)
             xmesh=(i-1)*dx
+
+            do isource=1,NSource
+            
             dist = sqrt((Sx(isource)-xmesh)**2+(Sy(isource)-ymesh)**2+(Sz(isource)-zmesh)**2)
-            epsilon=2.0*(dx*dy*dz)**(1.0/3.0) 
+            epsilon=eps_factor*(dx*dy*dz)**(1.0/3.0) 
             if (dist<10.0*epsilon) then
                 Kernel= 1.0/(epsilon**3.0*pi**1.5)*dexp(-(dist/epsilon)**2.0)            
             else
@@ -327,11 +458,23 @@ contains
             FTx(i,j,k)=FTx(i,j,k)-SFx(isource)*Kernel
             FTy(i,j,k)=FTy(i,j,k)-SFy(isource)*Kernel
             FTz(i,j,k)=FTz(i,j,k)-SFz(isource)*Kernel
+            
+            enddo
+            
             enddo
             enddo
             enddo
-        enddo
-        end subroutine Compute_Momentum_Source_Term_pointwise
+
+        alm_proj_time=MPI_WTIME()-t1
+        call MPI_ALLREDUCE(alm_proj_time,t1,1,MPI_REAL8,MPI_SUM, &
+                   MPI_COMM_WORLD,ierr)
+        
+        if(nrank==0) then
+            alm_proj_time=alm_proj_time/float(12)
+            write(*,*) 'AL Momentum Source term projection completed in :', alm_proj_time ,'seconds'
+        endif
+        
+    end subroutine Compute_Momentum_Source_Term_pointwise
 
     !subroutine Compute_Momentum_Source_Term_RBF
  

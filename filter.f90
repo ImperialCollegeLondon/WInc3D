@@ -1053,7 +1053,7 @@ real(mytype) :: xcoef
 call coefficients()
 
 if (nx>1) then
-   xcoef=1./2.
+   xcoef=1./3.
    if (nclx==0) then
       fiffx(1)=0.
       fifx(1)=0.
@@ -1182,7 +1182,7 @@ if (nx>1) then
 endif
 
 if (ny>1) then
-   xcoef=1./2.
+   xcoef=1./3.
    if (ncly==0) then
       fiffy(1)=0.
       fify(1)=0.
@@ -1318,7 +1318,7 @@ if (ny>1) then
 endif
 
 #ifndef TWOD
-   xcoef=1./2.
+   xcoef=1./3.
    if (nclz==0) then
       fiffz(1)=0.
       fifz(1)=0.

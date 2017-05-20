@@ -895,22 +895,25 @@ USE IBM
 
 implicit none
 
-real(mytype), dimension(xstart(1):xend(1),xstart(2):xend(2),xstart(3):xend(3)) :: ux,uy,uz,ep1
+real(mytype), dimension(xsize(1),xsize(2),xsize(3)) :: ux,uy,uz,ep1
 integer :: i,j,k
-real(mytype) :: xm,ym,r
+real(mytype) :: xm,ym,zm,r
 
 ep1=0.
-do k=xstart(3),xend(3)
-do j=xstart(2),xend(2)
-do i=xstart(1),xend(1)
-   xm=(i-1)*dx 
-   ym=yp(j)!(j-1)*dy
-   r=sqrt((xm-cex)*(xm-cex)+(ym-cey)*(ym-cey)) 
-   if (r-ra >= 0.) cycle
+do k=1,xsize(3)
+zm=(k+xstart(3)-1-1)*dz
+do j=1,xsize(2)
+if (istret.eq.0) ym=(xstart(2)+j-1-1)*dy
+if (istret.ne.0) ym=yp(xstart(2)+j-1) 
+do i=1,xsize(1)
+xm=(i-1)*dx 
+r=sqrt((xm-cex)*(xm-cex)+(ym-cey)*(ym-cey)) 
+if (r<=ra) then
    ux(i,j,k)=0.
    uy(i,j,k)=0. 
    uz(i,j,k)=0.
    ep1(i,j,k)=1. 
+endif
 enddo
 enddo
 enddo

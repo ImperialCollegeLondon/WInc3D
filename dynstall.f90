@@ -1,61 +1,67 @@
-#include "fdebug.h"
-
 module dynstall
-
-    use fldebug
-    use global_parameters, only:FIELD_NAME_LEN,OPTION_PATH_LEN, PYTHON_FUNC_LEN, pi
+  
+    use decomp_2d, only: mytype
     use airfoils
 
     implicit none
     
     type LB_Type
     
-    !=====================================
-    ! These parameters follow the 
-    ! formulation of turbinesFOAM
+    !===============================================
+    ! These parameters follow the formulation of 
+    ! Sheng et al 2008
+    !===============================================
+
     logical :: StallFlag = .false.
     logical :: StallFlag_prev = .false. 
     logical :: do_calcAlphaEquiv=.false.
-    real :: ds,time,time_prev
-    real :: X,X_prev,Y,Y_prev
-    real :: A1,A2,A3,b1,b2,K1,K2,r,r0,alphaDS0DiffDeg
-    real :: D,D_prev,DF,DF_prev
-    real :: CV,CV_prev,CNV,CNV_prev
-    real :: fprime,fprime_prev,fDoublePrime
-    real :: eta,S1,S2,CD0,CM0
-    real :: Tf, Tv, Tvl
-    real :: tau, tau_prev
+    character(len=80) :: DynStallParamFile
+    real(mytype) :: ds,time,time_prev
+    real(mytype) :: X,X_prev,Y,Y_prev
+    real(mytype) :: A1,A2,A3,b1,b2,K1,K2,r,r0,alphaDS0DiffDeg
+    real(mytype) :: D,D_prev,DF,DF_prev
+    real(mytype) :: CV,CV_prev,CNV,CNV_prev
+    real(mytype) :: fprime,fprime_prev,fDoublePrime
+    real(mytype) :: eta,S1,S2,CD0
+    real(mytype) :: Tf, Tv, Tvl
+    real(mytype) :: tau, tau_prev
     integer :: nNewTimes
-    real :: fcrit
-    real :: CMC
-    real :: CNC, CNALpha
-    real :: lambdaL,lambdaL_prev
-    real :: lambdaM,lambdaM_prev
-    real :: TI,E0
-    real :: T1,T2
-    real :: alphaEquiv
-    real :: speed_of_sound
-    real :: H,H_prev,J,J_prev
-    real :: CNI,CMI,CNP,CNP_prev,CN1
-    real :: Tp,CN_prev,CNprime
-    real :: DP,DP_prev
-    real :: alphaPrime,alphaPrime_prev
-    real :: DAlpha, Dalpha_prev, TAlpha
-    real :: Alpha, Alpha_prev, deltaAlpha,deltaAlpha_prev, alphaCrit
-    real :: alpha1, alphaDS0, alphaSS, dalphaDS
-    real :: Vx,CNF,CT,CN,cmFitExponent,K0,CM
-    
+    real(mytype) :: f ! not needed
+    real(mytype) :: fcrit
+    real(mytype) :: CMC
+    real(mytype) :: CNC, CNALpha
+    real(mytype) :: lambdaL,lambdaL_prev
+    real(mytype) :: lambdaM,lambdaM_prev
+    real(mytype) :: TI,E0
+    real(mytype) :: T1,T2
+    real(mytype) :: alphaEquiv
+    real(mytype) :: speed_of_sound
+    real(mytype) :: H,H_prev,J,J_prev
+    real(mytype) :: CNI,CMI,CNP,CNP_prev,CN1
+    real(mytype) :: Tp,CN_prev,CNprime
+    real(mytype) :: DP,DP_prev
+    real(mytype) :: alphaPrime,alphaPrime_prev
+    real(mytype) :: DAlpha, Dalpha_prev, TAlpha
+    real(mytype) :: Alpha, Alpha_prev, deltaAlpha,deltaAlpha_prev, alphaCrit
+    real(mytype) :: alpha1, alphaDS0, alphaSS, dalphaDS
+    real(mytype) :: Vx,CNF,CT,CN,cmFitExponent,K0,CM
+
     end type LB_Type
 
 
     contains
 
-    subroutine dystl_init_LB(lb)
+    subroutine dystl_init_LB(lb,dynstallfile)
         
         implicit none
-        type(LB_Type) :: lb
-       
-
+        type(LB_Type), intent(inout) :: lb
+        character(len=80), intent(in) :: dynstallfile
+        real(mytype) :: A1, A2, b1, b2
+        NAMELIST/DynStallParam/A1,A2,b1,b2
+      
+        lb%DynStallParamFile=dynstallfile
+        ! Before reading the dynstall parameters
+        ! initialize the variables to default values
         lb%X=0.0
         lb%X_prev=0.0
         lb%Y=0.0
@@ -65,11 +71,9 @@ module dynstall
         lb%b1=0.14
         lb%b2=0.53
         lb%alpha=0.0
-        lb%alpha_prev=0.0
         lb%DeltaAlpha=0.0
         lb%DeltaAlpha_prev=0.0
         lb%speed_of_sound=343 ! [m/s]
-        lb%time_prev=0.0
         lb%D=0.0
         lb%D_prev=0.0
         lb%DP=0.0
@@ -85,9 +89,9 @@ module dynstall
         lb%CNV=0.0
         lb%CNV_prev=0.0
         lb%eta=0.95
-        lb%S1=10
-        lb%S2=10
-        lb%CD0=0.0
+        lb%S1=1e12
+        lb%S2=1e12
+        lb%CD0=1e12
         lb%StallFlag_prev=.false.
         lb%Tp=1.7
         lb%Tf=3.0
@@ -96,26 +100,35 @@ module dynstall
         lb%tau=0.0
         lb%tau_prev=0.0
         lb%nNewTimes=0
-        lb%fcrit=0.7
+        lb%fcrit=0.6
         lb%K0=1e-6
-        lb%K1=0.1
-        lb%K2=0.1
+        lb%K1=0.0
+        lb%K2=0.0
         lb%cmFitExponent=2
         lb%CM=0.0
-
+        ! READ FROM THE NAMELIST
+        open(40,file=dynstallFile) 
+        read(40,nml=DynStallParam)
+        close(40) 
+        lb%A1=0.3
+        lb%A2=0.7
+        lb%b1=0.14
+        lb%b2=0.53
+       
+         
     end subroutine dystl_init_LB
-
+    
     subroutine calcAlphaEquiv(lb,mach)
         implicit none
         ! Calculates the equivalent angle of attack 
         ! after having applied the defeciency functions
         type(LB_Type),intent(inout) :: lb
-        real, intent(in) :: mach
-        real :: beta
+        real(mytype), intent(in) :: mach
+        real(mytype) :: beta
 
         beta=1-mach**2
-        lb%X=lb%X_prev*exp(-lb%b1*beta*lb%ds)+lb%A1*lb%deltaAlpha*exp(-lb%b1*beta*lb%ds/2.0)
-        lb%Y=lb%Y_prev*exp(-lb%b2*beta*lb%ds)+lb%A2*lb%deltaAlpha*exp(-lb%b2*beta*lb%ds/2.0)
+        lb%X=lb%X_prev*exp(-beta*lb%ds/lb%T1)+lb%A1*lb%deltaAlpha*exp(-lb%b1*beta*lb%ds/2.0)
+        lb%Y=lb%Y_prev*exp(-beta*lb%ds/lb%T2)+lb%A2*lb%deltaAlpha*exp(-lb%b2*beta*lb%ds/2.0)
         lb%alphaEquiv = lb%alpha-lb%X-lb%Y
         if (abs(lb%alphaEquiv)>2*pi) then
             lb%alphaEquiv=mod(lb%alphaEquiv,2*pi)
@@ -126,8 +139,8 @@ module dynstall
     subroutine calcUnsteady(lb,mach,chord,Ur,dt)
         implicit none
         type(LB_Type),intent(inout) :: lb
-        real,intent(in) :: chord,Ur,dt,mach
-        real :: kAlpha
+        real(mytype),intent(in) :: chord,Ur,dt,mach
+        real(mytype) :: kAlpha
         ! Calculate the circulatory normal force coefficient
         lb%CNC=lb%CNAlpha*lb%alphaEquiv
 
@@ -142,7 +155,7 @@ module dynstall
         lb%CNP = lb%CNC + lb%CNI
 
         ! Apply first-order lag to normal force coefficient
-        lb%DP=lb%DP_prev*exp(-lb%ds/lb%Tp)+(lb%CNP-lb%CNP_prev)*exp(-lb%ds/(2.0*lb%Tp))
+        lb%DP=lb%DP_prev*exp(-lb%ds/lb%Tp)+(lb%CNP-lb%CN_prev)*exp(-lb%ds/(2.0*lb%Tp))
         lb%CNprime=lb%CNP-lb%DP
 
         ! Calculate lagged angle of attack
@@ -158,7 +171,7 @@ module dynstall
     subroutine calcSeparated(lb)
         implicit none
         type(LB_type),intent(inout):: lb
-        real :: Tf,Tv, Tst, KN, m, cmf, cpv,cmv
+        real(mytype) :: Tf,Tv, Tst, KN, m, cmf, cpv,cmv
 
         ! Calculate trailing-edge sepration point
 
@@ -177,7 +190,7 @@ module dynstall
             Tf=4.0*lb%Tf
         endif
 
-        if((abs(lb%alpha) < abs(lb%Alpha_prev)).and.(abs(lb%CNPrime)<lb%CN1)) then
+        if(abs(lb%alpha) < abs(lb%Alpha_prev).and.abs(lb%CNPrime)<lb%CN1) then
             Tf=0.5*lb%Tf
         endif
 
@@ -214,11 +227,6 @@ module dynstall
         ! Calculate Strouhal number time constant and set tau to zero to 
         ! allow multiple vortex shedding
         Tst=2.0*(1.0-lb%fDoublePrime)/0.19
-        if (lb%tau>(lb%Tvl+Tst)) then
-            lb%tau=0.0
-        endif
-
-        Tv=lb%Tv
         if (lb%tau < lb%Tvl.and.(abs(lb%alpha)>abs(lb%alpha_prev))) then
             ! Halve Tv if dAlpha.dr changes sign
             if (lb%deltaAlpha*lb%deltaAlpha_prev<0) then
@@ -240,10 +248,10 @@ module dynstall
 
         ! Calculate moment coefficient
         m=lb%cmFitExponent
-        cmf=(lb%K0+lb%K1*(1-lb%fDoublePrime)+lb%K2*sin(pi*lb%fDoublePrime**m))*lb%CNC+lb%CM0
+        cmf=(lb%K0+lb%K1*(1-lb%fDoublePrime)+lb%K2*sin(pi*lb%fDoublePrime**m))*lb%CNC
         ! + moment coefficient at Zero lift angle of attack
         cpv =0.20*(1-cos(pi*lb%tau/lb%Tvl))
-        cmv = -cpv*lb%CNV
+        cmv = lb%b2*(1.0-cos(pi*lb%tau/lb%Tvl))*lb%CNV
         lb%CM=cmf+cmv
 
     end subroutine calcSeparated
@@ -251,9 +259,9 @@ module dynstall
     subroutine update_LBmodel(lb,time)
         implicit none
         type(LB_type), intent(inout) ::lb
-        real,intent(in) :: time
+        real(mytype),intent(in) :: time
 
-        lb%time_prev=lb%time
+        lb%time_prev=time
         lb%Alpha_prev=lb%Alpha
         lb%X_prev=lb%X
         lb%Y_prev=lb%Y
@@ -276,16 +284,16 @@ module dynstall
         implicit none
         type(LB_Type),intent(inout) :: lb
         type(AirfoilType),intent(in) :: airfoil
-        real, intent(in) :: Re
-        real :: f,alphaSSP,alphaSSN,CLAlpha,CL0,CD0,CM250
+        real(mytype), intent(in) :: Re
+        real(mytype) :: f,alphaSSP,alphaSSN,CLAlpha,CL0,CD0,CM250
         ! Get static stall angle in radians
         ! Evaluate static coefficient data if it has changed
         call EvalStaticStallParams(airfoil,Re,alphaSSP,alphaSSN,CLAlpha)  
                
         if (lb%alpha>0) then
-            lb%AlphaSS = alphaSSP*conrad
+            lb%AlphaSS = alphaSSP
         else
-            lb%AlphaSS = alphaSSN*conrad
+            lb%AlphaSS = alphaSSN
         endif
 
         lb%CNALpha=CLAlpha
@@ -296,7 +304,7 @@ module dynstall
         !> Get CL0,CD0,CM250
         call EvalStaticCoeff(Re,airfoil%alzer*condeg,CL0,CD0,CM250,airfoil)
         lb%CD0=CD0
-        lb%CM0=CM250
+
 
     end subroutine evalStaticData
 
@@ -305,22 +313,20 @@ module dynstall
         implicit none
         type(LB_Type), intent(inout) :: lb
         type(AirfoilType),intent(in) :: airfoil
-        real, intent(in) :: time,dt,Urel,chord,alpha,Re
-        real, intent(out) :: CLdyn,CDdyn,CM25dyn
-        real :: mach
-        
-        lb%time=time
+        real(mytype), intent(in) :: time,dt,Urel,chord,alpha,Re
+        real(mytype), intent(out) :: CLdyn,CDdyn,CM25dyn
+        real(mytype) :: mach
+
         ! update previous values if time has changed
-        if (lb%time.ne.lb%time_prev) then
+        if (time.ne.lb%time_prev) then
             lb%nNewTimes=lb%nNewTimes+1
             if (lb%nNewTimes > 1) then
                 call update_LBmodel(lb,time)
             end if
         end if
 
-        if (lb%nNewTimes<=1) then
-            lb%alpha=alpha
-            lb%alpha_Prev=lb%alpha
+        if (lb%nNewTimes <=1) then
+            lb%alpha_Prev=alpha
         endif
 
         lb%Alpha=alpha
@@ -347,13 +353,5 @@ module dynstall
         return
 
     end subroutine LeishmanBeddoesCorrect
-    
-    subroutine calcK1K2(lb)
-        implicit none
-        type(LB_Type), intent(inout) :: lb
-        
-        
-    end subroutine calcK1K2
-
 
 end module

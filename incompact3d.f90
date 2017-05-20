@@ -82,6 +82,11 @@ if (DecInd >1) then
 end if
 !===========================================================================
 call parameter(InputFN)
+if(nrank==0) then
+if (jLES==0) write(*,*) 'DNS/Implicit LES with xxnu = 1 / ', rxxnu
+endif
+
+if (jLES==1.OR.jLES==2.OR.jLES==3) call init_explicit_les() 
 
 call init_variables
 
@@ -136,10 +141,15 @@ call decomp_info_init(nxm, nym, nz, ph3)
 !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ! Initialize the Turbine Model
 if (ialm==1) then
-  call actuator_line_model_init(Nturbines,TurbinesPath,dt)  
+  call actuator_line_model_init(Nturbines,Nactuatorlines,TurbinesPath,ActuatorlinesPath,dt)  
   call initialize_actuator_source 
 endif
 !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+!GD
+!if (iprobe==1) then
+!    call init_probe
+!endif
 
 do itime=ifirst,ilast
    t=(itime-1)*dt
@@ -149,11 +159,18 @@ do itime=ifirst,ilast
 1001  format(' Time step =',i7,', Time unit =',F9.3)
       write(*,*) '========================================'
    endif
-      
+
    if(ialm==1) then !>> GDeskos Turbine model
-      ! First we need to ask for the velocities    
-      call Compute_Momentum_Source_Term_pointwise!(xstart(1),xend(1),xstart(2),xend(2),xstart(3),xend(3))            
+      ! First we need to ask for the velocities  
+      if (nrank==0) then
+          write(6,*) '' 
+          write(6,*) 'Unsteady ACtuator Line Model INFO:'
+      endif
+      call Compute_Momentum_Source_Term_pointwise            
       call actuator_line_model_update(t,dt)
+      if (nrank==0) then
+          write(6,*) '' 
+      endif
    endif
    
    do itr=1,iadvance_time
@@ -164,10 +181,18 @@ do itime=ifirst,ilast
       endif
 
      !X-->Y-->Z-->Y-->X
-      call convdiff(ux1,uy1,uz1,ta1,tb1,tc1,td1,te1,tf1,tg1,th1,ti1,di1,&
-           ux2,uy2,uz2,ta2,tb2,tc2,td2,te2,tf2,tg2,th2,ti2,tj2,di2,&
-           ux3,uy3,uz3,ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3)
-           
+     ! call convdiff(ux1,uy1,uz1,ta1,tb1,tc1,td1,te1,tf1,tg1,th1,ti1,di1,&
+     !      ux2,uy2,uz2,ta2,tb2,tc2,td2,te2,tf2,tg2,th2,ti2,tj2,di2,&
+     !      ux3,uy3,uz3,ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3)
+
+    ! if LES
+
+    call convdiff(ux1,uy1,uz1,uxt,uyt,uzt,ep1,divdiva,curldiva,ta1,tb1,tc1,&
+     td1,te1,tf1,tg1,th1,ti1,di1,ux2,uy2,uz2,ta2,tb2,tc2,td2,te2,tf2,tg2,th2,&
+     ti2,tj2,di2,ux3,uy3,uz3,ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3,nut1,ucx1,&
+     ucy1,ucz1,tmean,sgszmean,sgsxmean,sgsymean,eadvxmean,eadvymean,eadvzmean)
+
+
       if (iscalar==1) then
          call scalar(ux1,uy1,uz1,phi1,phis1,phiss1,di1,tg1,th1,ti1,td1,&
               uy2,uz2,phi2,di2,ta2,tb2,tc2,td2,uz3,phi3,di3,ta3,tb3,ep1) 
@@ -216,9 +241,13 @@ do itime=ifirst,ilast
 
    enddo
 
-   call STATISTIC(ux1,uy1,uz1,phi1,ta1,umean,vmean,wmean,phimean,uumean,vvmean,wwmean,&
-        uvmean,uwmean,vwmean,phiphimean,tmean)
-
+   if (t>=spinup_time) then
+       call STATISTIC(ux1,uy1,uz1,phi1,ta1,umean,vmean,wmean,phimean,uumean,vvmean,wwmean,&
+           uvmean,uwmean,vwmean,phiphimean,tmean)
+!       if(iprobe==1) then
+!           call probe(ux1,uy1,uz1,phi1)
+!       endif
+   endif
 
    if (mod(itime,isave)==0) call restart(ux1,uy1,uz1,ep1,pp3,phi1,gx1,gy1,gz1,&
         px1,py1,pz1,phis1,hx1,hy1,hz1,phiss1,phG,1)
@@ -229,11 +258,12 @@ do itime=ifirst,ilast
            ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3,phG,uvisu)
       call VISU_PRE (pp3,ta1,tb1,di1,ta2,tb2,di2,&
            ta3,di3,nxmsize,nymsize,nzmsize,phG,ph2,ph3,uvisu) 
-      if (ialm==1) then
-        if (nrank==0) then
-            call actuator_line_model_write_output(itime/imodulo) ! Write the Turbine Statistics 
-        end if
-      endif
+   endif
+
+   if (ialm==1) then
+    if (nrank==0) then
+       call actuator_line_model_write_output(itime/imodulo) ! Write the Turbine Statistics 
+    end if
    endif
    
 

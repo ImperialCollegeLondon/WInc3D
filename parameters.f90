@@ -51,10 +51,11 @@ character :: a*80
 ! Have you heard of NAMELISTs ?
 NAMELIST/FlowParam/xlx,yly,zlz,re,sc,u1,u2,noise,noise1,dt
 NAMELIST/FlowConfig/nclx,ncly,nclz,itype,iin,ifirst,ilast,nscheme,istret, &
-    beta,iskew,iscalar
+    beta,iskew,iscalar,jles,FSGS,jadv,smagcst,walecst,rxxnu 
 NAMELIST/FileParam/ilit,isave,imodulo
 NAMELIST/IBMParam/ivirt,cex,cey,cez,ra
-NAMELIST/ALMParam/ialm,NTurbines,TurbinesPath
+NAMELIST/ALMParam/ialm,NTurbines,TurbinesPath,NActuatorlines,ActuatorlinesPath,eps_factor
+NAMELIST/StatParam/spinup_time,iprobe,Probelistfile, nsampling 
 #ifdef DOUBLE_PREC 
 pi=dacos(-1.d0) 
 #else
@@ -63,8 +64,36 @@ pi=acos(-1.)
 
 twopi=2.*pi
 
-! We may need to set some default values in case the input file
-! does not include them
+! IF variables are not set we will need to give them some default values
+xlx=1.0
+yly=1.0
+zlz=1.0
+re=1000
+nclx=0
+ncly=2
+nclz=0
+itype=2
+iin=1
+ifirst=1
+ilast=1000
+nscheme=1
+istret=0
+beta=0.28
+iskew=1
+iscalar=0
+jles=0
+FSGS=2.0
+smagcst=0.1
+walecst=0.5
+ilit=0
+isave=100
+imodulo=100
+ivirt=0
+ialm=0
+eps_factor=2.0
+rxxnu=3.0
+
+! READ PARAMETERS FROM FILE
 open(10,file=InputFN) 
 read(10,nml=FlowParam)
 read(10,nml=FlowConfig)
@@ -72,6 +101,7 @@ read(10,nml=FileParam)
 read(10,nml=IBMParam)
 read(10,nml=ALMParam)
 close(10) 
+
 if (nrank==0) then
 print *,'==========================================================='
 print *,'==========================================================='

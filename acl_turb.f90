@@ -117,7 +117,7 @@ contains
     ! Initialize LB_model and Tip Correction Coeffs
     do ielem=1,turbine%blade(iblade)%Nelem
     if(turbine%blade(iblade)%do_dynamic_stall) then
-        call dystl_init_LB(turbine%blade(iblade)%E_LB_Model(ielem))
+    !    call dystl_init_LB(turbine%blade(iblade)%E_LB_Model(ielem))
     endif
     end do 
     ! Rotate the turbine according to the tilt and yaw angle
@@ -241,7 +241,14 @@ contains
     turbine%CT=sqrt(turbine%CFx**2.0+turbine%CFy**2.0+turbine%CFz**2.0)
     turbine%CTR=Torq_tot/(0.5*turbine%A*turbine%Rmax*turbine%Uref**2.0)
     turbine%CP= abs(turbine%CTR)*turbine%TSR
-     
+    
+    ! PRINT ON SCREEN
+    if(nrank==0) then
+        write(6,*) 'Turbine :', turbine%name
+        write(6,*) "Thrust Coefficient : ",  turbine%CT
+        write(6,*) "Power  Coefficient : ",  turbine%CP
+    endif
+
     end subroutine compute_performance
     
     subroutine Compute_Turbine_EndEffects(turbine)

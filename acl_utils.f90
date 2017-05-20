@@ -8,7 +8,51 @@ module actuator_line_model_utils
     public QuatRot, cross, IsoKernel, AnIsoKernel, int2str
 
 contains 
- 
+
+    ! Obviously not completed
+    real(mytype) function trilinear_interpolation(x0,y0,z0, &
+                                                  x1,y1,z1, &
+                                                  x,y,z, &
+                                                  u000,u100,u001,u101, &
+                                                  u010,u110,u011,u111)
+        implicit none
+        real(mytype),intent(in) :: x0,y0,z0,x1,y1,z1,x,y,z,u000,u100,u001,u101,u010,u110,u011,u111
+        real(mytype) :: c00,c01,c10,c11,c0,c1,xd,yd,zd
+
+        if (x1/=x0) then 
+            xd=(x-x0)/(x1-x0)
+        else 
+            xd=0
+        endif
+        
+        if (y1/=y0) then 
+            yd=(y-y0)/(y1-y0)
+        else 
+            yd=0
+        endif
+        
+        if (z1/=z0) then 
+            zd=(z-z0)/(z1-z0)
+        else 
+            zd=0
+        endif
+
+        ! Interpolate along X
+        c00=u000*(1-xd)+u100*xd
+        c01=u001*(1-xd)+u101*xd
+        c10=u010*(1-xd)+u110*xd
+        c11=u011*(1-xd)+u111*xd
+
+        ! Interpolate along Y
+        c0 = c00*(1-yd)+c10*yd
+        c1 = c01*(1-yd)+c11*yd
+
+        ! Interpolate along Z
+        trilinear_interpolation=c0*(1-zd)+c1*zd
+
+
+    end function trilinear_interpolation
+
     SUBROUTINE cross(ax,ay,az,bx,by,bz,cx,cy,cz) 
 
         real(mytype) ax,ay,az,bx,by,bz,cx,cy,cz 

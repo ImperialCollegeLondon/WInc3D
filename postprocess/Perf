@@ -1,0 +1,69 @@
+#!/usr/bin/env python
+"""
+Scrip that plots Performance and Drag for the axial-flow
+turbine actuator line
+"""
+# 
+# Georgios (Yorgos) Deskos
+# This script reads the .load files and plots the loads
+import os, glob
+import shutil
+import sys
+import string
+import filecmp
+import difflib
+import subprocess
+import math
+import re
+import argparse
+import csv
+import time
+import numpy as np
+from numpy import genfromtxt
+import matplotlib.pyplot as plt
+from math import sqrt
+
+###
+#Define functions
+def comp_perf(FILENAME):
+    Angle=[];
+    Rev=[];
+    Cp=[];
+    Ct=[];
+    for i in range(nstart,nend):
+        A=np.genfromtxt('ALM/'+str(i)+'/'+FILENAME,skip_header=1,delimiter=",")
+        Rev.append(A[0])
+        Angle.append(A[0]*360)
+        Cp.append(A[6])
+
+    return Angle, Cp
+
+# ====================================
+# Parser Arguments
+# ====================================
+parser = argparse.ArgumentParser(description="Script that reads from one or more files and plots Blade load statistics")
+parser.add_argument("-v","--verbose",action="store_true",help="Prints a script description on the screen")
+parser.add_argument("-p","--plot",action="store_true",help="Plots the Cp versus the TSR")
+parser.add_argument("-w","--write",help="Write results in a .dat file",type=str)
+parser.add_argument("FILENAME", type=str, help="Filename, should end with .perf")
+parser.add_argument("FIRST", type=int, help="First time step")
+parser.add_argument("LAST", type=int, help="Last time step")
+parser.add_argument("TimeStep", type=float,help="Time step of sampling")
+
+args = parser.parse_args()
+name = args.FILENAME
+nstart= args.FIRST
+nend= args.LAST
+timestep=args.TimeStep
+
+Angle_1,Cp_1=comp_perf(name)
+# Apply a fft to find frequency
+sp=np.fft.fft(Cp_1)
+freq=np.fft.fftfreq(len(Cp_1))
+
+plt.subplot(1,2,1)
+plt.plot(Angle_1,Cp_1,'k.-')
+plt.subplot(1,2,2)
+plt.loglog(freq,sp.real)
+
+plt.show()

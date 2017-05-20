@@ -3,12 +3,13 @@ module actuator_line_element
     use decomp_2d, only: mytype
     use actuator_line_model_utils 
     use airfoils
-    use dynstall_legacy
+    use dynstall
 
 type ActuatorLineType
     integer :: NElem                    ! Number of Elements of the Blade
     character(len=100):: name           ! Actuator line name
     character(len=100):: geom_file      ! Actuator line file name (is not used for the turbines)
+    character(len=80):: dynstallfile    ! Dynstallfile to load options
 
     ! Station parameters
     logical :: FlipN =.false.           ! Flip Normal
@@ -93,10 +94,10 @@ type ActuatorLineType
     real(mytype), allocatable :: EEndeffects_factor(:) ! End effects factor for the blade (initialize as one)
 
     ! Element Airfoil Data
-    type(AirfoilType), allocatable :: EAirfoil(:) ! Element Airfoil 
+    type(AirfoilType), allocatable :: EAirfoil(:)      ! Element Airfoil 
     integer :: NAirfoilData
-    type(AirfoilType), allocatable :: AirfoilData(:) ! Element Airfoil 
-    type(LB_Type), allocatable :: E_LB_Model(:)   ! Element Leishman-Beddoes Model
+    type(AirfoilType), allocatable :: AirfoilData(:)   ! Element Airfoil 
+    type(LB_Type), allocatable :: EDynStall_Model(:)        ! Element Dynamic Stall Model
     
     ! Forces and Torques on the ActuatorLine 
     real(mytype) :: Fx     ! Element Force in the global x-direction
@@ -114,6 +115,7 @@ type ActuatorLineType
     logical :: do_added_mass=.false.
     logical :: do_dynamic_stall=.false.
     logical :: do_DynStall_AlphaEquiv=.false.
+    logical :: do_random_walk_forcing=.false.
 
     ! Blade/Actuator_line Pitch
     logical :: pitch_control=.false.
@@ -146,23 +148,22 @@ end type ActuatorLineType
     call allocate_actuatorline(actuatorline,Nstations)
    
     actuatorline%SpanWise=SVec
-    actuatorline%COR=[0.0, 0.0, 0.0]
     actuatorline%L=length
 
     ! The directions of vectors etc are just hacked ...
     actuatorline%Nelem=Nstations-1 
     do istation=1,Nstations
-    actuatorline%QCx(istation)=rR(istation)*length*Svec(1)
-    actuatorline%QCy(istation)=rR(istation)*length*Svec(2)
-    actuatorline%QCz(istation)=rR(istation)*length*Svec(3)      
+    actuatorline%QCx(istation)=rR(istation)*length*Svec(1)+actuatorline%COR(1)
+    actuatorline%QCy(istation)=rR(istation)*length*Svec(2)+actuatorline%COR(2)
+    actuatorline%QCz(istation)=rR(istation)*length*Svec(3)+actuatorline%COR(3)
     
     if(actuatorline%pitch_control) then
          pitch(istation)=actuatorline%pitch_angle_init   
     endif
 
     actuatorline%tx(istation)= cos(pitch(istation)/180.0*pi)    
-    actuatorline%ty(istation)= 0.0
-    actuatorline%tz(istation)= -sin(pitch(istation)/180.0*pi)     
+    actuatorline%ty(istation)= -sin(pitch(istation)/180.0*pi)     
+    actuatorline%tz(istation)= 0.0     
 
     actuatorline%C(istation)=ctoR(istation)*length
     actuatorline%thick(istation)=thick(istation)
@@ -191,9 +192,12 @@ end type ActuatorLineType
     
     actuatorline%EAOA_LAST(:)=-666.0
     
+    ! If for stall
+    if (actuatorline%do_dynamic_stall) then
     do ielem=1,actuatorline%Nelem
-    call dystl_init_LB(actuatorline%E_LB_Model(ielem))
+    call dystl_init_LB(actuatorline%EDynstall_Model(ielem),actuatorline%dynstallfile)
     end do
+    endif
     
 
     end subroutine set_actuatorline_geometry
@@ -209,9 +213,11 @@ end type ActuatorLineType
     real(mytype) :: urdn,urdc,ur,alpha,ds
     real(mytype) :: CL,CD,CN,CT,CM25,MS,FN,FT,FX,Fy,Fz
     real(mytype) :: dal,dUn
-    real(mytype) :: CLdyn,CDdyn,CNAM,CTAM,CMAM
+    real(mytype) :: CLdyn,CDdyn, CM25dyn, CNAM,CTAM,CMAM
+    real(mytype) :: rand(3000), freq, Strouhal ! To add random walk on the lift/drag coefficients
     integer :: ielem
   
+    call random_number(rand)
      
     !===========================================================
     ! Assign global values to local values (to make life easier
@@ -279,16 +285,15 @@ end type ActuatorLineType
     !====================================
     call compute_StaticLoads(act_line%EAirfoil(ielem),alpha,act_line%ERe(ielem),CN,CT,CM25,CL,CD)  
  
-
     !===============================================
     ! Correct for dynamic stall 
     !=============================================== 
     if(act_line%do_dynamic_stall) then 
-    call LB_DynStall(act_line%EAirfoil(ielem),act_line%E_LB_Model(ielem),CL,CD,alpha,alpha,act_line%ERe(ielem),CLdyn,CDdyn) 
+    !call LeishmanBeddoesCorrect(act_line%E_LB_Model(ielem),act_line%EAirfoil(ielem),time,dt,ur,ElemChord,alpha,act_line%ERe(ielem),CLdyn,CDdyn,CM25dyn)
     CL=CLdyn
     CD=CDdyn
     ds=2.0*ur*dt/ElemChord
-    call LB_UpdateStates(act_line%E_LB_Model(ielem),act_line%EAirfoil(ielem),act_line%ERE(ielem),ds)
+    !call LB_UpdateStates(act_line%E_LB_Model(ielem),act_line%EAirfoil(ielem),act_line%ERE(ielem),ds)
     end if
     
     !===============================================
@@ -312,7 +317,15 @@ end type ActuatorLineType
     ! when it is not activated
     ! ========================================================================
     CL=CL*act_line%EEndeffects_factor(ielem)
-        
+    
+    ! Apply Random walk on the Lift and drag forces
+    if(act_line%do_random_walk_forcing) then
+    Strouhal=0.17 
+    freq=Strouhal*ur/max(ElemChord,0.0001)
+    CL=CL*(1+0.1*sin(2.0*pi*freq*time)+0.05*(-1.0+2.0*rand(ielem)))
+    CD=CD*(1+0.05*(-1.0+2.0*rand(ielem)))
+    endif
+
     ! Tangential and normal coeffs
     CN=CL*cos(alpha)+CD*sin(alpha)                                   
     CT=-CL*sin(alpha)+CD*cos(alpha) 
@@ -407,7 +420,7 @@ end type ActuatorLineType
             tower%ERE(ielem)=ur*Diameter/visc
             freq=Str*ur/max(Diameter,0.0001)
             tower%ECL(ielem)=CL*sin(2.0*freq*pi*time)
-            tower%ECL(ielem)=tower%ECL(ielem)*(1.0+0.25*(-1.0+2.0*rand(ielem)))
+            tower%ECL(ielem)=tower%ECL(ielem)*(1.0+0.05*(-1.0+2.0*rand(ielem)))
             tower%ECD(ielem)=CD
             CN=tower%ECL(ielem)*cos(alpha)+tower%ECD(ielem)*sin(alpha)                                   
             CT=-tower%ECL(ielem)*sin(alpha)+tower%ECD(ielem)*cos(alpha) 
@@ -725,7 +738,7 @@ end type ActuatorLineType
     allocate(actuatorline%ETtoC(NElem))
     allocate(actuatorline%Eepsilon(NElem))
     allocate(actuatorline%EAirfoil(Nelem))
-    allocate(actuatorline%E_LB_Model(Nelem))
+    allocate(actuatorline%EDynstall_Model(Nelem))
     allocate(actuatorline%ERdist(Nelem))
     allocate(actuatorline%EVx(NElem))
     allocate(actuatorline%EVy(NElem))

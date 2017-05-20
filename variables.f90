@@ -38,34 +38,43 @@ USE param
 
 ! define all major arrays here
 
-real(mytype), save, allocatable, dimension(:,:,:) :: ux1, ux2, ux3,po3,dv3,pp3
+real(mytype), save, allocatable, dimension(:,:,:) :: ux1, ux2, ux3,po3,dv3,pp3,ucx1,ucy1,ucz1
 real(mytype), save, allocatable, dimension(:,:,:) :: uy1, uy2, uy3
 real(mytype), save, allocatable, dimension(:,:,:) :: uz1, uz2, uz3
 real(mytype), save, allocatable, dimension(:,:,:) :: phi1, phi2, phi3
 real(mytype), save, allocatable, dimension(:,:,:) :: gx1, gy1, gz1, hx1, hy1, hz1, phis1,phiss1
 real(mytype), save, allocatable, dimension(:,:,:) :: px1, py1, pz1
 real(mytype), save, allocatable, dimension(:,:,:) :: ep1
+real(mytype), save, allocatable, dimension(:,:,:) :: nut1
+real(mytype), save, allocatable, dimension(:,:,:,:) :: uxt,uyt,uzt
 
 ! define the Momentum Source arrays for the three directions
 real(mytype), save, allocatable, dimension(:,:,:) :: FTx, FTy, FTz
 
-! arrays for statistic collection
+! define Probe location and velocity/scalar quantities
+real(mytype), save, allocatable, dimension(:) :: xprobe,yprobe,zprobe,uprobe,vprobe,wprobe
+real(mytype), save, allocatable, dimension(:) :: uprobe_part,vprobe_part,wprobe_part
+
+!arrays for statistic collection
 real(mytype), save, allocatable, dimension(:,:,:) :: umean,vmean,wmean,uumean,vvmean,wwmean,uvmean,uwmean,vwmean,tmean
 real(mytype), save, allocatable, dimension(:,:,:) :: phimean, phiphimean
-
-! arrays for visualization
+real(mytype), save, allocatable, dimension(:,:,:) :: vortxmean,vortymean,vortzmean,vortxxmean,vortyymean, vortzzmean
+real(mytype), save, allocatable, dimension(:,:,:) :: vortmean,qcritmean
+real(mytype), save, allocatable, dimension(:,:,:) :: pmean, upmean,vpmean, wpmean, ppmean, uvisu1
+real(mytype), save, allocatable, dimension(:,:,:) :: sgszmean,sgsxmean,sgsymean,eadvxmean,eadvymean,eadvzmean
+real(mytype), save, allocatable, dimension(:,:,:) :: divdiva,curldiva
+!arrays for visualization
 real(mytype), save, allocatable, dimension(:,:,:) :: uvisu
 
 ! define all work arrays here
 real(mytype), save, allocatable, dimension(:,:,:) :: ta1,tb1,tc1,td1,&
-     te1,tf1,tg1,th1,ti1,di1
+     te1,tf1,tg1,th1,ti1,tj1,di1
 real(mytype), save, allocatable, dimension(:,:,:) :: ta2,tb2,tc2,td2,&
      te2,tf2,tg2,th2,ti2,tj2,di2
 real(mytype), save, allocatable, dimension(:,:,:) :: ta3,tb3,tc3,td3,&
      te3,tf3,tg3,th3,ti3,di3
 
-! 
-integer, save :: nxmsize, nymsize, nzmsize 
+integer, save :: nxmsize, nymsize, nzmsize
 
 
 contains
@@ -99,6 +108,8 @@ contains
 #ifndef TWOD
     call alloc_x(uz1, opt_global=.true.)
     call alloc_x(pz1, opt_global=.true.)
+    ! Allocate the Momentum Source term in the x direction
+
 #else
     allocate (uz1(1,1,1))
     allocate (pz1(1,1,1))
@@ -111,7 +122,8 @@ contains
     call alloc_x(ta1);call alloc_x(tb1);call alloc_x(tc1)
     call alloc_x(td1);call alloc_x(te1);call alloc_x(tf1)
     call alloc_x(tg1);call alloc_x(th1);call alloc_x(ti1)
-    call alloc_x(di1);call alloc_x(ep1)
+    call alloc_x(tj1);call alloc_x(di1);call alloc_x(ep1)
+call alloc_x(nut1);call alloc_x(ucx1);call alloc_x(ucy1);call alloc_x(ucz1);
     allocate(sx(xsize(2),xsize(3)),vx(xsize(2),xsize(3)))
     !inflow/ouflow 2d arrays
     allocate(bxx1(xsize(2),xsize(3)),bxy1(xsize(2),xsize(3)))
@@ -132,11 +144,13 @@ contains
     allocate(dpdzy1(xsize(1),xsize(3)),dpdzyn(xsize(1),xsize(3)))
     allocate(dpdxz1(xsize(1),xsize(2)),dpdxzn(xsize(1),xsize(2)))
     allocate(dpdyz1(xsize(1),xsize(2)),dpdyzn(xsize(1),xsize(2)))
-
-!arrays for the turbine momentum source
+    
+    ! Allocate Momentum Source Terms
+    if (ialm==1) then
     allocate(FTx(xsize(1),xsize(2),xsize(3)))
     allocate(FTy(xsize(1),xsize(2),xsize(3)))
-    allocate(FTz(xsize(1),xsize(2),xsize(3)))
+    allocate(FTz(xsize(1),xsize(2),xsize(3))) 
+    endif
 
 !arrays for statistic collection!pay attention to the size!
     allocate (umean(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))
@@ -156,6 +170,40 @@ contains
        allocate (phimean(1,1,1))
        allocate (phiphimean(1,1,1))
     endif
+    allocate (vortxmean(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))
+    allocate (vortymean(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))
+    allocate (vortzmean(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))
+    allocate (vortxxmean(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))
+    allocate (vortyymean(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))
+    allocate (vortzzmean(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))
+    allocate (vortmean(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))
+    allocate (qcritmean(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))
+    allocate (pmean(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))
+    allocate (upmean(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))
+    allocate (vpmean(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))
+    allocate (wpmean(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))
+    allocate (ppmean(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))
+    allocate (uvisu1(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))
+!arrays for LES Models
+    if(jLES==7 .OR. jLES==8) then
+    allocate (uxt(xstart(1):xend(1),xstart(2):xend(2),xstart(3):xend(3),25))
+    allocate (uyt(xstart(1):xend(1),xstart(2):xend(2),xstart(3):xend(3),25))
+    allocate (uzt(xstart(1):xend(1),xstart(2):xend(2),xstart(3):xend(3),25))
+    endif
+    if(jLES .ne. 0) then
+    allocate (sgsxmean(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))
+    allocate (sgsymean(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))
+    allocate (sgszmean(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))
+    if(jLES .gt. 3) then
+    allocate (divdiva(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))
+    allocate (curldiva(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))
+    endif
+    if(jADV==1) then
+    allocate (eadvxmean(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))
+    allocate (eadvymean(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))
+    allocate (eadvzmean(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))
+    endif
+    endif
 
 !arrays for visualization!pay attention to the size!
     allocate (uvisu(xstV(1):xenV(1),xstV(2):xenV(2),xstV(3):xenV(3)))
@@ -165,15 +213,14 @@ contains
     call alloc_y(ta2);call alloc_y(tb2);call alloc_y(tc2)
     call alloc_y(td2);call alloc_y(te2);call alloc_y(tf2)
     call alloc_y(tg2);call alloc_y(th2);call alloc_y(ti2)
-    call alloc_y(tj2)
-    call alloc_y(di2);call alloc_y(phi2)
+    call alloc_y(tj2);call alloc_y(di2);call alloc_y(phi2)
     allocate(sy(ysize(1),ysize(3)),vy(ysize(1),ysize(3)))
 !Z PENCILS
     call alloc_z(ux3);call alloc_z(uy3);call alloc_z(uz3)
     call alloc_z(ta3);call alloc_z(tb3);call alloc_z(tc3)
     call alloc_z(td3);call alloc_z(te3);call alloc_z(tf3)
     call alloc_z(tg3);call alloc_z(th3);call alloc_z(ti3)
-    call alloc_z(di3);call alloc_z(phi3)
+    call alloc_z(di3);call alloc_z(phi3);
     allocate(sz(zsize(1),zsize(2)),vz(zsize(1),zsize(2)))
 
  ! if all periodic

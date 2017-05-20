@@ -46,12 +46,14 @@ USE var
 implicit none
 
 integer  :: i,j,k
-real(mytype) :: fpi2
+real(mytype) :: fpi2,alpha2,diskc,diskm,dpis3,kppkc,kppkm,xxnu
 
-alfa1x= 2.
-af1x  =-(5./2.  )/dx
-bf1x  = (   2.  )/dx
-cf1x  = (1./2.  )/dx
+! First derivative single sided coeffs
+! f_1'+2*f_2'=1/(2*dx)*(-5f_1+4.0*f_2+f_3+0.0*f_4)
+alfa1x= 2. ! multiplies f_2'
+af1x  =-(5./2.  )/dx ! multiplies f_1
+bf1x  = (   2.  )/dx ! multiplies f_2
+cf1x  = (1./2.  )/dx ! multiplies f_3
 df1x  = 0.
 alfa2x= 1./4.
 af2x  = (3./4.  )/dx
@@ -65,11 +67,14 @@ afmx  = (3./4.  )/dx
 alfaix= 1./3.
 afix  = (7./9.  )/dx
 bfix  = (1./36. )/dx
+
+! Second Derivative three point formulations for no-slip and slip BCs
 alsa1x= 11.
 as1x  = (13.    )/dx2
 bs1x  =-(27.    )/dx2
 cs1x  = (15.    )/dx2
 ds1x  =-(1.     )/dx2
+
 alsa2x= 1./10.
 as2x  = (6./5.  )/dx2
 alsa3x= 2./11.
@@ -91,12 +96,23 @@ bstx  = (3./44. )/dx2
 !bsix  = (3./44. )/dx2
 !csix  = 0.
 !NUMERICAL DISSIPATION (see publications for help)
-fpi2=4.
-!      fpi2=(48./7)/(pi*pi)
-alsaix=(45.*fpi2*pi*pi-272.)/(2.*(45.*fpi2*pi*pi-208.))
-asix  =((6.-9.*alsaix)/4.)/dx2
-bsix  =((-3.+24*alsaix)/5.)/(4.*dx2)
-csix  =((2.-11.*alsaix)/20.)/(9.*dx2)
+xxnu = 1.0/rxxnu        ! Dissipation coefficient nu_o/nu 
+dpis3=2*pi/3            ! 2*kc/3 where kc=pi/dx (will be added next this is just the coeffs)
+kppkc=pi*pi/xxnu+pi*pi  ! k''(kc) = (1+nu_o/nu)*kc^2
+kppkm=dpis3*dpis3*exp(-((pi-dpis3)/(0.3*pi-dpis3))**2)/xxnu+dpis3*dpis3 ! k''(km)=(1+c1*nu_o/nu)*4*pi/9
+diskc=kppkc
+diskm=kppkm
+alpha2=(64.*diskm-27.*diskc-96.)/(64.*diskm-54.*diskc+48.)
+asix=(54.*diskc-15.*diskc*diskm+12.)/(64.*diskm-54.*diskc+48.)
+bsix=(192.*diskm-216.*diskc+24.*diskc*diskm-48.)/(64.*diskm-54.*diskc+48.)
+csix=9.*(6.*diskc-diskc*diskm-12.)/(64.*diskm-54.*diskc+48.)
+
+! These coefficients exist also in schemes_dns.f90
+alsaix=alpha2
+asix=asix/dx2
+bsix=bsix/(4.*dx2)
+csix=csix/(9.*dx2)
+
 !      stop
 !if (nrank==0) then
 !      write(*,*) '=== derxx ==='
@@ -148,11 +164,20 @@ bsty  = (3./44. )/dy2
 !asjy  = (12./11.)/dy2
 !bsjy  = (3./44. )/dy2
 !csjy   = 0.
+dpis3=2*pi/3
+kppkc=pi*pi/xxnu+pi*pi
+kppkm=dpis3*dpis3*exp(-((pi-dpis3)/(0.3*pi-dpis3))**2)/xxnu+dpis3*dpis3
+diskc=kppkc
+diskm=kppkm
+alpha2=(64.*diskm-27.*diskc-96.)/(64.*diskm-54.*diskc+48.)
+asjy=(54.*diskc-15.*diskc*diskm+12.)/(64.*diskm-54.*diskc+48.)
+bsjy=(192.*diskm-216.*diskc+24.*diskc*diskm-48.)/(64.*diskm-54.*diskc+48.)
+csjy=9.*(6.*diskc-diskc*diskm-12.)/(64.*diskm-54.*diskc+48.)
+alsajy=alpha2
+asjy=asjy/dy2
+bsjy=bsjy/(4.*dy2)
+csjy=csjy/(9.*dy2)
 
-alsajy=(45.*fpi2*pi*pi-272.)/(2.*(45.*fpi2*pi*pi-208.))
-asjy  =((6.-9.*alsajy)/4.)/dy2
-bsjy  =((-3.+24*alsajy)/5.)/(4.*dy2)
-csjy  =((2.-11.*alsajy)/20.)/(9.*dy2)
 !if (nrank==0) then
 !      write(*,*) '=== deryy ==='
 !      write(*,*) alsajy
@@ -211,7 +236,7 @@ do i=3,nx-3
    cbi6(i)=alcaix6 
 enddo
 
-ailcaix6=3./10. 
+ailcaix6=0.49!3./10. 
 aicix6=1./128.*(75.+70.*ailcaix6)
 bicix6=1./256.*(126.*ailcaix6-25.)
 cicix6=1./256.*(-10.*ailcaix6+3.)
@@ -308,7 +333,7 @@ do j=3,ny-3
    cci6y(j)=1. 
    cbi6y(j)=alcaiy6 
 enddo
-ailcaiy6=3./10.
+ailcaiy6=0.49!3./10.
 aiciy6=1./128.*(75.+70.*ailcaiy6)
 biciy6=1./256.*(126.*ailcaiy6-25.)
 ciciy6=1./256.*(-10.*ailcaiy6+3.)
@@ -406,7 +431,7 @@ enddo
       cci6z(k)=1. 
       cbi6z(k)=alcaiz6 
    enddo
-   ailcaiz6=3./10.
+   ailcaiz6=0.49!3./10.
    aiciz6=1./128.*(75.+70.*ailcaiz6)
    biciz6=1./256.*(126.*ailcaiz6-25.)
    ciciz6=1./256.*(-10.*ailcaiz6+3.)
@@ -493,14 +518,20 @@ enddo
    astz  = (12./11.)/dz2
    bstz  = (3./44. )/dz2
 
-!   alsakz= 2./11.
-!   askz  = (12./11.)/dz2
-!   bskz  = (3./44. )/dz2
-!   cskz  = 0.
-         alsakz=(45.*fpi2*pi*pi-272.)/(2.*(45.*fpi2*pi*pi-208.))
-         askz  =((6.-9.*alsakz)/4.)/dz2
-         bskz  =((-3.+24*alsakz)/5.)/(4.*dz2)
-         cskz  =((2.-11.*alsakz)/20.)/(9.*dz2)
+
+dpis3=2*pi/3
+kppkc=pi*pi/xxnu+pi*pi
+kppkm=dpis3*dpis3*exp(-((pi-dpis3)/(0.3*pi-dpis3))**2)/xxnu+dpis3*dpis3
+diskc=kppkc
+diskm=kppkm
+alpha2=(64.*diskm-27.*diskc-96.)/(64.*diskm-54.*diskc+48.)
+askz=(54.*diskc-15.*diskc*diskm+12.)/(64.*diskm-54.*diskc+48.)
+bskz=(192.*diskm-216.*diskc+24.*diskc*diskm-48.)/(64.*diskm-54.*diskc+48.)
+cskz=9.*(6.*diskc-diskc*diskm-12.)/(64.*diskm-54.*diskc+48.)
+alsakz=alpha2
+askz=askz/dz2
+bskz=bskz/(4.*dz2)
+cskz=cskz/(9.*dz2)
 !if (nrank==0) then
 !         write(*,*) '=== derzz ==='
 !         write(*,*) alsakz
