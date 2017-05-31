@@ -227,7 +227,7 @@ contains
     
     subroutine Compute_Momentum_Source_Term_pointwise
 
-        use decomp_2d, only: mytype, xstart, xend, xsize
+        use decomp_2d, only: mytype, nproc, xstart, xend, xsize
         use MPI
         use param 
         use variables, only: yp
@@ -255,7 +255,7 @@ contains
             
         if (istret.eq.0) then 
         ymin=(xstart(2)-1)*dy
-        ymax=xend(2)*dy
+        ymax=(xend(2)-1)*dy
         else
         ymin=yp(xstart(2))
         ymax=yp(xend(2))
@@ -470,51 +470,11 @@ contains
                    MPI_COMM_WORLD,ierr)
         
         if(nrank==0) then
-            alm_proj_time=alm_proj_time/float(12)
+            alm_proj_time=alm_proj_time/float(nproc)
             write(*,*) 'AL Momentum Source term projection completed in :', alm_proj_time ,'seconds'
         endif
         
     end subroutine Compute_Momentum_Source_Term_pointwise
 
-    !subroutine Compute_Momentum_Source_Term_RBF
- 
-    !    implicit none
-    !    integer :: counter,itur,iblade,ielem,jelem,ial
-    !    real    :: dx,dy,dz,d
-    !    real,allocatable(:) :: Fx,Fy,Fz
-    !    
-    !    counter=0
-    !    if(Ntur>0) then
-    !        do itur=1,Ntur
-    !            !Blades>
-    !            do iblade=1,Turbine(itur)%Nblades
-    !                !> Form Matrix A_rbf
-    !                allocate(Fx(Turbine(itur)%Blade(iblade)%Nelem),Fy(Turbine(itur)%Blade(iblade)%Nelem),Fx(Turbine(itur)%Blade(iblade)%Nelem)
-    !                do jelem=1,Turbine(itur)%Blade(iblade)%Nelem
-    !                    do ielem=1,Turbine(itur)%Blade(iblade)%Nelem
-    !                    dx=Turbine(itur)%Blade(iblade)%PEx(ielem)-Turbine(itur)%Blade(iblade)%PEy(jelem)
-    !                    dy=Turbine(itur)%Blade(iblade)%PEy(ielem)-Turbine(itur)%Blade(iblade)%PEy(jelem)
-    !                    dz=Turbine(itur)%Blade(iblade)%PEz(ielem)-Turbine(itur)%Blade(iblade)%PEz(jelem) 
-    !                    d=sqrt(dx*dx+dy*dy+dz*dz)
-    !                    Turbine(itur)%Blade(iblade)%A_rbf(ielem,jelem)=IsoKernel(d,Turbine(itur)%Blade(iblade)%Eepsilon(ielem),3)
-    !                    enddo
-    !                enddo
-    !
-    !                !> Compute the forces by solving 
-    !                call solve(Turbine(itur)%Blade(iblade)%A_rfb,fx)
-    !                call solve(Turbine(itur)%Blade(iblade)%A_rfb,fy)
-    !                call solve(Turbine(itur)%Blade(iblade)%A_rfb,fz)
-    !                
-    !                do ielem=1,Turbine(itur)%Blade(iblade)%Nelem
-    !                counter=counter+1
-    !                Sfx(counter)=fx
-    !                Sfy(counter)=fy
-    !                Sfz(counter)=fz    
-    !                enddo
-    !                deallocate(fx,fy,fz)
-    !            enddo
-    !        enddo
-    !    endif
-    !end subroutine Compute_Momentum_Source_Term_RBF
     
 end module actuator_line_source
