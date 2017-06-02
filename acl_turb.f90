@@ -308,7 +308,6 @@ contains
                 stop
             endif
             Ftip=2.0/pi*acos(exp(-g1*turbine%Nblades/2.0*(1.0/rroot-1.0)/sin(phi)))
-            write(*,*) "Ftip ", g1, pi, rroot, Ftip, sin(phi), turbine%Nblades
         endif
         if (turbine%do_root_correction) then
             if (turbine%EndEffectModel_is_Glauret) then

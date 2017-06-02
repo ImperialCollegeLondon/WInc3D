@@ -1,0 +1,44 @@
+#!/usr/bin/env python
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+R=0.447 # This is the original Value
+
+rR_ref=np.array([0.0550, 0.0675, 0.0825, 0.0975, 0.1125, 0.12750, 0.1425, 0.15750,0.17250, 0.18750, 0.20250, 0.21750, 0.23250, 0.24750, 0.26250, 0.27750, 0.29250, 0.30750, 0.32250, 0.33750, 0.35250, 0.36750, 0.38250, 0.39750, 0.41250, 0.42750, 0.44250])/R
+
+cR_ref=np.array([0.0495, 0.081433, 0.080111, 0.077012, 0.073126, 0.069008, 0.064952, 0.061102, 0.057520, 0.054223, 0.051204, 0.048447, 0.045931, 0.043632, 0.041529, 0.039601, 0.037831,0.036201, 0.034697, 0.03306, 0.032017, 0.030819, 0.029704, 0.028664, 0.027691,0.026780 ,0.025926])/R
+
+pitch_ref=np.array([38.0000, 37.0550, 32.5440, 28.6770, 25.2620, 22.4300, 19.9880, 18.0340, 16.3490, 14.6630, 13.0670, 11.8290 ,10.7530, 9.8177, 8.8827, 7.9877,  7.2527, 6.5650, 5.9187, 5.3045, 4.7185, 4.1316, 3.5439, 2.9433, 2.2185, 1.0970, -0.7167])
+
+
+rR_N20=np.linspace(rR_ref[0],rR_ref[-1],21)
+cR_N20=np.interp(rR_N20,rR_ref,cR_ref)
+pitch_N20=np.interp(rR_N20,rR_ref,pitch_ref)
+
+rR_N35=np.linspace(rR_ref[0],rR_ref[-1],36)
+cR_N35=np.interp(rR_N35,rR_ref,cR_ref)
+pitch_N35=np.interp(rR_N35,rR_ref,pitch_ref)
+
+rR_N52=np.linspace(rR_ref[0],rR_ref[-1],53)
+cR_N52=np.interp(rR_N52,rR_ref,cR_ref)
+pitch_N52=np.interp(rR_N52,rR_ref,pitch_ref)
+
+#plt.plot(rR_N20,cR_N20,'-g',rR_ref,cR_ref,'-b*',rR_N35,cR_N35,'-rs',rR_N52,cR_N52,'-k')
+#plt.axis('equal')
+#plt.show()
+
+with open('Blade_N35.al','w') as fout:
+    fout.write('R  : 0.472 \n')
+    fout.write('Spanwise  : 0.0 0.0 1.0 \n')
+    fout.write('NStations : 36 \n')
+    for j in range(0,36):
+        fout.write(str(rR_N35[j])+'\t'+str(cR_N35[j])+'\t'+str(pitch_N35[j])+'\t0.14\n')
+
+with open('Blade_N52.al','w') as fout:
+    fout.write('R  : 0.472 \n')
+    fout.write('Spanwise  : 0.0 0.0 1.0 \n')
+    fout.write('NStations : 53 \n')
+    for j in range(0,53):
+        fout.write(str(rR_N52[j])+'\t'+str(cR_N52[j])+'\t'+str(pitch_N52[j])+'\t0.14\n')
+
