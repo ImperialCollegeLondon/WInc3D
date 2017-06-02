@@ -55,7 +55,7 @@ NAMELIST/FlowConfig/nclx,ncly,nclz,itype,iin,ifirst,ilast,nscheme,istret, &
 NAMELIST/FileParam/ilit,isave,imodulo
 NAMELIST/IBMParam/ivirt,cex,cey,cez,ra
 NAMELIST/ALMParam/ialm,NTurbines,TurbinesPath,NActuatorlines,ActuatorlinesPath,eps_factor
-NAMELIST/StatParam/spinup_time,iprobe,Probelistfile, nsampling 
+NAMELIST/StatParam/spinup_time,iprobe,Probelistfile,nsampling 
 #ifdef DOUBLE_PREC 
 pi=dacos(-1.d0) 
 #else
@@ -97,9 +97,11 @@ rxxnu=3.0
 open(10,file=InputFN) 
 read(10,nml=FlowParam)
 read(10,nml=FlowConfig)
+read(10,nml=StatParam)
 read(10,nml=FileParam)
 read(10,nml=IBMParam)
 read(10,nml=ALMParam)
+
 close(10) 
 
 if (nrank==0) then

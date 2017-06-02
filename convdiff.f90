@@ -320,11 +320,6 @@ tb1(:,:,:)=tb1(:,:,:)+te1(:,:,:)
 tc1(:,:,:)=tc1(:,:,:)+tf1(:,:,:)
 
 !FINAL SUM: DIFF TERMS + CONV TERMS
-!if(itime==1) then
-!    ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)
-!    tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)
-!    tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)
-!else
 if(jLES==0) then ! DNS or Implicit LES
     ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)
     tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)
@@ -333,13 +328,7 @@ else ! Explicit LES MODEL
     ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)+sgsx1(:,:,:)
     tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)+sgsy1(:,:,:)
     tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)+sgsz1(:,:,:)
-    !if(jADV==1) then
-    !    ta1(:,:,:)=ta1(:,:,:)+eadvx1(:,:,:)
-    !    tb1(:,:,:)=tb1(:,:,:)+eadvy1(:,:,:)
-    !    tc1(:,:,:)=tc1(:,:,:)+eadvz1(:,:,:)
-    !endif
 endif
-!endif
 
 ! If the turbine model is on add the momentum source term
 if (ialm==1) then

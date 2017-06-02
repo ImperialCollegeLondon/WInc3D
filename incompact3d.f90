@@ -147,9 +147,9 @@ endif
 !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 !GD
-!if (iprobe==1) then
-!    call init_probe
-!endif
+if (iprobe==1) then
+    call init_probe
+endif
 
 do itime=ifirst,ilast
    t=(itime-1)*dt
@@ -187,7 +187,7 @@ do itime=ifirst,ilast
 
     ! if LES
 
-    call convdiff(ux1,uy1,uz1,uxt,uyt,uzt,ep1,divdiva,curldiva,ta1,tb1,tc1,&
+     call convdiff(ux1,uy1,uz1,uxt,uyt,uzt,ep1,divdiva,curldiva,ta1,tb1,tc1,&
      td1,te1,tf1,tg1,th1,ti1,di1,ux2,uy2,uz2,ta2,tb2,tc2,td2,te2,tf2,tg2,th2,&
      ti2,tj2,di2,ux3,uy3,uz3,ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3,nut1,ucx1,&
      ucy1,ucz1,tmean,sgszmean,sgsxmean,sgsymean,eadvxmean,eadvymean,eadvzmean)
@@ -240,13 +240,16 @@ do itime=ifirst,ilast
       if (iscalar==1) call test_scalar_min_max(phi1)
 
    enddo
-
+   
    if (t>=spinup_time) then
        call STATISTIC(ux1,uy1,uz1,phi1,ta1,umean,vmean,wmean,phimean,uumean,vvmean,wwmean,&
            uvmean,uwmean,vwmean,phiphimean,tmean)
-!       if(iprobe==1) then
-!           call probe(ux1,uy1,uz1,phi1)
-!       endif
+       if(iprobe==1) then
+           if (mod(itime,nsampling)==0) then
+               call probe(ux1,uy1,uz1,phi1)
+               call write_probe(itime/nsampling) 
+           endif
+       endif
    endif
 
    if (mod(itime,isave)==0) call restart(ux1,uy1,uz1,ep1,pp3,phi1,gx1,gy1,gz1,&

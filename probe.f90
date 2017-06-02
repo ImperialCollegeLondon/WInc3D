@@ -16,7 +16,7 @@ use var
 
     open(70,file=Probelistfile) 
     ! Read the Number of Blades
-    read(15,'(A)') ReadLine
+    read(70,'(A)') ReadLine
     read(ReadLine(index(ReadLine,':')+1:),*) Nprobes 
 
     ! Allocate the probe locations
@@ -25,7 +25,7 @@ use var
 
     do i=1,Nprobes
     
-    read(15,'(A)') ReadLine ! Probe point ... 
+    read(70,'(A)') ReadLine ! Probe point ... 
 
     read(ReadLine,*) xprobe(i), yprobe(i), zprobe(i)
 
@@ -225,3 +225,28 @@ integer :: i_lower, j_lower, k_lower, i_upper, j_upper, k_upper
             MPI_COMM_WORLD,ierr)
 
 end subroutine probe
+
+subroutine write_probe(isample)
+USE param 
+USE decomp_2d
+USE variables
+use var
+
+    implicit none
+    integer,intent(in) :: isample
+    integer :: ipr
+    character(len=20) :: filename, Format1
+    
+990 format('probe',I4.4)
+write(filename, 990) isample
+
+    if (nrank==0) then
+        open(2019,File=filename)
+        write(2019,*) 'Probe ID, xprobe, yprobe, zprobe, u_probe, v_probe, z_probe'
+        !Format1="(I5,A,5(E14.7,A))"
+        do ipr=1,Nprobes
+        write(2019,*) ipr,',',xprobe(ipr), ',', yprobe(ipr),',', zprobe(ipr),',', uprobe(ipr),',', vprobe(ipr),',', wprobe(ipr)
+        end do
+        close(2019) 
+    endif
+end subroutine
