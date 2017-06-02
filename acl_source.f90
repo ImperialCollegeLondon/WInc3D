@@ -311,19 +311,24 @@ contains
             endif
              
             if (istret.eq.0) then 
-            if(Sy(isource)>(min_j-1)*dy) then
+            if(Sy(isource)>(min_j-1)*dy.and.Sy(isource)<(xend(2)-1)*dy) then
                 j_lower=min_j
                 j_upper=min_j+1
-            else if(Sy(isource)<(min_j-1)*dy) then
+            else if(Sy(isource)>(min_j-1)*dy.and.Sy(isource)>(xend(2)-1)*dy) then
+                j_lower=min_j
+                j_upper=min_j 
+            else if(Sy(isource)<(min_j-1)*dy.and.Sy(isource)>(xstart(2)-1)*dy) then
                 j_lower=min_j-1
                 j_upper=min_j
+            else if(Sy(isource)<(min_j-1)*dy.and.Sy(isource)<(xstart(2)-1)*dy) then
+                j_lower=min_j
+                j_upper=min_j 
             else if (Sy(isource)==(min_j-1)*dy) then
                 j_lower=min_j
                 j_upper=min_j
             endif
             else
-            
-            
+              
             if(Sy(isource)>yp(min_j)) then
                 j_lower=min_j
                 j_upper=min_j+1

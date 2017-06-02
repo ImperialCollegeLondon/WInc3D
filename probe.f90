@@ -54,15 +54,15 @@ integer :: min_i,min_j,min_k
 integer :: i_lower, j_lower, k_lower, i_upper, j_upper, k_upper
         
         if (istret.eq.0) then 
-        ymin=(xstart(2)-1)*dy
-        ymax=xend(2)*dy
+        ymin=(xstart(2)-1)*dy-dy/2.0 ! Add -dy/2.0 overlap
+        ymax=(xend(2)-1)*dy+dy/2.0   ! Add +dy/2.0 overlap
         else
         ymin=yp(xstart(2))
         ymax=yp(xend(2))
         endif
-
-        zmin=(xstart(3)-1)*dz
-        zmax=(xend(3)-1)*dz
+        
+        zmin=(xstart(3)-1)*dz-dz/2.0 ! Add a -dz/2.0 overlap
+        zmax=(xend(3)-1)*dz+dz/2.0   ! Add a +dz/2.0 overlap
          
         do ipr=1,Nprobes
         
@@ -107,12 +107,18 @@ integer :: i_lower, j_lower, k_lower, i_upper, j_upper, k_upper
             endif
              
             if (istret.eq.0) then 
-            if(yprobe(ipr)>(min_j-1)*dy) then
+            if(yprobe(ipr)>(min_j-1)*dy.and.yprobe(ipr)<(xend(2)-1)*dy) then
                 j_lower=min_j
                 j_upper=min_j+1
-            else if(yprobe(ipr)<(min_j-1)*dy) then
+            else if(yprobe(ipr)>(min_j-1)*dy.and.yprobe(ipr)>(xend(2)-1)*dy) then
+                j_lower=min_j
+                j_upper=min_j 
+            else if(yprobe(ipr)<(min_j-1)*dy.and.yprobe(ipr)>(xstart(2)-1)*dy) then
                 j_lower=min_j-1
                 j_upper=min_j
+            else if(yprobe(ipr)<(min_j-1)*dy.and.yprobe(ipr)<(xstart(2)-1)*dy) then
+                j_lower=min_j
+                j_upper=min_j 
             else if (yprobe(ipr)==(min_j-1)*dy) then
                 j_lower=min_j
                 j_upper=min_j
@@ -131,16 +137,23 @@ integer :: i_lower, j_lower, k_lower, i_upper, j_upper, k_upper
             endif
             endif
             
-            if(zprobe(ipr)>(min_k-1)*dz) then
+            if(zprobe(ipr)>(min_k-1)*dz.and.zprobe(ipr)<(xend(3)-1)*dz) then
                 k_lower=min_k
                 k_upper=min_k+1
-            else if(zprobe(ipr)<(min_k-1)*dz) then
+            elseif(zprobe(ipr)>(min_k-1)*dz.and.zprobe(ipr)>(xend(3)-1)*dz) then
+                k_lower=min_k
+                k_upper=min_k
+            else if(zprobe(ipr)<(min_k-1)*dz.and.zprobe(ipr)>(xstart(3)-1)*dz) then
                 k_lower=min_k-1
+                k_upper=min_k
+            else if(zprobe(ipr)<(min_k-1)*dz.and.zprobe(ipr)<(xstart(3)-1)*dz) then
+                k_lower=min_k
                 k_upper=min_k
             else if (zprobe(ipr)==(min_k-1)*dz) then
                 k_lower=min_k
                 k_upper=min_k
             endif
+            
 
             ! Prepare for interpolation
             x0=(i_lower-1)*dx
@@ -159,13 +172,6 @@ integer :: i_lower, j_lower, k_lower, i_upper, j_upper, k_upper
             y=yprobe(ipr)
             z=zprobe(ipr)
              
-            if(x>x1.or.x<x0.or.y>y1.or.y<y0.or.z>z1.or.z<z0) then 
-                write(*,*) 'x0, x1, x', x0, x1, x
-                write(*,*) 'y0, y1, y', y0, y1, y
-                write(*,*) 'z0, z1, z', z0, z1, z
-                write(*,*) 'Problem with the trilinear interpolation'; 
-                stop
-            endif
             ! Apply interpolation kernels from 8 neighboring nodes    
             uprobe_part(ipr)= trilinear_interpolation(x0,y0,z0, &
                                                   x1,y1,z1, &
