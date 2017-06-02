@@ -105,7 +105,7 @@ contains
         endif
     
     end subroutine actuator_line_model_write_output
-
+     
     subroutine get_turbine_options(turbines_path)
 
         implicit none
@@ -135,6 +135,19 @@ contains
         ! Get Turbines' options and INITIALIZE THEM
         ! ==========================================
         do i=1, Ntur 
+        ! Set some default parameters
+        !++++++++++++++++++++++++++++++++
+        towerFlag=0
+        tower_lift=0.3
+        tower_drag=1.0
+        tower_strouhal=0.21
+        AddedMassFlag=0
+        RandomWalkForcingFlag=0
+        DynStallFlag=0
+        EndEffectsFlag=0
+        ShenC1=0.125
+        ShenC2=21
+        !+++++++++++++++++++++++++++++++++
         open(100,File=turbines_path(i))
         read(100,nml=TurbineSpecs)
         Turbine(i)%name=name
