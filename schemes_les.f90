@@ -47,7 +47,7 @@ implicit none
 
 integer  :: i,j,k
 real(mytype) :: fpi2,alpha2,diskc,diskm,dpis3,kppkc,kppkm,xxnu
-
+real(mytype) :: xmpi2, xnpi2 
 ! First derivative single sided coeffs
 ! f_1'+2*f_2'=1/(2*dx)*(-5f_1+4.0*f_2+f_3+0.0*f_4)
 alfa1x= 2. ! multiplies f_2'
@@ -96,16 +96,32 @@ bstx  = (3./44. )/dx2
 !bsix  = (3./44. )/dx2
 !csix  = 0.
 !NUMERICAL DISSIPATION (see publications for help)
-xxnu = 1.0/rxxnu        ! Dissipation coefficient nu_o/nu 
-dpis3=2*pi/3            ! 2*kc/3 where kc=pi/dx (will be added next this is just the coeffs)
-kppkc=pi*pi/xxnu+pi*pi  ! k''(kc) = (1+nu_o/nu)*kc^2
-kppkm=dpis3*dpis3*exp(-((pi-dpis3)/(0.3*pi-dpis3))**2)/xxnu+dpis3*dpis3 ! k''(km)=(1+c1*nu_o/nu)*4*pi/9
-diskc=kppkc
-diskm=kppkm
-alpha2=(64.*diskm-27.*diskc-96.)/(64.*diskm-54.*diskc+48.)
-asix=(54.*diskc-15.*diskc*diskm+12.)/(64.*diskm-54.*diskc+48.)
-bsix=(192.*diskm-216.*diskc+24.*diskc*diskm-48.)/(64.*diskm-54.*diskc+48.)
-csix=9.*(6.*diskc-diskc*diskm-12.)/(64.*diskm-54.*diskc+48.)
+!xxnu = 1.0/rxxnu        ! Dissipation coefficient nu_o/nu 
+!dpis3=2*pi/3            ! 2*kc/3 where kc=pi/dx (will be added next this is just the coeffs)
+!kppkc=pi*pi/xxnu+pi*pi  ! k''(kc) = (1+nu_o/nu)*kc^2
+!kppkm=dpis3*dpis3*exp(-((pi-dpis3)/(0.3*pi-dpis3))**2)/xxnu+dpis3*dpis3 ! k''(km)=(1+c1*nu_o/nu)*4*pi/9
+!diskc=kppkc
+!diskm=kppkm
+!alpha2=(64.*diskm-27.*diskc-96.)/(64.*diskm-54.*diskc+48.)
+!asix=(54.*diskc-15.*diskc*diskm+12.)/(64.*diskm-54.*diskc+48.)
+!bsix=(192.*diskm-216.*diskc+24.*diskc*diskm-48.)/(64.*diskm-54.*diskc+48.)
+!csix=9.*(6.*diskc-diskc*diskm-12.)/(64.*diskm-54.*diskc+48.)
+
+xxnu=1./150.
+dpis3=2*pi/3
+kppkc=pi*pi/xxnu+pi*pi
+kppkm=dpis3*dpis3*exp(-((pi-dpis3)/(0.3*pi-dpis3))**2)/xxnu+dpis3*dpis3
+xnpi2=kppkc
+xmpi2=kppkm
+alsaix=(405*xnpi2 - 1280*xmpi2 + 2736)/(810*xnpi2 - 1280*xmpi2 + 288)
+asix=-(4329*xnpi2 - 256*xmpi2 - 1120*xnpi2*xmpi2 + 2288)/(3240*xnpi2 - 5120*xmpi2 + 1152)
+asix = asix / (dx2)
+bsix=(2115*xnpi2 - 1792*xmpi2 - 280*xnpi2*xmpi2 + 1328)/(405*xnpi2 - 640*xmpi2 + 144)
+bsix = bsix / (4.*dx2)
+csix=-(9*(855*xnpi2 + 256*xmpi2 - 160*xnpi2*xmpi2 - 2288))/(8*(405*xnpi2 - 640*xmpi2 + 144))
+csix = csix / (9.*dx2)  
+dsix=(198*xnpi2 + 128*xmpi2 - 40*xnpi2*xmpi2 - 736)/(405*xnpi2 - 640*xmpi2 + 144)
+dsix = dsix / (16.*dx2)  
 
 ! These coefficients exist also in schemes_dns.f90
 alsaix=alpha2
@@ -164,15 +180,26 @@ bsty  = (3./44. )/dy2
 !asjy  = (12./11.)/dy2
 !bsjy  = (3./44. )/dy2
 !csjy   = 0.
-dpis3=2*pi/3
-kppkc=pi*pi/xxnu+pi*pi
-kppkm=dpis3*dpis3*exp(-((pi-dpis3)/(0.3*pi-dpis3))**2)/xxnu+dpis3*dpis3
-diskc=kppkc
-diskm=kppkm
-alpha2=(64.*diskm-27.*diskc-96.)/(64.*diskm-54.*diskc+48.)
-asjy=(54.*diskc-15.*diskc*diskm+12.)/(64.*diskm-54.*diskc+48.)
-bsjy=(192.*diskm-216.*diskc+24.*diskc*diskm-48.)/(64.*diskm-54.*diskc+48.)
-csjy=9.*(6.*diskc-diskc*diskm-12.)/(64.*diskm-54.*diskc+48.)
+
+alsajy=(405*xnpi2 - 1280*xmpi2 + 2736)/(810*xnpi2 - 1280*xmpi2 + 288)
+asjy=-(4329*xnpi2 - 256*xmpi2 - 1120*xnpi2*xmpi2 + 2288)/(3240*xnpi2 - 5120*xmpi2 + 1152)
+asjy = asjy / (dy2)
+bsjy=(2115*xnpi2 - 1792*xmpi2 - 280*xnpi2*xmpi2 + 1328)/(405*xnpi2 - 640*xmpi2 + 144)
+bsjy = bsjy / (4.*dy2)
+csjy=-(9*(855*xnpi2 + 256*xmpi2 - 160*xnpi2*xmpi2 - 2288))/(8*(405*xnpi2 - 640*xmpi2 + 144))
+csjy = csjy / (9.*dy2)  
+dsjy=(198*xnpi2 + 128*xmpi2 - 40*xnpi2*xmpi2 - 736)/(405*xnpi2 - 640*xmpi2 + 144)
+dsjy = dsjy / (16.*dy2)  
+!dpis3=2*pi/3
+!kppkc=pi*pi/xxnu+pi*pi
+!kppkm=dpis3*dpis3*exp(-((pi-dpis3)/(0.3*pi-dpis3))**2)/xxnu+dpis3*dpis3
+!diskc=kppkc
+!diskm=kppkm
+!alpha2=(64.*diskm-27.*diskc-96.)/(64.*diskm-54.*diskc+48.)
+!asjy=(54.*diskc-15.*diskc*diskm+12.)/(64.*diskm-54.*diskc+48.)
+!bsjy=(192.*diskm-216.*diskc+24.*diskc*diskm-48.)/(64.*diskm-54.*diskc+48.)
+!csjy=9.*(6.*diskc-diskc*diskm-12.)/(64.*diskm-54.*diskc+48.)
+
 alsajy=alpha2
 asjy=asjy/dy2
 bsjy=bsjy/(4.*dy2)
@@ -518,16 +545,25 @@ enddo
    astz  = (12./11.)/dz2
    bstz  = (3./44. )/dz2
 
+alsakz=(405*xnpi2 - 1280*xmpi2 + 2736)/(810*xnpi2 - 1280*xmpi2 + 288)
+askz=-(4329*xnpi2 - 256*xmpi2 - 1120*xnpi2*xmpi2 + 2288)/(3240*xnpi2 - 5120*xmpi2 + 1152)
+askz = askz / (dz2)
+bskz=(2115*xnpi2 - 1792*xmpi2 - 280*xnpi2*xmpi2 + 1328)/(405*xnpi2 - 640*xmpi2 + 144)
+bskz = bskz / (4.*dz2)
+cskz=-(9*(855*xnpi2 + 256*xmpi2 - 160*xnpi2*xmpi2 - 2288))/(8*(405*xnpi2 - 640*xmpi2 + 144))
+cskz = cskz / (9.*dz2)  
+dskz=(198*xnpi2 + 128*xmpi2 - 40*xnpi2*xmpi2 - 736)/(405*xnpi2 - 640*xmpi2 + 144)
+dskz = dskz / (16.*dz2)  
+!dpis3=2*pi/3
+!kppkc=pi*pi/xxnu+pi*pi
+!kppkm=dpis3*dpis3*exp(-((pi-dpis3)/(0.3*pi-dpis3))**2)/xxnu+dpis3*dpis3
+!diskc=kppkc
+!diskm=kppkm
+!alpha2=(64.*diskm-27.*diskc-96.)/(64.*diskm-54.*diskc+48.)
+!askz=(54.*diskc-15.*diskc*diskm+12.)/(64.*diskm-54.*diskc+48.)
+!bskz=(192.*diskm-216.*diskc+24.*diskc*diskm-48.)/(64.*diskm-54.*diskc+48.)
+!cskz=9.*(6.*diskc-diskc*diskm-12.)/(64.*diskm-54.*diskc+48.)
 
-dpis3=2*pi/3
-kppkc=pi*pi/xxnu+pi*pi
-kppkm=dpis3*dpis3*exp(-((pi-dpis3)/(0.3*pi-dpis3))**2)/xxnu+dpis3*dpis3
-diskc=kppkc
-diskm=kppkm
-alpha2=(64.*diskm-27.*diskc-96.)/(64.*diskm-54.*diskc+48.)
-askz=(54.*diskc-15.*diskc*diskm+12.)/(64.*diskm-54.*diskc+48.)
-bskz=(192.*diskm-216.*diskc+24.*diskc*diskm-48.)/(64.*diskm-54.*diskc+48.)
-cskz=9.*(6.*diskc-diskc*diskm-12.)/(64.*diskm-54.*diskc+48.)
 alsakz=alpha2
 askz=askz/dz2
 bskz=bskz/(4.*dz2)

@@ -195,7 +195,13 @@ use decomp_2d, only : mytype
   real(mytype) :: alfa1x,af1x,bf1x,cf1x,df1x,alfa2x,af2x,alfanx,afnx,bfnx
   real(mytype) :: cfnx,dfnx,alfamx,afmx,alfaix,afix,bfix,alsa1x,as1x,bs1x
   real(mytype) :: cs1x,ds1x,alsa2x,as2x,alsanx,asnx,bsnx,csnx,dsnx,alsamx
-  real(mytype) :: asmx,alsaix,asix,bsix,csix,alsa3x,as3x,bs3x,alsatx,astx,bstx 
+  real(mytype) :: asmx,alsa3x,as3x,bs3x,alsatx,astx,bstx 
+  real(mytype) :: alsaixt,asixt,bsixt,csixt,dsixt
+  !O6SVV
+  real(mytype) :: alsa4x,as4x,bs4x,cs4x
+  real(mytype) :: alsattx,asttx,bsttx,csttx
+  real(mytype) :: alsaix,asix,bsix,csix,dsix
+  !
 end module derivX
 
 module derivY
@@ -207,7 +213,13 @@ use decomp_2d, only : mytype
   real(mytype) :: alfa1y,af1y,bf1y,cf1y,df1y,alfa2y,af2y,alfany,afny,bfny
   real(mytype) :: cfny,dfny,alfamy,afmy,alfajy,afjy,bfjy,alsa1y,as1y,bs1y
   real(mytype) :: cs1y,ds1y,alsa2y,as2y,alsany,asny,bsny,csny,dsny,alsamy
-  real(mytype) :: asmy,alsajy,asjy,bsjy,csjy,alsa3y,as3y,bs3y,alsaty,asty,bsty 
+  real(mytype) :: asmy,alsa3y,as3y,bs3y,alsaty,asty,bsty 
+  real(mytype) :: alsajyt,asjyt,bsjyt,csjyt,dsjyt
+  !O6SVV
+  real(mytype) :: alsa4y,as4y,bs4y,cs4y
+  real(mytype) :: alsatty,astty,bstty,cstty
+  real(mytype) :: alsajy,asjy,bsjy,csjy,dsjy
+  !
 end module derivY
 
 module derivZ
@@ -219,7 +231,13 @@ use decomp_2d, only : mytype
   real(mytype) :: alfa1z,af1z,bf1z,cf1z,df1z,alfa2z,af2z,alfanz,afnz,bfnz
   real(mytype) :: cfnz,dfnz,alfamz,afmz,alfakz,afkz,bfkz,alsa1z,as1z,bs1z
   real(mytype) :: cs1z,ds1z,alsa2z,as2z,alsanz,asnz,bsnz,csnz,dsnz,alsamz
-  real(mytype) :: asmz,alsakz,askz,bskz,cskz,alsa3z,as3z,bs3z,alsatz,astz,bstz
+  real(mytype) :: asmz,alsa3z,as3z,bs3z,alsatz,astz,bstz
+  real(mytype) :: alsakzt,askzt,bskzt,cskzt,dskzt
+  !O6SVV
+  real(mytype) :: alsa4z,as4z,bs4z,cs4z
+  real(mytype) :: alsattz,asttz,bsttz,csttz
+  real(mytype) :: alsakz,askz,bskz,cskz,dskz
+  !
 end module derivZ
 
 
