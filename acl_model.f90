@@ -120,10 +120,11 @@ contains
         character(len=100) :: name, blade_geom, tower_geom, afname, dynstallfile
         real(mytype), dimension(3) :: origin
         integer :: numblades,numfoil,towerFlag, TypeFlag, OperFlag, RotFlag, AddedMassFlag, DynStallFlag, EndEffectsFlag
-        real(mytype) :: toweroffset,tower_drag,tower_lift,tower_strouhal, uref, tsr, RandomWalkForcingFlag, ShenC1, ShenC2 
+        integer :: TipCorr, RootCorr, RandomWalkForcingFlag
+        real(mytype) :: toweroffset,tower_drag,tower_lift,tower_strouhal, uref, tsr, ShenC1, ShenC2 
         NAMELIST/TurbineSpecs/name,origin,numblades,blade_geom,numfoil,afname,towerFlag,towerOffset, &
             tower_geom,tower_drag,tower_lift,tower_strouhal,TypeFlag, OperFlag, tsr, uref,RotFlag, AddedMassFlag, &
-            RandomWalkForcingFlag, DynStallFlag,dynstallfile,EndEffectsFlag, ShenC1, ShenC2
+            RandomWalkForcingFlag, DynStallFlag,dynstallfile,EndEffectsFlag, TipCorr, RootCorr,ShenC1, ShenC2
 
         if (nrank==0) then
             write(6,*) 'Loading the turbine options ...'
@@ -145,6 +146,8 @@ contains
         RandomWalkForcingFlag=0
         DynStallFlag=0
         EndEffectsFlag=0
+        TipCorr=0
+        RootCorr=0
         ShenC1=0.125
         ShenC2=21
         !+++++++++++++++++++++++++++++++++
@@ -245,21 +248,21 @@ contains
             Turbine(i)%Blade(j)%DynStallFile=dynstallfile
             end do
         endif
-
+        
+        if (EndEffectsFlag>0) then
+        Turbine(i)%Has_BladeEndEffectModelling=.true.
         if(EndEffectsFlag==1) then
-            Turbine(i)%Has_BladeEndEffectModelling=.true.
-            Turbine(i)%do_tip_correction=.true.
-            Turbine(i)%do_root_correction=.true.
             Turbine(i)%EndEffectModel_is_Glauret=.true.
+            if(TipCorr==1) Turbine(i)%do_tip_correction=.true.
+            if (RootCorr==1) Turbine(i)%do_root_correction=.true.
         else if(EndEffectsFlag==2) then
-            Turbine(i)%Has_BladeEndEffectModelling=.true.
-            Turbine(i)%do_tip_correction=.true.
-            Turbine(i)%do_root_correction=.true.
             Turbine(i)%EndEffectModel_is_Shen=.true.
             Turbine(i)%ShenCoeff_c1=ShenC1
             Turbine(i)%ShenCoeff_c2=ShenC2
+            if(TipCorr==1) Turbine(i)%do_tip_correction=.true.
+            if (RootCorr==1) Turbine(i)%do_root_correction=.true.
         endif
-
+        endif
         end do
 
     end subroutine get_turbine_options 

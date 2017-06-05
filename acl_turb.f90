@@ -287,7 +287,14 @@ contains
         ur=sqrt(urdn**2.0+urdc**2.0) 
         ! This is the dynamic angle of attack 
         axis_mag=sqrt(turbine%RotN(1)**2+turbine%RotN(2)**2+turbine%RotN(3)**2)
+        phi=pi/2.0
+        if (ur>10e-8) then
+            if (turbine%IsCounterClockwise) then
         phi=asin(-(turbine%RotN(1)*(u-ub)+turbine%RotN(2)*(v-vb)+turbine%RotN(3)*(w-wb))/(axis_mag*ur))
+            else if (turbine%IsClockwise) then
+        phi=asin((turbine%RotN(1)*(u-ub)+turbine%RotN(2)*(v-vb)+turbine%RotN(3)*(w-wb))/(axis_mag*ur))
+            endif
+        endif
         rroot=turbine%blade(iblade)%ERdist(ielem)/turbine%Rmax
         rtip=(turbine%Rmax-turbine%blade(iblade)%ERdist(ielem))/turbine%Rmax
         
