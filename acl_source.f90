@@ -227,7 +227,7 @@ contains
     
     subroutine Compute_Momentum_Source_Term_pointwise
 
-        use decomp_2d, only: mytype, xstart, xend, xsize
+        use decomp_2d, only: mytype, nproc, xstart, xend, xsize
         use MPI
         use param 
         use variables, only: yp
@@ -254,16 +254,20 @@ contains
         ! Define the domain
             
         if (istret.eq.0) then 
-        ymin=(xstart(2)-1)*dy
-        ymax=xend(2)*dy
+        ymin=(xstart(2)-1)*dy-dy/2.0 ! Add -dy/2.0 overlap
+        ymax=(xend(2)-1)*dy+dy/2.0   ! Add +dy/2.0 overlap
         else
         ymin=yp(xstart(2))
         ymax=yp(xend(2))
         endif
-
-        zmin=(xstart(3)-1)*dz
-        zmax=(xend(3)-1)*dz
-         
+        
+        zmin=(xstart(3)-1)*dz-dz/2.0 ! Add a -dz/2.0 overlap
+        zmax=(xend(3)-1)*dz+dz/2.0   ! Add a +dz/2.0 overlap
+        
+        !write(*,*) 'Rank=', nrank, 'X index Limits=', xstart(1), xend(1), 'X lims='
+        !write(*,*) 'Rank=', nrank, 'Y index Limits=', xstart(2), xend(2), 'Y lims=', ymin, ymax 
+        !write(*,*) 'Rank=', nrank, 'Z index Limits=', xstart(3), xend(3), 'Z lims=', zmin, zmax
+        
         do isource=1,NSource
         
         min_dist=1e6
@@ -307,18 +311,24 @@ contains
             endif
              
             if (istret.eq.0) then 
-            if(Sy(isource)>(min_j-1)*dy) then
+            if(Sy(isource)>(min_j-1)*dy.and.Sy(isource)<(xend(2)-1)*dy) then
                 j_lower=min_j
                 j_upper=min_j+1
-            else if(Sy(isource)<(min_j-1)*dy) then
+            else if(Sy(isource)>(min_j-1)*dy.and.Sy(isource)>(xend(2)-1)*dy) then
+                j_lower=min_j
+                j_upper=min_j 
+            else if(Sy(isource)<(min_j-1)*dy.and.Sy(isource)>(xstart(2)-1)*dy) then
                 j_lower=min_j-1
                 j_upper=min_j
+            else if(Sy(isource)<(min_j-1)*dy.and.Sy(isource)<(xstart(2)-1)*dy) then
+                j_lower=min_j
+                j_upper=min_j 
             else if (Sy(isource)==(min_j-1)*dy) then
                 j_lower=min_j
                 j_upper=min_j
             endif
             else
-            
+              
             if(Sy(isource)>yp(min_j)) then
                 j_lower=min_j
                 j_upper=min_j+1
@@ -331,11 +341,17 @@ contains
             endif
             endif
             
-            if(Sz(isource)>(min_k-1)*dz) then
+            if(Sz(isource)>(min_k-1)*dz.and.Sz(isource)<(xend(3)-1)*dz) then
                 k_lower=min_k
                 k_upper=min_k+1
-            else if(Sz(isource)<(min_k-1)*dz) then
+            elseif(Sz(isource)>(min_k-1)*dz.and.Sz(isource)>(xend(3)-1)*dz) then
+                k_lower=min_k
+                k_upper=min_k
+            else if(Sz(isource)<(min_k-1)*dz.and.Sz(isource)>(xstart(3)-1)*dz) then
                 k_lower=min_k-1
+                k_upper=min_k
+            else if(Sz(isource)<(min_k-1)*dz.and.Sz(isource)<(xstart(3)-1)*dz) then
+                k_lower=min_k
                 k_upper=min_k
             else if (Sz(isource)==(min_k-1)*dz) then
                 k_lower=min_k
@@ -359,13 +375,13 @@ contains
             y=Sy(isource)
             z=Sz(isource)
              
-            if(x>x1.or.x<x0.or.y>y1.or.y<y0.or.z>z1.or.z<z0) then 
-                write(*,*) 'x0, x1, x', x0, x1, x
-                write(*,*) 'y0, y1, y', y0, y1, y
-                write(*,*) 'z0, z1, z', z0, z1, z
-                write(*,*) 'Problem with the trilinear interpolation'; 
-                stop
-            endif
+            !if(x>x1.or.x<x0.or.y>y1.or.y<y0.or.z>z1.or.z<z0) then 
+            !    write(*,*) 'x0, x1, x', x0, x1, x
+            !    write(*,*) 'y0, y1, y', y0, y1, y
+            !    write(*,*) 'z0, z1, z', z0, z1, z
+            !    write(*,*) 'Problem with the trilinear interpolation'; 
+            !    stop
+            !endif
             ! Apply interpolation kernels from 8 neighboring nodes    
             Su_part(isource)= trilinear_interpolation(x0,y0,z0, &
                                                   x1,y1,z1, &
@@ -379,7 +395,7 @@ contains
                                                   ux1(i_lower,j_upper,k_upper), &
                                                   ux1(i_upper,j_upper,k_upper))
             
-          Sv_part(isource)= trilinear_interpolation(x0,y0,z0, &
+             Sv_part(isource)= trilinear_interpolation(x0,y0,z0, &
                                                   x1,y1,z1, &
                                                   x,y,z, &
                                                   uy1(i_lower,j_lower,k_lower), &
@@ -391,7 +407,7 @@ contains
                                                   uy1(i_lower,j_upper,k_upper), &
                                                   uy1(i_upper,j_upper,k_upper))
           
-        Sw_part(isource)= trilinear_interpolation(x0,y0,z0, &
+            Sw_part(isource)= trilinear_interpolation(x0,y0,z0, &
                                                   x1,y1,z1, &
                                                   x,y,z, &
                                                   uz1(i_lower,j_lower,k_lower), &
@@ -470,51 +486,11 @@ contains
                    MPI_COMM_WORLD,ierr)
         
         if(nrank==0) then
-            alm_proj_time=alm_proj_time/float(12)
+            alm_proj_time=alm_proj_time/float(nproc)
             write(*,*) 'AL Momentum Source term projection completed in :', alm_proj_time ,'seconds'
         endif
         
     end subroutine Compute_Momentum_Source_Term_pointwise
 
-    !subroutine Compute_Momentum_Source_Term_RBF
- 
-    !    implicit none
-    !    integer :: counter,itur,iblade,ielem,jelem,ial
-    !    real    :: dx,dy,dz,d
-    !    real,allocatable(:) :: Fx,Fy,Fz
-    !    
-    !    counter=0
-    !    if(Ntur>0) then
-    !        do itur=1,Ntur
-    !            !Blades>
-    !            do iblade=1,Turbine(itur)%Nblades
-    !                !> Form Matrix A_rbf
-    !                allocate(Fx(Turbine(itur)%Blade(iblade)%Nelem),Fy(Turbine(itur)%Blade(iblade)%Nelem),Fx(Turbine(itur)%Blade(iblade)%Nelem)
-    !                do jelem=1,Turbine(itur)%Blade(iblade)%Nelem
-    !                    do ielem=1,Turbine(itur)%Blade(iblade)%Nelem
-    !                    dx=Turbine(itur)%Blade(iblade)%PEx(ielem)-Turbine(itur)%Blade(iblade)%PEy(jelem)
-    !                    dy=Turbine(itur)%Blade(iblade)%PEy(ielem)-Turbine(itur)%Blade(iblade)%PEy(jelem)
-    !                    dz=Turbine(itur)%Blade(iblade)%PEz(ielem)-Turbine(itur)%Blade(iblade)%PEz(jelem) 
-    !                    d=sqrt(dx*dx+dy*dy+dz*dz)
-    !                    Turbine(itur)%Blade(iblade)%A_rbf(ielem,jelem)=IsoKernel(d,Turbine(itur)%Blade(iblade)%Eepsilon(ielem),3)
-    !                    enddo
-    !                enddo
-    !
-    !                !> Compute the forces by solving 
-    !                call solve(Turbine(itur)%Blade(iblade)%A_rfb,fx)
-    !                call solve(Turbine(itur)%Blade(iblade)%A_rfb,fy)
-    !                call solve(Turbine(itur)%Blade(iblade)%A_rfb,fz)
-    !                
-    !                do ielem=1,Turbine(itur)%Blade(iblade)%Nelem
-    !                counter=counter+1
-    !                Sfx(counter)=fx
-    !                Sfy(counter)=fy
-    !                Sfz(counter)=fz    
-    !                enddo
-    !                deallocate(fx,fy,fz)
-    !            enddo
-    !        enddo
-    !    endif
-    !end subroutine Compute_Momentum_Source_Term_RBF
     
 end module actuator_line_source

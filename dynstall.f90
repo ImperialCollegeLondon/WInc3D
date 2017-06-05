@@ -7,12 +7,15 @@ module dynstall
     
     type LB_Type
     
-    !=====================================
-    ! These parameters follow the 
-    ! formulation of turbinesFOAM
+    !===============================================
+    ! These parameters follow the formulation of 
+    ! Sheng et al 2008
+    !===============================================
+
     logical :: StallFlag = .false.
     logical :: StallFlag_prev = .false. 
     logical :: do_calcAlphaEquiv=.false.
+    character(len=80) :: DynStallParamFile
     real(mytype) :: ds,time,time_prev
     real(mytype) :: X,X_prev,Y,Y_prev
     real(mytype) :: A1,A2,A3,b1,b2,K1,K2,r,r0,alphaDS0DiffDeg
@@ -42,18 +45,23 @@ module dynstall
     real(mytype) :: Alpha, Alpha_prev, deltaAlpha,deltaAlpha_prev, alphaCrit
     real(mytype) :: alpha1, alphaDS0, alphaSS, dalphaDS
     real(mytype) :: Vx,CNF,CT,CN,cmFitExponent,K0,CM
-    
+
     end type LB_Type
 
 
     contains
 
-    subroutine dystl_init_LB(lb)
+    subroutine dystl_init_LB(lb,dynstallfile)
         
         implicit none
-        type(LB_Type) :: lb
-       
-
+        type(LB_Type), intent(inout) :: lb
+        character(len=80), intent(in) :: dynstallfile
+        real(mytype) :: A1, A2, b1, b2
+        NAMELIST/DynStallParam/A1,A2,b1,b2
+      
+        lb%DynStallParamFile=dynstallfile
+        ! Before reading the dynstall parameters
+        ! initialize the variables to default values
         lb%X=0.0
         lb%X_prev=0.0
         lb%Y=0.0
@@ -98,7 +106,16 @@ module dynstall
         lb%K2=0.0
         lb%cmFitExponent=2
         lb%CM=0.0
-        
+        ! READ FROM THE NAMELIST
+        open(40,file=dynstallFile) 
+        read(40,nml=DynStallParam)
+        close(40) 
+        lb%A1=0.3
+        lb%A2=0.7
+        lb%b1=0.14
+        lb%b2=0.53
+       
+         
     end subroutine dystl_init_LB
     
     subroutine calcAlphaEquiv(lb,mach)

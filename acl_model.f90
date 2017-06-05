@@ -105,7 +105,7 @@ contains
         endif
     
     end subroutine actuator_line_model_write_output
-
+     
     subroutine get_turbine_options(turbines_path)
 
         implicit none
@@ -117,13 +117,14 @@ contains
         !-------------------------------------
         ! Dummy variables
         !-------------------------------------
-        character(len=100) :: name, blade_geom, tower_geom, afname
+        character(len=100) :: name, blade_geom, tower_geom, afname, dynstallfile
         real(mytype), dimension(3) :: origin
         integer :: numblades,numfoil,towerFlag, TypeFlag, OperFlag, RotFlag, AddedMassFlag, DynStallFlag, EndEffectsFlag
-        real(mytype) :: toweroffset,tower_drag,tower_lift,tower_strouhal, uref, tsr, RandomWalkForcingFlag, ShenC1, ShenC2 
+        integer :: TipCorr, RootCorr, RandomWalkForcingFlag
+        real(mytype) :: toweroffset,tower_drag,tower_lift,tower_strouhal, uref, tsr, ShenC1, ShenC2 
         NAMELIST/TurbineSpecs/name,origin,numblades,blade_geom,numfoil,afname,towerFlag,towerOffset, &
             tower_geom,tower_drag,tower_lift,tower_strouhal,TypeFlag, OperFlag, tsr, uref,RotFlag, AddedMassFlag, &
-            RandomWalkForcingFlag, DynStallFlag,EndEffectsFlag, ShenC1, ShenC2
+            RandomWalkForcingFlag, DynStallFlag,dynstallfile,EndEffectsFlag, TipCorr, RootCorr,ShenC1, ShenC2
 
         if (nrank==0) then
             write(6,*) 'Loading the turbine options ...'
@@ -135,6 +136,21 @@ contains
         ! Get Turbines' options and INITIALIZE THEM
         ! ==========================================
         do i=1, Ntur 
+        ! Set some default parameters
+        !++++++++++++++++++++++++++++++++
+        towerFlag=0
+        tower_lift=0.3
+        tower_drag=1.0
+        tower_strouhal=0.21
+        AddedMassFlag=0
+        RandomWalkForcingFlag=0
+        DynStallFlag=0
+        EndEffectsFlag=0
+        TipCorr=0
+        RootCorr=0
+        ShenC1=0.125
+        ShenC2=21
+        !+++++++++++++++++++++++++++++++++
         open(100,File=turbines_path(i))
         read(100,nml=TurbineSpecs)
         Turbine(i)%name=name
@@ -229,23 +245,24 @@ contains
         if(DynStallFlag==1) then
             do j=1,Turbine(i)%NBlades
             Turbine(i)%Blade(j)%do_dynamic_stall=.true.  
+            Turbine(i)%Blade(j)%DynStallFile=dynstallfile
             end do
         endif
-
+        
+        if (EndEffectsFlag>0) then
+        Turbine(i)%Has_BladeEndEffectModelling=.true.
         if(EndEffectsFlag==1) then
-            Turbine(i)%Has_BladeEndEffectModelling=.true.
-            Turbine(i)%do_tip_correction=.true.
-            Turbine(i)%do_root_correction=.true.
             Turbine(i)%EndEffectModel_is_Glauret=.true.
+            if(TipCorr==1) Turbine(i)%do_tip_correction=.true.
+            if (RootCorr==1) Turbine(i)%do_root_correction=.true.
         else if(EndEffectsFlag==2) then
-            Turbine(i)%Has_BladeEndEffectModelling=.true.
-            Turbine(i)%do_tip_correction=.true.
-            Turbine(i)%do_root_correction=.true.
             Turbine(i)%EndEffectModel_is_Shen=.true.
             Turbine(i)%ShenCoeff_c1=ShenC1
             Turbine(i)%ShenCoeff_c2=ShenC2
+            if(TipCorr==1) Turbine(i)%do_tip_correction=.true.
+            if (RootCorr==1) Turbine(i)%do_root_correction=.true.
         endif
-
+        endif
         end do
 
     end subroutine get_turbine_options 
@@ -260,20 +277,28 @@ contains
         !-------------------------------------
         ! Dummy variables
         !-------------------------------------
-        character(len=100) :: name, actuatorline_geom, afname
+        character(len=100) :: name, actuatorline_geom, afname, dynstallfile
         real(mytype), dimension(3) :: origin
-        integer :: numfoil, AddedMassFlag, DynStallFlag, EndEffectsFlag, RandomWalkForcingFlag
-        NAMELIST/TurbineSpecs/name,origin, actuatorline_geom,numfoil,afname, AddedMassFlag, &
-            RandomWalkForcingFlag, DynStallFlag,EndEffectsFlag
-
-
+        real(mytype) :: PitchStartTime, PitchEndTime, PitchAngleInit, PitchAmp, AngularPitchFreq
+        integer :: numfoil, AddedMassFlag, DynStallFlag, EndEffectsFlag, RandomWalkForcingFlag, PitchControlFlag
+        NAMELIST/ActuatorLineSpecs/name,origin, actuatorline_geom,numfoil,afname, AddedMassFlag, &
+            RandomWalkForcingFlag, DynStallFlag,EndEffectsFlag, PitchControlFlag,PitchStartTime, &
+            PitchEndTime, PitchAngleInit, PitchAmp, AngularPitchFreq, dynstallfile
+        
+        if (nrank==0) then
+            write(6,*) 'Loading the actuator line options ...'
+        endif
+        
         ! Allocate Turbines Arrays
        allocate(actuatorline(Nal))
 
         ! ==========================================
-        ! Get Turbines' options and INITIALIZE THEM
+        ! Get Actuator lines' options and INITIALIZE THEM
         ! ==========================================
         do i=1, Nal
+        open(200,File=actuatorline_path(i))
+        read(200,nml=ActuatorLineSpecs)
+        close(200)
         Actuatorline(i)%name=name
         Actuatorline(i)%COR=origin
         Actuatorline(i)%geom_file=actuatorline_geom
@@ -285,7 +310,7 @@ contains
 
         do k=1, Actuatorline(i)%NAirfoilData
 
-         Actuatorline(i)%AirfoilData(k)%afname=afname
+        Actuatorline(i)%AirfoilData(k)%afname=afname
 
         ! Read and Store Airfoils
         call airfoil_init_data(Actuatorline(i)%AirfoilData(k))
@@ -298,20 +323,23 @@ contains
 
         if(DynStallFlag==1) then
             Actuatorline%do_dynamic_stall=.true.
+            Actuatorline%DynStallFile=dynstallfile
         endif
     
     !    !##################4 Get Pitching Opions ##################
-    !    if(have_option(trim(actuatorline_path(i))//"/pitch_control")) then
-    !        Actuatorline%pitch_control=.true.
-    !        call get_option(trim(actuatorline_path(i))//"/pitch_control/start_time",actuatorline(i)%pitch_start_time)
-    !        call get_option(trim(actuatorline_path(i))//"/pitch_control/end_time",actuatorline(i)%pitch_end_time)
+        if(PitchControlFlag==1) then ! Sinusoidal
+            Actuatorline%pitch_control=.true.
+            Actuatorline(i)%pitch_start_time=PitchStartTime
+            Actuatorline(i)%pitch_end_time=PitchEndTime
 
-    !        if(have_option(trim(actuatorline_path(i))//"/pitch_control/harmonic")) then
-    !            call get_option(trim(actuatorline_path(i))//"/pitch_control/harmonic/initial_pitch_angle",actuatorline(i)%pitch_angle_init)
-    !            call get_option(trim(actuatorline_path(i))//"/pitch_control/harmonic/pitch_amplitude",actuatorline(i)%pitchAmp)
-    !            call get_option(trim(actuatorline_path(i))//"/pitch_control/harmonic/angular_pitching_frequency",actuatorline(i)%angular_pitch_freq)
-    !        endif
-    !    endif
+            Actuatorline(i)%pitch_angle_init=PitchAngleInit
+            Actuatorline(i)%pitchAmp=PitchAmp
+            Actuatorline(i)%angular_pitch_freq=AngularPitchFreq
+        elseif(PitchControlFlag==2) then ! Ramping up
+            Actuatorline%pitch_control=.true.
+            write(*,*) 'Ramping up not implemented yet'
+            stop
+        endif
 
         end do
 
@@ -327,6 +355,7 @@ contains
 
         ctime=current_time
         DeltaT=dt
+
         if (Ntur>0) then
             do i=1,Ntur
             if(Turbine(i)%Is_constant_rotation_operated) then

@@ -117,7 +117,7 @@ contains
     ! Initialize LB_model and Tip Correction Coeffs
     do ielem=1,turbine%blade(iblade)%Nelem
     if(turbine%blade(iblade)%do_dynamic_stall) then
-        call dystl_init_LB(turbine%blade(iblade)%E_LB_Model(ielem))
+    !    call dystl_init_LB(turbine%blade(iblade)%E_LB_Model(ielem))
     endif
     end do 
     ! Rotate the turbine according to the tilt and yaw angle
@@ -241,7 +241,14 @@ contains
     turbine%CT=sqrt(turbine%CFx**2.0+turbine%CFy**2.0+turbine%CFz**2.0)
     turbine%CTR=Torq_tot/(0.5*turbine%A*turbine%Rmax*turbine%Uref**2.0)
     turbine%CP= abs(turbine%CTR)*turbine%TSR
-     
+    
+    ! PRINT ON SCREEN
+    if(nrank==0) then
+        write(6,*) 'Turbine :', turbine%name
+        write(6,*) "Thrust Coefficient : ",  turbine%CT
+        write(6,*) "Power  Coefficient : ",  turbine%CP
+    endif
+
     end subroutine compute_performance
     
     subroutine Compute_Turbine_EndEffects(turbine)
@@ -280,7 +287,14 @@ contains
         ur=sqrt(urdn**2.0+urdc**2.0) 
         ! This is the dynamic angle of attack 
         axis_mag=sqrt(turbine%RotN(1)**2+turbine%RotN(2)**2+turbine%RotN(3)**2)
+        phi=pi/2.0
+        if (ur>10e-8) then
+            if (turbine%IsCounterClockwise) then
         phi=asin(-(turbine%RotN(1)*(u-ub)+turbine%RotN(2)*(v-vb)+turbine%RotN(3)*(w-wb))/(axis_mag*ur))
+            else if (turbine%IsClockwise) then
+        phi=asin((turbine%RotN(1)*(u-ub)+turbine%RotN(2)*(v-vb)+turbine%RotN(3)*(w-wb))/(axis_mag*ur))
+            endif
+        endif
         rroot=turbine%blade(iblade)%ERdist(ielem)/turbine%Rmax
         rtip=(turbine%Rmax-turbine%blade(iblade)%ERdist(ielem))/turbine%Rmax
         
@@ -301,7 +315,6 @@ contains
                 stop
             endif
             Ftip=2.0/pi*acos(exp(-g1*turbine%Nblades/2.0*(1.0/rroot-1.0)/sin(phi)))
-            write(*,*) "Ftip ", g1, pi, rroot, Ftip, sin(phi), turbine%Nblades
         endif
         if (turbine%do_root_correction) then
             if (turbine%EndEffectModel_is_Glauret) then

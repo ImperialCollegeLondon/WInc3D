@@ -55,11 +55,15 @@ endif
 
 SRC = decomp_2d.f90 glassman.f90 fft_$(FFT).f90 module_param.f90 io.f90 variables.f90 poisson.f90 les_models.f90 schemes_les.f90 convdiff.f90 acl_utils.f90 airfoils.f90 dynstall.f90 acl_elem.f90 acl_turb.f90 acl_out.f90 acl_model.f90 acl_source.f90 incompact3d.f90 navier.f90 filter.f90 derive.f90 parameters.f90 tools.f90 visu.f90 probe.f90 
 
+SRCALM = decomp_2d.f90 acl_utils.f90 airfoils.f90 dynstall.f90 acl_elem.f90 acl_turb.f90 acl_out.f90 acl_model.f90 uALM.f90 
+
 ifneq (,$(findstring DSHM,$(OPTIONS)))
 SRC := FreeIPC.f90 $(SRC)  
 OBJ =	$(SRC:.f90=.o) alloc_shm.o FreeIPC_c.o
+OBJALM =	$(SRCALM:.f90=.o) alloc_shm.o FreeIPC_c.o
 else
 OBJ =	$(SRC:.f90=.o)
+OBJALM =	$(SRCALM:.f90=.o) 
 endif	
 
 all: incompact3d visualize
@@ -72,6 +76,10 @@ FreeIPC_c.o: FreeIPC_c.c
 
 incompact3d : $(OBJ)
 	$(FC) -O3 -o $@ $(OBJ) $(LIBFFT) $(LIBS) $(DEBUG)
+
+uALM : $(OBJALM)
+	$(FC) -O3 -o $@ $(OBJALM) $(LIBFFT) $(LIBS) $(DEBUG)
+
 
 %.o : %.f90
 	$(FC) $(OPTFC) $(OPTIONS) $(INC) $(DEBUG) -c $<

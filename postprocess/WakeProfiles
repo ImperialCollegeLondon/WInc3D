@@ -19,6 +19,7 @@ parser.add_argument("-v","--verbose",action="store_true",help="Print location")
 parser.add_argument("-p","--plot",action="store_true",help="Plots the wake profiles")
 parser.add_argument("-w","--write",action="store_true",help="Write results in a .csv file")
 parser.add_argument("FILENAME", type=str, help="Filename, should end with .pprc")
+parser.add_argument("VELFLAG", type=int, help="Velocity Flag if 0 then u/U and upup/U^2, if 1:1-u/Uinf and TKE/U_inf^2")
 
 args = parser.parse_args()
 name = args.FILENAME
@@ -57,9 +58,9 @@ wfile=open("wmean.dat","rb")
 uufile=open("uumean.dat","rb")
 vvfile=open("vvmean.dat","rb")
 wwfile=open("wwmean.dat","rb")
-uvfile=open("vvmean.dat","rb")
-uwfile=open("wwmean.dat","rb")
-vwfile=open("wwmean.dat","rb")
+uvfile=open("uvmean.dat","rb")
+uwfile=open("uwmean.dat","rb")
+vwfile=open("vwmean.dat","rb")
 # vu, wu, wv are ommited due to symmetry
 
 # Reading the binary files into numpy vectors
@@ -100,9 +101,9 @@ for i in range(0,nx):
             uav[i,j,k]=umean[i+nx*(j+ny*k)]/Nsteps
             vav[i,j,k]=vmean[i+nx*(j+ny*k)]/Nsteps
             wav[i,j,k]=wmean[i+nx*(j+ny*k)]/Nsteps
-            upup[i,j,k]=uumean[i+nx*(j+ny*k)]/Nsteps-uav[i,j,k]*uav[i,j,k]
-            vpvp[i,j,k]=vvmean[i+nx*(j+ny*k)]/Nsteps-vav[i,j,k]*vav[i,j,k]
-            wpwp[i,j,k]=wwmean[i+nx*(j+ny*k)]/Nsteps-wav[i,j,k]*wav[i,j,k]
+            upup[i,j,k]=uumean[i+nx*(j+ny*k)]/Nsteps-uav[i,j,k]**2
+            vpvp[i,j,k]=vvmean[i+nx*(j+ny*k)]/Nsteps-vav[i,j,k]**2
+            wpwp[i,j,k]=wwmean[i+nx*(j+ny*k)]/Nsteps-wav[i,j,k]**2
 
 
 
@@ -117,31 +118,49 @@ R=D/2.0
 for i in range(len(xloc)):
     print('Computing statistics at location ' + str(float(xloc[i]))+'...\n')
     
-    ixloc=np.where(abs(x[:,0,0]-xloc[i])==abs(x[:,0,0]-xloc[i]).min())
-    jxloc=np.where(abs(y[0,:,0]-yloc[i])==abs(y[0,:,0]-yloc[i]).min())
-   
-    if args.write:     
-        with open('meanu_'+str(xloc[i])+'.csv','w') as fout:
-            fout.write('# y/R u/U')
-            for iwake in range(nz):
-                zR=float(-zlz/(2.0*R)+z[ixloc,jxloc,iwake]/R)
-                uU=float(uav[ixloc,jxloc,iwake]/Uinf)
-                fout.write(str(zR)+','+str(uU)+'\n')
-        
-        with open('meanupup_'+str(xloc[i])+'.csv','w') as fout:
-            fout.write('# y/R upup/U^2')
-            for iwake in range(nz):
-                zR=float(-zlz/(2.0*R)+z[ixloc,jxloc,iwake]/R)
-                upupU2=float(upup[ixloc,jxloc,iwake]/Uinf**2)
-                fout.write(str(zR)+','+str(upupU2)+'\n')
+    ixloc=np.where(abs(x[:,0,0]-xloc[i])==abs(x[:,0,0]-xloc[i]).min())[0]
+    jxloc=np.where(abs(y[0,:,0]-yloc[i])==abs(y[0,:,0]-yloc[i]).min())[0]
+  
+    print 'found indices ', ixloc[0], jxloc[0]
+    if (args.VELFLAG==0):
+        if args.write:     
+            with open('meanu_'+str(xloc[i])+'.csv','w') as fout:
+                fout.write('# y/R u/U\n')
+                for iwake in range(nz):
+                    zR=float(-zlz/(2.0*R)+z[ixloc[0],jxloc[0],iwake]/R)
+                    uU=float(uav[ixloc[0],jxloc[0],iwake]/Uinf)
+                    fout.write(str(zR)+' '+str(uU)+'\n')
+            
+            with open('meanupup_'+str(xloc[i])+'.csv','w') as fout:
+                fout.write('# y/R upup/U^2\n')
+                for iwake in range(nz):
+                    zR=float(-zlz/(2.0*R)+z[ixloc[0],jxloc[0],iwake]/R)
+                    upupU2=float(upup[ixloc[0],jxloc[0],iwake]/Uinf**2)
+                    fout.write(str(zR)+' '+str(upupU2)+'\n')
     
+    if (args.VELFLAG==1):
+        if args.write:     
+            with open('meanu_'+str(xloc[i])+'.csv','w') as fout:
+                fout.write('# y/R 1-u/U\n')
+                for iwake in range(nz):
+                    zR=float(-zlz/(2.0*R)+z[ixloc[0],jxloc[0],iwake]/R)
+                    uU=float(1.-uav[ixloc[0],jxloc[0],iwake]/Uinf)
+                    fout.write(str(zR)+' '+str(uU)+'\n')
+            
+            with open('meanupup_'+str(xloc[i])+'.csv','w') as fout:
+                fout.write('# y/R upup/U^2\n')
+                for iwake in range(nz):
+                    zR=float(-zlz/(2.0*R)+z[ixloc[0],jxloc[0],iwake]/R)
+                    TKEU2=float(np.sqrt(upup[ixloc[0],jxloc[0],iwake]+vpvp[ixloc[0],jxloc[0],iwake]+wpwp[ixloc[0],jxloc[0],iwake])/Uinf**2)
+                    fout.write(str(zR)+' '+str(TKEU2)+'\n')
+
     if args.plot:    
         plt.figure(1)
-        plt.plot(-zlz/(2.0*R)+z[ixloc,jxloc,:].reshape(nz,1)/R,uav[ixloc,jxloc,:].reshape(nz,1)/Uinf,'k')
+        plt.plot(-zlz/(2.0*R)+z[ixloc[0],jxloc[0],:].reshape(nz,1)/R,uav[ixloc[0],jxloc[0],:].reshape(nz,1)/Uinf,'k')
         plt.show()
 
         plt.figure(2)
-        plt.plot(-zlz/(2.0*R)+z[ixloc,jxloc,:].reshape(nz,1)/R,upup[ixloc,jxloc,:].reshape(nz,1)/Uinf**2,'k')
+        plt.plot(-zlz/(2.0*R)+z[ixloc[0],jxloc[0],:].reshape(nz,1)/R,upup[ixloc[0],jxloc[0],:].reshape(nz,1)/Uinf**2,'k')
         plt.show()
 
 exit()
