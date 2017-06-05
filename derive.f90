@@ -636,6 +636,896 @@ if (nclx==0) then
            +bsix*(ux(3,j,k)-ux(1   ,j,k)&
            -ux(1,j,k)+ux(nx-1,j,k))&
            +csix*(ux(4,j,k)-ux(1   ,j,k)&
+           -ux(1,j,k)+ux(nx-2,j,k))
+      rx(1,j,k)=-1.
+      tx(2,j,k)=asix*(ux(3,j,k)-ux(2   ,j,k)&
+           -ux(2,j,k)+ux(1   ,j,k))&
+           +bsix*(ux(4,j,k)-ux(2   ,j,k)&
+           -ux(2,j,k)+ux(nx  ,j,k))&
+           +csix*(ux(5,j,k)-ux(2   ,j,k)&
+           -ux(2,j,k)+ux(nx-1,j,k))
+      rx(2,j,k)=0.
+      tx(3,j,k)=asix*(ux(4,j,k)-ux(3 ,j,k)&
+           -ux(3,j,k)+ux(2 ,j,k))&
+           +bsix*(ux(5,j,k)-ux(3 ,j,k)&
+           -ux(3,j,k)+ux(1 ,j,k))&
+           +csix*(ux(6,j,k)-ux(3 ,j,k)&
+           -ux(3,j,k)+ux(nx,j,k))
+      rx(3,j,k)=0.
+      do i=4,nx-3
+         tx(i,j,k)=asix*(ux(i+1,j,k)-ux(i  ,j,k)&
+              -ux(i  ,j,k)+ux(i-1,j,k))&
+              +bsix*(ux(i+2,j,k)-ux(i  ,j,k)&
+              -ux(i  ,j,k)+ux(i-2,j,k))&
+              +csix*(ux(i+3,j,k)-ux(i  ,j,k)&
+              -ux(i  ,j,k)+ux(i-3,j,k))
+         rx(i,j,k)=0.
+      enddo
+      tx(nx-2,j,k)=asix*(ux(nx-1,j,k)-ux(nx-2,j,k)&
+           -ux(nx-2,j,k)+ux(nx-3,j,k))&
+           +bsix*(ux(nx  ,j,k)-ux(nx-2,j,k)&
+           -ux(nx-2,j,k)+ux(nx-4,j,k))&
+           +csix*(ux(1   ,j,k)-ux(nx-2,j,k)&
+           -ux(nx-2,j,k)+ux(nx-5,j,k))
+      rx(nx-2,j,k)=0.
+      tx(nx-1,j,k)=asix*(ux(nx  ,j,k)-ux(nx-1,j,k)&
+           -ux(nx-1,j,k)+ux(nx-2,j,k))&
+           +bsix*(ux(1   ,j,k)-ux(nx-1,j,k)&
+           -ux(nx-1,j,k)+ux(nx-3,j,k))&
+           +csix*(ux(2   ,j,k)-ux(nx-1,j,k)&
+           -ux(nx-1,j,k)+ux(nx-4,j,k))
+      rx(nx-1,j,k)=0.
+      tx(nx  ,j,k)=asix*(ux(1 ,j,k)-ux(nx  ,j,k)&
+           -ux(nx,j,k)+ux(nx-1,j,k))&
+           +bsix*(ux(2 ,j,k)-ux(nx  ,j,k)&
+           -ux(nx,j,k)+ux(nx-2,j,k))&
+           +csix*(ux(3 ,j,k)-ux(nx  ,j,k)&
+           -ux(nx,j,k)+ux(nx-3,j,k))
+      rx(nx  ,j,k)=alsaix
+      do i=2,nx
+         tx(i,j,k)=tx(i,j,k)-tx(i-1,j,k)*ssx(i)
+         rx(i,j,k)=rx(i,j,k)-rx(i-1,j,k)*ssx(i)
+      enddo
+         tx(nx,j,k)=tx(nx,j,k)*swx(nx)
+         rx(nx,j,k)=rx(nx,j,k)*swx(nx)
+      do i=nx-1,1,-1
+         tx(i,j,k)=(tx(i,j,k)-sfx(i)*tx(i+1,j,k))*swx(i)
+         rx(i,j,k)=(rx(i,j,k)-sfx(i)*rx(i+1,j,k))*swx(i)
+      enddo
+      sx(j,k)=(   tx(1,j,k)-alsaix*tx(nx,j,k))/&
+           (1.+rx(1,j,k)-alsaix*rx(nx,j,k))
+      do i=1,nx
+         tx(i,j,k)=tx(i,j,k)-sx(j,k)*rx(i,j,k)
+      enddo
+   enddo
+   enddo
+endif
+
+if (nclx==1) then
+   if (npaire==1) then
+      do k=1,nz
+      do j=1,ny
+         tx(1,j,k)=asix*(ux(2,j,k)-ux(1,j,k)&
+              -ux(1,j,k)+ux(2,j,k))&
+              +bsix*(ux(3,j,k)-ux(1,j,k)&
+              -ux(1,j,k)+ux(3,j,k))&
+              +csix*(ux(4,j,k)-ux(1,j,k)&
+              -ux(1,j,k)+ux(4,j,k))
+         tx(2,j,k)=asix*(ux(3,j,k)-ux(2,j,k)&
+              -ux(2,j,k)+ux(1,j,k))&
+              +bsix*(ux(4,j,k)-ux(2,j,k)&
+              -ux(2,j,k)+ux(2,j,k))&
+              +csix*(ux(5,j,k)-ux(2,j,k)&
+              -ux(2,j,k)+ux(3,j,k))
+         tx(3,j,k)=asix*(ux(4,j,k)-ux(3,j,k)&
+              -ux(3,j,k)+ux(2,j,k))&
+              +bsix*(ux(5,j,k)-ux(3,j,k)&
+              -ux(3,j,k)+ux(1,j,k))&
+              +csix*(ux(6,j,k)-ux(3,j,k)&
+              -ux(3,j,k)+ux(2,j,k))
+         do i=4,nx-3
+            tx(i,j,k)=asix*(ux(i+1,j,k)-ux(i  ,j,k)&
+                 -ux(i  ,j,k)+ux(i-1,j,k))&
+                 +bsix*(ux(i+2,j,k)-ux(i  ,j,k)&
+                 -ux(i  ,j,k)+ux(i-2,j,k))&
+                 +csix*(ux(i+3,j,k)-ux(i  ,j,k)&
+                 -ux(i  ,j,k)+ux(i-3,j,k))
+         enddo
+         tx(nx-2,j,k)=asix*(ux(nx-1,j,k)-ux(nx-2,j,k)&
+              -ux(nx-2,j,k)+ux(nx-3,j,k))&
+              +bsix*(ux(nx  ,j,k)-ux(nx-2,j,k)&
+              -ux(nx-2,j,k)+ux(nx-4,j,k))&
+              +csix*(ux(nx-1,j,k)-ux(nx-2,j,k)&
+              -ux(nx-2,j,k)+ux(nx-5,j,k))
+         tx(nx-1,j,k)=asix*(ux(nx  ,j,k)-ux(nx-1,j,k)&
+              -ux(nx-1,j,k)+ux(nx-2,j,k))&
+              +bsix*(ux(nx-1,j,k)-ux(nx-1,j,k)&
+              -ux(nx-1,j,k)+ux(nx-3,j,k))&
+              +csix*(ux(nx-2,j,k)-ux(nx-1,j,k)&
+              -ux(nx-1,j,k)+ux(nx-4,j,k))
+         tx(nx  ,j,k)=asix*(ux(nx-1,j,k)-ux(nx  ,j,k)&
+              -ux(nx  ,j,k)+ux(nx-1,j,k))&
+              +bsix*(ux(nx-2,j,k)-ux(nx  ,j,k)&
+              -ux(nx  ,j,k)+ux(nx-2,j,k))&
+              +csix*(ux(nx-3,j,k)-ux(nx  ,j,k)&
+              -ux(nx  ,j,k)+ux(nx-3,j,k))
+         do i=2,nx
+            tx(i,j,k)=tx(i,j,k)-tx(i-1,j,k)*ssx(i)
+         enddo
+         tx(nx,j,k)=tx(nx,j,k)*swx(nx)
+         do i=nx-1,1,-1
+            tx(i,j,k)=(tx(i,j,k)-sfx(i)*tx(i+1,j,k))*swx(i)
+         enddo
+      enddo
+      enddo
+   endif
+   if (npaire==0) then
+      do k=1,nz
+      do j=1,ny
+         tx(1,j,k)=0.
+         tx(2,j,k)=asix*(ux(3,j,k)-ux(2,j,k)&
+              -ux(2,j,k)+ux(1,j,k))&
+              +bsix*(ux(4,j,k)-ux(2,j,k)&
+              -ux(2,j,k)-ux(2,j,k))&
+              +csix*(ux(5,j,k)-ux(2,j,k)&
+              -ux(2,j,k)-ux(3,j,k))
+         tx(3,j,k)=asix*(ux(4,j,k)-ux(3,j,k)&
+              -ux(3,j,k)+ux(2,j,k))&
+              +bsix*(ux(5,j,k)-ux(3,j,k)&
+              -ux(3,j,k)+ux(1,j,k))&
+              +csix*(ux(6,j,k)-ux(3,j,k)&
+              -ux(3,j,k)-ux(2,j,k))
+         do i=4,nx-3
+            tx(i,j,k)=asix*(ux(i+1,j,k)-ux(i  ,j,k)&
+                 -ux(i  ,j,k)+ux(i-1,j,k))&
+                 +bsix*(ux(i+2,j,k)-ux(i  ,j,k)&
+                 -ux(i  ,j,k)+ux(i-2,j,k))&
+                 +csix*(ux(i+3,j,k)-ux(i  ,j,k)&
+                 -ux(i  ,j,k)+ux(i-3,j,k))
+         enddo
+         tx(nx-2,j,k)=asix*( ux(nx-1,j,k)-ux(nx-2,j,k)&
+              -ux(nx-2,j,k)+ux(nx-3,j,k))&
+              +bsix*( ux(nx  ,j,k)-ux(nx-2,j,k)&
+              -ux(nx-2,j,k)+ux(nx-4,j,k))&
+              +csix*(-ux(nx-1,j,k)-ux(nx-2,j,k)&
+              -ux(nx-2,j,k)+ux(nx-5,j,k))
+         tx(nx-1,j,k)=asix*( ux(nx  ,j,k)-ux(nx-1,j,k)&
+              -ux(nx-1,j,k)+ux(nx-2,j,k))&
+              +bsix*(-ux(nx-1,j,k)-ux(nx-1,j,k)&
+              -ux(nx-1,j,k)+ux(nx-3,j,k))&
+              +csix*(-ux(nx-2,j,k)-ux(nx-1,j,k)&
+              -ux(nx-1,j,k)+ux(nx-4,j,k))
+         tx(nx  ,j,k)=0.
+         do i=2,nx
+            tx(i,j,k)=tx(i,j,k)-tx(i-1,j,k)*ssx(i)
+         enddo
+         tx(nx,j,k)=tx(nx,j,k)*swx(nx)
+         do i=nx-1,1,-1
+            tx(i,j,k)=(tx(i,j,k)-sfx(i)*tx(i+1,j,k))*swx(i)
+         enddo
+      enddo
+      enddo
+   endif
+endif
+ 
+if (nclx==2) then
+   do k=1,nz
+   do j=1,ny
+      tx(1,j,k)=as1x*ux(1,j,k)+bs1x*ux(2,j,k)&
+           +cs1x*ux(3,j,k)+ds1x*ux(4,j,k)
+      tx(2,j,k)=as2x*(ux(3,j,k)-ux(2,j,k)&
+           -ux(2,j,k)+ux(1,j,k))
+      tx(3,j,k)=as3x*(ux(4,j,k)-ux(3,j,k)&
+           -ux(3,j,k)+ux(2,j,k))&
+           +bs3x*(ux(5,j,k)-ux(3,j,k)&
+           -ux(3,j,k)+ux(1,j,k))
+      do i=4,nx-3
+         tx(i,j,k)=asix*(ux(i+1,j,k)-ux(i  ,j,k)&
+              -ux(i  ,j,k)+ux(i-1,j,k))&
+              +bsix*(ux(i+2,j,k)-ux(i  ,j,k)&
+              -ux(i  ,j,k)+ux(i-2,j,k))&
+              +csix*(ux(i+3,j,k)-ux(i  ,j,k)&
+              -ux(i  ,j,k)+ux(i-3,j,k))
+      enddo
+      tx(nx-2,j,k)=astx*(ux(nx-1,j,k)-ux(nx-2,j,k)&
+           -ux(nx-2,j,k)+ux(nx-3,j,k))&
+           +bstx*(ux(nx  ,j,k)-ux(nx-2,j,k)&
+           -ux(nx-2,j,k)+ux(nx-4,j,k))
+      tx(nx-1,j,k)=asmx*(ux(nx  ,j,k)-ux(nx-1,j,k)&
+           -ux(nx-1,j,k)+ux(nx-2,j,k))
+      tx(nx  ,j,k)=asnx*ux(nx  ,j,k)+bsnx*ux(nx-1,j,k)&
+           +csnx*ux(nx-2,j,k)+dsnx*ux(nx-3,j,k)
+      do i=2,nx
+         tx(i,j,k)=tx(i,j,k)-tx(i-1,j,k)*ssx(i)
+      enddo
+      tx(nx,j,k)=tx(nx,j,k)*swx(nx)
+      do i=nx-1,1,-1
+         tx(i,j,k)=(tx(i,j,k)-sfx(i)*tx(i+1,j,k))*swx(i)
+      enddo
+   enddo
+   enddo
+endif
+
+return  
+end subroutine derxx
+
+!********************************************************************
+!
+subroutine deryy(ty,uy,ry,sy,sfy,ssy,swy,nx,ny,nz,npaire) 
+!
+!********************************************************************
+
+USE param 
+USE derivY 
+
+implicit none
+
+integer :: nx,ny,nz,npaire,i,j,k 
+real(mytype), dimension(nx,ny,nz) :: ty,uy,ry
+real(mytype), dimension(nx,nz) :: sy
+real(mytype), dimension(ny) :: sfy,ssy,swy
+
+if (ncly==0) then
+   do k=1,nz
+   do i=1,nx
+      ty(i,1,k)=asjy*(uy(i,2,k)-uy(i,1,k)&
+           -uy(i,1,k)+uy(i,ny,k))&
+           +bsjy*(uy(i,3,k)-uy(i,1,k)&
+           -uy(i,1,k)+uy(i,ny-1,k))&
+           +csjy*(uy(i,4,k)-uy(i,1,k)&
+           -uy(i,1,k)+uy(i,ny-2,k))
+      ry(i,1,k)=-1.
+      ty(i,2,k)=asjy*(uy(i,3,k)-uy(i,2,k)&
+           -uy(i,2,k)+uy(i,1,k))&
+           +bsjy*(uy(i,4,k)-uy(i,2,k)&
+           -uy(i,2,k)+uy(i,ny,k))&
+           +csjy*(uy(i,5,k)-uy(i,2,k)&
+           -uy(i,2,k)+uy(i,ny-1,k))
+      ry(i,2,k)=0.
+      ty(i,3,k)=asjy*(uy(i,4,k)-uy(i,3,k)&
+           -uy(i,3,k)+uy(i,2,k))&
+           +bsjy*(uy(i,5,k)-uy(i,3,k)&
+           -uy(i,3,k)+uy(i,1,k))&
+           +csjy*(uy(i,6,k)-uy(i,3,k)&
+           -uy(i,3,k)+uy(i,ny,k))
+      ry(i,3,k)=0.
+   enddo
+   enddo
+   do k=1,nz
+   do j=4,ny-3
+   do i=1,nx
+      ty(i,j,k)=asjy*(uy(i,j+1,k)-uy(i,j,k)&
+           -uy(i,j,k)+uy(i,j-1,k))&
+           +bsjy*(uy(i,j+2,k)-uy(i,j,k)&
+           -uy(i,j,k)+uy(i,j-2,k))&
+           +csjy*(uy(i,j+3,k)-uy(i,j,k)&
+           -uy(i,j,k)+uy(i,j-3,k))
+      ry(i,j,k)=0.
+   enddo
+   enddo
+   enddo
+   do k=1,nz
+   do i=1,nx
+      ty(i,ny-2,k)=asjy*(uy(i,ny-1,k)-uy(i,ny-2,k)&
+           -uy(i,ny-2,k)+uy(i,ny-3,k))&
+           +bsjy*(uy(i,ny  ,k)-uy(i,ny-2,k)&
+           -uy(i,ny-2,k)+uy(i,ny-4,k))&
+           +csjy*(uy(i,1   ,k)-uy(i,ny-2,k)&
+           -uy(i,ny-2,k)+uy(i,ny-5,k))
+      ry(i,ny-2,k)=0.
+      ty(i,ny-1,k)=asjy*(uy(i,ny  ,k)-uy(i,ny-1,k)&
+           -uy(i,ny-1,k)+uy(i,ny-2,k))&
+           +bsjy*(uy(i,1   ,k)-uy(i,ny-1,k)&
+           -uy(i,ny-1,k)+uy(i,ny-3,k))&
+           +csjy*(uy(i,2   ,k)-uy(i,ny-1,k)&
+           -uy(i,ny-1,k)+uy(i,ny-4,k))
+      ry(i,ny-1,k)=0.
+      ty(i,ny  ,k)=asjy*(uy(i,1 ,k)-uy(i,ny  ,k)&
+           -uy(i,ny,k)+uy(i,ny-1,k))&
+           +bsjy*(uy(i,2 ,k)-uy(i,ny  ,k)&
+           -uy(i,ny,k)+uy(i,ny-2,k))&
+           +csjy*(uy(i,3 ,k)-uy(i,ny  ,k)&
+           -uy(i,ny,k)+uy(i,ny-3,k))
+      ry(i,ny  ,k)=alsajy
+   enddo
+   enddo
+   do k=1,nz
+   do j=2,ny
+   do i=1,nx
+      ty(i,j,k)=ty(i,j,k)-ty(i,j-1,k)*ssy(j)
+      ry(i,j,k)=ry(i,j,k)-ry(i,j-1,k)*ssy(j)
+   enddo
+   enddo
+   enddo
+   do k=1,nz
+   do i=1,nx
+      ty(i,ny,k)=ty(i,ny,k)*swy(ny)
+      ry(i,ny,k)=ry(i,ny,k)*swy(ny)
+   enddo
+   enddo
+   do k=1,nz
+   do j=ny-1,1,-1
+   do i=1,nx
+      ty(i,j,k)=(ty(i,j,k)-sfy(j)*ty(i,j+1,k))*swy(j)
+      ry(i,j,k)=(ry(i,j,k)-sfy(j)*ry(i,j+1,k))*swy(j)
+   enddo
+   enddo
+   enddo
+   do k=1,nz
+   do i=1,nx
+      sy(i,k)=(   ty(i,1,k)-alsajy*ty(i,ny,k))/&
+           (1.+ry(i,1,k)-alsajy*ry(i,ny,k))
+   enddo
+   enddo   
+   do k=1,nz
+   do j=1,ny     
+   do i=1,nx
+      ty(i,j,k)=ty(i,j,k)-sy(i,k)*ry(i,j,k)
+   enddo
+   enddo
+   enddo
+endif
+
+if (ncly==1) then
+   if (npaire==1) then
+      do k=1,nz
+      do i=1,nx
+         ty(i,1,k)=asjy*(uy(i,2,k)-uy(i,1,k)&
+              -uy(i,1,k)+uy(i,2,k))&
+              +bsjy*(uy(i,3,k)-uy(i,1,k)&
+              -uy(i,1,k)+uy(i,3,k))&
+              +csjy*(uy(i,4,k)-uy(i,1,k)&
+              -uy(i,1,k)+uy(i,4,k))
+         ty(i,2,k)=asjy*(uy(i,3,k)-uy(i,2,k)&
+              -uy(i,2,k)+uy(i,1,k))&
+              +bsjy*(uy(i,4,k)-uy(i,2,k)&
+              -uy(i,2,k)+uy(i,2,k))&
+              +csjy*(uy(i,5,k)-uy(i,2,k)&
+              -uy(i,2,k)+uy(i,3,k))
+         ty(i,3,k)=asjy*(uy(i,4,k)-uy(i,3,k)&
+              -uy(i,3,k)+uy(i,2,k))&
+              +bsjy*(uy(i,5,k)-uy(i,3,k)&
+              -uy(i,3,k)+uy(i,1,k))&
+              +csjy*(uy(i,6,k)-uy(i,3,k)&
+              -uy(i,3,k)+uy(i,2,k))
+      enddo
+      enddo
+      do k=1,nz
+      do j=4,ny-3         
+      do i=1,nx   
+         ty(i,j,k)=asjy*(uy(i,j+1,k)-uy(i,j  ,k)&
+              -uy(i,j  ,k)+uy(i,j-1,k))&
+              +bsjy*(uy(i,j+2,k)-uy(i,j  ,k)&
+              -uy(i,j  ,k)+uy(i,j-2,k))&
+              +csjy*(uy(i,j+3,k)-uy(i,j  ,k)&
+              -uy(i,j  ,k)+uy(i,j-3,k))
+      enddo
+      enddo
+      enddo
+      do k=1,nz
+      do i=1,nx
+         ty(i,ny-2,k)=asjy*(uy(i,ny-1,k)-uy(i,ny-2,k)&
+              -uy(i,ny-2,k)+uy(i,ny-3,k))&
+              +bsjy*(uy(i,ny  ,k)-uy(i,ny-2,k)&
+              -uy(i,ny-2,k)+uy(i,ny-4,k))&
+              +csjy*(uy(i,ny-1,k)-uy(i,ny-2,k)&
+              -uy(i,ny-2,k)+uy(i,ny-5,k))
+         ty(i,ny-1,k)=asjy*(uy(i,ny  ,k)-uy(i,ny-1,k)&
+              -uy(i,ny-1,k)+uy(i,ny-2,k))&
+              +bsjy*(uy(i,ny-1,k)-uy(i,ny-1,k)&
+              -uy(i,ny-1,k)+uy(i,ny-3,k))&
+              +csjy*(uy(i,ny-2,k)-uy(i,ny-1,k)&
+              -uy(i,ny-1,k)+uy(i,ny-4,k))
+         ty(i,ny  ,k)=asjy*(uy(i,ny-1,k)-uy(i,ny  ,k)&
+              -uy(i,ny  ,k)+uy(i,ny-1,k))&
+              +bsjy*(uy(i,ny-2,k)-uy(i,ny  ,k)&
+              -uy(i,ny  ,k)+uy(i,ny-2,k))&
+              +csjy*(uy(i,ny-3,k)-uy(i,ny  ,k)&
+              -uy(i,ny  ,k)+uy(i,ny-3,k))
+      enddo
+      enddo   
+      do k=1,nz
+      do j=2,ny         
+      do i=1,nx
+         ty(i,j,k)=ty(i,j,k)-ty(i,j-1,k)*ssy(j)
+      enddo
+      enddo
+      enddo
+      do k=1,nz
+      do i=1,nx
+         ty(i,ny,k)=ty(i,ny,k)*swy(ny)
+      enddo
+      enddo   
+      do k=1,nz
+      do j=ny-1,1,-1         
+      do i=1,nx
+         ty(i,j,k)=(ty(i,j,k)-sfy(j)*ty(i,j+1,k))*swy(j)
+      enddo
+      enddo
+      enddo
+   endif
+   if (npaire==0) then
+      do k=1,nz
+      do i=1,nx
+         ty(i,1,k)=0.
+         ty(i,2,k)=asjy*(uy(i,3,k)-uy(i,2,k)&
+              -uy(i,2,k)+uy(i,1,k))&
+              +bsjy*(uy(i,4,k)-uy(i,2,k)&
+              -uy(i,2,k)-uy(i,2,k))&
+              +csjy*(uy(i,5,k)-uy(i,2,k)&
+              -uy(i,2,k)-uy(i,3,k))
+         ty(i,3,k)=asjy*(uy(i,4,k)-uy(i,3,k)&
+              -uy(i,3,k)+uy(i,2,k))&
+              +bsjy*(uy(i,5,k)-uy(i,3,k)&
+              -uy(i,3,k)+uy(i,1,k))&
+              +csjy*(uy(i,6,k)-uy(i,3,k)&
+              -uy(i,3,k)-uy(i,2,k))
+      enddo
+      enddo
+      do k=1,nz
+      do j=4,ny-3
+      do i=1,nx   
+         ty(i,j,k)=asjy*(uy(i,j+1,k)-uy(i,j  ,k)&
+              -uy(i,j  ,k)+uy(i,j-1,k))&
+              +bsjy*(uy(i,j+2,k)-uy(i,j  ,k)&
+              -uy(i,j  ,k)+uy(i,j-2,k))&
+              +csjy*(uy(i,j+3,k)-uy(i,j  ,k)&
+              -uy(i,j  ,k)+uy(i,j-3,k))
+      enddo
+      enddo
+      enddo
+      do k=1,nz
+      do i=1,nx
+         ty(i,ny-2,k)=asjy*( uy(i,ny-1,k)-uy(i,ny-2,k)&
+              -uy(i,ny-2,k)+uy(i,ny-3,k))&
+              +bsjy*( uy(i,ny  ,k)-uy(i,ny-2,k)&
+              -uy(i,ny-2,k)+uy(i,ny-4,k))&
+              +csjy*(-uy(i,ny-1,k)-uy(i,ny-2,k)&
+              -uy(i,ny-2,k)+uy(i,ny-5,k))
+         ty(i,ny-1,k)=asjy*( uy(i,ny  ,k)-uy(i,ny-1,k)&
+              -uy(i,ny-1,k)+uy(i,ny-2,k))&
+              +bsjy*(-uy(i,ny-1,k)-uy(i,ny-1,k)&
+              -uy(i,ny-1,k)+uy(i,ny-3,k))&
+              +csjy*(-uy(i,ny-2,k)-uy(i,ny-1,k)&
+              -uy(i,ny-1,k)+uy(i,ny-4,k))
+         ty(i,ny  ,k)=0.
+      enddo
+      enddo   
+      do k=1,nz
+      do j=2,ny
+      do i=1,nx
+         ty(i,j,k)=ty(i,j,k)-ty(i,j-1,k)*ssy(j)
+      enddo
+      enddo
+      enddo
+      do k=1,nz
+      do i=1,nx
+         ty(i,ny,k)=ty(i,ny,k)*swy(ny)
+      enddo
+      enddo   
+      do k=1,nz
+      do j=ny-1,1,-1
+      do i=1,nx
+         ty(i,j,k)=(ty(i,j,k)-sfy(j)*ty(i,j+1,k))*swy(j)
+      enddo
+      enddo
+      enddo
+   endif
+endif
+
+if (ncly==2) then
+   do k=1,nz
+   do i=1,nx
+      ty(i,1,k)=as1y*uy(i,1,k)+bs1y*uy(i,2,k)&
+           +cs1y*uy(i,3,k)+ds1y*uy(i,4,k)
+      ty(i,2,k)=as2y*(uy(i,3,k)-uy(i,2,k)&
+           -uy(i,2,k)+uy(i,1,k))
+      ty(i,3,k)=as3y*(uy(i,4,k)-uy(i,3,k)&
+           -uy(i,3,k)+uy(i,2,k))&
+           +bs3y*(uy(i,5,k)-uy(i,3,k)&
+           -uy(i,3,k)+uy(i,1,k))
+   enddo
+   enddo
+   do k=1,nz
+   do j=4,ny-3
+   do i=1,nx   
+      ty(i,j,k)=asjy*(uy(i,j+1,k)-uy(i,j  ,k)&
+           -uy(i,j  ,k)+uy(i,j-1,k))&
+           +bsjy*(uy(i,j+2,k)-uy(i,j  ,k)&
+           -uy(i,j  ,k)+uy(i,j-2,k))&
+           +csjy*(uy(i,j+3,k)-uy(i,j  ,k)&
+           -uy(i,j  ,k)+uy(i,j-3,k))
+   enddo
+   enddo
+   enddo
+   do k=1,nz
+   do i=1,nx
+      ty(i,ny-2,k)=asty*(uy(i,ny-1,k)-uy(i,ny-2,k)&
+           -uy(i,ny-2,k)+uy(i,ny-3,k))&
+           +bsty*(uy(i,ny  ,k)-uy(i,ny-2,k)&
+           -uy(i,ny-2,k)+uy(i,ny-4,k))
+      ty(i,ny-1,k)=asmy*(uy(i,ny  ,k)-uy(i,ny-1,k)&
+           -uy(i,ny-1,k)+uy(i,ny-2,k))
+      ty(i,ny  ,k)=asny*uy(i,ny  ,k)+bsny*uy(i,ny-1,k)&
+           +csny*uy(i,ny-2,k)+dsny*uy(i,ny-3,k)
+   enddo
+   enddo    
+   do k=1,nz
+   do j=2,ny
+   do i=1,nx
+      ty(i,j,k)=ty(i,j,k)-ty(i,j-1,k)*ssy(j)
+   enddo
+   enddo
+   enddo
+   do k=1,nz
+   do i=1,nx
+      ty(i,ny,k)=ty(i,ny,k)*swy(ny)
+   enddo
+   enddo
+   do k=1,nz
+   do j=ny-1,1,-1
+   do i=1,nx
+      ty(i,j,k)=(ty(i,j,k)-sfy(j)*ty(i,j+1,k))*swy(j)
+   enddo
+   enddo
+   enddo
+endif
+
+return  
+end subroutine deryy
+
+!********************************************************************
+!
+subroutine derzz(tz,uz,rz,sz,sfz,ssz,swz,nx,ny,nz,npaire) 
+!
+!********************************************************************
+
+USE param 
+USE derivZ 
+
+implicit none
+
+integer :: nx,ny,nz,npaire,i,j,k
+real(mytype), dimension(nx,ny,nz) :: tz,uz,rz
+real(mytype), dimension(nx,ny) :: sz 
+real(mytype), dimension(nz) :: sfz,ssz,swz
+
+if (nclz==0) then
+   do j=1,ny
+   do i=1,nx
+      tz(i,j,1)=askz*(uz(i,j,2)-uz(i,j,1   )&
+           -uz(i,j,1)+uz(i,j,nz  ))&
+           +bskz*(uz(i,j,3)-uz(i,j,1   )&
+           -uz(i,j,1)+uz(i,j,nz-1))&
+           +cskz*(uz(i,j,4)-uz(i,j,1   )&
+           -uz(i,j,1)+uz(i,j,nz-2))
+      rz(i,j,1)=-1.
+      tz(i,j,2)=askz*(uz(i,j,3)-uz(i,j,2 )&
+           -uz(i,j,2)+uz(i,j,1 ))&
+           +bskz*(uz(i,j,4)-uz(i,j,2 )&
+           -uz(i,j,2)+uz(i,j,nz))&
+           +cskz*(uz(i,j,5)-uz(i,j,2 )&
+           -uz(i,j,2)+uz(i,j,nz-1))
+      rz(i,j,2)=0.
+      tz(i,j,3)=askz*(uz(i,j,4)-uz(i,j,3 )&
+           -uz(i,j,3)+uz(i,j,2 ))&
+           +bskz*(uz(i,j,5)-uz(i,j,3 )&
+           -uz(i,j,3)+uz(i,j,1 ))&
+           +cskz*(uz(i,j,6)-uz(i,j,3 )&
+           -uz(i,j,3)+uz(i,j,nz))
+      rz(i,j,3)=0.
+   enddo
+   enddo
+   do k=4,nz-3
+   do j=1,ny
+   do i=1,nx
+      tz(i,j,k)=askz*(uz(i,j,k+1)-uz(i,j,k  )&
+           -uz(i,j,k  )+uz(i,j,k-1))&
+           +bskz*(uz(i,j,k+2)-uz(i,j,k  )&
+           -uz(i,j,k  )+uz(i,j,k-2))&
+           +cskz*(uz(i,j,k+3)-uz(i,j,k  )&
+           -uz(i,j,k  )+uz(i,j,k-3))
+      rz(i,j,k)=0.
+   enddo
+   enddo
+   enddo
+   do j=1,ny
+   do i=1,nx
+      tz(i,j,nz-2)=askz*(uz(i,j,nz-1)-uz(i,j,nz-2)&
+           -uz(i,j,nz-2)+uz(i,j,nz-3))&
+           +bskz*(uz(i,j,nz  )-uz(i,j,nz-2)&
+           -uz(i,j,nz-2)+uz(i,j,nz-4))&
+           +cskz*(uz(i,j,1   )-uz(i,j,nz-2)&
+           -uz(i,j,nz-2)+uz(i,j,nz-5))
+      rz(i,j,nz-2)=0.
+      tz(i,j,nz-1)=askz*(uz(i,j,nz  )-uz(i,j,nz-1)&
+           -uz(i,j,nz-1)+uz(i,j,nz-2))&
+           +bskz*(uz(i,j,1   )-uz(i,j,nz-1)&
+           -uz(i,j,nz-1)+uz(i,j,nz-3))&
+           +cskz*(uz(i,j,2   )-uz(i,j,nz-1)&
+           -uz(i,j,nz-1)+uz(i,j,nz-4))
+      rz(i,j,nz-1)=0.
+      tz(i,j,nz  )=askz*(uz(i,j,1 )-uz(i,j,nz  )&
+           -uz(i,j,nz)+uz(i,j,nz-1))&
+           +bskz*(uz(i,j,2 )-uz(i,j,nz  )&
+           -uz(i,j,nz)+uz(i,j,nz-2))&
+           +cskz*(uz(i,j,3 )-uz(i,j,nz  )&
+           -uz(i,j,nz)+uz(i,j,nz-3))
+      rz(i,j,nz  )=alsakz
+   enddo
+   enddo
+   do k=2,nz
+   do j=1,ny
+   do i=1,nx
+      tz(i,j,k)=tz(i,j,k)-tz(i,j,k-1)*ssz(k)
+      rz(i,j,k)=rz(i,j,k)-rz(i,j,k-1)*ssz(k)
+   enddo
+   enddo
+   enddo
+   do j=1,ny
+   do i=1,nx
+      tz(i,j,nz)=tz(i,j,nz)*swz(nz)
+      rz(i,j,nz)=rz(i,j,nz)*swz(nz)
+   enddo
+   enddo
+   do k=nz-1,1,-1
+   do j=1,ny
+   do i=1,nx
+      tz(i,j,k)=(tz(i,j,k)-sfz(k)*tz(i,j,k+1))*swz(k)
+      rz(i,j,k)=(rz(i,j,k)-sfz(k)*rz(i,j,k+1))*swz(k)
+   enddo
+   enddo
+   enddo
+   do j=1,ny
+   do i=1,nx
+      sz(i,j)=(   tz(i,j,1)-alsakz*tz(i,j,nz))/&
+           (1.+rz(i,j,1)-alsakz*rz(i,j,nz))
+   enddo
+   enddo
+   do k=1,nz
+   do j=1,ny
+   do i=1,nx
+      tz(i,j,k)=tz(i,j,k)-sz(i,j)*rz(i,j,k)
+   enddo
+   enddo
+   enddo
+endif
+
+if (nclz==1) then
+   if (npaire==1) then
+      do j=1,ny
+      do i=1,nx
+         tz(i,j,1)=askz*(uz(i,j,2)-uz(i,j,1)&
+              -uz(i,j,1)+uz(i,j,2))&
+              +bskz*(uz(i,j,3)-uz(i,j,1)&
+              -uz(i,j,1)+uz(i,j,3))&
+              +cskz*(uz(i,j,4)-uz(i,j,1)&
+              -uz(i,j,1)+uz(i,j,4))
+         tz(i,j,2)=askz*(uz(i,j,3)-uz(i,j,2)&
+              -uz(i,j,2)+uz(i,j,1))&
+              +bskz*(uz(i,j,4)-uz(i,j,2)&
+              -uz(i,j,2)+uz(i,j,2))&
+              +cskz*(uz(i,j,5)-uz(i,j,2)&
+              -uz(i,j,2)+uz(i,j,3))
+         tz(i,j,3)=askz*(uz(i,j,4)-uz(i,j,3)&
+              -uz(i,j,3)+uz(i,j,2))&
+              +bskz*(uz(i,j,5)-uz(i,j,3)&
+              -uz(i,j,3)+uz(i,j,1))&
+              +cskz*(uz(i,j,6)-uz(i,j,3)&
+              -uz(i,j,3)+uz(i,j,2))
+      enddo
+      enddo
+      do k=4,nz-3
+      do j=1,ny
+      do i=1,nx
+         tz(i,j,k)=askz*(uz(i,j,k+1)-uz(i,j,k  )&
+              -uz(i,j,k  )+uz(i,j,k-1))&
+              +bskz*(uz(i,j,k+2)-uz(i,j,k  )&
+              -uz(i,j,k  )+uz(i,j,k-2))&
+              +cskz*(uz(i,j,k+3)-uz(i,j,k  )&
+              -uz(i,j,k  )+uz(i,j,k-3))
+      enddo
+      enddo
+      enddo
+      do j=1,ny
+      do i=1,nx
+         tz(i,j,nz-2)=askz*(uz(i,j,nz-1)-uz(i,j,nz-2)&
+              -uz(i,j,nz-2)+uz(i,j,nz-3))&
+              +bskz*(uz(i,j,nz  )-uz(i,j,nz-2)&
+              -uz(i,j,nz-2)+uz(i,j,nz-4))&
+              +cskz*(uz(i,j,nz-1)-uz(i,j,nz-2)&
+              -uz(i,j,nz-2)+uz(i,j,nz-5))
+         tz(i,j,nz-1)=askz*(uz(i,j,nz  )-uz(i,j,nz-1)&
+              -uz(i,j,nz-1)+uz(i,j,nz-2))&
+              +bskz*(uz(i,j,nz-1)-uz(i,j,nz-1)&
+              -uz(i,j,nz-1)+uz(i,j,nz-3))&
+              +cskz*(uz(i,j,nz-2)-uz(i,j,nz-1)&
+              -uz(i,j,nz-1)+uz(i,j,nz-4))
+         tz(i,j,nz  )=askz*(uz(i,j,nz-1)-uz(i,j,nz  )&
+              -uz(i,j,nz  )+uz(i,j,nz-1))&
+              +bskz*(uz(i,j,nz-2)-uz(i,j,nz  )&
+              -uz(i,j,nz  )+uz(i,j,nz-2))&
+              +cskz*(uz(i,j,nz-3)-uz(i,j,nz  )&
+              -uz(i,j,nz  )+uz(i,j,nz-3))
+      enddo
+      enddo
+      do k=2,nz
+      do j=1,ny
+      do i=1,nx
+         tz(i,j,k)=tz(i,j,k)-tz(i,j,k-1)*ssz(k)
+      enddo
+      enddo
+      enddo
+      do j=1,ny
+      do i=1,nx
+         tz(i,j,nz)=tz(i,j,nz)*swz(nz)
+      enddo
+      enddo
+      do k=nz-1,1,-1
+      do j=1,ny
+      do i=1,nx
+         tz(i,j,k)=(tz(i,j,k)-sfz(k)*tz(i,j,k+1))*swz(k)
+      enddo
+      enddo
+      enddo
+   endif
+   if (npaire==0) then
+      do j=1,ny
+      do i=1,nx
+         tz(i,j,1)=0.
+         tz(i,j,2)=askz*(uz(i,j,3)-uz(i,j,2)&
+              -uz(i,j,2)+uz(i,j,1))&
+              +bskz*(uz(i,j,4)-uz(i,j,2)&
+              -uz(i,j,2)-uz(i,j,2))&
+              +cskz*(uz(i,j,5)-uz(i,j,2)&
+              -uz(i,j,2)-uz(i,j,3))
+         tz(i,j,3)=askz*(uz(i,j,4)-uz(i,j,3)&
+              -uz(i,j,3)+uz(i,j,2))&
+              +bskz*(uz(i,j,5)-uz(i,j,3)&
+              -uz(i,j,3)+uz(i,j,1))&
+              +cskz*(uz(i,j,6)-uz(i,j,3)&
+              -uz(i,j,3)-uz(i,j,2))
+      enddo
+      enddo
+      do k=4,nz-3
+      do j=1,ny
+      do i=1,nx
+         tz(i,j,k)=askz*(uz(i,j,k+1)-uz(i,j,k  )&
+              -uz(i,j,k  )+uz(i,j,k-1))&
+              +bskz*(uz(i,j,k+2)-uz(i,j,k  )&
+              -uz(i,j,k  )+uz(i,j,k-2))&
+              +cskz*(uz(i,j,k+3)-uz(i,j,k  )&
+              -uz(i,j,k  )+uz(i,j,k-3))
+      enddo
+      enddo
+      enddo
+      do j=1,ny
+      do i=1,nx
+         tz(i,j,nz-2)=askz*( uz(i,j,nz-1)-uz(i,j,nz-2)&
+              -uz(i,j,nz-2)+uz(i,j,nz-3))&
+              +bskz*( uz(i,j,nz  )-uz(i,j,nz-2)&
+              -uz(i,j,nz-2)+uz(i,j,nz-4))&
+              +cskz*(-uz(i,j,nz-1)-uz(i,j,nz-2)&
+              -uz(i,j,nz-2)+uz(i,j,nz-5))
+         tz(i,j,nz-1)=askz*( uz(i,j,nz  )-uz(i,j,nz-1)&
+              -uz(i,j,nz-1)+uz(i,j,nz-2))&
+              +bskz*(-uz(i,j,nz-1)-uz(i,j,nz-1)&
+              -uz(i,j,nz-1)+uz(i,j,nz-3))&
+              +cskz*(-uz(i,j,nz-2)-uz(i,j,nz-1)&
+              -uz(i,j,nz-1)+uz(i,j,nz-4))
+         tz(i,j,nz  )=0.
+      enddo
+      enddo
+      do k=2,nz
+      do j=1,ny
+      do i=1,nx
+         tz(i,j,k)=tz(i,j,k)-tz(i,j,k-1)*ssz(k)
+      enddo
+      enddo
+      enddo
+      do j=1,ny
+      do i=1,nx
+         tz(i,j,nz)=tz(i,j,nz)*swz(nz)
+      enddo
+      enddo
+      do k=nz-1,1,-1
+      do j=1,ny
+      do i=1,nx
+         tz(i,j,k)=(tz(i,j,k)-sfz(k)*tz(i,j,k+1))*swz(k)
+      enddo
+      enddo
+      enddo
+   endif
+endif
+
+if (nclz==2) then
+   do j=1,ny
+   do i=1,nx
+      tz(i,j,1)=as1z*uz(i,j,1)+bs1z*uz(i,j,2)&
+           +cs1z*uz(i,j,3)+ds1z*uz(i,j,4)
+      tz(i,j,2)=as2z*(uz(i,j,3)-uz(i,j,2)&
+           -uz(i,j,2)+uz(i,j,1))
+      tz(i,j,3)=as3z*(uz(i,j,4)-uz(i,j,3)&
+           -uz(i,j,3)+uz(i,j,2))&
+           +bs3z*(uz(i,j,5)-uz(i,j,3)&
+           -uz(i,j,3)+uz(i,j,1))
+   enddo
+   enddo
+   do k=4,nz-3
+   do j=1,ny
+   do i=1,nx
+      tz(i,j,k)=askz*(uz(i,j,k+1)-uz(i,j,k  )&
+           -uz(i,j,k  )+uz(i,j,k-1))&
+           +bskz*(uz(i,j,k+2)-uz(i,j,k  )&
+           -uz(i,j,k  )+uz(i,j,k-2))&
+           +cskz*(uz(i,j,k+3)-uz(i,j,k  )&
+           -uz(i,j,k  )+uz(i,j,k-3))
+   enddo
+   enddo
+   enddo
+   do j=1,ny
+   do i=1,nx
+      tz(i,j,nz-2)=astz*(uz(i,j,nz-1)-uz(i,j,nz-2)&
+           -uz(i,j,nz-2)+uz(i,j,nz-3))&
+           +bstz*(uz(i,j,nz  )-uz(i,j,nz-2)&
+           -uz(i,j,nz-2)+uz(i,j,nz-4))
+      tz(i,j,nz-1)=asmz*(uz(i,j,nz  )-uz(i,j,nz-1)&
+           -uz(i,j,nz-1)+uz(i,j,nz-2))
+      tz(i,j,nz  )=asnz*uz(i,j,nz  )+bsnz*uz(i,j,nz-1)&
+           +csnz*uz(i,j,nz-2)+dsnz*uz(i,j,nz-3)
+   enddo
+   enddo
+   do k=2,nz
+   do j=1,ny
+   do i=1,nx
+      tz(i,j,k)=tz(i,j,k)-tz(i,j,k-1)*ssz(k)
+   enddo
+   enddo
+   enddo
+   do j=1,ny
+   do i=1,nx
+      tz(i,j,nz)=tz(i,j,nz)*swz(nz)
+   enddo
+   enddo
+   do k=nz-1,1,-1
+   do j=1,ny
+   do i=1,nx
+      tz(i,j,k)=(tz(i,j,k)-sfz(k)*tz(i,j,k+1))*swz(k)
+   enddo
+   enddo
+   enddo
+endif
+
+return  
+end subroutine derzz
+!######################################################################
+!################### ILES SECOND DERIVATIVES ##########################
+!######################################################################
+
+!********************************************************************
+!
+subroutine derxx_iles(tx,ux,rx,sx,sfx,ssx,swx,nx,ny,nz,npaire) 
+!
+!********************************************************************
+
+USE param 
+USE derivX 
+
+implicit none
+
+integer :: nx,ny,nz,npaire,i,j,k 
+real(mytype), dimension(nx,ny,nz) :: tx,ux,rx
+real(mytype), dimension(ny,nz) :: sx
+real(mytype),  dimension(nx):: sfx,ssx,swx 
+
+if (nclx==0) then
+   do k=1,nz
+   do j=1,ny
+      tx(1,j,k)=asix*(ux(2,j,k)-ux(1   ,j,k)&
+           -ux(1,j,k)+ux(nx  ,j,k))&
+           +bsix*(ux(3,j,k)-ux(1   ,j,k)&
+           -ux(1,j,k)+ux(nx-1,j,k))&
+           +csix*(ux(4,j,k)-ux(1   ,j,k)&
            -ux(1,j,k)+ux(nx-2,j,k))&
            +dsix*(ux(5,j,k)-ux(1   ,j,k)&
            -ux(1,j,k)+ux(nx-3,j,k))
@@ -949,11 +1839,11 @@ if (nclx==2) then
 endif
 
 return  
-end subroutine derxx
+end subroutine derxx_iles
 
 !********************************************************************
 !
-subroutine deryy(ty,uy,ry,sy,sfy,ssy,swy,nx,ny,nz,npaire) 
+subroutine deryy_iles(ty,uy,ry,sy,sfy,ssy,swy,nx,ny,nz,npaire) 
 !
 !********************************************************************
 
@@ -1376,11 +2266,11 @@ if (ncly==2) then
 endif
 
 return  
-end subroutine deryy
+end subroutine deryy_iles
 
 !********************************************************************
 !
-subroutine derzz(tz,uz,rz,sz,sfz,ssz,swz,nx,ny,nz,npaire) 
+subroutine derzz_iles(tz,uz,rz,sz,sfz,ssz,swz,nx,ny,nz,npaire) 
 !
 !********************************************************************
 
@@ -1810,7 +2700,7 @@ if (nclz==2) then
 endif
 
 return  
-end subroutine derzz
+end subroutine derzz_iles
 
 
 
@@ -3457,3 +4347,4 @@ endif
 
 return
 end subroutine interiz6
+

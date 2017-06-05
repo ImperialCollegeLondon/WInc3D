@@ -82,15 +82,25 @@ if (DecInd >1) then
 end if
 !===========================================================================
 call parameter(InputFN)
-if(nrank==0) then
-if (jLES==0) write(*,*) 'DNS/Implicit LES with xxnu = 1 / ', rxxnu
-endif
-
-if (jLES==1.OR.jLES==2.OR.jLES==3) call init_explicit_les() 
 
 call init_variables
 
-call schemes()
+!++++++++++++++++++++++++++++++++++++++
+if (jLES==0) then
+    call schemes_dns()
+    if(nrank==0) then
+        write(*,*) 'DNS'
+    endif
+else if (jLES==1) then
+    call schemes_iles()
+    if(nrank==0) then
+        write(*,*) 'Implicit LES with xxnu = 1 / ', rxxnu
+    endif
+else if (jLES==2.OR.jLES==3.OR.jLES==4) then 
+    call init_explicit_les() 
+    call schemes_dns()
+endif
+!+++++++++++++++++++++++++++++++++++++
 
 if (nclx==0) then
    bcx=0
@@ -185,12 +195,10 @@ do itime=ifirst,ilast
      !      ux2,uy2,uz2,ta2,tb2,tc2,td2,te2,tf2,tg2,th2,ti2,tj2,di2,&
      !      ux3,uy3,uz3,ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3)
 
-    ! if LES
-
      call convdiff(ux1,uy1,uz1,uxt,uyt,uzt,ep1,divdiva,curldiva,ta1,tb1,tc1,&
      td1,te1,tf1,tg1,th1,ti1,di1,ux2,uy2,uz2,ta2,tb2,tc2,td2,te2,tf2,tg2,th2,&
      ti2,tj2,di2,ux3,uy3,uz3,ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3,nut1,ucx1,&
-     ucy1,ucz1,tmean,sgszmean,sgsxmean,sgsymean,eadvxmean,eadvymean,eadvzmean)
+     ucy1,ucz1,tmean,sgszmean,sgsxmean,sgsymean)
 
 
       if (iscalar==1) then

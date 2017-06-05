@@ -35,7 +35,7 @@
 subroutine convdiff(ux1,uy1,uz1,uxt,uyt,uzt,ep1,divdiva,curldiva,ta1,tb1,tc1,&
      td1,te1,tf1,tg1,th1,ti1,di1,ux2,uy2,uz2,ta2,tb2,tc2,td2,te2,tf2,tg2,th2,&
      ti2,tj2,di2,ux3,uy3,uz3,ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3,nut1,ucx1,&
-     ucy1,ucz1,tmean,sgszmean,sgsxmean,sgsymean,eadvxmean,eadvymean,eadvzmean)
+     ucy1,ucz1,tmean,sgszmean,sgsxmean,sgsymean)
 ! 
 !********************************************************************
 USE param
@@ -61,7 +61,7 @@ sxy1,sxz1,syz1
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: asxx1,asyy1,aszz1,&
 asxy1,asxz1,asyz1
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: nut1
-real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: sgsx1,sgsy1,sgsz1,eadvx1,eadvy1,eadvz1
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: sgsx1,sgsy1,sgsz1
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: gxx1,gyx1,gzx1,&
 gxy1,gyy1,gzy1,gxz1,gyz1,gzz1
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: srt_smag
@@ -69,7 +69,7 @@ real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: dsmagcst
 
 !STATISTICS Arrays
 real(mytype),dimension(xszS(1),xszS(2),xszS(3)) :: tmean,sgszmean,sgsxmean,sgsymean
-real(mytype),dimension(xszS(1),xszS(2),xszS(3)) :: divdiva,curldiva,eadvxmean,eadvymean,eadvzmean
+real(mytype),dimension(xszS(1),xszS(2),xszS(3)) :: divdiva,curldiva
 real(mytype),dimension(xszV(1),xszV(2),xszV(3)) :: uvisu
 
 integer :: ijk,nvect1,nvect2,nvect3,i,j,k
@@ -113,21 +113,19 @@ if (iskew==0) then !UROTU!
            ux3(ijk,1,1)*(te3(ijk,1,1)-tb3(ijk,1,1))
    enddo
 else !SKEW!
-!############################## STARTING LES TERMS #######################
-!LES Model Calculations
-if (jLES.ne.0) then !LES Modelling
-sgsx1=0.;sgsy1=0.;sgsz1=0.
-eadvx1=0.;eadvy1=0.;eadvz1=0.
-dsmagcst=0.
-end if
+!############################## STARTING LES MODELLING HERE #######################
 
 !CLASSIC SMAGORINSKY (plus required rates)
-if (jLES==1) then
+if (jLES==2) then
+sgsx1=0.;sgsy1=0.;sgsz1=0.
+dsmagcst=0.
 
 call smag(ux1,uy1,uz1,gxx1,gyx1,gzx1,gxy1,gyy1,gzy1,gxz1,gyz1,gzz1,&
 sxx1,syy1,szz1,sxy1,sxz1,syz1,srt_smag,nut1,ta2,ta3,di1,di2,di3)
 
-elseif (jLES == 2) then !WALE
+elseif (jLES == 3) then !WALE
+sgsx1=0.;sgsy1=0.;sgsz1=0.
+dsmagcst=0.
     
 ! First Calculating classic Smagorinsky everywhere in the domain
 call smag(ux1,uy1,uz1,gxx1,gyx1,gzx1,gxy1,gyy1,gzy1,gxz1,gyz1,gzz1,&
@@ -136,7 +134,9 @@ sxx1,syy1,szz1,sxy1,sxz1,syz1,srt_smag,nut1,ta2,ta3,di1,di2,di3)
 ! Then adapt the smagorinsky coefficient near the boundaries
 call wale(gxx1,gyx1,gzx1,gxy1,gyy1,gzy1,gxz1,gyz1,gzz1,srt_smag,nut1)
 
-elseif (jLES == 3) then !DYNAMIC SMAGORINSKY
+elseif (jLES == 4) then !DYNAMIC SMAGORINSKY
+sgsx1=0.;sgsy1=0.;sgsz1=0.
+dsmagcst=0.
 
 call dynsmag(ux1,uy1,uz1,ep1,sxx1,syy1,szz1,sxy1,sxz1,syz1,&
 srt_smag,dsmagcst,nut1,di1,ta1,tb1,tc1,td1,ta2,tb2,tc2,td2,te2,tf2,&
@@ -233,10 +233,15 @@ te3(:,:,:)=tb3(:,:,:)
 tf3(:,:,:)=tc3(:,:,:)
 
 !DIFFUSIVE TERMS IN Z
-call derzz (ta3,ux3,di3,sz,sfzp,sszp,swzp,zsize(1),zsize(2),zsize(3),1)
-call derzz (tb3,uy3,di3,sz,sfzp,sszp,swzp,zsize(1),zsize(2),zsize(3),1)
-call derzz (tc3,uz3,di3,sz,sfz ,ssz ,swz ,zsize(1),zsize(2),zsize(3),0)
-
+if (jLES==1) then ! IMPLICIT LES
+    call derzz_iles (ta3,ux3,di3,sz,sfzp,sszp,swzp,zsize(1),zsize(2),zsize(3),1)
+    call derzz_iles (tb3,uy3,di3,sz,sfzp,sszp,swzp,zsize(1),zsize(2),zsize(3),1)
+    call derzz_iles (tc3,uz3,di3,sz,sfz ,ssz ,swz ,zsize(1),zsize(2),zsize(3),0)
+else
+    call derzz (ta3,ux3,di3,sz,sfzp,sszp,swzp,zsize(1),zsize(2),zsize(3),1)
+    call derzz (tb3,uy3,di3,sz,sfzp,sszp,swzp,zsize(1),zsize(2),zsize(3),1)
+    call derzz (tc3,uz3,di3,sz,sfz ,ssz ,swz ,zsize(1),zsize(2),zsize(3),0)
+endif
 
 !WORK Y-PENCILS
 call transpose_z_to_y(ta3,ta2)
@@ -253,7 +258,11 @@ ti2(:,:,:)=tf2(:,:,:)
 !DIFFUSIVE TERMS IN Y
 !-->for ux
 if (istret.ne.0) then
-   call deryy (td2,ux2,di2,sy,sfyp,ssyp,swyp,ysize(1),ysize(2),ysize(3),1)
+    if(jLES==1) then
+        call deryy_iles (td2,ux2,di2,sy,sfyp,ssyp,swyp,ysize(1),ysize(2),ysize(3),1)
+    else
+        call deryy (td2,ux2,di2,sy,sfyp,ssyp,swyp,ysize(1),ysize(2),ysize(3),1)
+    endif
    call dery (te2,ux2,di2,sy,ffyp,fsyp,fwyp,ppy,ysize(1),ysize(2),ysize(3),1)
    do k=1,ysize(3)
    do j=1,ysize(2)
@@ -263,11 +272,20 @@ if (istret.ne.0) then
    enddo
    enddo
 else
-   call deryy (td2,ux2,di2,sy,sfyp,ssyp,swyp,ysize(1),ysize(2),ysize(3),1)
+    if(jLES==1) then
+        call deryy_iles (td2,ux2,di2,sy,sfyp,ssyp,swyp,ysize(1),ysize(2),ysize(3),1)
+    else
+        call deryy (td2,ux2,di2,sy,sfyp,ssyp,swyp,ysize(1),ysize(2),ysize(3),1)
+    endif
+   !call deryy (td2,ux2,di2,sy,sfyp,ssyp,swyp,ysize(1),ysize(2),ysize(3),1)
 endif
 !-->for uy
 if (istret.ne.0) then
+    if(jLES==1) then
+   call deryy_iles (te2,uy2,di2,sy,sfy,ssy,swy,ysize(1),ysize(2),ysize(3),0)
+   else
    call deryy (te2,uy2,di2,sy,sfy,ssy,swy,ysize(1),ysize(2),ysize(3),0)
+    endif
    call dery (tf2,uy2,di2,sy,ffy,fsy,fwy,ppy,ysize(1),ysize(2),ysize(3),0)
    do k=1,ysize(3)
    do j=1,ysize(2)
@@ -277,12 +295,20 @@ if (istret.ne.0) then
    enddo
    enddo
 else
-   call deryy (te2,uy2,di2,sy,sfy,ssy,swy,ysize(1),ysize(2),ysize(3),0)
+    if(jLES==1) then
+        call deryy_iles (te2,uy2,di2,sy,sfy,ssy,swy,ysize(1),ysize(2),ysize(3),0)
+    else
+        call deryy (te2,uy2,di2,sy,sfy,ssy,swy,ysize(1),ysize(2),ysize(3),0)
+    endif
 endif
 !-->for uz
 if (istret.ne.0) then
-   call deryy (tf2,uz2,di2,sy,sfyp,ssyp,swyp,ysize(1),ysize(2),ysize(3),1)
-   call dery (tj2,uz2,di2,sy,ffyp,fsyp,fwyp,ppy,ysize(1),ysize(2),ysize(3),1)
+    if(jLES==1) then
+        call deryy_iles (tf2,uz2,di2,sy,sfyp,ssyp,swyp,ysize(1),ysize(2),ysize(3),1)
+    else
+        call deryy (tf2,uz2,di2,sy,sfyp,ssyp,swyp,ysize(1),ysize(2),ysize(3),1)
+    endif
+    call dery (tj2,uz2,di2,sy,ffyp,fsyp,fwyp,ppy,ysize(1),ysize(2),ysize(3),1)
    do k=1,ysize(3)
    do j=1,ysize(2)
    do i=1,ysize(1)
@@ -291,7 +317,11 @@ if (istret.ne.0) then
    enddo
    enddo
 else
-   call deryy (tf2,uz2,di2,sy,sfyp,ssyp,swyp,ysize(1),ysize(2),ysize(3),1)
+    if(jLES==1) then
+        call deryy_iles (tf2,uz2,di2,sy,sfyp,ssyp,swyp,ysize(1),ysize(2),ysize(3),1) 
+    else 
+        call deryy (tf2,uz2,di2,sy,sfyp,ssyp,swyp,ysize(1),ysize(2),ysize(3),1)
+    endif
 endif
 
 ta2(:,:,:)=ta2(:,:,:)+td2(:,:,:)
@@ -311,23 +341,39 @@ th1(:,:,:)=te1(:,:,:)
 ti1(:,:,:)=tf1(:,:,:)
 
 !DIFFUSIVE TERMS IN X
+if(jLES==1) then
+call derxx_iles (td1,ux1,di1,sx,sfx ,ssx ,swx ,xsize(1),xsize(2),xsize(3),0)
+call derxx_iles (te1,uy1,di1,sx,sfxp,ssxp,swxp,xsize(1),xsize(2),xsize(3),1)
+call derxx_iles (tf1,uz1,di1,sx,sfxp,ssxp,swxp,xsize(1),xsize(2),xsize(3),1)
+else
 call derxx (td1,ux1,di1,sx,sfx ,ssx ,swx ,xsize(1),xsize(2),xsize(3),0)
 call derxx (te1,uy1,di1,sx,sfxp,ssxp,swxp,xsize(1),xsize(2),xsize(3),1)
 call derxx (tf1,uz1,di1,sx,sfxp,ssxp,swxp,xsize(1),xsize(2),xsize(3),1)
 
+endif
 ta1(:,:,:)=ta1(:,:,:)+td1(:,:,:)
 tb1(:,:,:)=tb1(:,:,:)+te1(:,:,:)
 tc1(:,:,:)=tc1(:,:,:)+tf1(:,:,:)
 
 !FINAL SUM: DIFF TERMS + CONV TERMS
-if(jLES==0) then ! DNS or Implicit LES
+if(jLES==0.or.jLES==1) then ! DNS or implicit LES
     ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)
     tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)
     tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)
-else ! Explicit LES MODEL
+elseif (jLES==2.or.jLES==3.or.jLES==4) then ! Explicit LES MODEL
     ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)+sgsx1(:,:,:)
     tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)+sgsy1(:,:,:)
     tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)+sgsz1(:,:,:)
+else
+    if(nrank==0) then
+    write(*,*) 'Dont know what to do. This LES model is not defined'
+    write(*,*) 'Choose between : 0--> DNS'
+    write(*,*) '               : 1--> Implicit LES'
+    write(*,*) '               : 2--> Explicit Simple Smagorinsky LES'
+    write(*,*) '               : 3--> Explicit Wall-Adaptive LES'
+    write(*,*) '               : 4--> Explicit Dynamic Smagorinsky LES'
+    endif
+    stop
 endif
 
 ! If the turbine model is on add the momentum source term
