@@ -50,7 +50,7 @@ module variables
 !nvisu = size for visualization collection
 integer,parameter :: nx=481,ny=97,nz=97
 integer,parameter :: nstat=2,nvisu=1
-integer,parameter :: p_row=2,p_col=2
+integer,parameter :: p_row=4,p_col=2
 integer,parameter :: nxm=nx-1,nym=ny-1,nzm=nz-1
 !end module variables
 

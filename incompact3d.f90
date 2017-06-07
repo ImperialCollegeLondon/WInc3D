@@ -69,7 +69,7 @@ call init_coarser_mesh_statV(nvisu,nvisu,nvisu,.true.)
 ! Handle Input file
 nargin=command_argument_count()
 if (nargin <1) then
-    write(6,*) 'Please call the program with the name of the input file on the command line Ex. Incompact3d input.prm'
+    write(6,*) 'Please call the program with the name of the input file on the command line Ex. Incompact3d input.in'
     stop
 endif
 
@@ -81,9 +81,8 @@ if (DecInd >1) then
     FNBase=FNBase(1:(DecInd-1))
 end if
 !===========================================================================
-call parameter(InputFN)
 
-call init_variables
+call parameter(InputFN)
 
 !++++++++++++++++++++++++++++++++++++++
 if (jLES==0) then
@@ -101,6 +100,8 @@ else if (jLES==2.OR.jLES==3.OR.jLES==4) then
     call schemes_dns()
 endif
 !+++++++++++++++++++++++++++++++++++++
+
+call init_variables
 
 if (nclx==0) then
    bcx=0

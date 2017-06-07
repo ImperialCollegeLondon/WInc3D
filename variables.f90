@@ -190,7 +190,7 @@ call alloc_x(nut1);call alloc_x(ucx1);call alloc_x(ucy1);call alloc_x(ucz1);
     allocate (uyt(xstart(1):xend(1),xstart(2):xend(2),xstart(3):xend(3),25))
     allocate (uzt(xstart(1):xend(1),xstart(2):xend(2),xstart(3):xend(3),25))
     endif
-    if(jLES .ne. 0) then
+    if(jLES .ge. 2) then
     allocate (sgsxmean(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))
     allocate (sgsymean(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))
     allocate (sgszmean(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))
