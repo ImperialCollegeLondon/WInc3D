@@ -1,0 +1,5 @@
+module load intel-suite/2015
+module load mpi/mpt-2.14
+module load fftw/3.3.4
+
+make -f Makefile.cx2
