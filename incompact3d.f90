@@ -164,6 +164,7 @@ endif
 
 do itime=ifirst,ilast
    t=(itime-1)*dt
+
    if (nrank==0) then
       write(*,*) '========================================'
       write(*,1001) itime,t

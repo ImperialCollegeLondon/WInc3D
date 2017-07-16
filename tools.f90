@@ -130,6 +130,7 @@ if (nrank==0) then
    print *,'U,V,W min=',uxmin1,uymin1,uzmin1
 endif
 
+call cfl_compute(uxmax,uymax,uzmax)
 
 return
 end subroutine test_speed_min_max
