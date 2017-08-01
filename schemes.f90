@@ -1174,8 +1174,9 @@ cfnx  = (1./2.  )/dx
 dfnx  = 0.
 alfamx= 1./4.
 afmx  = (3./4.  )/dx
-alfaix= 1./3.
-afix  = (7./9.  )/dx
+! For the interior mesh nodes
+alfaix= 1./3.      
+afix  = (7./9.  )/dx 
 bfix  = (1./36. )/dx
 
 ! Second Derivative three point formulations for no-slip and slip BCs
@@ -1224,14 +1225,16 @@ csttx = 0.
 !bsix=(192.*diskm-216.*diskc+24.*diskc*diskm-48.)/(64.*diskm-54.*diskc+48.)
 !csix=9.*(6.*diskc-diskc*diskm-12.)/(64.*diskm-54.*diskc+48.)
 
-!NUMERICAL DISSIPATION (see publications for help)
-
+!NUMERICAL DISSIPATION FOR 6th ORDER SCHEMES (see publications for help)
+!=========================================================================
 xxnu=1./rxxnu
 dpis3=2*pi/3
 kppkc=pi*pi/xxnu+pi*pi
 kppkm=dpis3*dpis3*exp(-((pi-dpis3)/(0.3*pi-dpis3))**2)/xxnu+dpis3*dpis3
 xnpi2=kppkc
 xmpi2=kppkm
+!==========================================================================
+
 alsaix=(405*xnpi2 - 1280*xmpi2 + 2736)/(810*xnpi2 - 1280*xmpi2 + 288)
 asix=-(4329*xnpi2 - 256*xmpi2 - 1120*xnpi2*xmpi2 + 2288)/(3240*xnpi2 - 5120*xmpi2 + 1152)
 asix = asix / (dx2)

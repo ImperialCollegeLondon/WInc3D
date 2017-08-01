@@ -151,7 +151,7 @@ for i in range(len(xloc)):
                 fout.write('# y/R upup/U^2\n')
                 for iwake in range(nz):
                     zR=float(-zlz/(2.0*R)+z[ixloc[0],jxloc[0],iwake]/R)
-                    TKEU2=float(np.sqrt(upup[ixloc[0],jxloc[0],iwake]+vpvp[ixloc[0],jxloc[0],iwake]+wpwp[ixloc[0],jxloc[0],iwake])/Uinf**2)
+                    TKEU2=float(0.5*(upup[ixloc[0],jxloc[0],iwake]+vpvp[ixloc[0],jxloc[0],iwake]+wpwp[ixloc[0],jxloc[0],iwake])/Uinf**2)
                     fout.write(str(zR)+' '+str(TKEU2)+'\n')
 
     if args.plot:    

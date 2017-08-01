@@ -854,7 +854,7 @@ endif
 !if (nrank==0) print*,"Cst = ",maxval(dsmagcst),minval(dsmagcst)
 !if (mod(itime,50)==0) print*,"Cst = ",maxval(dsmagcst),minval(dsmagcst)
 
-if( jLES == 3) then
+if( jLES == 4) then
 call transpose_x_to_y(srt_smag,srt_smag2)
 !call transpose_x_to_y(dsmagcst,dsmagcst2)
 do k=1,ysize(3)
