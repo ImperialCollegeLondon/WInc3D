@@ -237,15 +237,15 @@ use var
     integer :: ipr
     character(len=20) :: filename, Format1
     
-990 format('probe',I4.4)
+990 format('probe',I6.6)
 write(filename, 990) isample
 
     if (nrank==0) then
         open(2019,File=filename)
         write(2019,*) 'Probe ID, xprobe, yprobe, zprobe, u_probe, v_probe, z_probe'
-        !Format1="(I5,A,5(E14.7,A))"
+        Format1="(I5,A,6(E14.7,A))"
         do ipr=1,Nprobes
-        write(2019,*) ipr,',',xprobe(ipr), ',', yprobe(ipr),',', zprobe(ipr),',', uprobe(ipr),',', vprobe(ipr),',', wprobe(ipr)
+        write(2019,Format1) ipr,',',xprobe(ipr), ',', yprobe(ipr),',', zprobe(ipr),',', uprobe(ipr),',', vprobe(ipr),',', wprobe(ipr)
         end do
         close(2019) 
     endif
