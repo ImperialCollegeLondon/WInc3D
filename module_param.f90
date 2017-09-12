@@ -153,6 +153,7 @@ use decomp_2d, only : mytype
   real(mytype) :: t,xxk1,xxk2, spinup_time
   real(mytype) :: smagcst, walecst,dys, FSGS, rxxnu
   real(mytype) :: eps_factor ! Smoothing factor 
+  real(mytype) :: TurbRadius
   integer :: itr,itime
   character :: dirname*80
   character :: filesauve*80, filenoise*80, &

@@ -36,42 +36,41 @@ for i in range(M):
         W[i,j]=A[j,6];
         K[i,j]=0.5*(U[i,j]**2+V[i,j]**2+W[i,j]**2)
 # PLOT TIME SERIES
-#f, axarr = plt.subplots(3,2)
-#axarr[0,0].plot(U[:,1],'-b')
-#axarr[0,0].set_title('x/D=1')
-#axarr[0,1].plot(U[:,3],'-b')
-#axarr[0,1].set_title('x/D=2')
-#axarr[1,0].plot(U[:,5],'-b')
-#axarr[1,0].set_title('x/D=3')
-#axarr[1,1].plot(U[:,7],'-b')
-#axarr[1,1].set_title('x/D=4')
-#axarr[2,0].plot(U[:,9],'-b')
-#axarr[2,0].set_title('x/D=5')
-#axarr[2,1].plot(U[:,11],'-b')
-#axarr[2,1].set_title('x/D=6')
-#plt.show()
-
-dt=0.0002; # Time step for FFT
-k=1/dt
-# Averaging the Signal
-E=K[:,2]
-
-AveEnergy=np.average(E);
-E=E-AveEnergy
-# Do the Hanning Window
-Window=np.hanning(51);
-
-
-s=np.fft.fft(E)
-sp=np.real(s*np.conjugate(s))
-freq=np.fft.fftfreq(E.shape[-1],k)
-freqInertial=np.linspace(.0000010,0.1,100)
-freqLarge=np.linspace(.00000010,0.000001,100)
-Inertial=10*freqInertial**(-5.0/3.0)
-LargeScales=1000*freqLarge**(0.0)
-plt.loglog(freq,sp,freqInertial,Inertial,'--r',freqLarge,LargeScales,'--g')
-plt.xlim(0.0000001,0.001)
-plt.ylim(0.01,10000)
-plt.legend
-
+f, axarr = plt.subplots(3,2)
+axarr[0,0].plot(U[:,1],'-b')
+axarr[0,0].set_title('x/D=1')
+axarr[0,1].plot(U[:,3],'-b')
+axarr[0,1].set_title('x/D=2')
+axarr[1,0].plot(U[:,5],'-b')
+axarr[1,0].set_title('x/D=3')
+axarr[1,1].plot(U[:,7],'-b')
+axarr[1,1].set_title('x/D=4')
+axarr[2,0].plot(U[:,9],'-b')
+axarr[2,0].set_title('x/D=5')
+axarr[2,1].plot(U[:,11],'-b')
+axarr[2,1].set_title('x/D=6')
 plt.show()
+
+#dt=0.0002; # Time step for FFT
+#k=1/dt
+## Averaging the Signal
+#E=K[:,2]
+#
+#AveEnergy=np.average(E);
+#E=E-AveEnergy
+## Do the Hanning Window
+#Window=np.hanning(51);
+#
+#
+#s=np.fft.fft(E)
+#sp=np.real(s*np.conjugate(s))
+#freq=np.fft.fftfreq(E.shape[-1],k)
+#freqInertial=np.linspace(.0000010,0.1,100)
+#freqLarge=np.linspace(.00000010,0.000001,100)
+#Inertial=10*freqInertial**(-5.0/3.0)
+#LargeScales=1000*freqLarge**(0.0)
+#plt.loglog(freq,sp,freqInertial,Inertial,'--r',freqLarge,LargeScales,'--g')
+#plt.xlim(0.0000001,0.001)
+#plt.ylim(0.01,10000)
+#plt.legend
+

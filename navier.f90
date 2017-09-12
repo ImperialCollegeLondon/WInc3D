@@ -219,7 +219,7 @@ implicit none
 
 integer  :: k,j
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux,uy,uz,phi
-real(mytype) :: r1,r2,r3,y,um
+real(mytype) :: r1,r2,r3,y,z,um
 
 call ecoule(ux,uy,uz)
 
@@ -229,10 +229,20 @@ call random_number(bzo)
 
 if (iin.eq.1) then  
    do k=1,xsize(3)
+      z=(k+xstart(3)-1-1)*dz-zlz/2.
    do j=1,xsize(2)
-      bxx1(j,k)=bxx1(j,k)+bxo(j,k)*noise1
-      bxy1(j,k)=bxy1(j,k)+byo(j,k)*noise1
-      bxz1(j,k)=bxz1(j,k)+bzo(j,k)*noise1
+      ! Making noise to go to zero at the boundaries
+      if (istret.eq.0) y=(j+xstart(2)-1-1)*dy-yly/2.
+      if (istret.ne.0) y=yp(j+xstart(2)-1)-yly/2.
+      if(z*z+y*y<TurbRadius**2.0) then
+      um=1.0
+      else
+      um=0.0
+      endif
+      ! Not tested yet
+      bxx1(j,k)=bxx1(j,k)+um*bxo(j,k)*noise1
+      bxy1(j,k)=bxy1(j,k)+um*byo(j,k)*noise1
+      bxz1(j,k)=bxz1(j,k)+um*bzo(j,k)*noise1
    enddo
    enddo
    if (iscalar==1) then
@@ -483,7 +493,7 @@ real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux1,uy1,uz1,phi1,ep1
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: gx1,gy1,gz1,phis1
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: hx1,hy1,hz1,phiss1
 
-real(mytype) :: y,r,um,r1,r2,r3
+real(mytype) :: y,z,r,um,r1,r2,r3
 integer :: k,j,i,fh,ierror,ii
 integer :: code
 integer (kind=MPI_OFFSET_KIND) :: disp
@@ -516,9 +526,15 @@ call random_seed(put = code+63946*nrank*(/ (i - 1, i = 1, ii) /)) !
 !modulation of the random noise
    do k=1,xsize(3)
    do j=1,xsize(2)
+      z=(k+xstart(3)-1-1)*dz-zlz/2.
       if (istret.eq.0) y=(j+xstart(2)-1-1)*dy-yly/2.
       if (istret.ne.0) y=yp(j+xstart(2)-1)-yly/2.
-      um=exp(-0.2*y*y)
+      !um=exp(-0.2*y*y)
+      if(z*z+y*y<TurbRadius**2.0) then
+      um=1.0
+      else
+      um=0.0
+      endif
       do i=1,xsize(1)
          ux1(i,j,k)=um*ux1(i,j,k)
          uy1(i,j,k)=um*uy1(i,j,k)

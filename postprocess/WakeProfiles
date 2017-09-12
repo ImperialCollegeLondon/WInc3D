@@ -129,14 +129,14 @@ for i in range(len(xloc)):
                 for iwake in range(nz):
                     zR=float(-zlz/(2.0*R)+z[ixloc[0],jxloc[0],iwake]/R)
                     uU=float(uav[ixloc[0],jxloc[0],iwake]/Uinf)
-                    fout.write(str(zR)+' '+str(uU)+'\n')
+                    fout.write(str(-zR)+' '+str(uU)+'\n')
             
             with open('meanupup_'+str(xloc[i])+'.csv','w') as fout:
                 fout.write('# y/R upup/U^2\n')
                 for iwake in range(nz):
                     zR=float(-zlz/(2.0*R)+z[ixloc[0],jxloc[0],iwake]/R)
                     upupU2=float(upup[ixloc[0],jxloc[0],iwake]/Uinf**2)
-                    fout.write(str(zR)+' '+str(upupU2)+'\n')
+                    fout.write(str(-zR)+' '+str(upupU2)+'\n')
     
     if (args.VELFLAG==1):
         if args.write:     
