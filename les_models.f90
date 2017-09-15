@@ -42,13 +42,13 @@ subroutine init_explicit_les
     write(*,*) ' '
     write(*,*) '++++++++++++++++++++++++++++++++'
     write(*,*) 'Initializing explicit LES Filter'
-        if(jLES==1) then
+        if(jLES==2) then
         write(*,*) ' Classic Smagorinsky is used ... '
         write(*,*) ' Smagorinsky constant = ', smagcst
         write(*,*) ' Filter Size / Grid Size = ', FSGS
-        else if (jLES==2) then
-        write(*,*) ' Wall-adaptive LES (WALES) is used ... '
         else if (jLES==3) then
+        write(*,*) ' Wall-adaptive LES (WALES) is used ... '
+        else if (jLES==4) then
         write(*,*) ' Dynamic Smagorinsky is used ... '
         endif
     write(*,*) '++++++++++++++++++++++++++++++++'
@@ -56,7 +56,7 @@ subroutine init_explicit_les
     endif 
 
     if (istret.eq.0) del(:)=FSGS*(dx*dy*dz)**(1.0/3.0)
-
+    if (nrank==0) write(*,*) maxval(del)
 end subroutine
 
 

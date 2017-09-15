@@ -360,7 +360,15 @@ if(jLES==0.or.jLES==1) then ! DNS or implicit LES
     ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)
     tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)
     tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)
-elseif (jLES==2.or.jLES==3.or.jLES==4) then ! Explicit LES MODEL
+elseif (jLES==2) then ! Classic Smagorisnky Model
+    if (nrank==0) write(*,*) maxval(nut1), maxval(sgsx1)
+    ta1(:,:,:)=(xnu+nut1(:,:,:))*ta1(:,:,:)-tg1(:,:,:)!+sgsx1(:,:,:)
+    tb1(:,:,:)=(xnu+nut1(:,:,:))*tb1(:,:,:)-th1(:,:,:)!+sgsy1(:,:,:)
+    tc1(:,:,:)=(xnu+nut1(:,:,:))*tc1(:,:,:)-ti1(:,:,:)!+sgsz1(:,:,:)
+elseif (jLES==3) then ! WALE 
+    
+elseif(jLES==4) then ! Dynamic Smagorinsky 
+    if (nrank==0) write(*,*) maxval(nut1), maxval(sgsx1)
     ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)+sgsx1(:,:,:)
     tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)+sgsy1(:,:,:)
     tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)+sgsz1(:,:,:)
