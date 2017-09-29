@@ -1,37 +1,19 @@
-## Welcome to GitHub Pages
+## Description
 
-You can use the [editor on GitHub](https://github.com/gdeskos/Incompact3D-ALM/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
+Incompact3d is a powerful high-order flow solver for academic research. Dedicated to Direct and Large Eddy Simulations (DNS/LES), it can combine the versatility of industrial codes with the accuracy of spectral codes. It scales with up to one million cores. 
+The incompressible Navier-Stokes equations are discretized with finite-difference sixth-order schemes on a Cartesian mesh.  Explicit or semi-implicit temporal schemes can be used for the time advancement depending on the flow configuration. To treat the incompressibility condition, a fractional step method requires to solve a Poisson equation. This equation is fully solved in spectral space via the use of relevant 3D Fast Fourier transforms(FFTs), allowing any kind of boundary conditions for the velocity field in each spatial direction. Using the concept of the modified wavenumber, the divergence free condition is ensured up to machine accuracy.  The pressure field is staggered from the velocity field by half a mesh to avoid spurious oscillations.  
+The modelling of a solid body inside the computational domain is performed with a customised Immersed Boundary Method. It is based on a direct forcing to ensure a no-slip boundary condition at the wall of the solid body while imposing non-zero velocities inside the solid body to avoid discontinuities on the velocity field. This customised IBM, fully compatible with the 2D domain decomposition and with a possible mesh refinement at the wall, is based on a 1D expansion of the velocity field from fluid regions into solid regions using Lagrange polynomials. 
+To reach realistic Reynolds numbers, an implicit LES strategy can be implemented to solve the Navier-Stokes equations without any extra explicit modelling. In order to mimic a subgrid-scale model, artificial dissipation can be added via the viscous term thanks to the artificial dissipative features of the high-order compact schemes.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+### This repository 
 
-### Markdown
+This is a github version of incompact3d which supports:
+1) DNS 
+2) Explicit and Implicit LES
+3) The classic Immersed Boundary Method
+4) The Actuator line turbine parametrisation model
+5) Postprocessing routines written in Python
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
-
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
-```
-
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/gdeskos/Incompact3D-ALM/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
 
 ### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+g.deskos14@imperial.ac.uk
