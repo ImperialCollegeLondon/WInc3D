@@ -18,11 +18,15 @@ parser = argparse.ArgumentParser(description="Script to extract wake statistics 
 parser.add_argument("-v","--verbose",action="store_true",help="Print location")
 parser.add_argument("-p","--plot",action="store_true",help="Plots the wake profiles")
 parser.add_argument("-w","--write",action="store_true",help="Write results in a .csv file")
+parser.add_argument("PATH", type=str, help="path to where the umean, vmean etc. files are (should end with a / )")
 parser.add_argument("FILENAME", type=str, help="Filename, should end with .pprc")
+parser.add_argument("OUTPUT", type=str, help="OUTPUT FOLDER")
 parser.add_argument("VELFLAG", type=int, help="Velocity Flag if 0 then u/U and upup/U^2, if 1:1-u/Uinf and TKE/U_inf^2")
 
 args = parser.parse_args()
+path = args.PATH
 name = args.FILENAME
+output = args.OUTPUT
 
 # Read the fortran nml (NAMELIST)
 nml=f90nml.read(name)
@@ -48,19 +52,19 @@ dz=zlz/nzd
 
 
 # UMEAN - Average velocities for u, v and w
-ufile=open("umean.dat","rb")
-vfile=open("vmean.dat","rb")
-wfile=open("wmean.dat","rb")
+ufile=open(path+"umean.dat","rb")
+vfile=open(path+"vmean.dat","rb")
+wfile=open(path+"wmean.dat","rb")
 # uu - Average of the squares of the velocities u, v and w
 # This is not the <u'u'> etc.
 # To compute the <u'u'> we need to do <u'u'>=<uu> - <u><u>
 # and similarly for the other quantities
-uufile=open("uumean.dat","rb")
-vvfile=open("vvmean.dat","rb")
-wwfile=open("wwmean.dat","rb")
-uvfile=open("uvmean.dat","rb")
-uwfile=open("uwmean.dat","rb")
-vwfile=open("vwmean.dat","rb")
+uufile=open(path+"uumean.dat","rb")
+vvfile=open(path+"vvmean.dat","rb")
+wwfile=open(path+"wwmean.dat","rb")
+uvfile=open(path+"uvmean.dat","rb")
+uwfile=open(path+"uwmean.dat","rb")
+vwfile=open(path+"vwmean.dat","rb")
 # vu, wu, wv are ommited due to symmetry
 
 # Reading the binary files into numpy vectors
@@ -124,14 +128,14 @@ for i in range(len(xloc)):
     print 'found indices ', ixloc[0], jxloc[0]
     if (args.VELFLAG==0):
         if args.write:     
-            with open('meanu_'+str(xloc[i])+'.csv','w') as fout:
+            with open(output+'meanu_'+str(xloc[i])+'.csv','w') as fout:
                 fout.write('# y/R u/U\n')
                 for iwake in range(nz):
                     zR=float(-zlz/(2.0*R)+z[ixloc[0],jxloc[0],iwake]/R)
                     uU=float(uav[ixloc[0],jxloc[0],iwake]/Uinf)
                     fout.write(str(-zR)+' '+str(uU)+'\n')
             
-            with open('meanupup_'+str(xloc[i])+'.csv','w') as fout:
+            with open(output+'meanupup_'+str(xloc[i])+'.csv','w') as fout:
                 fout.write('# y/R upup/U^2\n')
                 for iwake in range(nz):
                     zR=float(-zlz/(2.0*R)+z[ixloc[0],jxloc[0],iwake]/R)
@@ -140,14 +144,14 @@ for i in range(len(xloc)):
     
     if (args.VELFLAG==1):
         if args.write:     
-            with open('meanu_'+str(xloc[i])+'.csv','w') as fout:
+            with open(output+'meanu_'+str(xloc[i])+'.csv','w') as fout:
                 fout.write('# y/R 1-u/U\n')
                 for iwake in range(nz):
                     zR=float(-zlz/(2.0*R)+z[ixloc[0],jxloc[0],iwake]/R)
                     uU=float(1.-uav[ixloc[0],jxloc[0],iwake]/Uinf)
                     fout.write(str(zR)+' '+str(uU)+'\n')
             
-            with open('meanupup_'+str(xloc[i])+'.csv','w') as fout:
+            with open(output+'meanupup_'+str(xloc[i])+'.csv','w') as fout:
                 fout.write('# y/R upup/U^2\n')
                 for iwake in range(nz):
                     zR=float(-zlz/(2.0*R)+z[ixloc[0],jxloc[0],iwake]/R)
@@ -168,7 +172,7 @@ exit()
 plt.figure()
 plt.pcolormesh(x[:,49,:],z[:,49,:],upup[:,49,:],cmap=plt.get_cmap('jet'))
 plt.colorbar()
-plt.xlim(0,11.76)
+plt.xlim(0,11.15)
 plt.ylim(0,2.7)
 plt.axis('equal')
 plt.show()

@@ -347,15 +347,14 @@ bxx1=0.;bxy1=0.;bxz1=0.
 byx1=0.;byy1=0.;byz1=0.
 bzx1=0.;bzy1=0.;bzz1=0. 
 
-!ITYPE=1 --> Constant flow field
+!ITYPE=1 --> Uniform flow field
 !ITYPE=2 --> Laminar profile 1-y^2 
-!ITYPE=3 --> Turbulent profile 
+!ITYPE=3 --> Turbulent Boundary Laywer 
 !ITYPE=4 --> Mixing layer with splitter plate
 !ITYPE=5 --> Channel flow
 !ITYPE=6 --> Taylor Green vortices
 !ITYPE=7 --> Cavity flow
-!ITYPE=8 --> Flat plate Boundary layer
-!ITYPE=9 --> Tank 
+!ITYPE=8 --> Atmospheric Boundary Layer
 
 if (itype.eq.1) then
    um=0.5*(u1+u2)
@@ -383,20 +382,7 @@ if (itype.eq.2) then
 endif
 
 if (itype.eq.3) then
-   do k=1,xsize(3)
-      z=(k+xstart(3)-1-1)*dz
-   do j=1,xsize(2)
-      if (istret.eq.0) y=(j+xstart(2)-1-1)*dy-yly/2.
-      if (istret.ne.0) y=yp(j+xstart(2)-1)-yly/2.
-!      print *,nrank,j+xstart(2)-1,yp(j+xstart(2)-1),1.-y*y
-      do i=1,xsize(1)
-         x=(i-1)*dx
-         ux1(i,j,k)=1.875-15*y*y+30*y*y*y*y
-         uy1(i,j,k)=0.1*dexp(-((x-xlx/2.0)/xlx)**2)*dexp(-(y/yly)**2*cos(4.0*(z-zlz/2.0))) 
-         uz1(i,j,k)=0.0
-      enddo
-   enddo
-   enddo
+
 endif
 
 if (itype.eq.4) then
@@ -454,7 +440,9 @@ if (itype.eq.7) then
 endif
 
 if (itype.eq.8) then
-   
+    
+
+
 endif
 
 if (itype.eq.9) then

@@ -22,7 +22,7 @@ args = parser.parse_args()
 T=args.SPINUPSTEPS
 M=args.SAMPLINGSTEPS
 
-N=15;
+N=30;
 U=np.zeros((M,N));
 V=np.zeros((M,N));
 W=np.zeros((M,N));
