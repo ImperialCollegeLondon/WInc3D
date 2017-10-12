@@ -21,7 +21,6 @@ parser.add_argument("-w","--write",action="store_true",help="Write results in a 
 parser.add_argument("PATH", type=str, help="path to where the umean, vmean etc. files are (should end with a / )")
 parser.add_argument("FILENAME", type=str, help="Filename, should end with .pprc")
 parser.add_argument("OUTPUT", type=str, help="OUTPUT FOLDER")
-parser.add_argument("VELFLAG", type=int, help="Velocity Flag if 0 then u/U and upup/U^2, if 1:1-u/Uinf and TKE/U_inf^2")
 
 args = parser.parse_args()
 path = args.PATH
@@ -113,6 +112,8 @@ for i in range(0,nx):
 
 D=nml['PostProcess']['D']
 Uinf=nml['PostProcess']['Uinf']
+xref=nml['PostProcess']['xref']
+TSR=nml['PostProcess']['TSR']
 xloc=nml['PostProcess']['xloc']
 yloc=nml['PostProcess']['yloc']
 zloc=nml['PostProcess']['zloc']
@@ -126,38 +127,17 @@ for i in range(len(xloc)):
     jxloc=np.where(abs(y[0,:,0]-yloc[i])==abs(y[0,:,0]-yloc[i]).min())[0]
   
     print 'found indices ', ixloc[0], jxloc[0]
-    if (args.VELFLAG==0):
-        if args.write:     
-            with open(output+'meanu_'+str(xloc[i])+'.csv','w') as fout:
-                fout.write('# y/R u/U\n')
-                for iwake in range(nz):
-                    zR=float(-zlz/(2.0*R)+z[ixloc[0],jxloc[0],iwake]/R)
-                    uU=float(uav[ixloc[0],jxloc[0],iwake]/Uinf)
-                    fout.write(str(-zR)+' '+str(uU)+'\n')
+    if args.write:     
+        with open(output+'TSR_'+str(round(TSR))+'_XD_'+str(round(xloc[i]-xref)/D)+'Horizontal.dat','w') as fout:
+            fout.write('# y/R 1-u/Uref u/U k/Uref^2 up^2/Uref^2\n')
+            for iwake in range(nz):
+                rR=float(-zlz/(2.0*R)+z[ixloc[0],jxloc[0],iwake]/R)
+                uUDef=float(1.-uav[ixloc[0],jxloc[0],iwake]/Uinf)
+                uU=float(uav[ixloc[0],jxloc[0],iwake]/Uinf)
+                TKEU2=float(0.5*(upup[ixloc[0],jxloc[0],iwake]+vpvp[ixloc[0],jxloc[0],iwake]+wpwp[ixloc[0],jxloc[0],iwake])/Uinf**2)
+                upupU2=float(upup[ixloc[0],jxloc[0],iwake]/Uinf**2)
+                fout.write(str(-rR)+' '+str(uUDef)+' '+str(uU) +' '+str(TKEU2)+' '+str(upupU2)+ '\n')
             
-            with open(output+'meanupup_'+str(xloc[i])+'.csv','w') as fout:
-                fout.write('# y/R upup/U^2\n')
-                for iwake in range(nz):
-                    zR=float(-zlz/(2.0*R)+z[ixloc[0],jxloc[0],iwake]/R)
-                    upupU2=float(upup[ixloc[0],jxloc[0],iwake]/Uinf**2)
-                    fout.write(str(-zR)+' '+str(upupU2)+'\n')
-    
-    if (args.VELFLAG==1):
-        if args.write:     
-            with open(output+'meanu_'+str(xloc[i])+'.csv','w') as fout:
-                fout.write('# y/R 1-u/U\n')
-                for iwake in range(nz):
-                    zR=float(-zlz/(2.0*R)+z[ixloc[0],jxloc[0],iwake]/R)
-                    uU=float(1.-uav[ixloc[0],jxloc[0],iwake]/Uinf)
-                    fout.write(str(zR)+' '+str(uU)+'\n')
-            
-            with open(output+'meanupup_'+str(xloc[i])+'.csv','w') as fout:
-                fout.write('# y/R upup/U^2\n')
-                for iwake in range(nz):
-                    zR=float(-zlz/(2.0*R)+z[ixloc[0],jxloc[0],iwake]/R)
-                    TKEU2=float(0.5*(upup[ixloc[0],jxloc[0],iwake]+vpvp[ixloc[0],jxloc[0],iwake]+wpwp[ixloc[0],jxloc[0],iwake])/Uinf**2)
-                    fout.write(str(zR)+' '+str(TKEU2)+'\n')
-
     if args.plot:    
         plt.figure(1)
         plt.plot(-zlz/(2.0*R)+z[ixloc[0],jxloc[0],:].reshape(nz,1)/R,uav[ixloc[0],jxloc[0],:].reshape(nz,1)/Uinf,'k')
