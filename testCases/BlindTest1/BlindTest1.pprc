@@ -1,0 +1,17 @@
+&PostProcess
+    nx=321
+    ny=65
+    nz=65
+    xlx = 11.76          ! Lx (Size of the box in x-direction)
+    yly = 2.00           ! Ly (Size of the box in y-direction) 
+    zlz = 2.70           ! Lz (Size of the box in z-direction) 
+    nclx=2
+    ncly=1
+    nclz=1
+    nfiles=60
+    file1=1
+    filen=60
+    istret=0
+    ialm=1
+/End
+
