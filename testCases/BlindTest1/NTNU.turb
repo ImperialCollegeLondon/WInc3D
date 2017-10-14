@@ -3,7 +3,7 @@
 name='NTNU_HATT'        ! Turbine Name
 origin = 2,0.82,1.35    ! Turbine Origin 
 numblades=3             ! Number of Blades
-blade_geom='Blade_N35.al' ! Blade Specification
+blade_geom='Blade_N13.al' ! Blade Specification
 numfoil=1               ! Number of Airfoils
 afname='S826_Ostavan.air'
 towerFlag = 1           ! Tower Flag (0: No Tower, 1: Tower)

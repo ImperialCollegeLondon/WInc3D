@@ -854,20 +854,20 @@ endif
 !if (nrank==0) print*,"Cst = ",maxval(dsmagcst),minval(dsmagcst)
 !if (mod(itime,50)==0) print*,"Cst = ",maxval(dsmagcst),minval(dsmagcst)
 
-if( jLES == 4) then
-call transpose_x_to_y(srt_smag,srt_smag2)
-!call transpose_x_to_y(dsmagcst,dsmagcst2)
-do k=1,ysize(3)
-do j=1,ysize(2)
-do i=1,ysize(1)
-nut2(i,j,k)=dsmaggbl*(del(j)**(2.0))*sqrt(2.*srt_smag2(i,j,k))
-enddo
-enddo
-enddo
-call transpose_y_to_x(nut2,nut1)
-if (nrank==0) print*,"Global Constant = ",dsmaggbl
-!call test_sgs_min_max(dsmagcst,dsmagcst,dsmagcst,4)
-endif
+!if( jLES == 4) then
+!call transpose_x_to_y(srt_smag,srt_smag2)
+!!call transpose_x_to_y(dsmagcst,dsmagcst2)
+!do k=1,ysize(3)
+!do j=1,ysize(2)
+!do i=1,ysize(1)
+!nut2(i,j,k)=dsmaggbl*(del(j)**(2.0))*sqrt(2.*srt_smag2(i,j,k))
+!enddo
+!enddo
+!enddo
+!call transpose_y_to_x(nut2,nut1)
+!if (nrank==0) print*,"Global Constant = ",dsmaggbl
+!!call test_sgs_min_max(dsmagcst,dsmagcst,dsmagcst,4)
+!endif
 
 end subroutine dynsmag
 
