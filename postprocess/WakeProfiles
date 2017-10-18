@@ -128,15 +128,17 @@ for i in range(len(xloc)):
   
     print 'found indices ', ixloc[0], jxloc[0]
     if args.write:     
-        with open(output+'TSR_'+str(round(TSR))+'_XD_'+str(round(xloc[i]-xref)/D)+'Horizontal.dat','w') as fout:
-            fout.write('# y/R 1-u/Uref u/U k/Uref^2 up^2/Uref^2\n')
+        with open(output+'TSR_'+str(int(TSR))+'_XD_'+str(int((xloc[i]-xref)/D))+'_Horizontal.dat','w') as fout:
+            fout.write('# y/R 1-u/Uref u/U k/Uref^2 up^2/Uref^2 vpvp/Uref^2 wpwp/Uref^2\n')
             for iwake in range(nz):
                 rR=float(-zlz/(2.0*R)+z[ixloc[0],jxloc[0],iwake]/R)
                 uUDef=float(1.-uav[ixloc[0],jxloc[0],iwake]/Uinf)
                 uU=float(uav[ixloc[0],jxloc[0],iwake]/Uinf)
                 TKEU2=float(0.5*(upup[ixloc[0],jxloc[0],iwake]+vpvp[ixloc[0],jxloc[0],iwake]+wpwp[ixloc[0],jxloc[0],iwake])/Uinf**2)
                 upupU2=float(upup[ixloc[0],jxloc[0],iwake]/Uinf**2)
-                fout.write(str(-rR)+' '+str(uUDef)+' '+str(uU) +' '+str(TKEU2)+' '+str(upupU2)+ '\n')
+                vpvpU2=float(vpvp[ixloc[0],jxloc[0],iwake]/Uinf**2)
+                wpwpU2=float(wpwp[ixloc[0],jxloc[0],iwake]/Uinf**2)
+                fout.write(str(rR)+' '+str(uUDef)+' '+str(uU) +' '+str(TKEU2)+' '+str(upupU2)+' '+str(vpvpU2)+' '+str(wpwpU2)+'\n')
             
     if args.plot:    
         plt.figure(1)

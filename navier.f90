@@ -342,6 +342,7 @@ real(mytype), dimension(xsize(1),xsize(2),xsize(3)) :: ux1,uy1,uz1
 real(mytype) :: x,y,z,ym
 real(mytype) :: r1,r2,r3,r
 real(mytype) :: uh,ud,um,xv,bruit1
+real(mytype) :: uasterisk
 
 bxx1=0.;bxy1=0.;bxz1=0.
 byx1=0.;byy1=0.;byz1=0.
@@ -440,9 +441,19 @@ if (itype.eq.7) then
 endif
 
 if (itype.eq.8) then
-    
-
-
+   do k=1,xsize(3)
+   do j=1,xsize(2)
+      if (istret.eq.0) y=(j+xstart(2)-1-1)*dy
+      if (istret.ne.0) y=yp(j)
+      do i=1,xsize(1)
+      !um=0.5*(u1+u2)
+      !  uasterisk=sqrt(um*k/(ln(z/z_zero)-PsiM)) 
+      !  bxx1(j,k)=0.
+      !  bxy1(j,k)=0.
+      !  bxz1(j,k)=0.
+      enddo
+   enddo
+   enddo
 endif
 
 if (itype.eq.9) then
@@ -903,24 +914,32 @@ real(mytype), dimension(xsize(1),xsize(2),xsize(3)) :: ux,uy,uz,ep1
 integer :: i,j,k
 real(mytype) :: xm,ym,zm,r
 
+if (ibmshape==1) then
 ep1=0.
 do k=1,xsize(3)
-zm=(k+xstart(3)-1-1)*dz
-do j=1,xsize(2)
-if (istret.eq.0) ym=(xstart(2)+j-1-1)*dy
-if (istret.ne.0) ym=yp(xstart(2)+j-1) 
-do i=1,xsize(1)
-xm=(i-1)*dx 
-r=sqrt((xm-cex)*(xm-cex)+(ym-cey)*(ym-cey)) 
-if (r<=ra) then
-   ux(i,j,k)=0.
-   uy(i,j,k)=0. 
-   uz(i,j,k)=0.
-   ep1(i,j,k)=1. 
+    zm=(k+xstart(3)-1-1)*dz
+    do j=1,xsize(2)
+    if (istret.eq.0) ym=(xstart(2)+j-1-1)*dy
+    if (istret.ne.0) ym=yp(xstart(2)+j-1) 
+        do i=1,xsize(1)
+            xm=(i-1)*dx 
+            r=sqrt((xm-cex)*(xm-cex)+(ym-cey)*(ym-cey)) 
+            if (r<=ra) then
+            ux(i,j,k)=0.
+            uy(i,j,k)=0. 
+            uz(i,j,k)=0.
+            ep1(i,j,k)=1. 
+            endif
+        enddo
+    enddo
+enddo
+
+elseif (ibmshape==2) then
+
+ep1=0.
+ep1(:,1,:)=1.
 endif
-enddo
-enddo
-enddo
+
 
 
 return  

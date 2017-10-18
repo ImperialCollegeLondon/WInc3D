@@ -3,7 +3,7 @@
 Python script that reads from the probe file
 """
 import numpy as np
-import scipy as scp
+from scipy.signal import welch
 import matplotlib.pyplot as plt
 import argparse
 
@@ -18,14 +18,15 @@ parser.add_argument("PATHLIST", type=str, help="path to where the umean, vmean e
 parser.add_argument("SPINUPSTEPS", type=int, help="Number of time step until spinup time")
 parser.add_argument("SAMPLINGSTEPS", type=int, help="Number of sampling steps after spinup time")
 parser.add_argument("PROBES", type=int, help="Number of probe points")
+parser.add_argument("OUTPUT", type=str, help="OUTPUT FOLDER")
 
 args = parser.parse_args()
 pathlist = args.PATHLIST
 T=args.SPINUPSTEPS
 M=args.SAMPLINGSTEPS
 N = args.PROBES
+output = args.OUTPUT
 
-N=30;
 path=pathlist.split(",")
 print(path)
 Numpaths=len(path); # is the number of cases
@@ -46,42 +47,31 @@ for k in range(Numpaths):
             K[i,j,k]=0.5*(U[i,j,k]**2+V[i,j,k]**2+W[i,j,k]**2)
 
 
-# PLOT TIME SERIES
-f, axarr = plt.subplots(3,2)
-axarr[0,0].plot(U[:,1,0],'-b',U[:,1,1],'-r',U[:,1,2],'-g')
-axarr[0,0].set_title('x/D=1')
-axarr[0,1].plot(U[:,3,0],'-b',U[:,3,1],'-r',U[:,3,2],'-g')
-axarr[0,1].set_title('x/D=2')
-axarr[1,0].plot(U[:,5,0],'-b',U[:,5,1],'-r',U[:,5,2],'-g')
-axarr[1,0].set_title('x/D=3')
-axarr[1,1].plot(U[:,7,0],'-b',U[:,7,1],'-r',U[:,7,2],'-g')
-axarr[1,1].set_title('x/D=4')
-axarr[2,0].plot(U[:,9,0],'-b',U[:,9,1],'-r',U[:,9,2],'-g')
-axarr[2,0].set_title('x/D=5')
-axarr[2,1].plot(U[:,11,0],'-b',U[:,11,1],'-r',U[:,11,2],'-g')
-axarr[2,1].set_title('x/D=6')
-plt.show()
-
-#dt=0.0002; # Time step for FFT
-#k=1/dt
+Time=0.0005*5; # Time step for FFT
 ## Averaging the Signal
-#E=K[:,2]
-#
-#AveEnergy=np.average(E);
-#E=E-AveEnergy
-## Do the Hanning Window
-#Window=np.hanning(51);
-#
-#
-#s=np.fft.fft(E)
-#sp=np.real(s*np.conjugate(s))
-#freq=np.fft.fftfreq(E.shape[-1],k)
-#freqInertial=np.linspace(.0000010,0.1,100)
-#freqLarge=np.linspace(.00000010,0.000001,100)
-#Inertial=10*freqInertial**(-5.0/3.0)
-#LargeScales=1000*freqLarge**(0.0)
-#plt.loglog(freq,sp,freqInertial,Inertial,'--r',freqLarge,LargeScales,'--g')
-#plt.xlim(0.0000001,0.001)
-#plt.ylim(0.01,10000)
-#plt.legend
+S=[];
+for i in range(N):
+    S=np.append(S,U[:,i,0])
+
+
+f, psd =welch(S,
+        fs=1./Time, # sample rate
+        window='hanning',
+        nperseg=4092,
+        scaling='spectrum')
+f_inertial=np.arange(1,1e2)
+psd_inertial=0.003*f_inertial**(-5/3)
+
+if args.plot:    
+    plt.loglog(f,psd,f_inertial,psd_inertial)
+    plt.ylim([1e-7,1e-2])
+    plt.xlim([1e-1,1e3])
+    plt.show()
+
+if args.write:     
+    with open(output+'Spectrum.dat','w') as fout:
+        fout.write('# f PSD \n')
+        for i in range(len(f)):
+            fout.write(str(f[i])+' '+str(psd[i])+'\n')
+
 

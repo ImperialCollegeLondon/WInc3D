@@ -146,7 +146,7 @@ use decomp_2d, only : mytype
   integer :: isave,ilit,srestart,idebmod, imodulo, idemarre, icommence, irecord
   integer :: iscalar,ilag,npif,izap
   integer :: iprobe, Nprobes, Nsampling
-  integer :: iabl
+  integer :: iabl, ibmshape
   character :: Probelistfile*80
   integer :: nxboite, istat,iread,iadvance_time 
   real(mytype) :: xlx,yly,zlz,dx,dy,dz,dx2,dy2,dz2
@@ -154,7 +154,7 @@ use decomp_2d, only : mytype
   real(mytype) :: t,xxk1,xxk2, spinup_time
   real(mytype) :: smagcst, walecst,dys, FSGS, rxxnu
   real(mytype) :: eps_factor ! Smoothing factor 
-  real(mytype) :: TurbRadius
+  real(mytype) :: TurbRadius,z_zero,k_roughness,PsiM
   integer :: itr,itime
   character :: dirname*80
   character :: filesauve*80, filenoise*80, &
