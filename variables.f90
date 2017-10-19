@@ -151,7 +151,7 @@ call alloc_x(nut1);call alloc_x(ucx1);call alloc_x(ucy1);call alloc_x(ucz1);
     allocate(FTy(xsize(1),xsize(2),xsize(3)))
     allocate(FTz(xsize(1),xsize(2),xsize(3))) 
     endif
-
+    
 !arrays for statistic collection!pay attention to the size!
     allocate (umean(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))
     allocate (vmean(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))

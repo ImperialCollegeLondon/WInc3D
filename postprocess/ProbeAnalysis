@@ -14,56 +14,58 @@ parser = argparse.ArgumentParser(description="Script to read from the velocity p
 parser.add_argument("-v","--verbose",action="store_true",help="Print location")
 parser.add_argument("-p","--plot",action="store_true",help="Plots the wake profiles")
 parser.add_argument("-w","--write",action="store_true",help="Write results in a .csv file")
-parser.add_argument("PATHLIST", type=str, help="path to where the umean, vmean etc. files are (should end with a / )")
+parser.add_argument("PATH", type=str, help="path to where the umean, vmean etc. files are (should end with a / )")
 parser.add_argument("SPINUPSTEPS", type=int, help="Number of time step until spinup time")
 parser.add_argument("SAMPLINGSTEPS", type=int, help="Number of sampling steps after spinup time")
+parser.add_argument("SAMPLINGPERIOD", type=float, help="Period of sampling")
 parser.add_argument("PROBES", type=int, help="Number of probe points")
 parser.add_argument("OUTPUT", type=str, help="OUTPUT FOLDER")
 
 args = parser.parse_args()
-pathlist = args.PATHLIST
+path = args.PATH
 T=args.SPINUPSTEPS
 M=args.SAMPLINGSTEPS
+Time=args.SAMPLINGPERIOD
 N = args.PROBES
 output = args.OUTPUT
 
-path=pathlist.split(",")
-print(path)
-Numpaths=len(path); # is the number of cases
-print(Numpaths)
-U=np.zeros((M,N,Numpaths));
-V=np.zeros((M,N,Numpaths));
-W=np.zeros((M,N,Numpaths));
-K=np.zeros((M,N,Numpaths));
+U=np.zeros((M,N));
+V=np.zeros((M,N));
+W=np.zeros((M,N));
+K=np.zeros((M,N));
 
-for k in range(Numpaths):
-    for i in range(M):
-        probeNumber=T+i+1
-        A=np.genfromtxt(path[k]+'probe'+str(probeNumber).zfill(6),skip_header=1,delimiter=',')
-        for j in range(N):
-            U[i,j,k]=A[j,4];
-            V[i,j,k]=A[j,5];
-            W[i,j,k]=A[j,6];
-            K[i,j,k]=0.5*(U[i,j,k]**2+V[i,j,k]**2+W[i,j,k]**2)
+for i in range(M):
+    probeNumber=T+i+1
+    A=np.genfromtxt(path+'probe'+str(probeNumber).zfill(6),skip_header=1,delimiter=',')
+    for j in range(N):
+        U[i,j]=A[j,4];
+        V[i,j]=A[j,5];
+        W[i,j]=A[j,6];
+        K[i,j]=0.5*(U[i,j]**2+V[i,j]**2+W[i,j]**2)
 
+PSD_ave=np.zeros((513,1))
 
-Time=0.0005*5; # Time step for FFT
-## Averaging the Signal
-S=[];
+# Compute Power from signal
 for i in range(N):
-    S=np.append(S,U[:,i,0])
-
-
-f, psd =welch(S,
+    Uav=np.average(U[:,i])
+    S=U[:,i]-Uav
+    f, psd =welch(S,
         fs=1./Time, # sample rate
         window='hanning',
-        nperseg=4092,
+        nperseg=1024,
         scaling='spectrum')
+    for k in range(513):
+        PSD_ave[k]=PSD_ave[k]+psd[k]
+
+PSD_ave=PSD_ave/N
+print np.size(PSD_ave)
+print np.size(f)
+
 f_inertial=np.arange(1,1e2)
 psd_inertial=0.003*f_inertial**(-5/3)
 
 if args.plot:    
-    plt.loglog(f,psd,f_inertial,psd_inertial)
+    plt.loglog(f,PSD_ave,f_inertial,psd_inertial)
     plt.ylim([1e-7,1e-2])
     plt.xlim([1e-1,1e3])
     plt.show()

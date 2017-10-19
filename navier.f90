@@ -234,15 +234,16 @@ if (iin.eq.1) then
       ! Making noise to go to zero at the boundaries
       if (istret.eq.0) y=(j+xstart(2)-1-1)*dy-yly/2.
       if (istret.ne.0) y=yp(j+xstart(2)-1)-yly/2.
-      if(z*z+y*y<TurbRadius**2.0) then
-      um=1.0
-      else
-      um=0.0
-      endif
+      !if(z*z+y*y<TurbRadius**2.0) then
+      !um=1.0
+      !else
+      !um=0.0
+      !endif
+      !um=1
       ! Not tested yet
-      bxx1(j,k)=bxx1(j,k)+um*bxo(j,k)*noise1
-      bxy1(j,k)=bxy1(j,k)+um*byo(j,k)*noise1
-      bxz1(j,k)=bxz1(j,k)+um*bzo(j,k)*noise1
+      bxx1(j,k)=bxx1(j,k)+bxo(j,k)*noise1
+      bxy1(j,k)=bxy1(j,k)+byo(j,k)*noise1
+      bxz1(j,k)=bxz1(j,k)+bzo(j,k)*noise1
    enddo
    enddo
    if (iscalar==1) then
@@ -441,16 +442,19 @@ if (itype.eq.7) then
 endif
 
 if (itype.eq.8) then
+    if (iabl.ne.1) then
+      print *,'NOT POSSIBLE: switch on the iabl flag'
+      stop
+   endif
    do k=1,xsize(3)
    do j=1,xsize(2)
       if (istret.eq.0) y=(j+xstart(2)-1-1)*dy
       if (istret.ne.0) y=yp(j)
       do i=1,xsize(1)
-      !um=0.5*(u1+u2)
-      !  uasterisk=sqrt(um*k/(ln(z/z_zero)-PsiM)) 
-      !  bxx1(j,k)=0.
-      !  bxy1(j,k)=0.
-      !  bxz1(j,k)=0.
+      uasterisk=0.45
+      ux1(i,j,k)=uasterisk/k_roughness*log((y+dz/2.0)/z_zero-PsiM)
+      uy1(i,j,k)=0.
+      uz1(i,j,k)=0.
       enddo
    enddo
    enddo
@@ -510,8 +514,6 @@ call random_seed(put = code+63946*nrank*(/ (i - 1, i = 1, ii) /)) !
    call random_number(uy1)
    call random_number(uz1)
 
-
-
    do k=1,xsize(3)
    do j=1,xsize(2)
    do i=1,xsize(1)
@@ -528,12 +530,12 @@ call random_seed(put = code+63946*nrank*(/ (i - 1, i = 1, ii) /)) !
       z=(k+xstart(3)-1-1)*dz-zlz/2.
       if (istret.eq.0) y=(j+xstart(2)-1-1)*dy-yly/2.
       if (istret.ne.0) y=yp(j+xstart(2)-1)-yly/2.
-      !um=exp(-0.2*y*y)
-      if(z*z+y*y<TurbRadius**2.0) then
-      um=1.0
-      else
-      um=0.0
-      endif
+      um=(u1+u2)/2.0 !exp(-0.2*y*y)
+      !if(z*z+y*y<TurbRadius**2.0) then
+      !um=1.0
+      !else
+      !um=0.0
+      !endif
       do i=1,xsize(1)
          ux1(i,j,k)=um*ux1(i,j,k)
          uy1(i,j,k)=um*uy1(i,j,k)
@@ -957,12 +959,11 @@ USE param
 USE var
 USE MPI
 
-
 implicit none
 
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux,uy,uz
 integer :: i,j,k,code
-real(mytype) :: ut,ut1,utt,ut11
+real(mytype) :: ut,ut1,utt,ut11, abl_vel, ABLtaux, ABLtauz, uasterisk
 integer, dimension(2) :: dims, dummy_coords
 logical, dimension(2) :: dummy_periods
 
@@ -1078,16 +1079,32 @@ if (ncly==2) then
    if (dims(1)==1) then
       do k=1,xsize(3)
       do i=1,xsize(1)
+         if (iabl==1) then
+         abl_vel=0.5*(ux(i,1,k)+ux(i,2,k)) ! Find the average at the middle of the cell
+         uasterisk=-abl_vel*k_roughness/(log(dy/2.0/z_zero)-PsiM)
+         ABLtaux=uasterisk**2.0*ux(i,1,k)/abl_vel
+         ABLtauz=uasterisk**2.0*uz(i,1,k)/abl_vel
+         ux(i,1,k)=2./3.*(ABLtaux-2.0*ux(i,2,k)+0.5*ux(i,3,k))+dpdxy1(i,k)
+         uy(i,1,k)=0 ! Applying a non-penetration condition partial slip based on the shear stress
+         uz(i,1,k)=2./3.*(ABLtauz-2.0*uz(i,2,k)+0.5*uz(i,3,k))+dpdzy1(i,k) !Applying a partial slip based on the shear stress 
+         else
          ux(i,1,k)=0.+dpdxy1(i,k)
          uy(i,1,k)=0.
          uz(i,1,k)=0.+dpdzy1(i,k)
+         endif
       enddo
       enddo
       do k=1,xsize(3)
       do i=1,xsize(1)
+         if (iabl==1) then
+         ux(i,xsize(2),k)=ux(i,xsize(2)-1,k)+dpdxyn(i,k)
+         uy(i,xsize(2),k)=0.
+         uz(i,xsize(2),k)=uz(i,xsize(2)-1,k)+dpdzyn(i,k)
+         else
          ux(i,xsize(2),k)=0.+dpdxyn(i,k)
          uy(i,xsize(2),k)=0.
          uz(i,xsize(2),k)=0.+dpdzyn(i,k)
+         endif
       enddo
       enddo
    else
@@ -1095,9 +1112,21 @@ if (ncly==2) then
       if (xstart(2)==1) then
          do k=1,xsize(3)
          do i=1,xsize(1)
+         
+         if (iabl==1) then
+         abl_vel=0.5*(ux(i,1,k)+ux(i,2,k)) ! Find the average at the middle of the cell
+         uasterisk=-abl_vel*k_roughness/(log(dy/2.0/z_zero)-PsiM)
+         ABLtaux=uasterisk**2.0*ux(i,1,k)/abl_vel
+         ABLtauz=uasterisk**2.0*uz(i,1,k)/abl_vel
+         ux(i,1,k)=2./3.*(ABLtaux-2.0*ux(i,2,k)+0.5*ux(i,3,k))+dpdxy1(i,k)
+         uy(i,1,k)=0 ! Applying a non-penetration condition partial slip based on the shear stress
+         uz(i,1,k)=2./3.*(ABLtauz-2.0*uz(i,2,k)+0.5*uz(i,3,k))+dpdzy1(i,k) !Applying a partial slip based on the shear stress 
+         else
             ux(i,1,k)=0.+dpdxy1(i,k)
             uy(i,1,k)=0.
             uz(i,1,k)=0.+dpdzy1(i,k)
+         endif
+         
          enddo
          enddo
       endif
@@ -1105,9 +1134,15 @@ if (ncly==2) then
        if (ny-(nym/dims(1))==xstart(2)) then
          do k=1,xsize(3)
          do i=1,xsize(1)
+         if (iabl==1) then
+         ux(i,xsize(2),k)=ux(i,xsize(2)-1,k)+dpdxyn(i,k)
+         uy(i,xsize(2),k)=0.
+         uz(i,xsize(2),k)=uz(i,xsize(2)-1,k)+dpdzyn(i,k)
+         else
             ux(i,xsize(2),k)=0.+dpdxyn(i,k)
             uy(i,xsize(2),k)=0.
             uz(i,xsize(2),k)=0.+dpdzyn(i,k)
+         endif
          enddo
          enddo
       endif
