@@ -37,7 +37,7 @@ subroutine init_explicit_les
     USE decomp_2d
 
     implicit none
-
+	integer:: j
     if(nrank==0) then
     write(*,*) ' '
     write(*,*) '++++++++++++++++++++++++++++++++'
@@ -55,8 +55,17 @@ subroutine init_explicit_les
     write(*,*) ' '
     endif 
 
-    if (istret.eq.0) del(:)=FSGS*(dx*dy*dz)**(1.0/3.0)
-    if (nrank==0) write(*,*) maxval(del)
+    if (istret.eq.0) then 
+del(:)=FSGS*(dx*dy*dz)**(1.0/3.0)
+else
+do j=1,ny-1
+del(j) = FSGS*(dx*(yp(j+1)-yp(j))*dz)**(1.0/3.0)
+enddo
+del(ny) = del(ny-1)
+endif
+    
+if (nrank==0) write(*,*) maxval(del)
+
 end subroutine
 
 

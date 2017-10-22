@@ -1,14 +1,14 @@
 &FlowParam
-    xlx = 6260.           ! Lx (Size of the box in x-direction)
-    yly = 1000.            ! Ly (Size of the box in y-direction) 
-    zlz = 6260.            ! Lz (Size of the box in z-direction) 
-    re  = 4200           ! Kinematic Viscosity
+    xlx = 896.           ! Lx (Size of the box in x-direction)
+    yly = 400.            ! Ly (Size of the box in y-direction) 
+    zlz = 560.            ! Lz (Size of the box in z-direction) 
+    re  = 10000           ! Kinematic Viscosity
     sc  = 1.             ! Schmidt number (if passive scalar)
-    u1  = 10.             ! u1 (max velocity) (for inflow condition)
-    u2  = 10.             ! u2 (min velocity) (for inflow condition) 
+    u1  = 6.             ! u1 (max velocity) (for inflow condition)
+    u2  = 6.             ! u2 (min velocity) (for inflow condition) 
     noise  = 0.125       ! Turbulence intensity (1=100%) !! Initial condition
     noise1 = 0.125       ! Turbulence intensity (1=100%) !! Inflow condition
-    dt = 0.1           ! Time step
+    dt = 0.018           ! Time step
 /End
 
 &FlowConfig
@@ -19,7 +19,7 @@
     iin = 1               ! Inflow condition (1: classic, 2: turbinit)
     ifirst = 1            ! First iteration   
     ilast = 20000         ! Last iteration 
-    nscheme = 2           ! Temporal scheme (1:AB2, 2: RK3, 3:RK4, 4:AB3)
+    nscheme = 1           ! Temporal scheme (1:AB2, 2: RK3, 3:RK4, 4:AB3)
     istret = 0            ! y mesh refinement (0:no, 1:center, 2:both sides, 3:bottom)
     beta = 0.259065151    ! Refinement parameter (beta) 
     iskew = 1             ! (0:urotu, 1:skew, for the convective terms)
@@ -56,16 +56,17 @@
 /End
 
 &ALMParam
-ialm=0                    ! ialm (0: turbine model off, 1: turbine model on)
-eps_factor=2.2            ! Smoothing parameter factor
+ialm=1                    ! ialm (0: turbine model off, 1: turbine model on)
+eps_factor=1.5            ! Smoothing parameter factor
 Nturbines=1               ! Number of Turbines
 TurbinesPath='NTNU.turb'
 /End
 
 &ABLParam
 iabl=1                    ! iabl (1: atmospheric boundary layer modelling by applying a shear stress)
-z_zero=0.1               ! Roughness length
-k_roughness=0.4                     ! von Karman constant (usually taken to be 0.4)
+z_zero=0.1                ! Roughness length
+k_roughness=0.4           ! von Karman constant (usually taken to be 0.4)
+u_shear=0.45	          ! Shear velocity at the bottom
 PsiM=0                    ! stability correction for momentum (taken equal to 0 for neutral stability)
 /End
 

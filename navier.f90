@@ -201,6 +201,12 @@ if (itype==2) then !channel flow
    call transpose_y_to_x(gx,ux)
 endif
 
+if (itype==8) then ! Atmospheric Boundary Layer
+   call transpose_x_to_y(ux,gx)
+   call abl(gx)
+   call transpose_y_to_x(gx,ux)
+endif
+
 return
 end subroutine corgp
 
@@ -343,7 +349,6 @@ real(mytype), dimension(xsize(1),xsize(2),xsize(3)) :: ux1,uy1,uz1
 real(mytype) :: x,y,z,ym
 real(mytype) :: r1,r2,r3,r
 real(mytype) :: uh,ud,um,xv,bruit1
-real(mytype) :: uasterisk
 
 bxx1=0.;bxy1=0.;bxz1=0.
 byx1=0.;byy1=0.;byz1=0.
@@ -451,10 +456,13 @@ if (itype.eq.8) then
       if (istret.eq.0) y=(j+xstart(2)-1-1)*dy
       if (istret.ne.0) y=yp(j)
       do i=1,xsize(1)
-      uasterisk=0.45
-      ux1(i,j,k)=uasterisk/k_roughness*log((y+dz/2.0)/z_zero-PsiM)
+      um=0.5*(u1+u2)
+      ux1(i,j,k)=u_shear/k_roughness*log((y+dy/2.0)/z_zero-PsiM)
       uy1(i,j,k)=0.
       uz1(i,j,k)=0.
+      bxx1(j,k)=um
+      bxy1(j,k)=0.
+      bxz1(j,k)=0.
       enddo
    enddo
    enddo
@@ -963,7 +971,7 @@ implicit none
 
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux,uy,uz
 integer :: i,j,k,code
-real(mytype) :: ut,ut1,utt,ut11, abl_vel, ABLtaux, ABLtauz, uasterisk
+real(mytype) :: ut,ut1,utt,ut11, abl_vel, ABLtaux, ABLtauz, delta
 integer, dimension(2) :: dims, dummy_coords
 logical, dimension(2) :: dummy_periods
 
@@ -1079,18 +1087,97 @@ if (ncly==2) then
    if (dims(1)==1) then
       do k=1,xsize(3)
       do i=1,xsize(1)
-         if (iabl==1) then
-         abl_vel=0.5*(ux(i,1,k)+ux(i,2,k)) ! Find the average at the middle of the cell
-         uasterisk=-abl_vel*k_roughness/(log(dy/2.0/z_zero)-PsiM)
-         ABLtaux=uasterisk**2.0*ux(i,1,k)/abl_vel
-         ABLtauz=uasterisk**2.0*uz(i,1,k)/abl_vel
-         ux(i,1,k)=2./3.*(ABLtaux-2.0*ux(i,2,k)+0.5*ux(i,3,k))+dpdxy1(i,k)
-         uy(i,1,k)=0 ! Applying a non-penetration condition partial slip based on the shear stress
-         uz(i,1,k)=2./3.*(ABLtauz-2.0*uz(i,2,k)+0.5*uz(i,3,k))+dpdzy1(i,k) !Applying a partial slip based on the shear stress 
-         else
          ux(i,1,k)=0.+dpdxy1(i,k)
          uy(i,1,k)=0.
          uz(i,1,k)=0.+dpdzy1(i,k)
+      enddo
+      enddo
+      do k=1,xsize(3)
+      do i=1,xsize(1)
+         ux(i,xsize(2),k)=0.+dpdxyn(i,k)
+         uy(i,xsize(2),k)=0.
+         uz(i,xsize(2),k)=0.+dpdzyn(i,k)
+      enddo
+      enddo
+   else
+!find j=1 and j=ny
+      if (xstart(2)==1) then
+         do k=1,xsize(3)
+         do i=1,xsize(1) 
+            ux(i,1,k)=0.+dpdxy1(i,k)
+            uy(i,1,k)=0.
+            uz(i,1,k)=0.+dpdzy1(i,k)
+         enddo
+         enddo
+      endif
+!      print *,nrank,xstart(2),ny-(nym/p_row)
+       if (ny-(nym/dims(1))==xstart(2)) then
+         do k=1,xsize(3)
+         do i=1,xsize(1)
+            ux(i,xsize(2),k)=0.+dpdxyn(i,k)
+            uy(i,xsize(2),k)=0.
+            uz(i,xsize(2),k)=0.+dpdzyn(i,k)
+         enddo
+         enddo
+      endif
+ 
+   endif
+   endif
+   
+  if (itype.eq.8) then
+
+   ! determine the processor grid in use
+   call MPI_CART_GET(DECOMP_2D_COMM_CART_X, 2, &
+         dims, dummy_periods, dummy_coords, code)
+
+
+   if (dims(1)==1) then
+      do k=1,xsize(3)
+      do i=1,xsize(1)
+         dpdxy1(i,k)=dpdxy1(i,k)*gdt(itr)
+         dpdzy1(i,k)=dpdzy1(i,k)*gdt(itr)
+      enddo
+      enddo
+      do k=1,xsize(3)
+      do i=1,xsize(1)
+         dpdxyn(i,k)=dpdxyn(i,k)*gdt(itr)
+         dpdzyn(i,k)=dpdzyn(i,k)*gdt(itr)
+      enddo
+      enddo
+   else
+      if (xstart(2)==1) then
+         do k=1,xsize(3)
+         do i=1,xsize(1)
+            dpdxy1(i,k)=dpdxy1(i,k)*gdt(itr)
+            dpdzy1(i,k)=dpdzy1(i,k)*gdt(itr)
+         enddo
+         enddo
+      endif
+      if (ny-(nym/dims(1))==xstart(2)) then
+         do k=1,xsize(3)
+         do i=1,xsize(1)
+            dpdxyn(i,k)=dpdxyn(i,k)*gdt(itr)
+            dpdzyn(i,k)=dpdzyn(i,k)*gdt(itr)
+         enddo
+         enddo
+      endif
+   endif
+
+
+   if (dims(1)==1) then
+      do k=1,xsize(3)
+      do i=1,xsize(1)
+         if (iabl==1) then
+           if (istret.ne.0) delta=(yp(2)-yp(1))/2.0
+           if (istret.eq.0) delta=dy/2.0  
+         abl_vel=u_shear/k_roughness*log(delta/z_zero) ! Find the average at the middle of the cell
+         ABLtaux=-u_shear**2.0*ux(i,1,k)/abl_vel
+         ABLtauz=-u_shear**2.0*uz(i,1,k)/abl_vel
+         ux(i,1,k)= ux(i,2,k)-2*delta*ABLtaux+dpdxy1(i,k)
+         uy(i,1,k)=0 ! Applying a non-penetration condition partial slip based on the shear stress
+         uz(i,1,k)= uz(i,2,k)-2*delta*ABLtauz+dpdzy1(i,k) !Applying a partial slip based on the shear stress 
+         else
+	write(*,*) 'Switch on the ABLflag'
          endif
       enddo
       enddo
@@ -1098,12 +1185,10 @@ if (ncly==2) then
       do i=1,xsize(1)
          if (iabl==1) then
          ux(i,xsize(2),k)=ux(i,xsize(2)-1,k)+dpdxyn(i,k)
-         uy(i,xsize(2),k)=0.
+         uy(i,xsize(2),k)=uy(i,xsize(2)-1,k)
          uz(i,xsize(2),k)=uz(i,xsize(2)-1,k)+dpdzyn(i,k)
          else
-         ux(i,xsize(2),k)=0.+dpdxyn(i,k)
-         uy(i,xsize(2),k)=0.
-         uz(i,xsize(2),k)=0.+dpdzyn(i,k)
+	write(*,*) 'Switch on the ABLflag'
          endif
       enddo
       enddo
@@ -1114,17 +1199,16 @@ if (ncly==2) then
          do i=1,xsize(1)
          
          if (iabl==1) then
-         abl_vel=0.5*(ux(i,1,k)+ux(i,2,k)) ! Find the average at the middle of the cell
-         uasterisk=-abl_vel*k_roughness/(log(dy/2.0/z_zero)-PsiM)
-         ABLtaux=uasterisk**2.0*ux(i,1,k)/abl_vel
-         ABLtauz=uasterisk**2.0*uz(i,1,k)/abl_vel
-         ux(i,1,k)=2./3.*(ABLtaux-2.0*ux(i,2,k)+0.5*ux(i,3,k))+dpdxy1(i,k)
+           if (istret.ne.0) delta=(yp(2)-yp(1))/2.0
+           if (istret.eq.0) delta=dy/2.0  
+         abl_vel=u_shear/k_roughness*log(delta/z_zero) ! Find the average at the middle of the cell
+         ABLtaux=-u_shear**2.0*ux(i,1,k)/abl_vel
+         ABLtauz=-u_shear**2.0*uz(i,1,k)/abl_vel
+         ux(i,1,k)= ux(i,2,k)-2*delta*ABLtaux+dpdxy1(i,k)
          uy(i,1,k)=0 ! Applying a non-penetration condition partial slip based on the shear stress
-         uz(i,1,k)=2./3.*(ABLtauz-2.0*uz(i,2,k)+0.5*uz(i,3,k))+dpdzy1(i,k) !Applying a partial slip based on the shear stress 
+         uz(i,1,k)= uz(i,2,k)-2*delta*ABLtauz+dpdzy1(i,k) !Applying a partial slip based on the shear stress 
          else
-            ux(i,1,k)=0.+dpdxy1(i,k)
-            uy(i,1,k)=0.
-            uz(i,1,k)=0.+dpdzy1(i,k)
+	write(*,*) 'Switch on the ABLflag'
          endif
          
          enddo
@@ -1136,12 +1220,10 @@ if (ncly==2) then
          do i=1,xsize(1)
          if (iabl==1) then
          ux(i,xsize(2),k)=ux(i,xsize(2)-1,k)+dpdxyn(i,k)
-         uy(i,xsize(2),k)=0.
+         uy(i,xsize(2),k)=uy(i,xsize(2)-1,k)
          uz(i,xsize(2),k)=uz(i,xsize(2)-1,k)+dpdzyn(i,k)
          else
-            ux(i,xsize(2),k)=0.+dpdxyn(i,k)
-            uy(i,xsize(2),k)=0.
-            uz(i,xsize(2),k)=0.+dpdzyn(i,k)
+	write(*,*) 'Switch on the ABLflag'
          endif
          enddo
          enddo
