@@ -439,7 +439,8 @@ endif
 
 ! Coriolis Effects
 if (icoriolis==1) then    
-    tb1(:,j,:)=tb1(:,j,:)
+    ta1(:,:,:)=ta1(:,:,:)+CoriolisFreq*uy1(:,:,:) ! This is the stream-wise direction
+    tc1(:,:,:)=tc1(:,:,:)-CoriolisFreq*uz1(:,:,:) ! This is not the vertical direction but the lateral horizontal
 endif
 
 ! Turbine through an Actuator Line Model
