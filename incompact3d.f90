@@ -95,7 +95,7 @@ else if (jLES==1) then
     if(nrank==0) then
         write(*,*) 'Implicit LES with xxnu = 1 / ', rxxnu
     endif
-else if (jLES==2.OR.jLES==3.OR.jLES==4) then 
+else if (jLES==2.OR.jLES==3.OR.jLES==4.OR.jLES==5) then 
     call init_explicit_les() 
     call schemes_dns()
 endif
@@ -196,13 +196,21 @@ do itime=ifirst,ilast
      ! call convdiff(ux1,uy1,uz1,ta1,tb1,tc1,td1,te1,tf1,tg1,th1,ti1,di1,&
      !      ux2,uy2,uz2,ta2,tb2,tc2,td2,te2,tf2,tg2,th2,ti2,tj2,di2,&
      !      ux3,uy3,uz3,ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3)
+      
+        
+      ! Potential Temperature -- to be computed before the convdiff
+      if (ibuoyancy==1) then
+          ! Transport equation for potential temperature
+          call PotentialTemperature(ux1,uy1,uz1,phi1,phis1,phiss1,di1,tg1,th1,ti1,td1,&
+              uy2,uz2,phi2,di2,ta2,tb2,tc2,td2,uz3,phi3,di3,ta3,tb3,ep1)  
+      endif
 
-     call convdiff(ux1,uy1,uz1,uxt,uyt,uzt,ep1,divdiva,curldiva,ta1,tb1,tc1,&
-     td1,te1,tf1,tg1,th1,ti1,di1,ux2,uy2,uz2,ta2,tb2,tc2,td2,te2,tf2,tg2,th2,&
-     ti2,tj2,di2,ux3,uy3,uz3,ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3,nut1,ucx1,&
-     ucy1,ucz1,tmean,sgszmean,sgsxmean,sgsymean)
+      call convdiff(ux1,uy1,uz1,phi1,uxt,uyt,uzt,ep1,divdiva,curldiva,ta1,tb1,tc1,&
+      td1,te1,tf1,tg1,th1,ti1,di1,ux2,uy2,uz2,phi2,ta2,tb2,tc2,td2,te2,tf2,tg2,th2,&
+      ti2,tj2,di2,ux3,uy3,uz3,phi3,ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3,nut1,ucx1,&
+      ucy1,ucz1,tmean,sgszmean,sgsxmean,sgsymean)
 
-
+      ! Passive scalar
       if (iscalar==1) then
          call scalar(ux1,uy1,uz1,phi1,phis1,phiss1,di1,tg1,th1,ti1,td1,&
               uy2,uz2,phi2,di2,ta2,tb2,tc2,td2,uz3,phi3,di3,ta3,tb3,ep1) 
@@ -210,7 +218,6 @@ do itime=ifirst,ilast
 
       !X PENCILS
       call intt (ux1,uy1,uz1,gx1,gy1,gz1,hx1,hy1,hz1,ta1,tb1,tc1) 
-
 
       call pre_correc(ux1,uy1,uz1)
       

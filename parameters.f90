@@ -49,8 +49,8 @@ integer :: longueur ,impi,j
 character :: a*80
 
 ! Have you heard of NAMELISTs ?
-NAMELIST/FlowParam/xlx,yly,zlz,re,sc,u1,u2,noise,noise1,dt
-NAMELIST/FlowConfig/nclx,ncly,nclz,itype,iin,TurbRadius,ifirst,ilast,nscheme,istret, &
+NAMELIST/FlowParam/xlx,yly,zlz,re,sc,u1,u2,noise,noise1,dt,ibuoyancy,icoriolis,Pr,TempRef,CoriolisFreq
+NAMELIST/NumConfig/nclx,ncly,nclz,itype,iin,TurbRadius,ifirst,ilast,nscheme,istret, &
     beta,iskew,iscalar,jles,FSGS,jadv,smagcst,walecst,rxxnu 
 NAMELIST/FileParam/ilit,isave,imodulo
 NAMELIST/IBMParam/ivirt,ibmshape,cex,cey,cez,ra
@@ -98,7 +98,7 @@ rxxnu=3.0
 ! READ PARAMETERS FROM FILE
 open(10,file=InputFN) 
 read(10,nml=FlowParam)
-read(10,nml=FlowConfig)
+read(10,nml=NumConfig)
 read(10,nml=StatParam)
 read(10,nml=FileParam)
 read(10,nml=IBMParam)

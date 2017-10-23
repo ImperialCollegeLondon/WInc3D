@@ -1169,13 +1169,13 @@ if (ncly==2) then
       do i=1,xsize(1)
          if (iabl==1) then
            if (istret.ne.0) delta=(yp(2)-yp(1))/2.0
-           if (istret.eq.0) delta=dy/2.0  
+           if (istret.eq.0) delta=dy/2.0   
          abl_vel=u_shear/k_roughness*log(delta/z_zero) ! Find the average at the middle of the cell
          ABLtaux=-u_shear**2.0*ux(i,1,k)/abl_vel
          ABLtauz=-u_shear**2.0*uz(i,1,k)/abl_vel
-         ux(i,1,k)= ux(i,2,k)-2*delta*ABLtaux+dpdxy1(i,k)
+         ux(i,1,k)= 2./3.*(2.0*ux(i,2,k)-0.5*ux(i,3,k))-2*delta*ABLtaux+dpdxy1(i,k)
          uy(i,1,k)=0 ! Applying a non-penetration condition partial slip based on the shear stress
-         uz(i,1,k)= uz(i,2,k)-2*delta*ABLtauz+dpdzy1(i,k) !Applying a partial slip based on the shear stress 
+         uz(i,1,k)= 2./3.*(2.0*uz(i,2,k)-0.5*uz(i,3,k))-2*delta*ABLtauz+dpdzy1(i,k) !Applying a partial slip based on the shear stress 
          else
 	write(*,*) 'Switch on the ABLflag'
          endif
@@ -1204,9 +1204,9 @@ if (ncly==2) then
          abl_vel=u_shear/k_roughness*log(delta/z_zero) ! Find the average at the middle of the cell
          ABLtaux=-u_shear**2.0*ux(i,1,k)/abl_vel
          ABLtauz=-u_shear**2.0*uz(i,1,k)/abl_vel
-         ux(i,1,k)= ux(i,2,k)-2*delta*ABLtaux+dpdxy1(i,k)
+         ux(i,1,k)= 2./3.*(2.0*ux(i,2,k)-0.5*ux(i,3,k))-2*delta*ABLtaux+dpdxy1(i,k)
          uy(i,1,k)=0 ! Applying a non-penetration condition partial slip based on the shear stress
-         uz(i,1,k)= uz(i,2,k)-2*delta*ABLtauz+dpdzy1(i,k) !Applying a partial slip based on the shear stress 
+         uz(i,1,k)= 2./3.*(2.0*uz(i,2,k)-0.5*uz(i,3,k))-2*delta*ABLtauz+dpdzy1(i,k) !Applying a partial slip based on the shear stress 
          else
 	write(*,*) 'Switch on the ABLflag'
          endif

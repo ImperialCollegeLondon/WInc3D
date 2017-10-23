@@ -32,9 +32,9 @@
 
 !********************************************************************
 !
-subroutine convdiff(ux1,uy1,uz1,uxt,uyt,uzt,ep1,divdiva,curldiva,ta1,tb1,tc1,&
-     td1,te1,tf1,tg1,th1,ti1,di1,ux2,uy2,uz2,ta2,tb2,tc2,td2,te2,tf2,tg2,th2,&
-     ti2,tj2,di2,ux3,uy3,uz3,ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3,nut1,ucx1,&
+subroutine convdiff(ux1,uy1,uz1,phi1,uxt,uyt,uzt,ep1,divdiva,curldiva,ta1,tb1,tc1,&
+     td1,te1,tf1,tg1,th1,ti1,di1,ux2,uy2,uz2,phi2,ta2,tb2,tc2,td2,te2,tf2,tg2,th2,&
+     ti2,tj2,di2,ux3,uy3,phi3,uz3,ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3,nut1,ucx1,&
      ucy1,ucz1,tmean,sgszmean,sgsxmean,sgsymean)
 ! 
 !********************************************************************
@@ -43,16 +43,17 @@ USE var, only: FTx, FTy, FTz
 USE variables
 USE decomp_2d
 USE decomp_2d_io
+USE MPI
 
 
 implicit none
 
-real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux1,uy1,uz1,ep1,ucx1,ucy1,ucz1
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux1,uy1,uz1,phi1,ep1,ucx1,ucy1,ucz1
 real(mytype),dimension(xsize(1),xsize(2),xsize(3),25) :: uxt,uyt,uzt
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ta1,tb1,tc1,td1,te1,tf1,tg1,th1,ti1,di1
-real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: ux2,uy2,uz2 
+real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: ux2,uy2,uz2,phi2 
 real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: ta2,tb2,tc2,td2,te2,tf2,tg2,th2,ti2,tj2,di2
-real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: ux3,uy3,uz3
+real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: ux3,uy3,uz3,phi3
 real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3
 
 !LES Arrays
@@ -72,7 +73,10 @@ real(mytype),dimension(xszS(1),xszS(2),xszS(3)) :: tmean,sgszmean,sgsxmean,sgsym
 real(mytype),dimension(xszS(1),xszS(2),xszS(3)) :: divdiva,curldiva
 real(mytype),dimension(xszV(1),xszV(2),xszV(3)) :: uvisu
 
-integer :: ijk,nvect1,nvect2,nvect3,i,j,k
+! Buoyancy 
+real(mytype),dimension(xsize(2)) :: tmp1, phiPlaneAve !Horizontally-averaged potential temperature
+
+integer :: ijk,nvect1,nvect2,nvect3,i,j,k,code
 character(len=20) :: filename
 real(mytype) :: x,y,z
 
@@ -381,8 +385,16 @@ elseif (jLES==2) then ! Classic Smagorisnky Model
     tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)+sgsy1(:,:,:)
     tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)+sgsz1(:,:,:)
 elseif (jLES==3) then ! WALE 
-    
-elseif(jLES==4) then ! Dynamic Smagorinsky 
+    if (nrank==0) write(*,*) maxval(sgsx1), maxval(sgsy1), maxval(sgsz1)
+    ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)+sgsx1(:,:,:)
+    tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)+sgsy1(:,:,:)
+    tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)+sgsz1(:,:,:) 
+elseif(jLES==4) then ! scale-invaraint dynamic Smagorinsky 
+    if (nrank==0) write(*,*) maxval(nut1), maxval(sgsx1)
+    ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)+sgsx1(:,:,:)
+    tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)+sgsy1(:,:,:)
+    tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)+sgsz1(:,:,:)
+elseif(jLES==5) then ! scale-dependent dynamic Smagorinsky 
     if (nrank==0) write(*,*) maxval(nut1), maxval(sgsx1)
     ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)+sgsx1(:,:,:)
     tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)+sgsy1(:,:,:)
@@ -391,15 +403,46 @@ else
     if(nrank==0) then
     write(*,*) 'Dont know what to do. This LES model is not defined'
     write(*,*) 'Choose between : 0--> DNS'
-    write(*,*) '               : 1--> Implicit LES'
-    write(*,*) '               : 2--> Explicit Simple Smagorinsky LES'
-    write(*,*) '               : 3--> Explicit Wall-Adaptive LES'
-    write(*,*) '               : 4--> Explicit Dynamic Smagorinsky LES'
+    write(*,*) '               : 1--> Implicit LES: SVV-like'
+    write(*,*) '               : 2--> Explicit LES: Simple Smagorinsky'
+    write(*,*) '               : 3--> Explicit LES: Wall-Adaptive LES'
+    write(*,*) '               : 4--> Explicit LES: scale-invariant dynamic smagorinsky model'
+    write(*,*) '               : 5--> Explicit LES: scale-dependent dynamic smagorinsky model'
     endif
     stop
 endif
 
-! If the turbine model is on add the momentum source term
+! Buoyancy Effects
+if (ibuoyancy==1) then     
+    ! Average quantities over the x-z plane 
+    tmp1=0. ! First zero the tmp variable
+    
+    do j=1,xsize(2)
+    do k=1,xsize(3)
+    do i=1,xsize(1)
+    tmp1(j)=tmp1(j)+phi1(i,j,k)
+    enddo
+    enddo
+    ! Do the averaging
+    tmp1(j)=tmp1(j)/xsize(1)/xsize(3)
+    enddo
+
+    call MPI_ALLREDUCE(tmp1,phiPlaneAve,xsize(2),MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,code)
+
+    phiPlaneAve(:)=phiPlaneAve(:)/p_col
+    
+    ! Buoyancy added in the y direction not the z 
+    do j=1,xsize(2)
+    tb1(:,j,:)=tb1(:,j,:) + 9.81*(phi1(:,j,:)-phiPlaneAve(j))/TempRef
+    enddo
+endif
+
+! Coriolis Effects
+if (icoriolis==1) then    
+    tb1(:,j,:)=tb1(:,j,:)
+endif
+
+! Turbine through an Actuator Line Model
 if (ialm==1) then
     ta1(:,:,:)=ta1(:,:,:)+FTx(:,:,:)
     tb1(:,:,:)=tb1(:,:,:)+FTy(:,:,:)
@@ -407,6 +450,172 @@ if (ialm==1) then
 endif
 
 end subroutine convdiff
+!************************************************************
+!
+subroutine PotentialTemperature(ux1,uy1,uz1,phi1,phis1,phiss1,di1,ta1,tb1,tc1,td1,&
+     uy2,uz2,phi2,di2,ta2,tb2,tc2,td2,uz3,phi3,di3,ta3,tb3,epsi)
+!
+!************************************************************
+
+USE param
+USE variables
+USE decomp_2d
+
+implicit none
+
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux1,uy1,uz1,phi1,phis1,&
+                                              phiss1,di1,ta1,tb1,tc1,td1,epsi
+real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: uy2,uz2,phi2,di2,ta2,tb2,tc2,td2
+real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: uz3,phi3,di3,ta3,tb3
+
+integer :: ijk,nvect1,nvect2,nvect3,i,j,k,nxyz
+real(mytype) :: x,y,z
+
+nvect1=xsize(1)*xsize(2)*xsize(3)
+nvect2=ysize(1)*ysize(2)*ysize(3)
+nvect3=zsize(1)*zsize(2)*zsize(3)
+
+!X PENCILS
+do ijk=1,nvect1
+   ta1(ijk,1,1)=ux1(ijk,1,1)*phi1(ijk,1,1)
+enddo
+
+call derx (tb1,ta1,di1,sx,ffx,fsx,fwx,xsize(1),xsize(2),xsize(3),0)
+
+if (jles==1) then
+call derxx_iles (ta1,phi1,di1,sx,sfxp,ssxp,swxp,xsize(1),xsize(2),xsize(3),1)
+else
+call derxx (ta1,phi1,di1,sx,sfxp,ssxp,swxp,xsize(1),xsize(2),xsize(3),1)
+endif
+
+call transpose_x_to_y(phi1,phi2)
+call transpose_x_to_y(uy1,uy2)
+call transpose_x_to_y(uz1,uz2)
+
+!Y PENCILS
+do ijk=1,nvect2
+   ta2(ijk,1,1)=uy2(ijk,1,1)*phi2(ijk,1,1)
+enddo
+
+call dery (tb2,ta2,di2,sy,ffy,fsy,fwy,ppy,ysize(1),ysize(2),ysize(3),0)
+
+if (istret.ne.0) then 
+        
+    call dery (tc2,phi2,di2,sy,ffy,fsy,fwy,ppy,ysize(1),ysize(2),ysize(3),0)
+    
+    if (jles==1) then
+        call deryy_iles (ta2,phi2,di2,sy,sfyp,ssyp,swyp,ysize(1),ysize(2),ysize(3),1)
+    else
+        call deryy (ta2,phi2,di2,sy,sfyp,ssyp,swyp,ysize(1),ysize(2),ysize(3),1)
+    endif
+   do k=1,ysize(3)
+   do j=1,ysize(2)
+   do i=1,ysize(1)
+      ta2(i,j,k)=ta2(i,j,k)*pp2y(j)-pp4y(j)*tc2(i,j,k)
+   enddo
+   enddo
+   enddo
+else
+    if (jles==1) then
+        call deryy_iles (ta2,phi2,di2,sy,sfyp,ssyp,swyp,ysize(1),ysize(2),ysize(3),1) 
+    else
+        call deryy (ta2,phi2,di2,sy,sfyp,ssyp,swyp,ysize(1),ysize(2),ysize(3),1) 
+    endif
+endif
+
+call transpose_y_to_z(phi2,phi3)
+call transpose_y_to_z(uz2,uz3)
+
+!Z PENCILS
+do ijk=1,nvect3
+   ta3(ijk,1,1)=uz3(ijk,1,1)*phi3(ijk,1,1)
+enddo
+
+call derz (tb3,ta3,di3,sz,ffz,fsz,fwz,zsize(1),zsize(2),zsize(3),0)
+
+if (jles==1) then
+    call derzz_iles (ta3,phi3,di3,sz,sfzp,sszp,swzp,zsize(1),zsize(2),zsize(3),1)
+else
+    call derzz (ta3,phi3,di3,sz,sfzp,sszp,swzp,zsize(1),zsize(2),zsize(3),1)
+endif
+call transpose_z_to_y(ta3,tc2)
+call transpose_z_to_y(tb3,td2)
+
+!Y PENCILS ADD TERMS
+do ijk=1,nvect2
+   tc2(ijk,1,1)=tc2(ijk,1,1)+ta2(ijk,1,1)
+   td2(ijk,1,1)=td2(ijk,1,1)+tb2(ijk,1,1)
+enddo
+
+call transpose_y_to_x(tc2,tc1)
+call transpose_y_to_x(td2,td1)
+
+!X PENCILS ADD TERMS
+do ijk=1,nvect1
+   ta1(ijk,1,1)=ta1(ijk,1,1)+tc1(ijk,1,1) !SECOND DERIVATIVE
+   tb1(ijk,1,1)=tb1(ijk,1,1)+td1(ijk,1,1) !FIRST DERIVATIVE
+enddo
+ 
+do ijk=1,nvect1
+   if(jles==1) then
+   ta1(ijk,1,1)=xnu/Pr*ta1(ijk,1,1)-tb1(ijk,1,1) 
+   else
+    if (nrank==0) print *,'Not ready'
+    stop 
+   endif
+enddo
+
+!TIME ADVANCEMENT
+nxyz=xsize(1)*xsize(2)*xsize(3)  
+
+if ((nscheme.eq.1).or.(nscheme.eq.2)) then
+   if ((nscheme.eq.1.and.itime.eq.1.and.ilit.eq.0).or.&
+        (nscheme.eq.2.and.itr.eq.1)) then
+      do ijk=1,nxyz
+         phi1(ijk,1,1)=gdt(itr)*ta1(ijk,1,1)+phi1(ijk,1,1)
+         phis1(ijk,1,1)=ta1(ijk,1,1)          
+      enddo
+   else
+      do ijk=1,nxyz
+         phi1(ijk,1,1)=adt(itr)*ta1(ijk,1,1)+bdt(itr)*phis1(ijk,1,1)+phi1(ijk,1,1)
+         phis1(ijk,1,1)=ta1(ijk,1,1)          
+      enddo
+endif
+endif
+
+if (nscheme.eq.3) then 
+if (nrank==0) print *,'Not ready'
+stop 
+endif
+
+if (nscheme==4) then
+   if ((itime.eq.1).and.(ilit.eq.0)) then
+      if (nrank==0) print *,'start with Euler',itime
+      do ijk=1,nxyz !start with Euler
+         phi1(ijk,1,1)=dt*ta1(ijk,1,1)+phi1(ijk,1,1)
+         phis1(ijk,1,1)=ta1(ijk,1,1)          
+      enddo
+   else
+      if  ((itime.eq.2).and.(ilit.eq.0)) then
+         if (nrank==0) print *,'then with AB2',itime
+         do ijk=1,nxyz
+            phi1(ijk,1,1)=1.5*dt*ta1(ijk,1,1)-0.5*dt*phis1(ijk,1,1)+phi1(ijk,1,1)
+            phiss1(ijk,1,1)=phis1(ijk,1,1)
+            phis1(ijk,1,1)=ta1(ijk,1,1)
+         enddo 
+      else
+         do ijk=1,nxyz
+            phi1(ijk,1,1)=adt(itr)*ta1(ijk,1,1)+bdt(itr)*phis1(ijk,1,1)+&
+                 cdt(itr)*phiss1(ijk,1,1)+phi1(ijk,1,1)
+            phiss1(ijk,1,1)=phis1(ijk,1,1)
+            phis1(ijk,1,1)=ta1(ijk,1,1)
+         enddo
+      endif
+   endif
+endif
+
+
+ end subroutine PotentialTemperature
 
 
 !************************************************************

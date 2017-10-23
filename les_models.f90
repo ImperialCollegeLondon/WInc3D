@@ -37,7 +37,7 @@ subroutine init_explicit_les
     USE decomp_2d
 
     implicit none
-	integer:: j
+    integer:: j
     if(nrank==0) then
     write(*,*) ' '
     write(*,*) '++++++++++++++++++++++++++++++++'
@@ -49,20 +49,24 @@ subroutine init_explicit_les
         else if (jLES==3) then
         write(*,*) ' Wall-adaptive LES (WALES) is used ... '
         else if (jLES==4) then
-        write(*,*) ' Dynamic Smagorinsky is used ... '
+        call filter() ! Apply the first filter to the equations
+        write(*,*) ' Scale-invariant Dynamic Smagorinsky is used ... '
+        else if (jLES==5) then
+        call filter() ! Apply the first filter to the equations
+        write(*,*) ' Scale-dependent Dynamic Smagorinsky is used ... '
         endif
     write(*,*) '++++++++++++++++++++++++++++++++'
     write(*,*) ' '
     endif 
 
     if (istret.eq.0) then 
-del(:)=FSGS*(dx*dy*dz)**(1.0/3.0)
-else
-do j=1,ny-1
-del(j) = FSGS*(dx*(yp(j+1)-yp(j))*dz)**(1.0/3.0)
-enddo
-del(ny) = del(ny-1)
-endif
+    del(:)=FSGS*(dx*dy*dz)**(1.0/3.0)
+    else
+        do j=1,ny-1
+            del(j) = FSGS*(dx*(yp(j+1)-yp(j))*dz)**(1.0/3.0)
+        enddo
+        del(ny) = del(ny-1)
+    endif
     
 if (nrank==0) write(*,*) maxval(del)
 
@@ -326,9 +330,10 @@ real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: smagC3f
 real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: dsmagcst3
 real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: dsmagcst2
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: dsmagcst
-real(mytype) :: smagC1,smagC2,tmpa1,dsmaggbl
+real(mytype),dimension(xsize(2)) :: tmpa1, dsmagHP1
+real(mytype) :: smagC1,smagC2,dsmaggbl
 integer::i,j,k,ierror,i2,j2,code
-
+real(mytype) :: denom ! Denominator in dynamic Smagorinsky
 
 
 uxx1(:,:,:)=ux1(:,:,:)*ux1(:,:,:)
@@ -641,6 +646,7 @@ call transpose_x_to_y(bbxy1,td2)
 call transpose_x_to_y(bbxz1,te2)
 call transpose_x_to_y(bbyz1,tf2)
 
+! Multiply the test filter
 do j=1,ysize(2)
 ta2(:,j,:) = ta2(:,j,:)*(2.*del(j))**2.
 tb2(:,j,:) = tb2(:,j,:)*(2.*del(j))**2.
@@ -747,12 +753,21 @@ lzz1(:,:,:)=lzz1(:,:,:)-(lxx1(:,:,:)+lyy1(:,:,:)+lzz1(:,:,:))/3.
 
 if(itime==1) then
 dsmaggbl=0.01
-!cst = 0.1
 else
 smagC = 0.
 do k=1,xsize(3)
 do j=1,xsize(2)
 do i=1,xsize(1)
+
+Denom=(mxx1(i,j,k)*mxx1(i,j,k)+&
+myy1(i,j,k)*myy1(i,j,k)+&
+mzz1(i,j,k)*mzz1(i,j,k)+&
+2.*mxy1(i,j,k)*mxy1(i,j,k)+&
+2.*mxz1(i,j,k)*mxz1(i,j,k)+&
+2.*myz1(i,j,k)*myz1(i,j,k))
+if(abs(Denom).le.1e-16) then
+    smagC(i,j,k)=0.01
+else
 smagC(i,j,k)= (lxx1(i,j,k)*mxx1(i,j,k)+&
 lyy1(i,j,k)*myy1(i,j,k)+&
 lzz1(i,j,k)*mzz1(i,j,k)+&
@@ -765,12 +780,13 @@ mzz1(i,j,k)*mzz1(i,j,k)+&
 2.*mxy1(i,j,k)*mxy1(i,j,k)+&
 2.*mxz1(i,j,k)*mxz1(i,j,k)+&
 2.*myz1(i,j,k)*myz1(i,j,k))
-
-!ERIC LIMITEUR SI BESOIN
-if(smagC(i,j,k).lt.0) then
-   smagC(i,j,k)=0.
 endif
-!
+!write(*,*) smagC(i,j,k)
+!ERIC LIMITEUR SI BESOIN
+!if(smagC(i,j,k).lt.0) then
+!   smagC(i,j,k)=0.
+!endif
+
 enddo
 enddo
 enddo
@@ -794,89 +810,41 @@ ta3=0.
 call transpose_z_to_y(smagC3f,smagC2f)
 call transpose_y_to_x(smagC2f,smagC)
 
-
+! Average coefficient within a horizontal plane
 tmpa1=0.
-do k=1,xsize(3)
 do j=1,xsize(2)
+do k=1,xsize(3)
 do i=1,xsize(1)
-tmpa1=tmpa1+smagC(i,j,k)
+tmpa1(j)=tmpa1(j)+smagC(i,j,k)
 enddo
 enddo
+! DO the averaging
+tmpa1(j)=tmpa1(j)/xsize(1)/xsize(3)
 enddo
-!tmpa1=tmpa1/xsize(1)/xsize(2)/xsize(3)
-!dsmagcst = tmpa1
 
-!print*,"Cst = ",tmpa1
-call MPI_ALLREDUCE(tmpa1,dsmaggbl,1,MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,code)
+call MPI_ALLREDUCE(tmpa1,dsmagHP1,xsize(2),MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,code)
 
-dsmaggbl = dsmaggbl/nx/ny/nz
-
-
-!do i = 1,8
-!dsmagcst3(:,i,1) = dsmagcst3(:,9,1);
-!dsmagcst3(:,zsize(2)-i+1,1) = dsmagcst3(:,zsize(2)-8,1);
-!enddo
-
-!do i = 1,8
-!dsmagcst3(i,:,1) = dsmagcst3(9,:,1);
-!dsmagcst3(zsize(1)-i+1,:,1) = dsmagcst3(zsize(1)-9,:,1);
-!enddo
-
-
-!do k=2,zsize(3)
-!dsmagcst3(:,:,k)=dsmagcst3(:,:,1)
-!enddo
-
-!call transpose_z_to_y(dsmagcst3,dsmagcst2)
-!call transpose_y_to_x(dsmagcst2,dsmagcst)
+dsmagHP1(:) = dsmagHP1(:)/p_col
 
 endif
-
-
-!FILTERING THE NON-CONSTANT CONSTANT
-!call filx(smagC1f,smagC,di1,sx,vx,fiffx,fifx,ficx,fibx,fibbx,filax,&
-!fiz1x,fiz2x,xsize(1),xsize(2),xsize(3),0)
-
-!call transpose_x_to_y(smagC1f,ta2)
-
-!call fily(smagC2f,ta2,di2,sy,vy,fiffy,fify,ficy,&
-!fiby,fibby,filay,fiz1y,fiz2y,ysize(1),ysize(2),ysize(3),1)
-
-!ta2=0.
-!call transpose_y_to_z(smagC2f,ta3)
-
-!call filz(smagC3f,ta3,di3,sz,vz,fiffz,fifz,ficz,fibz,fibbz,filaz,&
-!fiz1z,fiz2z,zsize(1),zsize(2),zsize(3),1)
-!ta3=0.
-
-!call transpose_z_to_y(smagC3f,smagC2f)
-!call transpose_y_to_x(smagC2f,smagC)
-
-!do k=1,xsize(3)
-!do j=1,xsize(2)
-!do i=1,xsize(1)
-!if (ep1(i,j,k)==1) dsmagcst(i,j,k) = 0.
-!enddo
-!enddo
-!enddo
 
 !if (nrank==0) print*,"Cst = ",maxval(dsmagcst),minval(dsmagcst)
 !if (mod(itime,50)==0) print*,"Cst = ",maxval(dsmagcst),minval(dsmagcst)
 
-!if( jLES == 4) then
-!call transpose_x_to_y(srt_smag,srt_smag2)
+call transpose_x_to_y(srt_smag,srt_smag2)
 !!call transpose_x_to_y(dsmagcst,dsmagcst2)
-!do k=1,ysize(3)
-!do j=1,ysize(2)
-!do i=1,ysize(1)
-!nut2(i,j,k)=dsmaggbl*(del(j)**(2.0))*sqrt(2.*srt_smag2(i,j,k))
-!enddo
-!enddo
-!enddo
-!call transpose_y_to_x(nut2,nut1)
-!if (nrank==0) print*,"Global Constant = ",dsmaggbl
+do k=1,ysize(3)
+do j=1,ysize(2)
+do i=1,ysize(1)
+nut2(i,j,k)=dsmagHP1(j)*(del(j)**2.0)*sqrt(2.*srt_smag2(i,j,k))
+enddo
+enddo
+enddo
+call transpose_y_to_x(nut2,nut1)
+if (nrank==0) print*,"Max and Min of the  Constant = ",maxval(dsmagHP1), minval(dsmagHP1)
 !!call test_sgs_min_max(dsmagcst,dsmagcst,dsmagcst,4)
-!endif
+
+return 
 
 end subroutine dynsmag
 

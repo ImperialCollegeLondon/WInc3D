@@ -50,7 +50,7 @@ module variables
 !nvisu = size for visualization collection
 integer,parameter :: nx=270,ny=121,nz=168
 integer,parameter :: nstat=1,nvisu=1
-integer,parameter :: p_row=2,p_col=2
+integer,parameter :: p_row=3,p_col=4
 integer,parameter :: nxm=nx,nym=ny-1,nzm=nz
 !end module variables
 
@@ -148,9 +148,9 @@ use decomp_2d, only : mytype
   integer :: iprobe, Nprobes, Nsampling
   integer :: iabl, ibmshape
   character :: Probelistfile*80
-  integer :: nxboite, istat,iread,iadvance_time 
+  integer :: nxboite, istat,iread,iadvance_time, ibuoyancy, icoriolis
   real(mytype) :: xlx,yly,zlz,dx,dy,dz,dx2,dy2,dz2
-  real(mytype) :: dt,xnu,noise,noise1,pi,twopi,u1,u2,sc
+  real(mytype) :: dt,xnu,noise,noise1,pi,twopi,u1,u2,sc,Pr,TempRef,CoriolisFreq
   real(mytype) :: t,xxk1,xxk2, spinup_time
   real(mytype) :: smagcst, walecst,dys, FSGS, rxxnu
   real(mytype) :: eps_factor ! Smoothing factor 
