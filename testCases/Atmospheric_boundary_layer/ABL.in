@@ -1,7 +1,7 @@
 &FlowParam
-    xlx = 896.            ! Lx (Size of the box in x-direction)
-    yly = 400.            ! Ly (Size of the box in y-direction) 
-    zlz = 560.            ! Lz (Size of the box in z-direction) 
+    xlx = 6280.            ! Lx (Size of the box in x-direction)
+    yly = 1000.            ! Ly (Size of the box in y-direction) 
+    zlz = 6280.            ! Lz (Size of the box in z-direction) 
     re  = 10000           ! nu=1/re (Kinematic Viscosity)
     sc  = 1.              ! Schmidt number (if passive scalar)
     u1  = 6.              ! u1 (max velocity) (for inflow condition)
@@ -21,12 +21,12 @@
 ! Numerical Configuration
 &NumConfig
     nclx = 0              ! nclx (BC)
-    ncly = 2              ! ncly (BC) 
+    ncly = 1              ! ncly (BC) 
     nclz = 0              ! nclz (BC)
     itype = 8             ! Type of flow  
     iin = 1               ! Inflow condition (1: classic, 2: turbinit)
     ifirst = 1            ! First iteration   
-    ilast = 20000         ! Last iteration 
+    ilast = 200000         ! Last iteration 
     nscheme = 1           ! Temporal scheme (1:AB2, 2: RK3, 3:RK4, 4:AB3)
     istret = 0            ! y mesh refinement (0:no, 1:center, 2:both sides, 3:bottom)
     beta = 0.259065151    ! Refinement parameter (beta) 
@@ -51,7 +51,7 @@
 &FileParam
     ilit=0                ! Read initial flow field ?
     isave=1000     	  ! Frequency for writing backup file  
-    imodulo=100           ! Frequency for visualization 
+    imodulo=1000           ! Frequency for visualization 
 /End
 
 &IBMParam
@@ -64,7 +64,7 @@
 /End
 
 &ALMParam
-ialm=1                    ! ialm (0: turbine model off, 1: turbine model on)
+ialm=0                    ! ialm (0: turbine model off, 1: turbine model on)
 eps_factor=1.5            ! Smoothing parameter factor
 Nturbines=1               ! Number of Turbines
 TurbinesPath='Turbine.turb'
@@ -74,7 +74,6 @@ TurbinesPath='Turbine.turb'
 iabl=1                    ! iabl (1: atmospheric boundary layer modelling by applying a shear stress)
 z_zero=0.1                ! Roughness length
 k_roughness=0.4           ! von Karman constant (usually taken to be 0.4)
-u_shear=0.45	          ! Shear velocity at the bottom
 PsiM=0                    ! stability correction for momentum (taken equal to 0 for neutral stability)
 /End
 

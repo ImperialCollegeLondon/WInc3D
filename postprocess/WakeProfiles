@@ -74,7 +74,7 @@ uumean=np.fromfile(uufile,dtype=np.float64)
 vvmean=np.fromfile(vvfile,dtype=np.float64)
 wwmean=np.fromfile(wwfile,dtype=np.float64)
 uvmean=np.fromfile(uvfile,dtype=np.float64)
-vwmean=np.fromfile(vwfile,dtype=np.float64)
+uwmean=np.fromfile(uwfile,dtype=np.float64)
 vwmean=np.fromfile(vwfile,dtype=np.float64)
 
 
@@ -107,7 +107,9 @@ for i in range(0,nx):
             upup[i,j,k]=uumean[i+nx*(j+ny*k)]/Nsteps-uav[i,j,k]**2
             vpvp[i,j,k]=vvmean[i+nx*(j+ny*k)]/Nsteps-vav[i,j,k]**2
             wpwp[i,j,k]=wwmean[i+nx*(j+ny*k)]/Nsteps-wav[i,j,k]**2
-
+            upvp[i,j,k]=uvmean[i+nx*(j+ny*k)]/Nsteps-uave[i,j,k]*vave[i,j,k]
+            upwp[i,j,k]=uwmean[i+nx*(j+ny*k)]/Nsteps-uave[i,j,k]*wave[i,j,k]
+            vpwp[i,j,k]=vwmean[i+nx*(j+ny*k)]/Nsteps-vave[i,j,k]*wave[i,j,k]
 
 
 D=nml['PostProcess']['D']

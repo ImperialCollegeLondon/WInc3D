@@ -48,9 +48,9 @@ module variables
 !2-->every 2 mesh nodes
 !4-->every 4 mesh nodes
 !nvisu = size for visualization collection
-integer,parameter :: nx=270,ny=121,nz=168
+integer,parameter :: nx=54,ny=55,nz=54
 integer,parameter :: nstat=1,nvisu=1
-integer,parameter :: p_row=3,p_col=4
+integer,parameter :: p_row=2,p_col=2
 integer,parameter :: nxm=nx,nym=ny-1,nzm=nz
 !end module variables
 

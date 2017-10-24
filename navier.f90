@@ -457,7 +457,7 @@ if (itype.eq.8) then
       if (istret.ne.0) y=yp(j)
       do i=1,xsize(1)
       um=0.5*(u1+u2)
-      ux1(i,j,k)=u_shear/k_roughness*log((y+dy/2.0)/z_zero-PsiM)
+      ux1(i,j,k)=0.45/k_roughness*log((y+dy/2.0)/z_zero)
       uy1(i,j,k)=0.
       uz1(i,j,k)=0.
       bxx1(j,k)=um
@@ -972,6 +972,9 @@ implicit none
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux,uy,uz
 integer :: i,j,k,code
 real(mytype) :: ut,ut1,utt,ut11, abl_vel, ABLtaux, ABLtauz, delta
+real(mytype) :: ux_HAve_local, uz_HAve_local,S_HAve_local
+real(mytype) :: ux_HAve, uz_HAve,S_HAve
+real(mytype),dimension(xsize(1),xsize(3)) :: taux, tauz 
 integer, dimension(2) :: dims, dummy_coords
 logical, dimension(2) :: dummy_periods
 
@@ -1083,7 +1086,6 @@ if (ncly==2) then
       endif
    endif
 
-
    if (dims(1)==1) then
       do k=1,xsize(3)
       do i=1,xsize(1)
@@ -1124,113 +1126,6 @@ if (ncly==2) then
    endif
    endif
    
-  if (itype.eq.8) then
-
-   ! determine the processor grid in use
-   call MPI_CART_GET(DECOMP_2D_COMM_CART_X, 2, &
-         dims, dummy_periods, dummy_coords, code)
-
-
-   if (dims(1)==1) then
-      do k=1,xsize(3)
-      do i=1,xsize(1)
-         dpdxy1(i,k)=dpdxy1(i,k)*gdt(itr)
-         dpdzy1(i,k)=dpdzy1(i,k)*gdt(itr)
-      enddo
-      enddo
-      do k=1,xsize(3)
-      do i=1,xsize(1)
-         dpdxyn(i,k)=dpdxyn(i,k)*gdt(itr)
-         dpdzyn(i,k)=dpdzyn(i,k)*gdt(itr)
-      enddo
-      enddo
-   else
-      if (xstart(2)==1) then
-         do k=1,xsize(3)
-         do i=1,xsize(1)
-            dpdxy1(i,k)=dpdxy1(i,k)*gdt(itr)
-            dpdzy1(i,k)=dpdzy1(i,k)*gdt(itr)
-         enddo
-         enddo
-      endif
-      if (ny-(nym/dims(1))==xstart(2)) then
-         do k=1,xsize(3)
-         do i=1,xsize(1)
-            dpdxyn(i,k)=dpdxyn(i,k)*gdt(itr)
-            dpdzyn(i,k)=dpdzyn(i,k)*gdt(itr)
-         enddo
-         enddo
-      endif
-   endif
-
-
-   if (dims(1)==1) then
-      do k=1,xsize(3)
-      do i=1,xsize(1)
-         if (iabl==1) then
-           if (istret.ne.0) delta=(yp(2)-yp(1))/2.0
-           if (istret.eq.0) delta=dy/2.0   
-         abl_vel=u_shear/k_roughness*log(delta/z_zero) ! Find the average at the middle of the cell
-         ABLtaux=-u_shear**2.0*ux(i,1,k)/abl_vel
-         ABLtauz=-u_shear**2.0*uz(i,1,k)/abl_vel
-         ux(i,1,k)= 2./3.*(2.0*ux(i,2,k)-0.5*ux(i,3,k))-2*delta*ABLtaux+dpdxy1(i,k)
-         uy(i,1,k)=0 ! Applying a non-penetration condition partial slip based on the shear stress
-         uz(i,1,k)= 2./3.*(2.0*uz(i,2,k)-0.5*uz(i,3,k))-2*delta*ABLtauz+dpdzy1(i,k) !Applying a partial slip based on the shear stress 
-         else
-	write(*,*) 'Switch on the ABLflag'
-         endif
-      enddo
-      enddo
-      do k=1,xsize(3)
-      do i=1,xsize(1)
-         if (iabl==1) then
-         ux(i,xsize(2),k)=ux(i,xsize(2)-1,k)+dpdxyn(i,k)
-         uy(i,xsize(2),k)=uy(i,xsize(2)-1,k)
-         uz(i,xsize(2),k)=uz(i,xsize(2)-1,k)+dpdzyn(i,k)
-         else
-	write(*,*) 'Switch on the ABLflag'
-         endif
-      enddo
-      enddo
-   else
-!find j=1 and j=ny
-      if (xstart(2)==1) then
-         do k=1,xsize(3)
-         do i=1,xsize(1)
-         
-         if (iabl==1) then
-           if (istret.ne.0) delta=(yp(2)-yp(1))/2.0
-           if (istret.eq.0) delta=dy/2.0  
-         abl_vel=u_shear/k_roughness*log(delta/z_zero) ! Find the average at the middle of the cell
-         ABLtaux=-u_shear**2.0*ux(i,1,k)/abl_vel
-         ABLtauz=-u_shear**2.0*uz(i,1,k)/abl_vel
-         ux(i,1,k)= 2./3.*(2.0*ux(i,2,k)-0.5*ux(i,3,k))-2*delta*ABLtaux+dpdxy1(i,k)
-         uy(i,1,k)=0 ! Applying a non-penetration condition partial slip based on the shear stress
-         uz(i,1,k)= 2./3.*(2.0*uz(i,2,k)-0.5*uz(i,3,k))-2*delta*ABLtauz+dpdzy1(i,k) !Applying a partial slip based on the shear stress 
-         else
-	write(*,*) 'Switch on the ABLflag'
-         endif
-         
-         enddo
-         enddo
-      endif
-!      print *,nrank,xstart(2),ny-(nym/p_row)
-       if (ny-(nym/dims(1))==xstart(2)) then
-         do k=1,xsize(3)
-         do i=1,xsize(1)
-         if (iabl==1) then
-         ux(i,xsize(2),k)=ux(i,xsize(2)-1,k)+dpdxyn(i,k)
-         uy(i,xsize(2),k)=uy(i,xsize(2)-1,k)
-         uz(i,xsize(2),k)=uz(i,xsize(2)-1,k)+dpdzyn(i,k)
-         else
-	write(*,*) 'Switch on the ABLflag'
-         endif
-         enddo
-         enddo
-      endif
- 
-   endif
-   endif
 endif
 !****************************************************
 !********NCLZ==2*************************************

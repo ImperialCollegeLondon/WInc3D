@@ -76,6 +76,12 @@ real(mytype),dimension(xszV(1),xszV(2),xszV(3)) :: uvisu
 ! Buoyancy 
 real(mytype),dimension(xsize(2)) :: tmp1, phiPlaneAve !Horizontally-averaged potential temperature
 
+!ABL boundary conditions
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: tablx1, tably1, tablz1
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: tfluxx1,tfluxy1,tfluxz1
+integer, dimension(2) :: dims, dummy_coords
+logical, dimension(2) :: dummy_periods
+
 integer :: ijk,nvect1,nvect2,nvect3,i,j,k,code
 character(len=20) :: filename
 real(mytype) :: x,y,z
@@ -149,9 +155,6 @@ call lesdiff(ux1,uy1,uz1,gxx1,gyy1,gzz1,gxy1,gxz1,gyz1,gyx1,gzx1,gzy1,nut1,&
 elseif (jLES == 4) then !DYNAMIC SMAGORINSKY
 sgsx1=0.;sgsy1=0.;sgsz1=0.
 dsmagcst=0.
-
-call smag(ux1,uy1,uz1,gxx1,gyx1,gzx1,gxy1,gyy1,gzy1,gxz1,gyz1,gzz1,&
-sxx1,syy1,szz1,sxy1,sxz1,syz1,srt_smag,nut1,ta2,ta3,di1,di2,di3)
 
 call dynsmag(ux1,uy1,uz1,ep1,sxx1,syy1,szz1,sxy1,sxz1,syz1,&
 srt_smag,dsmagcst,nut1,di1,ta1,tb1,tc1,td1,ta2,tb2,tc2,td2,te2,tf2,&
@@ -410,6 +413,16 @@ else
     write(*,*) '               : 5--> Explicit LES: scale-dependent dynamic smagorinsky model'
     endif
     stop
+endif
+
+! Add SFS stresses in the boundary
+if(iabl==1) then 
+    ! Zero the ABL turbulent fluxes first
+    tfluxx1=0.;tfluxy1=0.;tfluxz1=0.;
+    call abl_turbulent_flux(ux1,uy1,uz1,tfluxx1,tfluxy1,tfluxz1)
+    ta1(:,:,:)=ta1(:,:,:)-tfluxx1(:,:,:)
+    tb1(:,:,:)=tb1(:,:,:)-tfluxy1(:,:,:)
+    tc1(:,:,:)=tc1(:,:,:)-tfluxz1(:,:,:)
 endif
 
 ! Buoyancy Effects

@@ -1,16 +1,16 @@
 &PostProcess
-    nx=270
-    ny=121
-    nz=168
-    xlx = 896.           ! Lx (Size of the box in x-direction)
-    yly = 400.            ! Ly (Size of the box in y-direction) 
-    zlz = 560.            ! Lz (Size of the box in z-direction) 
+    nx=54
+    ny=55
+    nz=54
+    xlx = 6280.           ! Lx (Size of the box in x-direction)
+    yly = 1000.            ! Ly (Size of the box in y-direction) 
+    zlz = 6280.            ! Lz (Size of the box in z-direction) 
     nclx=0
-    ncly=2
+    ncly=1
     nclz=0
-    nfiles=60
+    nfiles=20
     file1=1
-    filen=60
+    filen=20
     istret=0
     ialm=0
 /End
