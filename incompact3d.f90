@@ -219,7 +219,7 @@ do itime=ifirst,ilast
       !X PENCILS
       call intt (ux1,uy1,uz1,gx1,gy1,gz1,hx1,hy1,hz1,ta1,tb1,tc1) 
 
-      call pre_correc(ux1,uy1,uz1)
+      call pre_correc(ux1,uy1,uz1,phi1,ta1)
       
       if (ivirt==1) then !solid body old school
          !we are in X-pencil

@@ -2,7 +2,7 @@ program visu_paraview
 
   implicit none
 
-  integer(4) :: nx,ny,nz, ialm, ivirt
+  integer(4) :: nx,ny,nz, ialm, ivirt,jles
   real(4) :: xlx,yly,zlz,dt,dx,dy,dz
   integer(4) :: nfiles, icrfile, file1, filen, ifile, dig1, dig2, dig3, dig4
   real(4), allocatable :: yp(:),y1(:),y3(:)
@@ -12,7 +12,7 @@ program visu_paraview
   character(len=80) :: InputFN, FNBase
 
   character(4) :: chits
-  NAMELIST/PostProcess/nx,ny,nz,xlx,yly,zlz,nclx,ncly,nclz,istret,nfiles,file1,filen,ialm,ivirt
+  NAMELIST/PostProcess/nx,ny,nz,xlx,yly,zlz,nclx,ncly,nclz,istret,nfiles,file1,filen,ialm,ivirt,jles
  !==========================================================================
  ! Handle Input file
  nargin=command_argument_count()
@@ -184,7 +184,17 @@ program visu_paraview
      write(nfil,*)'               </DataItem>'
      write(nfil,*)'            </Attribute>'
      endif
-
+     
+     if(jles.ge.2) then
+     write(nfil,*)'            <Attribute Name="nuSGS" Center="Node">'
+     write(nfil,*)'               <DataItem Format="Binary" '
+     write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
+     write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
+     write(nfil,*)'                  nuSGS'//chits
+     write(nfil,*)'               </DataItem>'
+     write(nfil,*)'            </Attribute>'
+     endif
+    
      if(ivirt>0) then     
      write(nfil,*)'            <Attribute Name="IBM" Center="Node">'
      write(nfil,*)'               <DataItem Format="Binary" '

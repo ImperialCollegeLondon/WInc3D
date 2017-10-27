@@ -107,6 +107,8 @@ gxz2,gyz2,gzz2
 real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: szz3,syz3
 real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: gxz3,gyz3,gzz3
 
+real(mytype) :: smag_constant, y
+
 integer :: i,j,k
 
 srt_smag(:,:,:) = 0.
@@ -176,12 +178,20 @@ call transpose_x_to_y(srt_smag,srt_smag2)
 do k=1,ysize(3)
 do j=1,ysize(2)
 do i=1,ysize(1)
-nut2(i,j,k) = (smagcst*del(j))**(2.0)*sqrt(2.*srt_smag2(i,j,k))
+! Adapt the Smagorinsky constant near the wall
+if (istret.eq.0) y=(j+ystart(2)-1-1)*dy
+if (istret.ne.0) y=yp(j+ystart(2)-1)
+
+if(iabl.eq.1.and.SmagWallDamp.eq.1) then
+smag_constant=(smagcst**(-nSmag)+(k_roughness*(y/del(j)+z_zero/del(j)))**(-nSmag))**(-1./nSmag)
+else
+smag_constant=smagcst
+endif
+nut2(i,j,k) = (smag_constant*del(j))**(2.0)*sqrt(2.*srt_smag2(i,j,k))
 enddo
 enddo
 enddo
 call transpose_y_to_x(nut2,nut1)
-
 end subroutine smag
 
 !************************************************************

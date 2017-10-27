@@ -18,7 +18,7 @@
     itype = 1             ! Type of flow  
     iin = 1               ! Inflow condition (1: classic, 2: turbinit)
     ifirst = 1            ! First iteration   
-    ilast = 2	          ! Last iteration 
+    ilast = 200000	      ! Last iteration 
     nscheme = 2           ! Temporal scheme (1:AB2, 2: RK3, 3:RK4, 4:AB3)
     istret = 0            ! y mesh refinement (0:no, 1:center, 2:both sides, 3:bottom)
     beta = 0.259065151    ! Refinement parameter (beta) 
@@ -26,7 +26,7 @@
     iscalar = 0           ! iscalar# (0: no scalar, 1:scalar)
     
     ! TURBULENCE MODELLING
-    jles=1                ! LES Model (0:DNS, 1: iLES 2:Smag, 3:WALE, 4: DynSmag)
+    jles=2                ! LES Model (0:DNS, 1: iLES 2:Smag, 3:WALE, 4: DynSmag)
     FSGS=1.0              ! Filter Size/ Grid Size for explicit LES only
     smagcst=0.1           ! Smagorinsky constant
     walecst=0.5           ! WALES Model Coefficient
@@ -42,8 +42,8 @@
 
 &FileParam
     ilit=0                ! Read initial flow field ?
-    isave=1000     	  ! Frequency for writing backup file  
-    imodulo=1           ! Frequency for visualization 
+    isave=1000     	      ! Frequency for writing backup file  
+    imodulo=100          ! Frequency for visualization 
 /End
 
 &IBMParam

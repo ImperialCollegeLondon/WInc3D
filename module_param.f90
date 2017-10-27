@@ -146,7 +146,7 @@ use decomp_2d, only : mytype
   integer :: isave,ilit,srestart,idebmod, imodulo, idemarre, icommence, irecord
   integer :: iscalar,ilag,npif,izap
   integer :: iprobe, Nprobes, Nsampling
-  integer :: iabl, ibmshape
+  integer :: iabl, ibmshape, SmagWallDamp, nSmag
   character :: Probelistfile*80
   integer :: nxboite, istat,iread,iadvance_time, ibuoyancy, icoriolis
   real(mytype) :: xlx,yly,zlz,dx,dy,dz,dx2,dy2,dz2

@@ -51,7 +51,7 @@ character :: a*80
 ! Have you heard of NAMELISTs ?
 NAMELIST/FlowParam/xlx,yly,zlz,re,sc,u1,u2,noise,noise1,dt,ibuoyancy,icoriolis,Pr,TempRef,CoriolisFreq
 NAMELIST/NumConfig/nclx,ncly,nclz,itype,iin,TurbRadius,ifirst,ilast,nscheme,istret, &
-    beta,iskew,iscalar,jles,FSGS,jadv,smagcst,walecst,rxxnu 
+    beta,iskew,iscalar,jles,FSGS,jadv,smagcst,SmagWallDamp,nSmag,walecst,rxxnu 
 NAMELIST/FileParam/ilit,isave,imodulo
 NAMELIST/IBMParam/ivirt,ibmshape,cex,cey,cez,ra
 NAMELIST/ALMParam/ialm,NTurbines,TurbinesPath,NActuatorlines,ActuatorlinesPath,eps_factor
@@ -73,7 +73,7 @@ re=1000
 nclx=0
 ncly=2
 nclz=0
-itype=2
+itype=1
 iin=1
 TurbRadius=0.0
 ifirst=1
@@ -94,6 +94,8 @@ ivirt=0
 ialm=0
 eps_factor=2.0
 rxxnu=3.0
+nSmag=1.0
+SmagWallDamp=0
 
 ! READ PARAMETERS FROM FILE
 open(10,file=InputFN) 

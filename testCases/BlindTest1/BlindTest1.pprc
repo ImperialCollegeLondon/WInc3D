@@ -8,10 +8,11 @@
     nclx=2
     ncly=1
     nclz=0
-    nfiles=2
+    nfiles=8
     file1=1
-    filen=2
+    filen=8
     istret=0
     ialm=1
+    jles=4
 /End
 

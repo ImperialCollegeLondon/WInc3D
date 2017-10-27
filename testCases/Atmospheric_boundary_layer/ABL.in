@@ -2,13 +2,13 @@
     xlx = 6.280           ! Lx (Size of the box in x-direction)
     yly = 1.              ! Ly (Size of the box in y-direction) 
     zlz = 3.14            ! Lz (Size of the box in z-direction) 
-    re  = 100             ! nu=1/re (Kinematic Viscosity)
+    re  = 10000           ! nu=1/re (Kinematic Viscosity)
     sc  = 1.              ! Schmidt number (if passive scalar)
     u1  = 1.              ! u1 (max velocity) (for inflow condition)
     u2  = 1.              ! u2 (min velocity) (for inflow condition) 
-    noise  = 0.0        ! Turbulence intensity (1=100%) !! Initial condition
-    noise1 = 0.       ! Turbulence intensity (1=100%) !! Inflow condition
-    dt = 0.0001           ! Time step
+    noise  = 0.2        ! Turbulence intensity (1=100%) !! Initial condition
+    noise1 = 0.0       ! Turbulence intensity (1=100%) !! Inflow condition
+    dt = 0.001           ! Time step
     
     ! Additional effects  
     ibuoyancy=0           ! Buoyancy flag (0: No buoyanancy 1: Buoyancy)
@@ -34,9 +34,11 @@
     iscalar = 0           ! iscalar# (0: no scalar, 1:scalar)
     
     ! TURBULENCE MODELLING
-    jles=0                ! LES Model (0:DNS, 1: iLES 2:Smag, 3:WALE, 4: scale-invariant dyn. Smag, 5: scale-dependent dyn. Smag )
+    jles=2                ! LES Model (0:DNS, 1: iLES 2:Smag, 3:WALE, 4: scale-invariant dyn. Smag, 5: scale-dependent dyn. Smag )
     FSGS=1.0              ! Filter Size/ Grid Size for explicit LES only
     smagcst=0.1           ! Smagorinsky constant
+    SmagWallDamp=1        ! Smagorinsky damping function for ABL if 1
+    nSmag=2               ! Smagorinksy damping coefficient 
     walecst=0.5           ! WALES Model Coefficient
     rxxnu=100         	  ! Implicit LES factor 
 /End
@@ -74,7 +76,7 @@ TurbinesPath='Turbine.turb'
 iabl=1                    ! iabl (1: atmospheric boundary layer modelling by applying a shear stress)
 z_zero=0.0001                ! Roughness length
 k_roughness=0.4           ! von Karman constant (usually taken to be 0.4)
-ustar=0.1		  ! 
+ustar=.04	              ! friction velocity
 PsiM=0                    ! stability correction for momentum (taken equal to 0 for neutral stability)
 /End
 
