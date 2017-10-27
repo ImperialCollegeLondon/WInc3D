@@ -765,7 +765,7 @@ mzz1(i,j,k)*mzz1(i,j,k)+&
 2.*mxy1(i,j,k)*mxy1(i,j,k)+&
 2.*mxz1(i,j,k)*mxz1(i,j,k)+&
 2.*myz1(i,j,k)*myz1(i,j,k))
-if(abs(Denom).le.1e-16) then
+if(abs(Denom).le.1e-6) then
     smagC(i,j,k)=0.01
 else
 smagC(i,j,k)= (lxx1(i,j,k)*mxx1(i,j,k)+&

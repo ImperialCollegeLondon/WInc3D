@@ -415,16 +415,6 @@ else
     stop
 endif
 
-! Add SFS stresses in the boundary
-if(iabl==1) then 
-    ! Zero the ABL turbulent fluxes first
-    tfluxx1=0.;tfluxy1=0.;tfluxz1=0.;
-    call abl_turbulent_flux(ux1,uy1,uz1,tfluxx1,tfluxy1,tfluxz1)
-    ta1(:,:,:)=ta1(:,:,:)-tfluxx1(:,:,:)
-    tb1(:,:,:)=tb1(:,:,:)-tfluxy1(:,:,:)
-    tc1(:,:,:)=tc1(:,:,:)-tfluxz1(:,:,:)
-endif
-
 ! Buoyancy Effects
 if (ibuoyancy==1) then     
     ! Average quantities over the x-z plane 

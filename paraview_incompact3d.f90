@@ -159,31 +159,31 @@ program visu_paraview
      write(nfil,*)'               </DataItem>'
      write(nfil,*)'            </Attribute>'
     
-     !if(ialm==1) then
-     !write(nfil,*)'            <Attribute Name="Ftx" Center="Node">'
-     !write(nfil,*)'               <DataItem Format="Binary" '
-     !write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
-     !write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
-     !write(nfil,*)'                  Ftx'//chits
-     !write(nfil,*)'               </DataItem>'
-     !write(nfil,*)'            </Attribute>'
-     !
-     !write(nfil,*)'            <Attribute Name="Fty" Center="Node">'
-     !write(nfil,*)'               <DataItem Format="Binary" '
-     !write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
-     !write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
-     !write(nfil,*)'                  Fty'//chits
-     !write(nfil,*)'               </DataItem>'
-     !write(nfil,*)'            </Attribute>'
-     !
-     !write(nfil,*)'            <Attribute Name="Ftz" Center="Node">'
-     !write(nfil,*)'               <DataItem Format="Binary" '
-     !write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
-     !write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
-     !write(nfil,*)'                  Ftz'//chits
-     !write(nfil,*)'               </DataItem>'
-     !write(nfil,*)'            </Attribute>'
-     !endif
+     if(ialm==1) then
+     write(nfil,*)'            <Attribute Name="Ftx" Center="Node">'
+     write(nfil,*)'               <DataItem Format="Binary" '
+     write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
+     write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
+     write(nfil,*)'                  Ftx'//chits
+     write(nfil,*)'               </DataItem>'
+     write(nfil,*)'            </Attribute>'
+     
+     write(nfil,*)'            <Attribute Name="Fty" Center="Node">'
+     write(nfil,*)'               <DataItem Format="Binary" '
+     write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
+     write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
+     write(nfil,*)'                  Fty'//chits
+     write(nfil,*)'               </DataItem>'
+     write(nfil,*)'            </Attribute>'
+     
+     write(nfil,*)'            <Attribute Name="Ftz" Center="Node">'
+     write(nfil,*)'               <DataItem Format="Binary" '
+     write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
+     write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
+     write(nfil,*)'                  Ftz'//chits
+     write(nfil,*)'               </DataItem>'
+     write(nfil,*)'            </Attribute>'
+     endif
 
      if(ivirt>0) then     
      write(nfil,*)'            <Attribute Name="IBM" Center="Node">'

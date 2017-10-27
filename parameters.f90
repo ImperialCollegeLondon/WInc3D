@@ -56,7 +56,7 @@ NAMELIST/FileParam/ilit,isave,imodulo
 NAMELIST/IBMParam/ivirt,ibmshape,cex,cey,cez,ra
 NAMELIST/ALMParam/ialm,NTurbines,TurbinesPath,NActuatorlines,ActuatorlinesPath,eps_factor
 NAMELIST/StatParam/spinup_time,iprobe,Probelistfile,nsampling 
-NAMELIST/ABLParam/iabl,z_zero,k_roughness,PsiM 
+NAMELIST/ABLParam/iabl,z_zero,k_roughness,PsiM,ustar 
 #ifdef DOUBLE_PREC 
 pi=dacos(-1.d0) 
 #else
@@ -127,7 +127,7 @@ if (itype.eq.4) print *,'Mixing layer with splitter plate'
 if (itype.eq.5) print *,'Channel flow'
 if (itype.eq.6) print *,'Taylor Green vortices'
 if (itype.eq.7) print *,'Cavity flow'
-if (itype.eq.8) print *,'Flat plate Boundary layer'
+if (itype.eq.8) print *,'Atmospheric boundary layer'
 if (itype.eq.9) print *,'Water tank'
 write(*,1101) nx,ny,nz
 write(*,1103) xlx,yly,zlz 
@@ -177,7 +177,7 @@ dy2=dy*dy
    dz2=dz*dz
 #endif
 
-xnu=u1/re
+xnu=1./re
 
 if (istret.eq.0) then
    do j=1,ny

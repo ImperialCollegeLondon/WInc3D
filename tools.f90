@@ -962,13 +962,14 @@ ut4=ut4/nproc
 if (istret.ne.0) delta=(yp(2)-yp(1))/2.0
 if (istret.eq.0) delta=dy/2.0 
 
-can=-(0.45/k_roughness*((1+delta)*(log((1+delta)/z_zero)-1)-delta*(log(delta/z_zero)-1))-ut4) ! constant flow rate for a logarithmic profile
+can=-(ustar/k_roughness*((1+delta)*(log((1+delta)/z_zero)-1)-delta*(log(delta/z_zero)-1))-ut4) ! constant flow rate for a logarithmic profile
+!can=can*yly*2./(yp(ny)+yp(ny-1)-yp(2)-yp(1))
 
 if (nrank==0) print *,nrank,'UT',ut4,can
 
 do k=1,ysize(3)
 do i=1,ysize(1)
-do j=1,ny
+do j=1,ny-1
    ux(i,j,k)=-can+ux(i,j,k) ! Force the periodic boundary conditions
 enddo
 enddo

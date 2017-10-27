@@ -167,29 +167,29 @@ call fine_to_coarseV(1,phi1,uvisu)
 endif
 !############################################################################
 !  ALM Momentum Source term
-!if (ialm==1) then
-!uvisu=0.
-!do ijk=1,nvect1 
-!  ftx1(ijk,1,1)=FTx(ijk,1,1)
-!  fty1(ijk,1,1)=FTy(ijk,1,1)
-!  ftz1(ijk,1,1)=FTz(ijk,1,1)
-!end do
-!
-!call fine_to_coarseV(1,ftx1,uvisu)
-!997 format('Ftx',I4.4)
-!write(filename, 997) itime/imodulo
-!call decomp_2d_write_one(1,uvisu,filename,2)    
-!uvisu=0.
-!call fine_to_coarseV(1,fty1,uvisu)
-!998 format('Fty',I4.4)
-!write(filename, 998) itime/imodulo
-!call decomp_2d_write_one(1,uvisu,filename,2)    
-!uvisu=0.
-!call fine_to_coarseV(1,ftz1,uvisu)
-!999 format('Ftz',I4.4)
-!write(filename, 999) itime/imodulo
-!call decomp_2d_write_one(1,uvisu,filename,2)    
-!end if
+if (ialm==1) then
+uvisu=0.
+do ijk=1,nvect1 
+  ftx1(ijk,1,1)=FTx(ijk,1,1)
+  fty1(ijk,1,1)=FTy(ijk,1,1)
+  ftz1(ijk,1,1)=FTz(ijk,1,1)
+end do
+
+call fine_to_coarseV(1,ftx1,uvisu)
+997 format('Ftx',I4.4)
+write(filename, 997) itime/imodulo
+call decomp_2d_write_one(1,uvisu,filename,2)    
+uvisu=0.
+call fine_to_coarseV(1,fty1,uvisu)
+998 format('Fty',I4.4)
+write(filename, 998) itime/imodulo
+call decomp_2d_write_one(1,uvisu,filename,2)    
+uvisu=0.
+call fine_to_coarseV(1,ftz1,uvisu)
+999 format('Ftz',I4.4)
+write(filename, 999) itime/imodulo
+call decomp_2d_write_one(1,uvisu,filename,2)    
+end if
 
 !##########################
 ! Immersed Boundary Method

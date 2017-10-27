@@ -201,11 +201,11 @@ if (itype==2) then !channel flow
    call transpose_y_to_x(gx,ux)
 endif
 
-if (itype==8) then ! Atmospheric Boundary Layer
-   call transpose_x_to_y(ux,gx)
-   call abl(gx)
-   call transpose_y_to_x(gx,ux)
-endif
+!if (itype==8) then ! Atmospheric Boundary Layer
+!   call transpose_x_to_y(ux,gx)
+!   call abl(gx)
+!   call transpose_y_to_x(gx,ux)
+!endif
 
 return
 end subroutine corgp
@@ -240,16 +240,11 @@ if (iin.eq.1) then
       ! Making noise to go to zero at the boundaries
       if (istret.eq.0) y=(j+xstart(2)-1-1)*dy-yly/2.
       if (istret.ne.0) y=yp(j+xstart(2)-1)-yly/2.
-      !if(z*z+y*y<TurbRadius**2.0) then
-      !um=1.0
-      !else
-      !um=0.0
-      !endif
-      !um=1
+      um=exp(-16*y*y)
       ! Not tested yet
-      bxx1(j,k)=bxx1(j,k)+bxo(j,k)*noise1
-      bxy1(j,k)=bxy1(j,k)+byo(j,k)*noise1
-      bxz1(j,k)=bxz1(j,k)+bzo(j,k)*noise1
+      bxx1(j,k)=bxx1(j,k)+bxo(j,k)*noise1*um
+      bxy1(j,k)=bxy1(j,k)+byo(j,k)*noise1*um
+      bxz1(j,k)=bxz1(j,k)+bzo(j,k)*noise1*um
    enddo
    enddo
    if (iscalar==1) then
@@ -303,7 +298,7 @@ enddo
 enddo
 call MPI_ALLREDUCE(uxmax,uxmax1,1,real_type,MPI_MAX,MPI_COMM_WORLD,code)
 call MPI_ALLREDUCE(uxmin,uxmin1,1,real_type,MPI_MIN,MPI_COMM_WORLD,code)
-vphase=0.5*(uxmax1+uxmin1)
+
 cx=vphase*gdt(itr)*udx
 
 
@@ -456,13 +451,10 @@ if (itype.eq.8) then
       if (istret.eq.0) y=(j+xstart(2)-1-1)*dy
       if (istret.ne.0) y=yp(j)
       do i=1,xsize(1)
-      um=0.5*(u1+u2)
-      ux1(i,j,k)=0.45/k_roughness*log((y+dy/2.0)/z_zero)
-      uy1(i,j,k)=0.
-      uz1(i,j,k)=0.
-      bxx1(j,k)=um
+      !ux1(i,j,k)=ustar/k_roughness*log((y+dy/2.0)/z_zero)
+      bxx1(j,k)=ustar/k_roughness*log((y+dy/2.0)/z_zero) 
       bxy1(j,k)=0.
-      bxz1(j,k)=0.
+      bxz1(i,k)=0.
       enddo
    enddo
    enddo
@@ -515,8 +507,6 @@ if (iin.eq.1) then !generation of a random noise
 call system_clock(count=code)
 call random_seed(size = ii)
 call random_seed(put = code+63946*nrank*(/ (i - 1, i = 1, ii) /)) !
-
-
     
    call random_number(ux1)
    call random_number(uy1)
@@ -538,12 +528,7 @@ call random_seed(put = code+63946*nrank*(/ (i - 1, i = 1, ii) /)) !
       z=(k+xstart(3)-1-1)*dz-zlz/2.
       if (istret.eq.0) y=(j+xstart(2)-1-1)*dy-yly/2.
       if (istret.ne.0) y=yp(j+xstart(2)-1)-yly/2.
-      um=(u1+u2)/2.0 !exp(-0.2*y*y)
-      !if(z*z+y*y<TurbRadius**2.0) then
-      !um=1.0
-      !else
-      !um=0.0
-      !endif
+      um=exp(-16*y*y)
       do i=1,xsize(1)
          ux1(i,j,k)=um*ux1(i,j,k)
          uy1(i,j,k)=um*uy1(i,j,k)
@@ -970,14 +955,137 @@ USE MPI
 implicit none
 
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux,uy,uz
+real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: gx
 integer :: i,j,k,code
-real(mytype) :: ut,ut1,utt,ut11, abl_vel, ABLtaux, ABLtauz, delta
+real(mytype) :: ut,ut1,utt,ut11, uty,uty1, delta
 real(mytype) :: ux_HAve_local, uz_HAve_local,S_HAve_local
 real(mytype) :: ux_HAve, uz_HAve,S_HAve
 real(mytype),dimension(xsize(1),xsize(3)) :: taux, tauz 
 integer, dimension(2) :: dims, dummy_coords
 logical, dimension(2) :: dummy_periods
 
+!if (itime==1) then
+!   dpdyx1=0.
+!   dpdzx1=0.
+!   dpdyxn=0.
+!   dpdzxn=0.
+!   dpdxz1=0.
+!   dpdyz1=0.
+!   dpdxzn=0.
+!   dpdyzn=0.
+!   dpdxy1=0.
+!   dpdzy1=0.
+!   dpdxyn=0.
+!   dpdzyn=0.
+!endif
+!
+!
+!!we are in X pencils:
+!do k=1,xsize(3)
+!do j=1,xsize(2)
+!   dpdyx1(j,k)=dpdyx1(j,k)*gdt(itr)
+!   dpdzx1(j,k)=dpdzx1(j,k)*gdt(itr)
+!   dpdyxn(j,k)=dpdyxn(j,k)*gdt(itr)
+!   dpdzxn(j,k)=dpdzxn(j,k)*gdt(itr)
+!enddo
+!enddo
+!
+!if (xstart(3)==1) then
+!   do j=1,xsize(2)
+!   do i=1,xsize(1)
+!      dpdxz1(i,j)=dpdxz1(i,j)*gdt(itr)
+!      dpdyz1(i,j)=dpdyz1(i,j)*gdt(itr)
+!   enddo
+!   enddo
+!endif
+!if (xend(3)==nz) then
+!   do j=1,xsize(2)
+!   do i=1,xsize(1)
+!      dpdxzn(i,j)=dpdxzn(i,j)*gdt(itr)
+!      dpdyzn(i,j)=dpdyzn(i,j)*gdt(itr)
+!   enddo
+!   enddo
+!endif
+!
+!if (xstart(2)==1) then
+!   do k=1,xsize(3)
+!   do i=1,xsize(1)
+!      dpdxy1(i,k)=dpdxy1(i,k)*gdt(itr)
+!      dpdzy1(i,k)=dpdzy1(i,k)*gdt(itr)
+!   enddo
+!   enddo
+!endif
+!if (xend(2)==ny) then
+!   do k=1,xsize(3)
+!   do i=1,xsize(1)
+!      dpdxyn(i,k)=dpdxyn(i,k)*gdt(itr)
+!      dpdzyn(i,k)=dpdzyn(i,k)*gdt(itr)
+!   enddo
+!   enddo
+!endif
+!
+!!Computatation of the flow rate Inflow/Outflow
+!!we are in X pencils:
+!if (nclx==2) then
+!   do k=1,xsize(3)
+!   do j=1,xsize(2)
+!      ux(1 ,j,k)=bxx1(j,k)
+!      ux(nx,j,k)=bxxn(j,k)
+!   enddo
+!   enddo
+!
+!   !FLOW RATE IN i=1 FLOW GOING IN!
+!   call transpose_x_to_y(ux,gx)
+!   ut1=0.
+!   if (ystart(1)==1) then
+!      do k=1,ysize(3)
+!      do j=1,ny-1
+!         ut1=ut1+(yp(j+1)-yp(j))*(gx(1,j+1,k)-0.5*(gx(1,j+1,k)-gx(1,j,k)))
+!      enddo
+!      enddo
+!      ut1=ut1/yly/ysize(3)
+!   endif
+!   call MPI_ALLREDUCE(ut1,ut11,1,real_type,MPI_SUM,MPI_COMM_WORLD,code)
+!   ut11=ut11/p_col
+!   !FLOW RATE IN i=NX FLOW GOING OUT!
+!   ut=0.
+!   if (yend(1)==nx) then
+!      do k=1,ysize(3)
+!      do j=1,ny-1
+!         ut=ut+(yp(j+1)-yp(j))*(gx(ysize(1),j+1,k)-&
+!              0.5*(gx(ysize(1),j+1,k)-gx(ysize(1),j,k)))
+!      enddo
+!      enddo
+!      ut=ut/yly/ysize(3)
+!   endif
+!   call MPI_ALLREDUCE(ut,utt,1,real_type,MPI_SUM,MPI_COMM_WORLD,code)
+!   utt=utt/p_col
+!
+!   !flow rate at the top of the domaine for j=ny
+!   call transpose_x_to_y(uy,gx)
+!   uty=0.
+!   do k=1,ysize(3)
+!   do i=1,ysize(1)
+!!      uty=uty+uy(i,ny,k)
+!      uty=uty+gx(i,ny,k)
+!   enddo
+!   enddo
+!   uty=uty/ysize(1)/ysize(3)
+!   call MPI_ALLREDUCE(uty,uty1,1,real_type,MPI_SUM,MPI_COMM_WORLD,code)
+!   uty1=uty1/nproc
+!
+!
+!   if (nrank==0) print *,'FLOW RATE I/O',ut11,utt,uty1
+!   if (nrank==0) print *,'FLOW RATE DIFF',ut11-utt-uty1,ut11-utt
+!
+!
+!   do k=1,xsize(3)
+!   do j=1,xsize(2)
+!      bxxn(j,k)=bxxn(j,k)-utt+ut11-uty1
+!   enddo
+!   enddo
+!endif
+!
 if (itime==1) then
    dpdyx1=0.
    dpdzx1=0.
@@ -997,8 +1105,6 @@ enddo
 enddo
 
 
-!Computatation of the flow rate Inflow/Outflow
-!we are in X pencils:
 if (nclx==2) then
    ut1=0.
    do k=1,xsize(3)
@@ -1119,6 +1225,95 @@ if (ncly==2) then
             ux(i,xsize(2),k)=0.+dpdxyn(i,k)
             uy(i,xsize(2),k)=0.
             uz(i,xsize(2),k)=0.+dpdzyn(i,k)
+         enddo
+         enddo
+      endif
+ 
+   endif
+   endif
+   
+if (itype.eq.8) then
+   
+   if (nrank==0) print *,'pre_correc in Y'
+ 
+   ! determine the processor grid in use
+   call MPI_CART_GET(DECOMP_2D_COMM_CART_X, 2, &
+         dims, dummy_periods, dummy_coords, code)
+
+
+   if (dims(1)==1) then
+      do k=1,xsize(3)
+      do i=1,xsize(1)
+         dpdxy1(i,k)=dpdxy1(i,k)*gdt(itr)
+         dpdzy1(i,k)=dpdzy1(i,k)*gdt(itr)
+      enddo
+      enddo
+      do k=1,xsize(3)
+      do i=1,xsize(1)
+         dpdxyn(i,k)=dpdxyn(i,k)*gdt(itr)
+         dpdzyn(i,k)=dpdzyn(i,k)*gdt(itr)
+      enddo
+      enddo
+   else
+      if (xstart(2)==1) then
+         do k=1,xsize(3)
+         do i=1,xsize(1)
+            dpdxy1(i,k)=dpdxy1(i,k)*gdt(itr)
+            dpdzy1(i,k)=dpdzy1(i,k)*gdt(itr)
+         enddo
+         enddo
+      endif
+      if (ny-(nym/dims(1))==xstart(2)) then
+         do k=1,xsize(3)
+         do i=1,xsize(1)
+            dpdxyn(i,k)=dpdxyn(i,k)*gdt(itr)
+            dpdzyn(i,k)=dpdzyn(i,k)*gdt(itr)
+         enddo
+         enddo
+      endif
+   endif
+
+   if (dims(1)==1) then
+     call abl_boundary_stresses(ux,uy,uz,taux,tauz,delta) 
+      do k=1,xsize(3)
+      do i=1,xsize(1)
+         taux(i,k)=0.;tauz(i,k)=0.; 
+	 ux(i,1,k)=0.+dpdxy1(i,k)
+         uy(i,1,k)=0.
+         uz(i,1,k)=0.+dpdzy1(i,k)
+         !ux(i,1,k)=ux(i,2,k)-2.0*delta*taux(i,k)+dpdxy1(i,k)
+         !uy(i,1,k)=0.
+         !uz(i,1,k)=uz(i,2,k)-2.0*delta*tauz(i,k)+dpdzy1(i,k)
+      enddo
+      enddo
+      do k=1,xsize(3)
+      do i=1,xsize(1)
+            ux(i,xsize(2),k)=ux(i,xsize(2)-1,k)+dpdxyn(i,k)
+            uy(i,xsize(2),k)=uy(i,xsize(2)-1,k)
+            uz(i,xsize(2),k)=uz(i,xsize(2)-1,k)+dpdzyn(i,k)
+      enddo
+      enddo
+   else
+!find j=1 and j=ny
+      if (xstart(2)==1) then
+         do k=1,xsize(3)
+         do i=1,xsize(1) 
+     	call abl_boundary_stresses(ux,uy,uz,taux,tauz,delta) 
+         taux(i,k)=0.;tauz(i,k)=0.; 
+	 !ux(i,1,k)=ux(i,2,k)-2.0*delta*taux(i,k)+dpdxy1(i,k)
+	 ux(i,1,k)=0.+dpdxy1(i,k)
+         uy(i,1,k)=0.
+         uz(i,1,k)=0.+dpdzy1(i,k)
+         enddo
+         enddo
+      endif
+!      print *,nrank,xstart(2),ny-(nym/p_row)
+       if (ny-(nym/dims(1))==xstart(2)) then
+         do k=1,xsize(3)
+         do i=1,xsize(1)
+            ux(i,xsize(2),k)=ux(i,xsize(2)-1,k)+dpdxyn(i,k)
+            uy(i,xsize(2),k)=uy(i,xsize(2)-1,k)
+            uz(i,xsize(2),k)=uz(i,xsize(2)-1,k)+dpdzyn(i,k)
          enddo
          enddo
       endif
