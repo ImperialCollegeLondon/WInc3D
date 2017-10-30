@@ -1,0 +1,145 @@
+#!/usr/bin/env python
+"""
+Script for proper orthogonal decompisition based on singular value decomposition of
+the 
+Author : Georgios (Yorgos) Deskos 2017
+"""
+import math
+import argparse
+import csv
+import f90nml
+import numpy as np
+from scipy import interpolate
+import matplotlib.pyplot as plt
+
+def test_orthogonality(num_modes_trunc,num_points,spatial_modes_trunc,cell_volume,tol):
+	print '\n   Testing orthogonality of POD spatial modes ...'
+	ortho_POD = np.array(np.zeros((num_modes_trunc,num_modes_trunc), dtype=np.complex64))
+	
+        ortho_POD[:,:] = np.dot(spatial_modes_trunc.T,spatial_modes_trunc)
+
+	print ortho_POD
+	num_ortho_modes = num_modes_trunc
+	for i in range(0,num_modes_trunc):
+		j = num_modes_trunc - 1 - i
+		if (abs(ortho_POD[j,j]-1.0)>tol):
+			num_ortho_modes = j
+
+	return num_ortho_modes
+
+# ====================================
+# Parser Arguments
+# ====================================
+parser = argparse.ArgumentParser(description="Script to extract wake statistics from *.dat files")
+parser.add_argument("-v","--verbose",action="store_true",help="Print location")
+parser.add_argument("-p","--plot",action="store_true",help="Plots the wake profiles")
+parser.add_argument("-w","--write",action="store_true",help="Write results in a .csv file")
+parser.add_argument("PATH", type=str, help="path to where the umean, vmean etc. files are (should end with a / )")
+parser.add_argument("FILENAME", type=str, help="Filename, should end with .pprc")
+
+args = parser.parse_args()
+path = args.PATH
+name = args.FILENAME
+
+# Read the fortran nml (NAMELIST)
+nml=f90nml.read(name)
+
+with open(name) as nml_file:
+    nml = f90nml.read(nml_file)
+
+nx=nml['PostProcess']['nx']
+ny=nml['PostProcess']['ny']
+nz=nml['PostProcess']['nz']
+xlx=nml['PostProcess']['xlx']
+yly=nml['PostProcess']['yly']
+zlz=nml['PostProcess']['zlz']
+Snap1=nml['PostProcess']['file1']
+SnapN=nml['PostProcess']['filen']
+
+Snaps=SnapN+1-Snap1
+# This is not valid for always
+nxd=nx-1
+nyd=ny-1
+nzd=nz-1
+
+dx=xlx/nxd
+dy=yly/nyd
+dz=zlz/nzd
+
+DOFs=nx*ny*nz #Number of degrees of freedom
+
+U=[];
+V=[];
+W=[];
+
+print " --------------------------------------------"
+print " Py4Incompact3d POD routine initiated   "
+print " The number of degrees of freedom are:", DOFs
+print " Number of snapshots available:       ", Snaps
+print " "
+print "Reading the files ..."
+for i in range(Snap1,SnapN+1):
+    ufile=open(path+"ux"+str(i).zfill(4),"rb")
+    u=np.fromfile(ufile,dtype=np.float64)
+    U.append(u[:])
+    vfile=open(path+"uy"+str(i).zfill(4),"rb")
+    v=np.fromfile(ufile,dtype=np.float64)
+    V.append(u[:])
+    wfile=open(path+"uz"+str(i).zfill(4),"rb")
+    w=np.fromfile(ufile,dtype=np.float64)
+    W.append(u[:])
+    print "Reading snapshot ... ", i , "completed"
+
+print "Forming the POD matrix"
+U=np.transpose(U)
+V=np.transpose(V)
+W=np.transpose(W)
+
+#UPOD=np.concatenate((U,V,W))
+
+print 'Calculating the correlation matrix ...'
+C=np.zeros((Snaps,Snaps))
+C[:,:] = np.dot(U[:,0:Snaps].T, U[:,0:Snaps])/Snaps
+
+print 'Solving eigenvalue problem ...'
+energy = np.array(np.zeros((Snaps), dtype=np.complex64))
+temporal_modes = np.array(np.zeros((Snaps,Snaps), dtype=np.complex64))
+energy, temporal_modes = np.linalg.eig(C)
+
+num_valid_modes = 0
+num_modes_trunc = -1
+tol_CN = 1.0e-15
+tol_ortho = 1.0e-15
+
+while ( (energy[num_valid_modes].real/energy[0].real>pow(tol_CN,2.0)) and (num_valid_modes<Snaps-1) \
+		and(energy[num_valid_modes].real>0.0) ):
+	num_valid_modes += 1
+if ( (energy[num_valid_modes].real/energy[0].real > pow(tol_CN,2.0)) and (energy[num_valid_modes].real > 0.0) ):
+	num_valid_modes += 1
+print 'Number of valid POD modes with positive energies = ', num_valid_modes
+if ( (num_modes_trunc < 0) or (num_modes_trunc > num_valid_modes) ):
+	num_modes_trunc = num_valid_modes
+
+print 'Calculating truncated spatial modes ...'
+
+energy_trunc_inv = np.array(np.zeros((num_modes_trunc,num_modes_trunc), dtype=np.float64))
+energy_trunc_inv = np.diag(np.ones(num_modes_trunc)/energy[0:num_modes_trunc].real,0)
+spatial_modes_trunc = np.array(np.zeros((DOFs,num_modes_trunc), dtype=np.float64))
+spatial_modes_trunc = np.dot( np.dot(U[:,0:Snaps], temporal_modes[:,0:num_modes_trunc].real), energy_trunc_inv) / Snaps
+
+print 'Testing the orthogonality of the modes ...'
+
+volume=dx*dy*dz
+num_ortho_modes=test_orthogonality(num_modes_trunc,DOFs,spatial_modes_trunc,volume,tol_ortho)
+    
+if (num_ortho_modes<num_modes_trunc):
+    num_modes_trunc = num_ortho_modes
+    del energy_trunc_inv
+    energy_trunc_inv = np.array(np.zeros((num_modes_trunc,num_modes_trunc), dtype=np.float64))
+    energy_trunc_inv = np.diag(np.ones(num_modes_trunc)/energy[0:num_modes_trunc].real,0)
+    del spatial_modes_trunc
+    spatial_modes_trunc = np.array(np.zeros((DOFs,num_modes_trunc), dtype=np.float64))
+    spatial_modes_trunc = np.dot( np.dot(U[:,0:Snaps], temporal_modes[:,0:num_modes_trunc].real),				   energy_trunc_inv) / Snaps
+
+print ' Number of POD modes used to truncate the DMD eigenvalue problem = ', num_modes_trunc 
+
