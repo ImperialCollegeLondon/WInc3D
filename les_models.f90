@@ -83,7 +83,6 @@ USE param
 USE variables
 USE decomp_2d
 
-
 implicit none
 
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux1,uy1,uz1
@@ -192,6 +191,7 @@ enddo
 enddo
 enddo
 call transpose_y_to_x(nut2,nut1)
+
 end subroutine smag
 
 !************************************************************

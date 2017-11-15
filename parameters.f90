@@ -56,7 +56,7 @@ NAMELIST/FileParam/ilit,isave,imodulo
 NAMELIST/IBMParam/ivirt,ibmshape,cex,cey,cez,ra
 NAMELIST/ALMParam/ialm,NTurbines,TurbinesPath,NActuatorlines,ActuatorlinesPath,eps_factor
 NAMELIST/StatParam/spinup_time,iprobe,Probelistfile,nsampling 
-NAMELIST/ABLParam/iabl,z_zero,k_roughness,PsiM,ustar 
+NAMELIST/ABLParam/iabl,z_zero,k_roughness,PsiM,ustar,IPressureGradient 
 #ifdef DOUBLE_PREC 
 pi=dacos(-1.d0) 
 #else
@@ -96,6 +96,7 @@ eps_factor=2.0
 rxxnu=3.0
 nSmag=1.0
 SmagWallDamp=0
+IPressureGradient=0
 
 ! READ PARAMETERS FROM FILE
 open(10,file=InputFN) 

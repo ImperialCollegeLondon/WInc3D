@@ -78,7 +78,7 @@ real(mytype),dimension(xsize(2)) :: tmp1, phiPlaneAve !Horizontally-averaged pot
 
 !ABL boundary conditions
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: tablx1, tably1, tablz1
-real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: tfluxx1,tfluxy1,tfluxz1
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: wallfluxx1,wallfluxy1,wallfluxz1
 integer, dimension(2) :: dims, dummy_coords
 logical, dimension(2) :: dummy_periods
 
@@ -406,11 +406,11 @@ else
     if(nrank==0) then
     write(*,*) 'Dont know what to do. This LES model is not defined'
     write(*,*) 'Choose between : 0--> DNS'
-    write(*,*) '               : 1--> Implicit LES: SVV-like'
-    write(*,*) '               : 2--> Explicit LES: Simple Smagorinsky'
-    write(*,*) '               : 3--> Explicit LES: Wall-Adaptive LES'
-    write(*,*) '               : 4--> Explicit LES: scale-invariant dynamic smagorinsky model'
-    write(*,*) '               : 5--> Explicit LES: scale-dependent dynamic smagorinsky model'
+    write(*,*) '               : 1--> Implicit SVV'
+    write(*,*) '               : 2--> standard Smagorinsky'
+    write(*,*) '               : 3--> Wall-Adaptive LES'
+    write(*,*) '               : 4--> Scale-invariant dynamic smagorinsky model'
+    write(*,*) '               : 5--> Scale-dependent dynamic smagorinsky model'
     endif
     stop
 endif
@@ -440,10 +440,21 @@ if (ibuoyancy==1) then
     enddo
 endif
 
+if (IPressureGradient==1) then
+    ta1(:,:,:)=ta1(:,:,:)+ustar**2./yly ! Apply a pressure gradient in the stream-wise direction
+endif
+
 ! Coriolis Effects
 if (icoriolis==1) then    
     ta1(:,:,:)=ta1(:,:,:)+CoriolisFreq*uy1(:,:,:) ! This is the stream-wise direction
     tc1(:,:,:)=tc1(:,:,:)-CoriolisFreq*uz1(:,:,:) ! This is not the vertical direction but the lateral horizontal
+endif
+
+if (iabl==1) then
+    call wall_shear_flux(ux1,uy1,uz1,wallfluxx1,wallfluxy1,wallfluxz1)
+    ta1(:,:,:)=ta1(:,:,:)+wallfluxx1(:,:,:)
+    tb1(:,:,:)=tb1(:,:,:)+wallfluxy1(:,:,:)
+    tc1(:,:,:)=tc1(:,:,:)+wallfluxz1(:,:,:)
 endif
 
 ! Turbine through an Actuator Line Model

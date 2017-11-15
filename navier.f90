@@ -240,7 +240,7 @@ if (iin.eq.1) then
       ! Making noise to go to zero at the boundaries
       if (istret.eq.0) y=(j+xstart(2)-1-1)*dy-yly/2.
       if (istret.ne.0) y=yp(j+xstart(2)-1)-yly/2.
-      um=exp(-16*y*y)
+      um=exp(-16*y*y) ! This creates a low-level jet when applied at the ABL
       ! Not tested yet
       bxx1(j,k)=bxx1(j,k)+bxo(j,k)*noise1*um
       bxy1(j,k)=bxy1(j,k)+byo(j,k)*noise1*um
@@ -445,7 +445,7 @@ if (itype.eq.8) then
     if (iabl.ne.1) then
       print *,'NOT POSSIBLE: switch on the iabl flag'
       stop
-   endif
+    endif
    do k=1,xsize(3)
    do j=1,xsize(2)
       if (istret.eq.0) y=(j+xstart(2)-1-1)*dy
@@ -526,9 +526,9 @@ call random_seed(put = code+63946*nrank*(/ (i - 1, i = 1, ii) /)) !
    do k=1,xsize(3)
    do j=1,xsize(2)
       z=(k+xstart(3)-1-1)*dz-zlz/2.
-      if (istret.eq.0) y=(j+xstart(2)-1-1)*dy-yly/2.
-      if (istret.ne.0) y=yp(j+xstart(2)-1)-yly/2.
-      um=exp(-16*y*y)
+      if (istret.eq.0) y=(j+xstart(2)-1-1)*dy
+      if (istret.ne.0) y=yp(j+xstart(2)-1)
+      um=(u1+u2)*exp(-y*y/1000.) ! This creates a low-level jet when applied at the ABL
       do i=1,xsize(1)
          ux1(i,j,k)=um*ux1(i,j,k)
          uy1(i,j,k)=um*uy1(i,j,k)
@@ -954,7 +954,7 @@ USE MPI
 
 implicit none
 
-real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux,uy,uz,phi
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux,uy,uz,phi,nut
 real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: gx
 integer :: i,j,k,code
 real(mytype) :: ut,ut1,utt,ut11, uty,uty1, delta
@@ -1274,12 +1274,11 @@ if (itype.eq.8) then
    endif
 
    if (dims(1)==1) then
-     call abl_boundary_stresses(ux,uy,uz,taux,tauz,delta) 
       do k=1,xsize(3)
       do i=1,xsize(1)
-         ux(i,1,k)=ux(i,2,k)-2.0*delta*taux(i,k)+dpdxy1(i,k)
-         uy(i,1,k)=0.
-         uz(i,1,k)=uz(i,2,k)-2.0*delta*tauz(i,k)+dpdzy1(i,k)
+            ux(i,1,k)=0.+dpdxy1(i,k)
+            uy(i,1,k)=0.
+            uz(i,1,k)=0.+dpdxy1(i,k)
       enddo
       enddo
       do k=1,xsize(3)
@@ -1294,10 +1293,9 @@ if (itype.eq.8) then
       if (xstart(2)==1) then
          do k=1,xsize(3)
          do i=1,xsize(1) 
-            call abl_boundary_stresses(ux,uy,uz,taux,tauz,delta) 
-            ux(i,1,k)=ux(i,2,k)-2.0*delta*taux(i,k)+dpdxy1(i,k)
+            ux(i,1,k)=0.+dpdxy1(i,k)
             uy(i,1,k)=0.
-            uz(i,1,k)=uz(i,2,k)-2.0*delta*tauz(i,k)+dpdxy1(i,k)
+            uz(i,1,k)=0.+dpdxy1(i,k)
          enddo
          enddo
       endif

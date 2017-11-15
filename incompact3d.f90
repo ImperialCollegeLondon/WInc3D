@@ -210,6 +210,7 @@ do itime=ifirst,ilast
       ti2,tj2,di2,ux3,uy3,uz3,phi3,ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3,nut1,ucx1,&
       ucy1,ucz1,tmean,sgszmean,sgsxmean,sgsymean)
 
+      
       ! Passive scalar
       if (iscalar==1) then
          call scalar(ux1,uy1,uz1,phi1,phis1,phiss1,di1,tg1,th1,ti1,td1,&
@@ -218,7 +219,7 @@ do itime=ifirst,ilast
 
       !X PENCILS
       call intt (ux1,uy1,uz1,gx1,gy1,gz1,hx1,hy1,hz1,ta1,tb1,tc1) 
-
+      
       call pre_correc(ux1,uy1,uz1,phi1,ta1)
       
       if (ivirt==1) then !solid body old school
