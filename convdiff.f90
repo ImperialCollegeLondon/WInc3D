@@ -383,7 +383,6 @@ if(jLES==0.or.jLES==1) then ! DNS or implicit LES
     tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)
     tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)
 elseif (jLES==2) then ! Classic Smagorisnky Model
-    if (nrank==0) write(*,*) maxval(sgsx1), maxval(sgsy1), maxval(sgsz1)
     ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)+sgsx1(:,:,:)
     tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)+sgsy1(:,:,:)
     tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)+sgsz1(:,:,:)

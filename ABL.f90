@@ -6,6 +6,7 @@ subroutine wall_shear_flux(ux,uy,uz,wallfluxx,wallfluxy,wallfluxz)
 USE param
 USE variables
 USE decomp_2d
+USE MPI
 
 implicit none
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux,uy,uz
@@ -43,19 +44,19 @@ tauwallxy2=0.; tauwallzy2=0.;
     uz_HAve_local=uz_HAve_local/xsize(3)/xsize(1)
     S_HAve_local= S_HAve_local/xsize(3)/xsize(1)
     
-    !call MPI_ALLREDUCE(ux_HAve_local,ux_HAve,1,real_type,MPI_SUM,MPI_COMM_WORLD,code)
-    !call MPI_ALLREDUCE(uz_HAve_local,uz_HAve,1,real_type,MPI_SUM,MPI_COMM_WORLD,code)
-    !call MPI_ALLREDUCE(S_HAve_local,S_HAve,1,real_type,MPI_SUM,MPI_COMM_WORLD,code)
+    call MPI_ALLREDUCE(ux_HAve_local,ux_HAve,1,real_type,MPI_SUM,MPI_COMM_WORLD,code)
+    call MPI_ALLREDUCE(uz_HAve_local,uz_HAve,1,real_type,MPI_SUM,MPI_COMM_WORLD,code)
+    call MPI_ALLREDUCE(S_HAve_local,S_HAve,1,real_type,MPI_SUM,MPI_COMM_WORLD,code)
     
-    ux_HAve=ux_HAve_local!/p_col
-    uz_HAve=uz_HAve_local!/p_col
-     S_HAve= S_HAve_local!/p_col
-    
+    ux_HAve=ux_HAve_local/p_col
+    uz_HAve=uz_HAve_local/p_col
+     S_HAve= S_HAve_local/p_col
+   
     if (istret.ne.0) delta=(yp(2)-yp(1))/2.0
     if (istret.eq.0) delta=dy/2.0   
     
     ! Compute the friction velocity u_shear
-    u_shear=k_roughness*sqrt(ux_HAve**2+uz_HAve**2)/log(delta/z_zero)
+    u_shear=k_roughness*sqrt(ux_HAve**2.+uz_HAve**2.)/log(delta/z_zero)
     
     !Compute the shear stresses -- only on the wall
 
@@ -100,8 +101,9 @@ call transpose_y_to_x(gxy2,gxy1)
 call transpose_y_to_x(gzy2,gzy1)
 
 wallfluxx(:,:,:) = -gxy1(:,:,:)
-wallfluxy(:,:,:) = -gyx1(:,:,:)-gyz1(:,:,:)
+wallfluxy(:,:,:) = -(gyx1(:,:,:)+gyz1(:,:,:))
 wallfluxz(:,:,:) = -gzy1(:,:,:)
-
+if (nrank==0) write(*,*)  'Maximum wallflux for x, y and z', maxval(wallfluxx), maxval(wallfluxy), maxval(wallfluxz)
+if (nrank==0) write(*,*)  'Minimum wallflux for x, y and z', minval(wallfluxx), minval(wallfluxy), minval(wallfluxz)
 return
 end subroutine wall_shear_flux

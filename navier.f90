@@ -201,11 +201,11 @@ if (itype==2) then !channel flow
    call transpose_y_to_x(gx,ux)
 endif
 
-!if (itype==8) then ! Atmospheric Boundary Layer
-!   call transpose_x_to_y(ux,gx)
-!   call abl(gx)
-!   call transpose_y_to_x(gx,ux)
-!endif
+if (itype==8) then ! Atmospheric Boundary Layer
+   call transpose_x_to_y(ux,gx)
+   call abl(gx)
+   call transpose_y_to_x(gx,ux)
+endif
 
 return
 end subroutine corgp
@@ -451,7 +451,6 @@ if (itype.eq.8) then
       if (istret.eq.0) y=(j+xstart(2)-1-1)*dy
       if (istret.ne.0) y=yp(j)
       do i=1,xsize(1)
-      !ux1(i,j,k)=ustar/k_roughness*log((y+dy/2.0)/z_zero)
       bxx1(j,k)=ustar/k_roughness*log((y+dy/2.0)/z_zero) 
       bxy1(j,k)=0.
       bxz1(i,k)=0.
@@ -528,7 +527,7 @@ call random_seed(put = code+63946*nrank*(/ (i - 1, i = 1, ii) /)) !
       z=(k+xstart(3)-1-1)*dz-zlz/2.
       if (istret.eq.0) y=(j+xstart(2)-1-1)*dy
       if (istret.ne.0) y=yp(j+xstart(2)-1)
-      um=(u1+u2)*exp(-y*y/1000.) ! This creates a low-level jet when applied at the ABL
+      um=(u1+u2)*exp(-16*y*y) ! This creates a low-level jet when applied at the ABL
       do i=1,xsize(1)
          ux1(i,j,k)=um*ux1(i,j,k)
          uy1(i,j,k)=um*uy1(i,j,k)

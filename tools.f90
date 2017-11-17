@@ -969,7 +969,7 @@ if (nrank==0) print *,nrank,'UT',ut4,can
 
 do k=1,ysize(3)
 do i=1,ysize(1)
-do j=1,ny-1
+do j=1,ny
    ux(i,j,k)=-can+ux(i,j,k) ! Force the periodic boundary conditions
 enddo
 enddo

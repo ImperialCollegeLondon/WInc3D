@@ -1,14 +1,14 @@
 &FlowParam
-    xlx = 3000            ! Lx (Size of the box in x-direction)
-    yly = 1000            ! Ly (Size of the box in y-direction) 
-    zlz = 3000            ! Lz (Size of the box in z-direction) 
-    re  = 60000          ! nu=1/re (Kinematic Viscosity)
+    xlx = 6.28            ! Lx (Size of the box in x-direction)
+    yly = 1.              ! Ly (Size of the box in y-direction) 
+    zlz = 6.28            ! Lz (Size of the box in z-direction) 
+    re  = 4000           ! nu=1/re (Kinematic Viscosity)
     sc  = 1.              ! Schmidt number (if passive scalar)
-    u1  = 10.              ! u1 (max velocity) (for inflow condition)
-    u2  = 10.              ! u2 (min velocity) (for inflow condition) 
-    noise  = 0.125        ! Turbulence intensity (1=100%) !! Initial condition
+    u1  = 1.              ! u1 (max velocity) (for inflow condition)
+    u2  = 1.              ! u2 (min velocity) (for inflow condition) 
+    noise  = 0.1          ! Turbulence intensity (1=100%) !! Initial condition
     noise1 = 0.0          ! Turbulence intensity (1=100%) !! Inflow condition
-    dt = 0.018            ! Time step
+    dt = 0.001           ! Time step
     
     ! Additional effects  
     ibuoyancy=0           ! Buoyancy flag (0: No buoyanancy 1: Buoyancy)
@@ -27,7 +27,7 @@
     iin = 1               ! Inflow condition (1: classic, 2: turbinit)
     ifirst = 1	  ! First iteration   
     ilast = 20000        ! Last iteration 
-    nscheme = 1           ! Temporal scheme (1:AB2, 2: RK3, 3:RK4, 4:AB3)
+    nscheme = 2           ! Temporal scheme (1:AB2, 2: RK3, 3:RK4, 4:AB3)
     istret = 0            ! y mesh refinement (0:no, 1:center, 2:both sides, 3:bottom)
     beta = 0.259065151    ! Refinement parameter (beta) 
     iskew = 1             ! (0:urotu, 1:skew, for the convective terms)
@@ -53,7 +53,7 @@
 &FileParam
     ilit=0                ! Read initial flow field ?
     isave=1000     	  ! Frequency for writing backup file  
-    imodulo=100           ! Frequency for visualization 
+    imodulo=10           ! Frequency for visualization 
 /End
 
 &IBMParam
@@ -74,9 +74,9 @@ TurbinesPath='Turbine.turb'
 
 &ABLParam
 iabl=1                    ! iabl (1: atmospheric boundary layer modelling by applying a shear stress)
-z_zero=0.1                ! Roughness length
+z_zero=0.0001             ! Roughness length
 k_roughness=0.4           ! von Karman constant (usually taken to be 0.4)
-ustar=.45	          ! friction velocity
+ustar=.05	          ! friction velocity
 PsiM=0                    ! stability correction for momentum (taken equal to 0 for neutral stability)
 IPressureGradient=1	  ! if 1 then apply a pressure gradient
 /End
