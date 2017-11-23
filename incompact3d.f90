@@ -249,10 +249,6 @@ do itime=ifirst,ilast
            td2,te2,tf2,di2,ta2,tb2,tc2,ta3,tb3,tc3,di3,td3,te3,tf3,dv3,&
            nxmsize,nymsize,nzmsize,ph1,ph3,ph4,2)
 
-!      if (nrank==0) ux1(12,64,:)=2.
-!      if (nrank==1) ux1(12,64,:)=-1.
-     !if (nrank==0) ux(12,64,42)=1.5
-     !print *,nrank,xstart(2),xend(2),xstart(3),xend(3)
 
       call test_speed_min_max(ux1,uy1,uz1)
       if (iscalar==1) call test_scalar_min_max(phi1)

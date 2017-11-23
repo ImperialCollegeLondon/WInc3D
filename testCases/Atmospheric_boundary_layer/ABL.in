@@ -2,13 +2,13 @@
     xlx = 6.28            ! Lx (Size of the box in x-direction)
     yly = 1.              ! Ly (Size of the box in y-direction) 
     zlz = 6.28            ! Lz (Size of the box in z-direction) 
-    re  = 4000           ! nu=1/re (Kinematic Viscosity)
+    re  = 10000           ! nu=1/re (Kinematic Viscosity)
     sc  = 1.              ! Schmidt number (if passive scalar)
     u1  = 1.              ! u1 (max velocity) (for inflow condition)
     u2  = 1.              ! u2 (min velocity) (for inflow condition) 
-    noise  = 0.1          ! Turbulence intensity (1=100%) !! Initial condition
+    noise  = 0.0          ! Turbulence intensity (1=100%) !! Initial condition
     noise1 = 0.0          ! Turbulence intensity (1=100%) !! Inflow condition
-    dt = 0.001           ! Time step
+    dt = 0.0002            ! Time step
     
     ! Additional effects  
     ibuoyancy=0           ! Buoyancy flag (0: No buoyanancy 1: Buoyancy)
@@ -25,9 +25,9 @@
     nclz = 0              ! nclz (BC)
     itype = 8             ! Type of flow  
     iin = 1               ! Inflow condition (1: classic, 2: turbinit)
-    ifirst = 1	  ! First iteration   
-    ilast = 20000        ! Last iteration 
-    nscheme = 2           ! Temporal scheme (1:AB2, 2: RK3, 3:RK4, 4:AB3)
+    ifirst = 1	          ! First iteration   
+    ilast = 40000         ! Last iteration 
+    nscheme = 1           ! Temporal scheme (1:AB2, 2: RK3, 3:RK4, 4:AB3)
     istret = 0            ! y mesh refinement (0:no, 1:center, 2:both sides, 3:bottom)
     beta = 0.259065151    ! Refinement parameter (beta) 
     iskew = 1             ! (0:urotu, 1:skew, for the convective terms)
@@ -35,10 +35,10 @@
     
     ! TURBULENCE MODELLING
     jles=2                ! LES Model (0:DNS, 1: iLES 2:Smag, 3:WALE, 4: scale-invariant dyn. Smag, 5: scale-dependent dyn. Smag )
-    FSGS=1.0              ! Filter Size/ Grid Size for explicit LES only
-    smagcst=0.2           ! Smagorinsky constant
+    FSGS=2.0              ! Filter Size/ Grid Size for explicit LES only
+    smagcst=0.1           ! Smagorinsky constant
     SmagWallDamp=1        ! Smagorinsky damping function for ABL if 1
-    nSmag=1               ! Smagorinksy damping coefficient 
+    nSmag=2               ! Smagorinksy damping coefficient 
     walecst=0.5           ! WALES Model Coefficient
     rxxnu=100         	  ! Implicit LES factor 
 /End
@@ -53,7 +53,7 @@
 &FileParam
     ilit=0                ! Read initial flow field ?
     isave=1000     	  ! Frequency for writing backup file  
-    imodulo=10           ! Frequency for visualization 
+    imodulo=200           ! Frequency for visualization 
 /End
 
 &IBMParam
@@ -74,10 +74,10 @@ TurbinesPath='Turbine.turb'
 
 &ABLParam
 iabl=1                    ! iabl (1: atmospheric boundary layer modelling by applying a shear stress)
-z_zero=0.0001             ! Roughness length
-k_roughness=0.4           ! von Karman constant (usually taken to be 0.4)
-ustar=.05	          ! friction velocity
+z_zero=0.0001            ! Roughness length
+k_roughness=0.41          ! von Karman constant (usually taken to be equal to 0.41)
+ustar=0.04	          ! friction velocity
 PsiM=0                    ! stability correction for momentum (taken equal to 0 for neutral stability)
-IPressureGradient=1	  ! if 1 then apply a pressure gradient
+IPressureGradient=0	  ! if 1 then apply a pressure gradient
 /End
 

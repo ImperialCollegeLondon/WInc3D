@@ -201,7 +201,7 @@ if (itype==2) then !channel flow
    call transpose_y_to_x(gx,ux)
 endif
 
-if (itype==8) then ! Atmospheric Boundary Layer
+if (itype==8) then ! atmospheric Boundary Layer
    call transpose_x_to_y(ux,gx)
    call abl(gx)
    call transpose_y_to_x(gx,ux)

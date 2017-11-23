@@ -8,9 +8,9 @@
     nclx=0
     ncly=1
     nclz=0
-    nfiles=400
+    nfiles=1000
     file1=1
-    filen=400
+    filen=1000
     istret=0
     ialm=0
     jles=2
