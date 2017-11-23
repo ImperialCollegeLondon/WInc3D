@@ -57,7 +57,7 @@ tauwallxy2=0.; tauwallzy2=0.;
     
     ! Compute the friction velocity u_shear
     u_shear=k_roughness*sqrt(ux_HAve**2.+uz_HAve**2.)/log(delta/z_zero)
-    
+    if (nrank==0) write(*,*) "Friction velocity ... ", u_shear 
     !Compute the shear stresses -- only on the wall
 
     if (xstart(2)==1) then

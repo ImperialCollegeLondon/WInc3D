@@ -106,7 +106,7 @@ gxz2,gyz2,gzz2
 real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: szz3,syz3
 real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: gxz3,gyz3,gzz3
 
-real(mytype) :: smag_constant, y
+real(mytype) :: smag_constant, y, yplus, delta, length
 
 integer :: i,j,k
 
@@ -177,16 +177,24 @@ call transpose_x_to_y(srt_smag,srt_smag2)
 do k=1,ysize(3)
 do j=1,ysize(2)
 do i=1,ysize(1)
-! Adapt the Smagorinsky constant near the wall
-if (istret.eq.0) y=(j+ystart(2)-1-1)*dy
-if (istret.ne.0) y=yp(j+ystart(2)-1)
 
-if(iabl.eq.1.and.SmagWallDamp.eq.1) then
-smag_constant=(smagcst**(-nSmag)+(k_roughness*(y/del(j)+z_zero/del(j)))**(-nSmag))**(-1./nSmag)
+if(SmagWallDamp.eq.1) then
+    ! Mason & Thomson damping coefficients
+    if (istret.eq.0) y=(j+ystart(2)-1-1)*dy
+    if (istret.ne.0) y=yp(j+ystart(2)-1)
+    smag_constant=(smagcst**(-nSmag)+(k_roughness*(y/del(j)+z_zero/del(j)))**(-nSmag))**(-1./nSmag)
+    length=smagcst*del(j)
+else if(SmagWallDamp.eq.2) then
+    ! van Driest damping coefficient 
+    if (istret.eq.0) y=(j+ystart(2)-1-1)*dy-yly/2.
+    if (istret.ne.0) y=yp(j+ystart(2)-1)-yly/2.
+    delta=u_shear/xnu
+    yplus=y/delta
+    length=smagcst*del(j)*sqrt((1.-exp(yplus/25.))**3.)
 else
-smag_constant=smagcst
+    length=smagcst*del(j)
 endif
-nut2(i,j,k) = (smag_constant*del(j))**(2.0)*sqrt(2.*srt_smag2(i,j,k))
+    nut2(i,j,k) = length**2.0*sqrt(2.*srt_smag2(i,j,k))
 enddo
 enddo
 enddo
