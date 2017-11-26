@@ -79,6 +79,8 @@ real(mytype),dimension(xsize(2)) :: tmp1, phiPlaneAve !Horizontally-averaged pot
 !ABL boundary conditions
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: tablx1, tably1, tablz1
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: wallfluxx1,wallfluxy1,wallfluxz1
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: tauwallxy1, tauwallzy1 
+
 integer, dimension(2) :: dims, dummy_coords
 logical, dimension(2) :: dummy_periods
 
@@ -450,7 +452,7 @@ if (icoriolis==1) then
 endif
 
 if (iabl==1) then
-    call wall_shear_flux(ux1,uy1,uz1,wallfluxx1,wallfluxy1,wallfluxz1)
+    call wall_shear_flux(ux1,uy1,uz1,tauwallxy1,tauwallzy1,wallfluxx1,wallfluxy1,wallfluxz1)
     ta1(:,:,:)=ta1(:,:,:)+wallfluxx1(:,:,:)
     tb1(:,:,:)=tb1(:,:,:)+wallfluxy1(:,:,:)
     tc1(:,:,:)=tc1(:,:,:)+wallfluxz1(:,:,:)

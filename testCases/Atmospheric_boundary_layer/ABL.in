@@ -2,7 +2,7 @@
     xlx = 6.28            ! Lx (Size of the box in x-direction)
     yly = 1.              ! Ly (Size of the box in y-direction) 
     zlz = 6.28            ! Lz (Size of the box in z-direction) 
-    re  = 5600           ! nu=1/re (Kinematic Viscosity)
+    re  = 60000           ! nu=1/re (Kinematic Viscosity)
     sc  = 1.              ! Schmidt number (if passive scalar)
     u1  = 1.              ! u1 (max velocity) (for inflow condition)
     u2  = 1.              ! u2 (min velocity) (for inflow condition) 
@@ -21,10 +21,10 @@
 ! Numerical Configuration
 &NumConfig
     nclx = 0              ! nclx (BC)
-    ncly = 1              ! ncly (BC) 
+    ncly = 2              ! ncly (BC) 
     nclz = 0              ! nclz (BC)
     itype = 8             ! Type of flow  
-    iin = 2               ! Inflow condition (1: classic, 2: turbinit)
+    iin = 1               ! Inflow condition (1: classic, 2: turbinit)
     ifirst = 1	          ! First iteration   
     ilast = 40000         ! Last iteration 
     nscheme = 1           ! Temporal scheme (1:AB2, 2: RK3, 3:RK4, 4:AB3)
@@ -35,16 +35,16 @@
     
     ! TURBULENCE MODELLING
     jles=2                ! LES Model (0:DNS, 1: iLES 2:Smag, 3:WALE, 4: scale-invariant dyn. Smag, 5: scale-dependent dyn. Smag )
-    FSGS=2.0              ! Filter Size/ Grid Size for explicit LES only
+    FSGS=1.0              ! Filter Size/ Grid Size for explicit LES only
     smagcst=0.1           ! Smagorinsky constant
     SmagWallDamp=1        ! Smagorinsky damping function for ABL if 1
     nSmag=2               ! Smagorinksy damping coefficient 
     walecst=0.5           ! WALES Model Coefficient
-    rxxnu=50         	  ! Implicit LES factor 
+    rxxnu=66        	  ! Implicit LES factor 
 /End
 
 &StatParam
-    spinup_time=10.0	  !
+    spinup_time=50.0	  !
     iprobe = 0        !
     Probelistfile='WakeList.prob'
     nsampling=5
@@ -74,10 +74,10 @@ TurbinesPath='Turbine.turb'
 
 &ABLParam
 iabl=1                    ! iabl (1: atmospheric boundary layer modelling by applying a shear stress)
-z_zero=0.0001            ! Roughness length
+z_zero=0.0001             ! Roughness length
 k_roughness=0.41          ! von Karman constant (usually taken to be equal to 0.41)
-ustar=0.04	          ! friction velocity
+ustar=0.03	              ! friction velocity
 PsiM=0                    ! stability correction for momentum (taken equal to 0 for neutral stability)
-IPressureGradient=0	  ! if 1 then apply a pressure gradient
+IPressureGradient=0	      ! if 1 then apply a pressure gradient
 /End
 

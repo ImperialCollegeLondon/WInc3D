@@ -1,7 +1,7 @@
 !==========================================================
 ! Subroutines for computing the SFS from the ABL
 !==========================================================
-subroutine wall_shear_flux(ux,uy,uz,wallfluxx,wallfluxy,wallfluxz)
+subroutine wall_shear_flux(ux,uy,uz,tauwallxy1,tauwallzy1,wallfluxx,wallfluxy,wallfluxz)
 
 USE param
 USE variables
