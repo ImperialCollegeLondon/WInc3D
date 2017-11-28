@@ -183,7 +183,7 @@ if(SmagWallDamp.eq.1) then
     if (istret.eq.0) y=(j+ystart(2)-1-1)*dy
     if (istret.ne.0) y=yp(j+ystart(2)-1)
     smag_constant=(smagcst**(-nSmag)+(k_roughness*(y/del(j)+z_zero/del(j)))**(-nSmag))**(-1./nSmag)
-    length=smagcst*del(j)
+    length=smag_constant*del(j)
 else if(SmagWallDamp.eq.2) then
     ! van Driest damping coefficient 
     if (istret.eq.0) y=(j+ystart(2)-1-1)*dy-yly/2.
@@ -840,11 +840,10 @@ enddo
 tmpa1(j)=tmpa1(j)/xsize(1)/xsize(3)
 enddo
 
+endif
 call MPI_ALLREDUCE(tmpa1,dsmagHP1,xsize(2),MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,code)
 
 dsmagHP1(:) = dsmagHP1(:)/p_col
-
-endif
 
 !if (nrank==0) print*,"Cst = ",maxval(dsmagcst),minval(dsmagcst)
 !if (mod(itime,50)==0) print*,"Cst = ",maxval(dsmagcst),minval(dsmagcst)

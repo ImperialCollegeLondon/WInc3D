@@ -48,7 +48,7 @@ module variables
 !2-->every 2 mesh nodes
 !4-->every 4 mesh nodes
 !nvisu = size for visualization collection
-integer,parameter :: nx=128,ny=129,nz=128
+integer,parameter :: nx=64,ny=65,nz=64
 integer,parameter :: nstat=1,nvisu=1
 integer,parameter :: p_row=2,p_col=4
 integer,parameter :: nxm=nx,nym=ny-1,nzm=nz
@@ -153,7 +153,7 @@ use decomp_2d, only : mytype
   real(mytype) :: t,xxk1,xxk2, spinup_time
   real(mytype) :: smagcst, walecst,dys, FSGS, rxxnu
   real(mytype) :: eps_factor ! Smoothing factor 
-  real(mytype) :: TurbRadius,z_zero,k_roughness,PsiM,ustar,u_shear,IPressureGradient
+  real(mytype) :: TurbRadius,z_zero,k_roughness,PsiM,ustar,u_shear,IPressureGradient,Ug
   integer :: itr,itime
   character :: dirname*80
   character :: filesauve*80, filenoise*80, &

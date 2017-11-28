@@ -201,11 +201,12 @@ if (itype==2) then !channel flow
    call transpose_y_to_x(gx,ux)
 endif
 
-if (itype==8) then ! atmospheric Boundary Layer
-   call transpose_x_to_y(ux,gx)
-   call abl(gx)
-   call transpose_y_to_x(gx,ux)
-endif
+! No need for this one. A forcing term can do the same job !
+!if (itype==8) then ! atmospheric Boundary Layer
+!   call transpose_x_to_y(ux,gx)
+!   call abl(gx)
+!   call transpose_y_to_x(gx,ux)
+!endif
 
 return
 end subroutine corgp
@@ -523,10 +524,13 @@ call random_seed(put = code+63946*nrank*(/ (i - 1, i = 1, ii) /)) !
 !modulation of the random noise
    do k=1,xsize(3)
    do j=1,xsize(2)
-      z=(k+xstart(3)-1-1)*dz-zlz/2.
       if (istret.eq.0) y=(j+xstart(2)-1-1)*dy
       if (istret.ne.0) y=yp(j+xstart(2)-1)
-      um=(u1+u2)*exp(-16*y*y) ! This creates a low-level jet when applied at the ABL
+      if (y<5*dy) then
+      um=0.5*(u1+u2) ! This creates a low-level jet when applied at the ABL
+        else
+        um=0.
+    endif
       do i=1,xsize(1)
          ux1(i,j,k)=um*ux1(i,j,k)
          uy1(i,j,k)=um*uy1(i,j,k)
@@ -1355,9 +1359,11 @@ if (itype.eq.8) then
          do i=1,xsize(1) 
             dux=(ux(i,3,k)-ux(i,2,k))/delta2
             duz=(uz(i,3,k)-uz(i,2,k))/delta2
-            ux(i,1,k)=ux(i,2,k)-dux*delta1+dpdxy1(i,k)
+            !ux(i,1,k)=ux(i,2,k)-dux*delta1+dpdxy1(i,k)
+            !ux(i,1,k)=ux(i,2,k)+dpdxy1(i,k) ! In case a free-slip conditions is applied
             uy(i,1,k)=0.
-            uz(i,1,k)=uz(i,2,k)-duz*delta1+dpdxy1(i,k)
+            !uz(i,1,k)=uz(i,2,k)-duz*delta1+dpdxz1(i,k)
+            !uz(i,1,k)=uz(i,2,k)+dpdxz1(i,k) ! In case a free-slip condition is applied
          enddo
          enddo
       endif
@@ -1366,7 +1372,7 @@ if (itype.eq.8) then
          do k=1,xsize(3)
          do i=1,xsize(1)
             ux(i,xsize(2),k)=ux(i,xsize(2)-1,k)+dpdxyn(i,k)
-            uy(i,xsize(2),k)=uy(i,xsize(2)-1,k)
+            uy(i,xsize(2),k)=0.!uy(i,xsize(2)-1,k)
             uz(i,xsize(2),k)=uz(i,xsize(2)-1,k)+dpdzyn(i,k)
          enddo
          enddo
