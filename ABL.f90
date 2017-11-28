@@ -34,7 +34,7 @@ tauwallxy2=0.; tauwallzy2=0.;
     S_HAve_local=0.
     do k=1,xsize(3)
     do i=1,xsize(1)
-        ux_HAve_local=ux_HAve_local+0.5*(ux(i,1,k)+ux(i,2,k))
+        u++x_HAve_local=ux_HAve_local+0.5*(ux(i,1,k)+ux(i,2,k))
         uz_HAve_local=uz_HAve_local+0.5*(uz(i,1,k)+uz(i,2,k))
         S_HAve_local=S_HAve_local+sqrt((0.5*(ux(i,1,k)+ux(i,2,k)))**2.+ (0.5*(uz(i,1,k)+uz(i,2,k)))**2.) 
     enddo
@@ -63,9 +63,9 @@ tauwallxy2=0.; tauwallzy2=0.;
     if (xstart(2)==1) then
     do k=1,xsize(3)
     do i=1,xsize(1)
-    tauwallxy1(i,1,k)=-u_shear**2.0*(sqrt((0.5*(ux(i,1,k)+ux(i,2,k)))**2.+(0.5*(ux(i,1,k)+ux(i,2,k)))**2.)*ux_HAve+&
+    tauwallxy1(i,1,k)=-u_shear**2.0*(sqrt((0.5*(ux(i,1,k)+ux(i,2,k)))**2.+(0.5*(uz(i,1,k)+uz(i,2,k)))**2.)*ux_HAve+&
                              S_HAve*(0.5*(ux(i,1,k)+ux(i,2,k))-ux_HAve))/(S_Have*sqrt(ux_HAve**2.+uz_HAve**2.))
-    tauwallzy1(i,1,k)=-u_shear**2.0*(sqrt((0.5*(uz(i,1,k)+uz(i,2,k)))**2.+(0.5*(uz(i,1,k)+uz(i,2,k)))**2.)*uz_HAve+&
+    tauwallzy1(i,1,k)=-u_shear**2.0*(sqrt((0.5*(ux(i,1,k)+ux(i,2,k)))**2.+(0.5*(uz(i,1,k)+uz(i,2,k)))**2.)*uz_HAve+&
                              S_HAve*(0.5*(uz(i,1,k)+uz(i,2,k))-uz_HAve))/(S_Have*sqrt(ux_HAve**2.+uz_HAve**2.))
     enddo
     enddo

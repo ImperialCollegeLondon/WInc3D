@@ -4,13 +4,13 @@
     nz=64
     xlx = 6280           ! Lx (Size of the box in x-direction)
     yly = 1000            ! Ly (Size of the box in y-direction) 
-    zlz = 3140            ! Lz (Size of the box in z-direction) 
+    zlz = 6280            ! Lz (Size of the box in z-direction) 
     nclx=0
     ncly=2
     nclz=0
-    nfiles=500
+    nfiles=700
     file1=1
-    filen=500
+    filen=700
     istret=0
     ialm=0
     jles=2

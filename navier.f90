@@ -452,7 +452,7 @@ if (itype.eq.8) then
       if (istret.eq.0) y=(j+xstart(2)-1-1)*dy
       if (istret.ne.0) y=yp(j)
       do i=1,xsize(1)
-      bxx1(j,k)=ustar/k_roughness*log((y+dy/2.0)/z_zero) 
+      bxx1(j,k)=ustar/k_roughness*log((y+z_zero)/z_zero) 
       bxy1(j,k)=0.
       bxz1(i,k)=0.
       enddo
