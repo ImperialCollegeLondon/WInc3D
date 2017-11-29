@@ -34,7 +34,7 @@ tauwallxy2=0.; tauwallzy2=0.;
     S_HAve_local=0.
     do k=1,xsize(3)
     do i=1,xsize(1)
-        u++x_HAve_local=ux_HAve_local+0.5*(ux(i,1,k)+ux(i,2,k))
+        ux_HAve_local=ux_HAve_local+0.5*(ux(i,1,k)+ux(i,2,k))
         uz_HAve_local=uz_HAve_local+0.5*(uz(i,1,k)+uz(i,2,k))
         S_HAve_local=S_HAve_local+sqrt((0.5*(ux(i,1,k)+ux(i,2,k)))**2.+ (0.5*(uz(i,1,k)+uz(i,2,k)))**2.) 
     enddo

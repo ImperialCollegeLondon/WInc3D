@@ -1360,10 +1360,10 @@ if (itype.eq.8) then
             dux=(ux(i,3,k)-ux(i,2,k))/delta2
             duz=(uz(i,3,k)-uz(i,2,k))/delta2
             !ux(i,1,k)=ux(i,2,k)-dux*delta1+dpdxy1(i,k)
-            !ux(i,1,k)=ux(i,2,k)+dpdxy1(i,k) ! In case a free-slip conditions is applied
+            ux(i,1,k)=0.5*(ux(i,1,k)+ux(i,2,k))+dpdxy1(i,k) ! In case a free-slip conditions is applied
             uy(i,1,k)=0.
             !uz(i,1,k)=uz(i,2,k)-duz*delta1+dpdxz1(i,k)
-            !uz(i,1,k)=uz(i,2,k)+dpdxz1(i,k) ! In case a free-slip condition is applied
+            uz(i,1,k)=0.5*(uz(i,1,k)+uz(i,2,k))+dpdxz1(i,k) ! In case a free-slip condition is applied
          enddo
          enddo
       endif
