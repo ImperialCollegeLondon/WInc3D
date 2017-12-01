@@ -46,10 +46,10 @@ subroutine init_explicit_les
         write(*,*) ' Classic Smagorinsky is used ... '
         write(*,*) ' Smagorinsky constant = ', smagcst
         write(*,*) ' Filter Size / Grid Size = ', FSGS
+        call filter() ! Apply the first filter to the equations
         else if (jLES==3) then
         write(*,*) ' Wall-adaptive LES (WALES) is used ... '
         else if (jLES==4) then
-        call filter() ! Apply the first filter to the equations
         write(*,*) ' Scale-invariant Dynamic Smagorinsky is used ... '
         else if (jLES==5) then
         call filter() ! Apply the first filter to the equations
@@ -360,6 +360,8 @@ uzz1(:,:,:)=uz1(:,:,:)*uz1(:,:,:)
 uxy1(:,:,:)=ux1(:,:,:)*uy1(:,:,:)
 uxz1(:,:,:)=ux1(:,:,:)*uz1(:,:,:)
 uyz1(:,:,:)=uy1(:,:,:)*uz1(:,:,:)
+
+call filter() 
 
 call filx(ux1f,ux1,di1,sx,vx,fiffx,fifx,ficx,fibx,fibbx,filax,&
 fiz1x,fiz2x,xsize(1),xsize(2),xsize(3),0)
@@ -864,6 +866,145 @@ if (nrank==0) print*,"Max and Min of the  Constant = ",maxval(dsmagHP1), minval(
 return 
 
 end subroutine dynsmag
+
+subroutine abl_sgs_model(ux1,uy1,uz1,nut1,sgsx1,sgsy1,sgsz1)
+
+    USE param
+    USE variables
+    USE decomp_2d
+
+    implicit none
+
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux1,uy1,uz1,nut1
+real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: ux2,uy2,uz2
+real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: ux3,uy3,uz3
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: di1,duxdx1,duydx1,duzdx1,duxdy1,duydy1,duzdy1,duxdz1,duydz1,duzdz1
+real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: di2,duxdy2,duydy2,duzdy2,duxdz2,duydz2,duzdz2
+real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: di3,duxdz3,duydz3,duzdz3
+
+! Initializing the SGS stresses
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: tauxx1,tauxy1,tauxz1,tauyx1,tauyy1,tauyz1,tauzx1,tauzy1,tauzz1
+real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: tauyx2,tauyy2,tauyz2,tauzx2,tauzy2,tauzz2
+real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: tauzx3,tauzy3,tauzz3
+
+! Initializing the SGS fluxes
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: dtauxxdx1,dtauxydx1,dtauxzdx1
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: dtauyxdy1,dtauyydy1,dtauyzdy1
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: dtauzxdz1,dtauzydz1,dtauzzdz1
+real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: dtauyxdy2,dtauyydy2,dtauyzdy2,dtauzxdz2,dtauzydz2,dtauzzdz2
+real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: dtauzxdz3,dtauzydz3,dtauzzdz3
+
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: tauwallxy1,tauwallzy1, wallfluxx1, wallfluxy1, wallfluxz1
+
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: sgsx1, sgsy1, sgsz1
+
+! Calculate derivatives first 
+! X -Pencils
+call derx (duxdx1,ux1,di1,sx,ffx,fsx,fwx,xsize(1),xsize(2),xsize(3),0)
+call derx (duydx1,uy1,di1,sx,ffxp,fsxp,fwxp,xsize(1),xsize(2),xsize(3),1)
+call derx (duzdx1,uz1,di1,sx,ffxp,fsxp,fwxp,xsize(1),xsize(2),xsize(3),1)
+
+!WORK Y-PENCILS
+call transpose_x_to_y(ux1,ux2)
+call transpose_x_to_y(uy1,uy2)
+call transpose_x_to_y(uz1,uz2)
+
+call dery (duxdy2,ux2,di2,sy,ffyp,fsyp,fwyp,ppy,ysize(1),ysize(2),ysize(3),1)
+call dery (duydy2,uy2,di2,sy,ffy,fsy,fwy,ppy,ysize(1),ysize(2),ysize(3),0)
+call dery (duzdy2,uz2,di2,sy,ffyp,fsyp,fwyp,ppy,ysize(1),ysize(2),ysize(3),1)
+
+!WORK Z-PENCILS
+call transpose_y_to_z(ux2,ux3)
+call transpose_y_to_z(uy2,uy3)
+call transpose_y_to_z(uz2,uz3)
+
+call derz(duxdz3,ux3,di3,sz,ffzp,fszp,fwzp,zsize(1),zsize(2),zsize(3),1)
+call derz(duydz3,uy3,di3,sz,ffzp,fszp,fwzp,zsize(1),zsize(2),zsize(3),1)
+call derz(duzdz3,uz3,di3,sz,ffz,fsz,fwz,zsize(1),zsize(2),zsize(3),0)
+
+call transpose_z_to_y(duxdz3,duxdz2)
+call transpose_z_to_y(duydz3,duydz2)
+call transpose_z_to_y(duzdz3,duzdz2)
+call transpose_y_to_x(duxdz2,duxdz1)
+call transpose_y_to_x(duydz2,duydz1)
+call transpose_y_to_x(duzdz2,duzdz1)
+call transpose_y_to_x(duxdy2,duxdy1)
+call transpose_y_to_x(duydy2,duydy1)
+call transpose_y_to_x(duzdy2,duzdy1)
+
+! Calculating tau_D 
+! ======================================================
+! Here we need 
+!       
+!           tau_D = -2.*nu_t * S_ij,
+!           S_ij  = 1./2.*( du_i/dx_j + du_j/dx_j)
+! ======================================================
+
+tauxx1(:,:,:)=-2.*nut1(:,:,:)*(2.*duxdx1(:,:,:))
+tauxy1(:,:,:)=-2.*nut1(:,:,:)*(duxdy1(:,:,:)+duydx1(:,:,:))
+tauxz1(:,:,:)=-2.*nut1(:,:,:)*(duxdz1(:,:,:)+duzdx1(:,:,:))
+tauyx1(:,:,:)=-2.*nut1(:,:,:)*(duydx1(:,:,:)+duxdy1(:,:,:))
+tauyy1(:,:,:)=-2.*nut1(:,:,:)*(2.*duydy1(:,:,:))
+tauyz1(:,:,:)=-2.*nut1(:,:,:)*(duydz1(:,:,:)+duzdy1(:,:,:))
+tauzx1(:,:,:)=-2.*nut1(:,:,:)*(duzdx1(:,:,:)+duxdz1(:,:,:))
+tauzy1(:,:,:)=-2.*nut1(:,:,:)*(duzdy1(:,:,:)+duydz1(:,:,:))
+tauzz1(:,:,:)=-2.*nut1(:,:,:)*(2.*duzdz1(:,:,:))
+
+! Apply the wall boundary conditions 
+call wall_shear_flux(ux1,uy1,uz1,tauwallxy1,tauwallzy1,wallfluxx1,wallfluxy1,wallfluxz1)
+if (xstart(2)==1) then
+    tauxy1(:,1,:)=tauwallxy1(:,1,:)
+    tauyx1(:,1,:)=tauwallxy1(:,1,:)
+    tauzy1(:,1,:)=tauwallzy1(:,1,:)
+    tauyz1(:,1,:)=tauwallzy1(:,1,:)
+endif
+
+! Calculate the sgs fluxes ---> Div(tau_D) 
+
+! Calculate derivatives first 
+! X -Pencils
+call derx (dtauxxdx1,tauxx1,di1,sx,ffxp,fsxp,fwxp,xsize(1),xsize(2),xsize(3),1)
+call derx (dtauxydx1,tauxy1,di1,sx,ffxp,fsxp,fwxp,xsize(1),xsize(2),xsize(3),1)
+call derx (dtauxzdx1,tauxz1,di1,sx,ffxp,fsxp,fwxp,xsize(1),xsize(2),xsize(3),1)
+
+!WORK Y-PENCILS
+call transpose_x_to_y(tauyx1,tauyx2)
+call transpose_x_to_y(tauyy1,tauyy2)
+call transpose_x_to_y(tauyz1,tauyz2)
+call transpose_x_to_y(tauzx1,tauzx2)
+call transpose_x_to_y(tauzy1,tauzy2)
+call transpose_x_to_y(tauzz1,tauzz2)
+
+call dery (dtauyxdy2,tauyx2,di2,sy,ffyp,fsyp,fwyp,ppy,ysize(1),ysize(2),ysize(3),1)
+call dery (dtauyydy2,tauyy2,di2,sy,ffyp,fsyp,fwyp,ppy,ysize(1),ysize(2),ysize(3),1)
+call dery (dtauyzdy2,tauyz2,di2,sy,ffyp,fsyp,fwyp,ppy,ysize(1),ysize(2),ysize(3),1)
+
+!WORK Z-PENCILS
+call transpose_y_to_z(tauzx2,tauzx3)
+call transpose_y_to_z(tauzy2,tauzy3)
+call transpose_y_to_z(tauzz2,tauzz3)
+
+call derz(dtauzxdz3,tauzx3,di3,sz,ffzp,fszp,fwzp,zsize(1),zsize(2),zsize(3),1)
+call derz(dtauzydz3,tauzy3,di3,sz,ffzp,fszp,fwzp,zsize(1),zsize(2),zsize(3),1)
+call derz(dtauzzdz3,tauzz3,di3,sz,ffzp,fszp,fwzp,zsize(1),zsize(2),zsize(3),1)
+
+! Transpose back Z-->Y-->X
+call transpose_z_to_y(dtauzxdz3,dtauzxdz2)
+call transpose_z_to_y(dtauzydz3,dtauzydz2)
+call transpose_z_to_y(dtauzzdz3,dtauzzdz2)
+call transpose_y_to_x(dtauzxdz2,dtauzxdz1)
+call transpose_y_to_x(dtauzydz2,dtauzydz1)
+call transpose_y_to_x(dtauzzdz2,dtauzzdz1)
+call transpose_y_to_x(dtauyxdy2,dtauyxdy1)
+call transpose_y_to_x(dtauyydy2,dtauyydy1)
+call transpose_y_to_x(dtauyzdy2,dtauyzdy1)
+
+! Add all sub-grid-scale together
+sgsx1(:,:,:)=-(dtauxxdx1(:,:,:)+dtauyxdy1(:,:,:)+dtauzxdz1(:,:,:))
+sgsy1(:,:,:)=-(dtauxydx1(:,:,:)+dtauyydy1(:,:,:)+dtauzydz1(:,:,:))
+sgsz1(:,:,:)=-(dtauxzdx1(:,:,:)+dtauyzdy1(:,:,:)+dtauzzdz1(:,:,:))
+
+end subroutine abl_sgs_model
 
 !************************************************************
 !

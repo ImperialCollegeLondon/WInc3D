@@ -10,6 +10,7 @@ USE MPI
 
 implicit none
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux,uy,uz
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: uxf,uyf,uzf
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: wallfluxx,wallfluxy,wallfluxz
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: tauwallxy1, tauwallzy1 
 real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: tauwallxy2, tauwallzy2 
@@ -27,48 +28,80 @@ real(mytype) :: ux_HAve, uz_HAve,S_HAve
 tauwallxy1=0.; tauwallzy1=0.;
 tauwallxy2=0.; tauwallzy2=0.;
 
+call filter()
+
+! Filter the velocity with twice the grid scale according to Bou-zeid et al 2005
+call filx(uxf,ux,di1,sx,vx,fiffx,fifx,ficx,fibx,fibbx,filax,&
+fiz1x,fiz2x,xsize(1),xsize(2),xsize(3),0)
+call filx(uyf,uy,di1,sx,vx,fiffx,fifx,ficx,fibx,fibbx,filax,&
+fiz1x,fiz2x,xsize(1),xsize(2),xsize(3),0)
+call filx(uzf,uz,di1,sx,vx,fiffx,fifx,ficx,fibx,fibbx,filax,&
+fiz1x,fiz2x,xsize(1),xsize(2),xsize(3),0)
+
+
 ! Determine the shear stress using Moeng's formulation
 !*****************************************************************************************
     ux_HAve_local=0.
     uz_HAve_local=0.
     S_HAve_local=0.
+    
+    if (xstart(2)==1) then
+    
     do k=1,xsize(3)
     do i=1,xsize(1)
-        ux_HAve_local=ux_HAve_local+0.5*(ux(i,1,k)+ux(i,2,k))
-        uz_HAve_local=uz_HAve_local+0.5*(uz(i,1,k)+uz(i,2,k))
-        S_HAve_local=S_HAve_local+sqrt((0.5*(ux(i,1,k)+ux(i,2,k)))**2.+ (0.5*(uz(i,1,k)+uz(i,2,k)))**2.) 
+        ux_HAve_local=ux_HAve_local+0.5*(uxf(i,1,k)+uxf(i,2,k))
+        uz_HAve_local=uz_HAve_local+0.5*(uzf(i,1,k)+uzf(i,2,k))
+        S_HAve_local=S_HAve_local+sqrt((0.5*(uxf(i,1,k)+uxf(i,2,k)))**2.+ (0.5*(uzf(i,1,k)+uzf(i,2,k)))**2.) 
     enddo
     enddo
     
     ux_HAve_local=ux_HAve_local/xsize(3)/xsize(1)
     uz_HAve_local=uz_HAve_local/xsize(3)/xsize(1)
     S_HAve_local= S_HAve_local/xsize(3)/xsize(1)
+   
+    else 
+    
+    ux_HAve_local=0.  
+    uz_HAve_local=0.
+    S_HAve_local =0.
+   
+    endif
     
     call MPI_ALLREDUCE(ux_HAve_local,ux_HAve,1,real_type,MPI_SUM,MPI_COMM_WORLD,code)
     call MPI_ALLREDUCE(uz_HAve_local,uz_HAve,1,real_type,MPI_SUM,MPI_COMM_WORLD,code)
     call MPI_ALLREDUCE(S_HAve_local,S_HAve,1,real_type,MPI_SUM,MPI_COMM_WORLD,code)
     
-    ux_HAve=ux_HAve_local/p_col
-    uz_HAve=uz_HAve_local/p_col
-     S_HAve= S_HAve_local/p_col
+    ux_HAve=ux_HAve/p_col
+    uz_HAve=uz_HAve/p_col
+     S_HAve= S_HAve/p_col
    
     if (istret.ne.0) delta=(yp(2)-yp(1))/2.0
     if (istret.eq.0) delta=dy/2.0   
     
     ! Compute the friction velocity u_shear
     u_shear=k_roughness*sqrt(ux_HAve**2.+uz_HAve**2.)/log(delta/z_zero)
+    if (nrank==0) write(*,*) "Horizontally-averaged velocity at y=1/2... ", ux_HAve,0,uz_Have
     if (nrank==0) write(*,*) "Friction velocity ... ", u_shear 
     !Compute the shear stresses -- only on the wall
-
+    !u_shear=ustar
+    
     if (xstart(2)==1) then
     do k=1,xsize(3)
     do i=1,xsize(1)
-    tauwallxy1(i,1,k)=-u_shear**2.0*(sqrt((0.5*(ux(i,1,k)+ux(i,2,k)))**2.+(0.5*(uz(i,1,k)+uz(i,2,k)))**2.)*ux_HAve+&
-                             S_HAve*(0.5*(ux(i,1,k)+ux(i,2,k))-ux_HAve))/(S_Have*sqrt(ux_HAve**2.+uz_HAve**2.))
-    tauwallzy1(i,1,k)=-u_shear**2.0*(sqrt((0.5*(ux(i,1,k)+ux(i,2,k)))**2.+(0.5*(uz(i,1,k)+uz(i,2,k)))**2.)*uz_HAve+&
-                             S_HAve*(0.5*(uz(i,1,k)+uz(i,2,k))-uz_HAve))/(S_Have*sqrt(ux_HAve**2.+uz_HAve**2.))
+    !tauwallxy1(i,1,k)=-u_shear**2.0*(sqrt((0.5*(ux(i,1,k)+ux(i,2,k)))**2.+(0.5*(uz(i,1,k)+uz(i,2,k)))**2.)*ux_HAve+&
+    !                         S_HAve*(0.5*(ux(i,1,k)+ux(i,2,k))-ux_HAve))/(S_Have*sqrt(ux_HAve**2.+uz_HAve**2.))
+    !tauwallzy1(i,1,k)=-u_shear**2.0*(sqrt((0.5*(ux(i,1,k)+ux(i,2,k)))**2.+(0.5*(uz(i,1,k)+uz(i,2,k)))**2.)*uz_HAve+&
+    !                         S_HAve*(0.5*(uz(i,1,k)+uz(i,2,k))-uz_HAve))/(S_Have*sqrt(ux_HAve**2.+uz_HAve**2.))
+                        
+    tauwallxy1(i,1,k)=-u_shear**2.0*0.5*(uxf(i,1,k)+uxf(i,2,k))/sqrt(ux_HAve**2.+uz_HAve**2.)
+    tauwallzy1(i,1,k)=-u_shear**2.0*0.5*(uzf(i,1,k)+uzf(i,2,k))/sqrt(ux_HAve**2.+uz_Have**2.)
+
     enddo
     enddo
+        
+    else
+    tauwallxy1=0. 
+    tauwallzy1=0.
     endif
 !*********************************************************************************************************
 
@@ -81,8 +114,6 @@ call transpose_x_to_y(tauwallxy1,tauwallxy2)
 call transpose_x_to_y(tauwallzy1,tauwallzy2)
 
 ! Differentiate for y
-!call dery (gyx2,tauwallxy2,di2,sy,ffy,fsy,fwy,ppy,ysize(1),ysize(2),ysize(3),0)
-!call dery (gyz2,tauwallzy2,di2,sy,ffy,fsy,fwy,ppy,ysize(1),ysize(2),ysize(3),0)
 call dery (gxy2,tauwallxy2,di2,sy,ffyp,fsyp,fwyp,ppy,ysize(1),ysize(2),ysize(3),1)
 call dery (gzy2,tauwallzy2,di2,sy,ffyp,fsyp,fwyp,ppy,ysize(1),ysize(2),ysize(3),1)
 
@@ -103,6 +134,8 @@ call transpose_y_to_x(gzy2,gzy1)
 wallfluxx(:,:,:) = -gxy1(:,:,:)
 wallfluxy(:,:,:) = -(gyx1(:,:,:)+gyz1(:,:,:))
 wallfluxz(:,:,:) = -gzy1(:,:,:)
+
+
 if (nrank==0) write(*,*)  'Maximum wallflux for x, y and z', maxval(wallfluxx), maxval(wallfluxy), maxval(wallfluxz)
 if (nrank==0) write(*,*)  'Minimum wallflux for x, y and z', minval(wallfluxx), minval(wallfluxy), minval(wallfluxz)
 return

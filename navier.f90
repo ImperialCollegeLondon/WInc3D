@@ -448,13 +448,15 @@ if (itype.eq.8) then
       stop
     endif
    do k=1,xsize(3)
+      z=(k+xstart(3)-1-1)*dz
    do j=1,xsize(2)
       if (istret.eq.0) y=(j+xstart(2)-1-1)*dy
       if (istret.ne.0) y=yp(j)
       do i=1,xsize(1)
-      bxx1(j,k)=ustar/k_roughness*log((y+z_zero)/z_zero) 
-      bxy1(j,k)=0.
-      bxz1(i,k)=0.
+         x=(i-1)*dx
+      bxx1(j,k)=ustar/k_roughness*log((y+z_zero)/z_zero)+0.5*0.0005*xlx*cos(2.*pi*x/xlx)*cos(2.*pi*y/yly)*sin(2.*pi*z/zlz)
+      bxy1(j,k)=0.0005*yly*sin(2.*pi*x/xlx)*sin(2.*pi*y/yly)*sin(2.*pi*z/zlz)
+      bxz1(i,k)=0.5*0.0005*zlz*sin(2.*pi*x/xlx)*cos(2.*pi*y/yly)*cos(2.*pi*z/zlz)
       enddo
    enddo
    enddo
@@ -1360,10 +1362,10 @@ if (itype.eq.8) then
             dux=(ux(i,3,k)-ux(i,2,k))/delta2
             duz=(uz(i,3,k)-uz(i,2,k))/delta2
             !ux(i,1,k)=ux(i,2,k)-dux*delta1+dpdxy1(i,k)
-            ux(i,1,k)=ux(i,1,k)+dpdxy1(i,k) ! In case a free-slip conditions is applied
+            !ux(i,1,k)=4.+dpdxy1(i,k) ! In case a free-slip conditions is applied
             uy(i,1,k)=0.
-            !uz(i,1,k)=uz(i,2,k)-duz*delta1+dpdxz1(i,k)
-            uz(i,1,k)=uz(i,1,k)+dpdxz1(i,k) ! In case a free-slip condition is applied
+            !!uz(i,1,k)=uz(i,2,k)-duz*delta1+dpdxz1(i,k)
+            !uz(i,1,k)=0.+dpdxz1(i,k) ! In case a free-slip condition is applied
          enddo
          enddo
       endif
