@@ -1361,11 +1361,11 @@ if (itype.eq.8) then
          do i=1,xsize(1) 
             dux=(ux(i,3,k)-ux(i,2,k))/delta2
             duz=(uz(i,3,k)-uz(i,2,k))/delta2
-            !ux(i,1,k)=ux(i,2,k)-dux*delta1+dpdxy1(i,k)
+            ux(i,1,k)=ux(i,2,k)-dux*delta1+dpdxy1(i,k)
             !ux(i,1,k)=4.+dpdxy1(i,k) ! In case a free-slip conditions is applied
             uy(i,1,k)=0.
-            !!uz(i,1,k)=uz(i,2,k)-duz*delta1+dpdxz1(i,k)
-            !uz(i,1,k)=0.+dpdxz1(i,k) ! In case a free-slip condition is applied
+            !uz(i,1,k)=uz(i,2,k)-duz*delta1+dpdxz1(i,k)
+            uz(i,1,k)=0.+dpdxz1(i,k) ! In case a free-slip condition is applied
          enddo
          enddo
       endif

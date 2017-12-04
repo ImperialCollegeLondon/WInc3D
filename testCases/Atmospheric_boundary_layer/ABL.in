@@ -36,7 +36,7 @@
     ! TURBULENCE MODELLING
     jles=2                ! LES Model (0:DNS, 1: iLES 2:Smag, 3:WALE, 4: scale-invariant dyn. Smag, 5: scale-dependent dyn. Smag )
     FSGS=1.0              ! Filter Size/ Grid Size for explicit LES only
-    smagcst=0.17          ! Smagorinsky constant
+    smagcst=0.2           ! Smagorinsky constant
     SmagWallDamp=1        ! Smagorinsky damping function for ABL if 1
     nSmag=1               ! Smagorinksy damping coefficient 
     walecst=0.5           ! WALES Model Coefficient
@@ -74,8 +74,8 @@ TurbinesPath='Turbine.turb'
 
 &ABLParam
 iabl=1                    ! iabl (1: atmospheric boundary layer modelling by applying a shear stress)
-z_zero=0.1             ! Roughness length
-k_roughness=0.4           ! von Karman constant (usually taken to be equal to 0.41)
+z_zero=0.1                ! Roughness length
+k_roughness=0.41          ! von Karman constant (usually taken to be equal to 0.41)
 ustar=0.45	              ! friction velocity
 PsiM=0                    ! stability correction for momentum (taken equal to 0 for neutral stability)
 IPressureGradient=1	      ! if 1 then apply a pressure gradient

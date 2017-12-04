@@ -49,9 +49,9 @@ fiz1x,fiz2x,xsize(1),xsize(2),xsize(3),0)
     
     do k=1,xsize(3)
     do i=1,xsize(1)
-        ux_HAve_local=ux_HAve_local+0.5*(uxf(i,1,k)+uxf(i,2,k))
-        uz_HAve_local=uz_HAve_local+0.5*(uzf(i,1,k)+uzf(i,2,k))
-        S_HAve_local=S_HAve_local+sqrt((0.5*(uxf(i,1,k)+uxf(i,2,k)))**2.+ (0.5*(uzf(i,1,k)+uzf(i,2,k)))**2.) 
+        ux_HAve_local=ux_HAve_local+0.5*(ux(i,1,k)+ux(i,2,k))
+        uz_HAve_local=uz_HAve_local+0.5*(uz(i,1,k)+uz(i,2,k))
+        S_HAve_local=S_HAve_local+sqrt((0.5*(ux(i,1,k)+ux(i,2,k)))**2.+ (0.5*(uz(i,1,k)+uz(i,2,k)))**2.) 
     enddo
     enddo
     
@@ -88,20 +88,16 @@ fiz1x,fiz2x,xsize(1),xsize(2),xsize(3),0)
     if (xstart(2)==1) then
     do k=1,xsize(3)
     do i=1,xsize(1)
-    !tauwallxy1(i,1,k)=-u_shear**2.0*(sqrt((0.5*(ux(i,1,k)+ux(i,2,k)))**2.+(0.5*(uz(i,1,k)+uz(i,2,k)))**2.)*ux_HAve+&
-    !                         S_HAve*(0.5*(ux(i,1,k)+ux(i,2,k))-ux_HAve))/(S_Have*sqrt(ux_HAve**2.+uz_HAve**2.))
-    !tauwallzy1(i,1,k)=-u_shear**2.0*(sqrt((0.5*(ux(i,1,k)+ux(i,2,k)))**2.+(0.5*(uz(i,1,k)+uz(i,2,k)))**2.)*uz_HAve+&
-    !                         S_HAve*(0.5*(uz(i,1,k)+uz(i,2,k))-uz_HAve))/(S_Have*sqrt(ux_HAve**2.+uz_HAve**2.))
                         
-    tauwallxy1(i,1,k)=-u_shear**2.0*0.5*(uxf(i,1,k)+uxf(i,2,k))/sqrt(ux_HAve**2.+uz_HAve**2.)
-    tauwallzy1(i,1,k)=-u_shear**2.0*0.5*(uzf(i,1,k)+uzf(i,2,k))/sqrt(ux_HAve**2.+uz_Have**2.)
+    tauwallxy1(i,1,k)=-u_shear**2.0*0.5*(ux(i,1,k)+ux(i,2,k))/sqrt(ux_HAve**2.+uz_HAve**2.)
+    tauwallzy1(i,1,k)=-u_shear**2.0*0.5*(uz(i,1,k)+uz(i,2,k))/sqrt(ux_HAve**2.+uz_Have**2.)
 
     enddo
     enddo
         
     else
-    tauwallxy1=0. 
-    tauwallzy1=0.
+    tauwallxy1(:,:,:)=0. 
+    tauwallzy1(:,:,:)=0.
     endif
 !*********************************************************************************************************
 
@@ -131,9 +127,9 @@ call transpose_y_to_x(gyz2,gyz1)
 call transpose_y_to_x(gxy2,gxy1)
 call transpose_y_to_x(gzy2,gzy1)
 
-wallfluxx(:,:,:) = -gxy1(:,:,:)
-wallfluxy(:,:,:) = -(gyx1(:,:,:)+gyz1(:,:,:))
-wallfluxz(:,:,:) = -gzy1(:,:,:)
+wallfluxx(:,:,:) = tauwallxy1(:,:,:)*dx*dz!-gxy1(:,:,:)
+wallfluxy(:,:,:) = 0.!-(gyx1(:,:,:)+gyz1(:,:,:))
+wallfluxz(:,:,:) = tauwallzy1(:,:,:)*dx*dz!-gzy1(:,:,:)
 
 
 if (nrank==0) write(*,*)  'Maximum wallflux for x, y and z', maxval(wallfluxx), maxval(wallfluxy), maxval(wallfluxz)

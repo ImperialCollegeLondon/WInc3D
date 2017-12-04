@@ -379,9 +379,9 @@ ta1(:,:,:)=ta1(:,:,:)+td1(:,:,:)
 tb1(:,:,:)=tb1(:,:,:)+te1(:,:,:)
 tc1(:,:,:)=tc1(:,:,:)+tf1(:,:,:)
 
-if(iabl==1.and.jLES.ge.2) then
-    call abl_sgs_model(ux1,uy1,uz1,nut1,sgsx1,sgsy1,sgsz1)
-endif
+!if(iabl==1.and.jLES.ge.2) then
+!    call abl_sgs_model(ux1,uy1,uz1,nut1,sgsx1,sgsy1,sgsz1)
+!endif
 
 !FINAL SUM: DIFF TERMS + CONV TERMS
 if(jLES==0.or.jLES==1) then ! DNS or implicit LES
@@ -424,7 +424,7 @@ endif
 if (ibuoyancy==1) then     
     ! Average quantities over the x-z plane 
     tmp1=0. ! First zero the tmp variable
-    
+   
     do j=1,xsize(2)
     do k=1,xsize(3)
     do i=1,xsize(1)
@@ -446,7 +446,7 @@ if (ibuoyancy==1) then
 endif
 
 if (IPressureGradient==1) then
-    ta1(:,:,:)=ta1(:,:,:)-ustar**2./yly ! Apply a pressure gradient in the stream-wise direction
+    ta1(:,:,:)=ta1(:,:,:)+ustar**2./yly ! Apply a pressure gradient in the stream-wise direction
 endif
 
 ! Coriolis Effects
@@ -455,7 +455,7 @@ if (icoriolis==1) then
     tc1(:,:,:)=tc1(:,:,:)-CoriolisFreq*uz1(:,:,:) ! This is not the vertical direction but the lateral horizontal
 endif
 
-if (iabl==1.and.jLES==1) then
+if (iabl==1) then
     call wall_shear_flux(ux1,uy1,uz1,tauwallxy1,tauwallzy1,wallfluxx1,wallfluxy1,wallfluxz1)
     ta1(:,:,:)=ta1(:,:,:)+wallfluxx1(:,:,:)
     tb1(:,:,:)=tb1(:,:,:)+wallfluxy1(:,:,:)
