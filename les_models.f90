@@ -46,13 +46,11 @@ subroutine init_explicit_les
         write(*,*) ' Classic Smagorinsky is used ... '
         write(*,*) ' Smagorinsky constant = ', smagcst
         write(*,*) ' Filter Size / Grid Size = ', FSGS
-        call filter() ! Apply the first filter to the equations
         else if (jLES==3) then
         write(*,*) ' Wall-adaptive LES (WALES) is used ... '
         else if (jLES==4) then
         write(*,*) ' Scale-invariant Dynamic Smagorinsky is used ... '
         else if (jLES==5) then
-        call filter() ! Apply the first filter to the equations
         write(*,*) ' Scale-dependent Dynamic Smagorinsky is used ... '
         endif
     write(*,*) '++++++++++++++++++++++++++++++++'
@@ -348,7 +346,9 @@ real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: smagC3f
 real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: dsmagcst3
 real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: dsmagcst2
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: dsmagcst
-real(mytype),dimension(xsize(2)) :: tmpa1, dsmagHP1
+real(mytype),dimension(xsize(2)) :: tmpa1
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: dsmagHP1
+real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: dsmagHP2
 real(mytype) :: smagC1,smagC2,dsmaggbl
 integer::i,j,k,ierror,i2,j2,code
 real(mytype) :: denom ! Denominator in dynamic Smagorinsky
@@ -534,7 +534,7 @@ do j=1,xsize(2)
 do i=1,xsize(1)
 
 !Bij tensor with u test filtered OK
-bbxx1(i,j,k)=-2*sqrt(2.*(sxx1f(i,j,k)*sxx1f(i,j,k)+&
+bbxx1(i,j,k)=-2.*sqrt(2.*(sxx1f(i,j,k)*sxx1f(i,j,k)+&
 syy1f(i,j,k)*syy1f(i,j,k)+&
 szz1f(i,j,k)*szz1f(i,j,k)+&
 2.*sxy1f(i,j,k)*sxy1f(i,j,k)+&
@@ -542,7 +542,7 @@ szz1f(i,j,k)*szz1f(i,j,k)+&
 2.*syz1f(i,j,k)*syz1f(i,j,k)))&
 *sxx1f(i,j,k)
 
-bbyy1(i,j,k)=-2*sqrt(2.*(sxx1f(i,j,k)*sxx1f(i,j,k)+&
+bbyy1(i,j,k)=-2.*sqrt(2.*(sxx1f(i,j,k)*sxx1f(i,j,k)+&
 syy1f(i,j,k)*syy1f(i,j,k)+&
 szz1f(i,j,k)*szz1f(i,j,k)+&
 2.*sxy1f(i,j,k)*sxy1f(i,j,k)+&
@@ -550,7 +550,7 @@ szz1f(i,j,k)*szz1f(i,j,k)+&
 2.*syz1f(i,j,k)*syz1f(i,j,k)))&
 *syy1f(i,j,k)
 
-bbzz1(i,j,k)=-2*sqrt(2.*(sxx1f(i,j,k)*sxx1f(i,j,k)+&
+bbzz1(i,j,k)=-2.*sqrt(2.*(sxx1f(i,j,k)*sxx1f(i,j,k)+&
 syy1f(i,j,k)*syy1f(i,j,k)+&
 szz1f(i,j,k)*szz1f(i,j,k)+&
 2.*sxy1f(i,j,k)*sxy1f(i,j,k)+&
@@ -558,7 +558,7 @@ szz1f(i,j,k)*szz1f(i,j,k)+&
 2.*syz1f(i,j,k)*syz1f(i,j,k)))&
 *szz1f(i,j,k)
 
-bbxy1(i,j,k)=-2*sqrt(2.*(sxx1f(i,j,k)*sxx1f(i,j,k)+&
+bbxy1(i,j,k)=-2.*sqrt(2.*(sxx1f(i,j,k)*sxx1f(i,j,k)+&
 syy1f(i,j,k)*syy1f(i,j,k)+&
 szz1f(i,j,k)*szz1f(i,j,k)+&
 2.*sxy1f(i,j,k)*sxy1f(i,j,k)+&
@@ -566,7 +566,7 @@ szz1f(i,j,k)*szz1f(i,j,k)+&
 2.*syz1f(i,j,k)*syz1f(i,j,k)))&
 *sxy1f(i,j,k)
 
-bbxz1(i,j,k)=-2*sqrt(2.*(sxx1f(i,j,k)*sxx1f(i,j,k)+&
+bbxz1(i,j,k)=-2.*sqrt(2.*(sxx1f(i,j,k)*sxx1f(i,j,k)+&
 syy1f(i,j,k)*syy1f(i,j,k)+&
 szz1f(i,j,k)*szz1f(i,j,k)+&
 2.*sxy1f(i,j,k)*sxy1f(i,j,k)+&
@@ -574,7 +574,7 @@ szz1f(i,j,k)*szz1f(i,j,k)+&
 2.*syz1f(i,j,k)*syz1f(i,j,k)))&
 *sxz1f(i,j,k)
 
-bbyz1(i,j,k)=-2*sqrt(2.*(sxx1f(i,j,k)*sxx1f(i,j,k)+&
+bbyz1(i,j,k)=-2.*sqrt(2.*(sxx1f(i,j,k)*sxx1f(i,j,k)+&
 syy1f(i,j,k)*syy1f(i,j,k)+&
 szz1f(i,j,k)*szz1f(i,j,k)+&
 2.*sxy1f(i,j,k)*sxy1f(i,j,k)+&
@@ -584,7 +584,7 @@ szz1f(i,j,k)*szz1f(i,j,k)+&
 !
 
 !Aij tensor with u
-axx1(i,j,k)=-2*sqrt(2.*(sxx1(i,j,k)*sxx1(i,j,k)+&
+axx1(i,j,k)=-2.*sqrt(2.*(sxx1(i,j,k)*sxx1(i,j,k)+&
 syy1(i,j,k)*syy1(i,j,k)+&
 szz1(i,j,k)*szz1(i,j,k)+&
 2.*sxy1(i,j,k)*sxy1(i,j,k)+&
@@ -592,7 +592,7 @@ szz1(i,j,k)*szz1(i,j,k)+&
 2.*syz1(i,j,k)*syz1(i,j,k)))&
 *sxx1(i,j,k)
 
-ayy1(i,j,k)=-2*sqrt(2.*(sxx1(i,j,k)*sxx1(i,j,k)+&
+ayy1(i,j,k)=-2.*sqrt(2.*(sxx1(i,j,k)*sxx1(i,j,k)+&
 syy1(i,j,k)*syy1(i,j,k)+&
 szz1(i,j,k)*szz1(i,j,k)+&
 2.*sxy1(i,j,k)*sxy1(i,j,k)+&
@@ -600,7 +600,7 @@ szz1(i,j,k)*szz1(i,j,k)+&
 2.*syz1(i,j,k)*syz1(i,j,k)))&
 *syy1(i,j,k)
 
-azz1(i,j,k)=-2*sqrt(2.*(sxx1(i,j,k)*sxx1(i,j,k)+&
+azz1(i,j,k)=-2.*sqrt(2.*(sxx1(i,j,k)*sxx1(i,j,k)+&
 syy1(i,j,k)*syy1(i,j,k)+&
 szz1(i,j,k)*szz1(i,j,k)+&
 2.*sxy1(i,j,k)*sxy1(i,j,k)+&
@@ -608,7 +608,7 @@ szz1(i,j,k)*szz1(i,j,k)+&
 2.*syz1(i,j,k)*syz1(i,j,k)))&
 *szz1(i,j,k)
 
-axy1(i,j,k)=-2*sqrt(2.*(sxx1(i,j,k)*sxx1(i,j,k)+&
+axy1(i,j,k)=-2.*sqrt(2.*(sxx1(i,j,k)*sxx1(i,j,k)+&
 syy1(i,j,k)*syy1(i,j,k)+&
 szz1(i,j,k)*szz1(i,j,k)+&
 2.*sxy1(i,j,k)*sxy1(i,j,k)+&
@@ -616,7 +616,7 @@ szz1(i,j,k)*szz1(i,j,k)+&
 2.*syz1(i,j,k)*syz1(i,j,k)))&
 *sxy1(i,j,k)
 
-axz1(i,j,k)=-2*sqrt(2.*(sxx1(i,j,k)*sxx1(i,j,k)+&
+axz1(i,j,k)=-2.*sqrt(2.*(sxx1(i,j,k)*sxx1(i,j,k)+&
 syy1(i,j,k)*syy1(i,j,k)+&
 szz1(i,j,k)*szz1(i,j,k)+&
 2.*sxy1(i,j,k)*sxy1(i,j,k)+&
@@ -624,7 +624,7 @@ szz1(i,j,k)*szz1(i,j,k)+&
 2.*syz1(i,j,k)*syz1(i,j,k)))&
 *sxz1(i,j,k)
 
-ayz1(i,j,k)=-2*sqrt(2.*(sxx1(i,j,k)*sxx1(i,j,k)+&
+ayz1(i,j,k)=-2.*sqrt(2.*(sxx1(i,j,k)*sxx1(i,j,k)+&
 syy1(i,j,k)*syy1(i,j,k)+&
 szz1(i,j,k)*szz1(i,j,k)+&
 2.*sxy1(i,j,k)*sxy1(i,j,k)+&
@@ -772,9 +772,12 @@ lyy1(:,:,:)=lyy1(:,:,:)-(lxx1(:,:,:)+lyy1(:,:,:)+lzz1(:,:,:))/3.
 lzz1(:,:,:)=lzz1(:,:,:)-(lxx1(:,:,:)+lyy1(:,:,:)+lzz1(:,:,:))/3.
 
 if(itime==1) then
-dsmaggbl=0.01
+smagC=0.1
 else
-smagC = 0.
+
+    ! Make sure it is zero before starting computing
+    smagC = 0.
+
 do k=1,xsize(3)
 do j=1,xsize(2)
 do i=1,xsize(1)
@@ -785,10 +788,12 @@ mzz1(i,j,k)*mzz1(i,j,k)+&
 2.*mxy1(i,j,k)*mxy1(i,j,k)+&
 2.*mxz1(i,j,k)*mxz1(i,j,k)+&
 2.*myz1(i,j,k)*myz1(i,j,k))
+
 if(abs(Denom).le.1e-6) then
-    smagC(i,j,k)=0.01
+    smagC(i,j,k)=0.01 ! 
 else
-smagC(i,j,k)= (lxx1(i,j,k)*mxx1(i,j,k)+&
+
+    smagC(i,j,k)= (lxx1(i,j,k)*mxx1(i,j,k)+&
 lyy1(i,j,k)*myy1(i,j,k)+&
 lzz1(i,j,k)*mzz1(i,j,k)+&
 2.*lxy1(i,j,k)*mxy1(i,j,k)+&
@@ -801,11 +806,6 @@ mzz1(i,j,k)*mzz1(i,j,k)+&
 2.*mxz1(i,j,k)*mxz1(i,j,k)+&
 2.*myz1(i,j,k)*myz1(i,j,k))
 endif
-!write(*,*) smagC(i,j,k)
-!ERIC LIMITEUR SI BESOIN
-!if(smagC(i,j,k).lt.0) then
-!   smagC(i,j,k)=0.
-!endif
 
 enddo
 enddo
@@ -833,19 +833,22 @@ call transpose_y_to_x(smagC2f,smagC)
 ! Average coefficient within a horizontal plane
 tmpa1=0.
 do j=1,xsize(2)
+
 do k=1,xsize(3)
 do i=1,xsize(1)
 tmpa1(j)=tmpa1(j)+smagC(i,j,k)
 enddo
 enddo
+
 ! DO the averaging
-tmpa1(j)=tmpa1(j)/xsize(1)/xsize(3)
+dsmagHP1(i,j,k)=tmpa1(j)/xsize(1)/xsize(3)
 enddo
 
-endif
-call MPI_ALLREDUCE(tmpa1,dsmagHP1,xsize(2),MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,code)
+call transpose_x_to_y(dsmagHP1,dsmagHP2)
 
-dsmagHP1(:) = dsmagHP1(:)/p_col
+!call MPI_ALLREDUCE(tmpa1,dsmagHP1,xsize(2),MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,code)
+
+endif
 
 !if (nrank==0) print*,"Cst = ",maxval(dsmagcst),minval(dsmagcst)
 !if (mod(itime,50)==0) print*,"Cst = ",maxval(dsmagcst),minval(dsmagcst)
@@ -855,13 +858,12 @@ call transpose_x_to_y(srt_smag,srt_smag2)
 do k=1,ysize(3)
 do j=1,ysize(2)
 do i=1,ysize(1)
-nut2(i,j,k)=dsmagHP1(j)*(del(j)**2.0)*sqrt(2.*srt_smag2(i,j,k))
+nut2(i,j,k)=(dsmagHP2(i,j,k)*del(j))**2.0*sqrt(2.*srt_smag2(i,j,k))
 enddo
 enddo
 enddo
 call transpose_y_to_x(nut2,nut1)
 if (nrank==0) print*,"Max and Min of the  Constant = ",maxval(dsmagHP1), minval(dsmagHP1)
-!!call test_sgs_min_max(dsmagcst,dsmagcst,dsmagcst,4)
 
 return 
 
@@ -894,10 +896,12 @@ real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: dtauzxdz1,dtauzydz1,dtauzz
 real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: dtauyxdy2,dtauyydy2,dtauyzdy2,dtauzxdz2,dtauzydz2,dtauzzdz2
 real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: dtauzxdz3,dtauzydz3,dtauzzdz3
 
-real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: tauwallxy1,tauwallzy1, wallfluxx1, wallfluxy1, wallfluxz1
+real(mytype),dimension(xsize(1),xsize(3)) :: tauwallxy1,tauwallzy1
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: wallfluxx1,wallfluxy1,wallfluxz1
 
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: sgsx1, sgsy1, sgsz1
 
+integer :: i,k
 ! Calculate derivatives first 
 ! X -Pencils
 call derx (duxdx1,ux1,di1,sx,ffx,fsx,fwx,xsize(1),xsize(2),xsize(3),0)
@@ -940,23 +944,27 @@ call transpose_y_to_x(duzdy2,duzdy1)
 !           S_ij  = 1./2.*( du_i/dx_j + du_j/dx_j)
 ! ======================================================
 
-tauxx1(:,:,:)=-2.*nut1(:,:,:)*(2.*duxdx1(:,:,:))
-tauxy1(:,:,:)=-2.*nut1(:,:,:)*(duxdy1(:,:,:)+duydx1(:,:,:))
-tauxz1(:,:,:)=-2.*nut1(:,:,:)*(duxdz1(:,:,:)+duzdx1(:,:,:))
-tauyx1(:,:,:)=-2.*nut1(:,:,:)*(duydx1(:,:,:)+duxdy1(:,:,:))
-tauyy1(:,:,:)=-2.*nut1(:,:,:)*(2.*duydy1(:,:,:))
-tauyz1(:,:,:)=-2.*nut1(:,:,:)*(duydz1(:,:,:)+duzdy1(:,:,:))
-tauzx1(:,:,:)=-2.*nut1(:,:,:)*(duzdx1(:,:,:)+duxdz1(:,:,:))
-tauzy1(:,:,:)=-2.*nut1(:,:,:)*(duzdy1(:,:,:)+duydz1(:,:,:))
-tauzz1(:,:,:)=-2.*nut1(:,:,:)*(2.*duzdz1(:,:,:))
+tauxx1(:,:,:)=0.!-2.*nut1(:,:,:)*(duxdx1(:,:,:))
+tauxy1(:,:,:)=-nut1(:,:,:)*(duxdy1(:,:,:)+duydx1(:,:,:))
+tauxz1(:,:,:)=-nut1(:,:,:)*(duxdz1(:,:,:)+duzdx1(:,:,:))
+tauyx1(:,:,:)=-nut1(:,:,:)*(duydx1(:,:,:)+duxdy1(:,:,:))
+tauyy1(:,:,:)=0.!-2.*nut1(:,:,:)*(duydy1(:,:,:))
+tauyz1(:,:,:)=-nut1(:,:,:)*(duydz1(:,:,:)+duzdy1(:,:,:))
+tauzx1(:,:,:)=-nut1(:,:,:)*(duzdx1(:,:,:)+duxdz1(:,:,:))
+tauzy1(:,:,:)=-nut1(:,:,:)*(duzdy1(:,:,:)+duydz1(:,:,:))
+tauzz1(:,:,:)=0.!-2.*nut1(:,:,:)*(duzdz1(:,:,:))
 
 ! Apply the wall boundary conditions 
-call wall_shear_flux(ux1,uy1,uz1,tauwallxy1,tauwallzy1,wallfluxx1,wallfluxy1,wallfluxz1)
+call wall_shear_stress(ux1,uy1,uz1,tauwallxy1,tauwallzy1,wallfluxx1,wallfluxy1,wallfluxz1)
 if (xstart(2)==1) then
-    tauxy1(:,1,:)=tauwallxy1(:,1,:)
-    tauyx1(:,1,:)=tauwallxy1(:,1,:)
-    tauzy1(:,1,:)=tauwallzy1(:,1,:)
-    tauyz1(:,1,:)=tauwallzy1(:,1,:)
+    do k=1,xsize(3)
+    do i=1,xsize(1)
+    tauxy1(i,1,k)=tauwallxy1(i,k)
+    tauyx1(i,1,k)=tauwallxy1(i,k)
+    tauzy1(i,1,k)=tauwallzy1(i,k)
+    tauyz1(i,1,k)=tauwallzy1(i,k)
+    enddo
+    enddo
 endif
 
 ! Calculate the sgs fluxes ---> Div(tau_D) 

@@ -379,9 +379,6 @@ ta1(:,:,:)=ta1(:,:,:)+td1(:,:,:)
 tb1(:,:,:)=tb1(:,:,:)+te1(:,:,:)
 tc1(:,:,:)=tc1(:,:,:)+tf1(:,:,:)
 
-!if(iabl==1.and.jLES.ge.2) then
-!    call abl_sgs_model(ux1,uy1,uz1,nut1,sgsx1,sgsy1,sgsz1)
-!endif
 
 !FINAL SUM: DIFF TERMS + CONV TERMS
 if(jLES==0.or.jLES==1) then ! DNS or implicit LES
@@ -397,13 +394,11 @@ elseif (jLES==3) then ! WALE
     ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)+sgsx1(:,:,:)
     tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)+sgsy1(:,:,:)
     tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)+sgsz1(:,:,:) 
-elseif(jLES==4) then ! scale-invaraint dynamic Smagorinsky 
-    if (nrank==0) write(*,*) maxval(nut1), maxval(sgsx1)
+elseif(jLES==4) then ! scale-invariant dynamic Smagorinsky 
     ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)+sgsx1(:,:,:)
     tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)+sgsy1(:,:,:)
     tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)+sgsz1(:,:,:)
 elseif(jLES==5) then ! scale-dependent dynamic Smagorinsky 
-    if (nrank==0) write(*,*) maxval(nut1), maxval(sgsx1)
     ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)+sgsx1(:,:,:)
     tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)+sgsy1(:,:,:)
     tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)+sgsz1(:,:,:)
@@ -446,17 +441,17 @@ if (ibuoyancy==1) then
 endif
 
 if (IPressureGradient==1) then
-    ta1(:,:,:)=ta1(:,:,:)+ustar**2./yly ! Apply a pressure gradient in the stream-wise direction
+    ta1(:,:,:)=ta1(:,:,:)-ustar**2./yly ! Apply a pressure gradient in the stream-wise direction
 endif
 
 ! Coriolis Effects
 if (icoriolis==1) then    
-    ta1(:,:,:)=ta1(:,:,:)+CoriolisFreq*uy1(:,:,:) ! This is the stream-wise direction
-    tc1(:,:,:)=tc1(:,:,:)-CoriolisFreq*uz1(:,:,:) ! This is not the vertical direction but the lateral horizontal
+    ta1(:,:,:)=ta1(:,:,:)+CoriolisFreq*uz1(:,:,:) ! This is the stream-wise direction
+    tc1(:,:,:)=tc1(:,:,:)-CoriolisFreq*ux1(:,:,:) ! This is not the vertical direction but the lateral horizontal
 endif
 
 if (iabl==1) then
-    call wall_shear_flux(ux1,uy1,uz1,tauwallxy1,tauwallzy1,wallfluxx1,wallfluxy1,wallfluxz1)
+    call wall_shear_stress(ux1,uy1,uz1,tauwallxy1,tauwallzy1,wallfluxx1,wallfluxy1,wallfluxz1)
     ta1(:,:,:)=ta1(:,:,:)+wallfluxx1(:,:,:)
     tb1(:,:,:)=tb1(:,:,:)+wallfluxy1(:,:,:)
     tc1(:,:,:)=tc1(:,:,:)+wallfluxz1(:,:,:)

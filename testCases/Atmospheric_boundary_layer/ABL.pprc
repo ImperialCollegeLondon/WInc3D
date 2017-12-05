@@ -6,13 +6,13 @@
     yly = 1000            ! Ly (Size of the box in y-direction) 
     zlz = 2000            ! Lz (Size of the box in z-direction) 
     nclx=0
-    ncly=2
+    ncly=1
     nclz=0
-    nfiles=1000
+    nfiles=2250
     file1=1
-    filen=1000
+    filen=2250
     istret=0
     ialm=0
-    jles=2
+    jles=1
 /End
 

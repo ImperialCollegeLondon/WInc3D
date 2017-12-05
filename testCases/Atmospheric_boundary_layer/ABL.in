@@ -26,7 +26,7 @@
     itype = 8             ! Type of flow  
     iin = 1               ! Inflow condition (1: classic, 2: turbinit)
     ifirst = 1	          ! First iteration   
-    ilast = 200000        ! Last iteration 
+    ilast = 450000        ! Last iteration 
     nscheme = 1           ! Temporal scheme (1:AB2, 2: RK3, 3:RK4, 4:AB3)
     istret = 0            ! y mesh refinement (0:no, 1:center, 2:both sides, 3:bottom)
     beta = 0.259065151    ! Refinement parameter (beta) 
@@ -34,17 +34,17 @@
     iscalar = 0           ! iscalar# (0: no scalar, 1:scalar)
     
     ! TURBULENCE MODELLING
-    jles=2                ! LES Model (0:DNS, 1: iLES 2:Smag, 3:WALE, 4: scale-invariant dyn. Smag, 5: scale-dependent dyn. Smag )
+    jles=4                ! LES Model (0:DNS, 1: iLES 2:Smag, 3:WALE, 4: scale-invariant dyn. Smag, 5: scale-dependent dyn. Smag )
     FSGS=1.0              ! Filter Size/ Grid Size for explicit LES only
-    smagcst=0.2           ! Smagorinsky constant
+    smagcst=0.17           ! Smagorinsky constant
     SmagWallDamp=1        ! Smagorinsky damping function for ABL if 1
     nSmag=1               ! Smagorinksy damping coefficient 
     walecst=0.5           ! WALES Model Coefficient
-    rxxnu=100        	  ! Implicit LES factor 
+    rxxnu=1000        	  ! Implicit LES factor 
 /End
 
 &StatParam
-    spinup_time=10000.	  !
+    spinup_time=25000.	  !
     iprobe = 0        !
     Probelistfile='WakeList.prob'
     nsampling=5
@@ -74,7 +74,7 @@ TurbinesPath='Turbine.turb'
 
 &ABLParam
 iabl=1                    ! iabl (1: atmospheric boundary layer modelling by applying a shear stress)
-z_zero=0.1                ! Roughness length
+z_zero=0.1             ! Roughness length
 k_roughness=0.41          ! von Karman constant (usually taken to be equal to 0.41)
 ustar=0.45	              ! friction velocity
 PsiM=0                    ! stability correction for momentum (taken equal to 0 for neutral stability)
