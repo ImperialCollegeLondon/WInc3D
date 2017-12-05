@@ -89,9 +89,9 @@ fiz1x,fiz2x,xsize(1),xsize(2),xsize(3),0)
     do i=1,xsize(1)                        
     tauwallxy(i,k)=-u_shear**2.0*0.5*(uxf(i,1,k)+uxf(i,2,k))/sqrt(ux_HAve**2.+uz_HAve**2.)
     tauwallzy(i,k)=-u_shear**2.0*0.5*(uzf(i,1,k)+uzf(i,2,k))/sqrt(ux_HAve**2.+uz_Have**2.)
-    wallfluxx(i,1,k) = tauwallxy(i,k)/delta
+    wallfluxx(i,1,k) = 2.0*tauwallxy(i,k)/delta
     wallfluxy(i,1,k) = 0.
-    wallfluxz(i,1,k) = tauwallzy(i,k)/delta
+    wallfluxz(i,1,k) = 2.0*tauwallzy(i,k)/delta
     enddo
     enddo
      
