@@ -1,7 +1,7 @@
 !==========================================================
 ! Subroutines for computing the SFS from the ABL
 !==========================================================
-subroutine wall_shear_stress(ux,uy,uz,tauwallxy,tauwallzy,wallfluxx,wallfluxy,wallfluxz)
+subroutine wall_shear_stress(ux,uy,uz,nut1,sxy1,syz1,tauwallxy,tauwallzy,wallfluxx,wallfluxy,wallfluxz)
 
 USE param
 USE variables
@@ -9,10 +9,10 @@ USE decomp_2d
 USE MPI
 
 implicit none
-real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux,uy,uz
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux,uy,uz,nut1
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: uxf,uyf,uzf
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: wallfluxx,wallfluxy,wallfluxz
-!real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: tauwallxy1, tauwallzy1 
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: sxy1, syz1 
 real(mytype),dimension(xsize(1),xsize(3)) :: tauwallxy, tauwallzy 
 !real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: tauwallxy2, tauwallzy2 
 !real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: tauwallxy3, tauwallzy3
@@ -47,13 +47,11 @@ fiz1x,fiz2x,xsize(1),xsize(2),xsize(3),0)
     do i=1,xsize(1)
         ux_HAve_local=ux_HAve_local+0.5*(uxf(i,1,k)+uxf(i,2,k))
         uz_HAve_local=uz_HAve_local+0.5*(uzf(i,1,k)+uzf(i,2,k))
-        !S_HAve_local=S_HAve_local+sqrt((0.5*(uxf(i,1,k)+uxf(i,2,k)))**2.+ (0.5*(uz(i,1,k)+uz(i,2,k)))**2.) 
     enddo
     enddo
     
     ux_HAve_local=ux_HAve_local/xsize(3)/xsize(1)
     uz_HAve_local=uz_HAve_local/xsize(3)/xsize(1)
-    !S_HAve_local= S_HAve_local/xsize(3)/xsize(1)
    
     else 
     
@@ -65,7 +63,6 @@ fiz1x,fiz2x,xsize(1),xsize(2),xsize(3),0)
     
     call MPI_ALLREDUCE(ux_HAve_local,ux_HAve,1,real_type,MPI_SUM,MPI_COMM_WORLD,code)
     call MPI_ALLREDUCE(uz_HAve_local,uz_HAve,1,real_type,MPI_SUM,MPI_COMM_WORLD,code)
-    !call MPI_ALLREDUCE(S_HAve_local,S_HAve,1,real_type,MPI_SUM,MPI_COMM_WORLD,code)
     
     ux_HAve=ux_HAve/p_col
     uz_HAve=uz_HAve/p_col
@@ -89,9 +86,15 @@ fiz1x,fiz2x,xsize(1),xsize(2),xsize(3),0)
     do i=1,xsize(1)                        
     tauwallxy(i,k)=-u_shear**2.0*0.5*(uxf(i,1,k)+uxf(i,2,k))/sqrt(ux_HAve**2.+uz_HAve**2.)
     tauwallzy(i,k)=-u_shear**2.0*0.5*(uzf(i,1,k)+uzf(i,2,k))/sqrt(ux_HAve**2.+uz_Have**2.)
-    wallfluxx(i,1,k) = 2.0*tauwallxy(i,k)/delta
+    
+    if(jLES.ge.2) then
+    wallfluxx(i,1,k) = -(-2.*nut1(i,2,k)*sxy1(i,2,k)-tauwallxy(i,k))/(2.*delta)
     wallfluxy(i,1,k) = 0.
-    wallfluxz(i,1,k) = 2.0*tauwallzy(i,k)/delta
+    wallfluxz(i,1,k) = -(-2.*nut1(i,2,k)*syz1(i,2,k)-tauwallzy(i,k))/(2.*delta)
+    else
+     
+    endif
+    
     enddo
     enddo
      
