@@ -454,9 +454,9 @@ if (itype.eq.8) then
       if (istret.ne.0) y=yp(j)
       do i=1,xsize(1)
          x=(i-1)*dx
-      bxx1(j,k)=ustar/k_roughness*log((y+z_zero)/z_zero)+0.5*0.0005*xlx*cos(2.*pi*x/xlx)*cos(2.*pi*y/yly)*sin(2.*pi*z/zlz)
-      bxy1(j,k)=0.0005*yly*sin(2.*pi*x/xlx)*sin(2.*pi*y/yly)*sin(2.*pi*z/zlz)
-      bxz1(i,k)=0.5*0.0005*zlz*sin(2.*pi*x/xlx)*cos(2.*pi*y/yly)*cos(2.*pi*z/zlz)
+      bxx1(j,k)=ustar/k_roughness*log((y+z_zero)/z_zero)!+0.5*0.05*cos(2.*pi*x/xlx)*cos(2.*pi*y/yly)*sin(2.*pi*z/zlz)
+      bxy1(j,k)=0.!0.05*sin(2.*pi*x/xlx)*sin(2.*pi*y/yly)*sin(2.*pi*z/zlz)
+      bxz1(i,k)=0.!0.5*0.05*sin(2.*pi*x/xlx)*cos(2.*pi*y/yly)*cos(2.*pi*z/zlz)
       enddo
    enddo
    enddo
@@ -523,7 +523,7 @@ call random_seed(put = code+63946*nrank*(/ (i - 1, i = 1, ii) /)) !
    do j=1,xsize(2)
       if (istret.eq.0) y=(j+xstart(2)-1-1)*dy
       if (istret.ne.0) y=yp(j+xstart(2)-1)
-      if (y<5*dy) then
+      if (y<6*dy.and.y>0.) then
       um=0.5*(u1+u2) ! This creates a low-level jet when applied at the ABL
         else
         um=0.

@@ -92,7 +92,7 @@ fiz1x,fiz2x,xsize(1),xsize(2),xsize(3),0)
     wallfluxy(i,1,k) = 0.
     wallfluxz(i,1,k) = -(-2.*nut1(i,2,k)*syz1(i,2,k)-tauwallzy(i,k))/(2.*delta)
     else
-     
+    
     endif
     
     enddo
@@ -106,38 +106,4 @@ if (nrank==0) write(*,*)  'Minimum wall shear stress for x and z', minval(tauwal
 
 return
 
-! Computing the wall fluxes 
-! Derivates for x 
-!call derx (gyx1,tauwallxy1,di1,sx,ffxp,fsxp,fwxp,xsize(1),xsize(2),xsize(3),1)
-!
-!! Transpose X --> Y
-!call transpose_x_to_y(tauwallxy1,tauwallxy2)
-!call transpose_x_to_y(tauwallzy1,tauwallzy2)
-!
-!! Differentiate for y
-!call dery (gxy2,tauwallxy2,di2,sy,ffyp,fsyp,fwyp,ppy,ysize(1),ysize(2),ysize(3),1)
-!call dery (gzy2,tauwallzy2,di2,sy,ffyp,fsyp,fwyp,ppy,ysize(1),ysize(2),ysize(3),1)
-!
-!! Transpose Y --> Z
-!call transpose_y_to_z(tauwallzy2,tauwallzy3)
-!
-!! Differentiate for z
-!call derz(gyz3,tauwallzy3,di3,sz,ffzp,fszp,fwzp,zsize(1),zsize(2),zsize(3),1)
-!
-!!Transpose Z --> Y
-!call transpose_z_to_y(gyz3,gyz2)
-!
-!! Transpose Y --> X
-!call transpose_y_to_x(gyz2,gyz1)
-!call transpose_y_to_x(gxy2,gxy1)
-!call transpose_y_to_x(gzy2,gzy1)
-!
-!wallfluxx(:,:,:) = tauwallxy1(:,:,:)/delta!-gxy1(:,:,:)
-!wallfluxy(:,:,:) = 0.!-(gyx1(:,:,:)+gyz1(:,:,:))
-!wallfluxz(:,:,:) = tauwallzy1(:,:,:)/delta!-gzy1(:,:,:)
-
-
-!if (nrank==0) write(*,*)  'Maximum wallflux for x, y and z', maxval(wallfluxx), maxval(wallfluxy), maxval(wallfluxz)
-!if (nrank==0) write(*,*)  'Minimum wallflux for x, y and z', minval(wallfluxx), minval(wallfluxy), minval(wallfluxz)
-!return
 end subroutine wall_shear_stress

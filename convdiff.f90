@@ -375,31 +375,20 @@ call derxx (te1,uy1,di1,sx,sfxp,ssxp,swxp,xsize(1),xsize(2),xsize(3),1)
 call derxx (tf1,uz1,di1,sx,sfxp,ssxp,swxp,xsize(1),xsize(2),xsize(3),1)
 
 endif
+
 ta1(:,:,:)=ta1(:,:,:)+td1(:,:,:)
 tb1(:,:,:)=tb1(:,:,:)+te1(:,:,:)
 tc1(:,:,:)=tc1(:,:,:)+tf1(:,:,:)
 
-
-! Compute additional Models
 if (iabl==1) then
-    call wall_shear_stress(ux1,uy1,uz1,nut1,sxy1,syz1,tauwallxy1,tauwallzy1,wallfluxx1,wallfluxy1,wallfluxz1)
-    ta1(:,:,:)=ta1(:,:,:)+wallfluxx1(:,:,:)
-    tb1(:,:,:)=tb1(:,:,:)+wallfluxy1(:,:,:)
-    tc1(:,:,:)=tc1(:,:,:)+wallfluxz1(:,:,:)
+    ! In case of ABL set to zero the SGS model at level 1 (This will be computed later by the 
+    ! SGS wall stress model
     if (xstart(2)==1) then
     sgsx1(:,1,:)=0.
     sgsy1(:,1,:)=0.
     sgsz1(:,1,:)=0.
     endif
 endif
-
-! Turbine forcing through an Actuator Line Model
-if (ialm==1) then
-    ta1(:,:,:)=ta1(:,:,:)+FTx(:,:,:)
-    tb1(:,:,:)=tb1(:,:,:)+FTy(:,:,:)
-    tc1(:,:,:)=tc1(:,:,:)+FTz(:,:,:)
-endif
-
 
 !FINAL SUM: DIFF TERMS + CONV TERMS
 if(jLES==0.or.jLES==1) then ! DNS or implicit LES
@@ -411,7 +400,6 @@ elseif (jLES==2) then ! Classic Smagorisnky Model
     tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)+sgsy1(:,:,:)
     tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)+sgsz1(:,:,:)
 elseif (jLES==3) then ! WALE 
-    if (nrank==0) write(*,*) maxval(sgsx1), maxval(sgsy1), maxval(sgsz1)
     ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)+sgsx1(:,:,:)
     tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)+sgsy1(:,:,:)
     tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)+sgsz1(:,:,:) 
@@ -434,6 +422,16 @@ else
     write(*,*) '               : 5--> Scale-dependent dynamic smagorinsky model'
     endif
     stop
+endif
+!***************************************
+! Compute additional Models
+!***************************************
+! 
+if (iabl==1) then
+    call wall_shear_stress(ux1,uy1,uz1,nut1,sxy1,syz1,tauwallxy1,tauwallzy1,wallfluxx1,wallfluxy1,wallfluxz1)
+    ta1(:,:,:)=ta1(:,:,:)+wallfluxx1(:,:,:)
+    tb1(:,:,:)=tb1(:,:,:)+wallfluxy1(:,:,:)
+    tc1(:,:,:)=tc1(:,:,:)+wallfluxz1(:,:,:)
 endif
 
 ! Buoyancy Effects
@@ -462,13 +460,20 @@ if (ibuoyancy==1) then
 endif
 
 if (IPressureGradient==1) then
-    ta1(:,:,:)=ta1(:,:,:)+ustar**2./yly ! Apply a pressure gradient in the stream-wise direction
+    ta1(:,:,:)=ta1(:,:,:)-ustar**2./yly ! Apply a pressure gradient in the stream-wise direction
 endif
 
 ! Coriolis Effects
 if (icoriolis==1) then    
     ta1(:,:,:)=ta1(:,:,:)+CoriolisFreq*uz1(:,:,:) ! This is the stream-wise direction
     tc1(:,:,:)=tc1(:,:,:)-CoriolisFreq*ux1(:,:,:) ! This is not the vertical direction but the lateral horizontal
+endif
+
+! Turbine forcing through an Actuator Line Model
+if (ialm==1) then
+    ta1(:,:,:)=ta1(:,:,:)+FTx(:,:,:)
+    tb1(:,:,:)=tb1(:,:,:)+FTy(:,:,:)
+    tc1(:,:,:)=tc1(:,:,:)+FTz(:,:,:)
 endif
 
 end subroutine convdiff
