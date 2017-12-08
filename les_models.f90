@@ -347,8 +347,8 @@ real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: dsmagcst3
 real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: dsmagcst2
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: dsmagcst
 real(mytype),dimension(xsize(2)) :: tmpa1
-real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: dsmagHP1
-real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: dsmagHP2
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: dsmagHP1_local
+real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: dsmagHP2_local,dsmagHP2
 real(mytype) :: smagC1,smagC2,dsmaggbl
 integer::i,j,k,ierror,i2,j2,code
 real(mytype) :: denom ! Denominator in dynamic Smagorinsky
@@ -772,28 +772,26 @@ lyy1(:,:,:)=lyy1(:,:,:)-(lxx1(:,:,:)+lyy1(:,:,:)+lzz1(:,:,:))/3.
 lzz1(:,:,:)=lzz1(:,:,:)-(lxx1(:,:,:)+lyy1(:,:,:)+lzz1(:,:,:))/3.
 
 if(itime==1) then
-smagC=0.1
+dsmagHP1_local(:,j,:)=0.1
 else
-
-    ! Make sure it is zero before starting computing
-    smagC = 0.
+! Make sure it is zero before starting computing
+smagC = 0.
 
 do k=1,xsize(3)
 do j=1,xsize(2)
 do i=1,xsize(1)
 
-Denom=(mxx1(i,j,k)*mxx1(i,j,k)+&
-myy1(i,j,k)*myy1(i,j,k)+&
-mzz1(i,j,k)*mzz1(i,j,k)+&
-2.*mxy1(i,j,k)*mxy1(i,j,k)+&
-2.*mxz1(i,j,k)*mxz1(i,j,k)+&
-2.*myz1(i,j,k)*myz1(i,j,k))
+!Denom=(mxx1(i,j,k)*mxx1(i,j,k)+&
+!myy1(i,j,k)*myy1(i,j,k)+&
+!mzz1(i,j,k)*mzz1(i,j,k)+&
+!2.*mxy1(i,j,k)*mxy1(i,j,k)+&
+!2.*mxz1(i,j,k)*mxz1(i,j,k)+&
+!2.*myz1(i,j,k)*myz1(i,j,k))
 
-if(abs(Denom).le.1e-6) then
-    smagC(i,j,k)=0.01 ! 
-else
-
-    smagC(i,j,k)= (lxx1(i,j,k)*mxx1(i,j,k)+&
+!if(abs(Denom).le.1e-15) then
+!    smagC(i,j,k)=0.01 ! 
+!else
+    smagC(i,j,k)=(lxx1(i,j,k)*mxx1(i,j,k)+&
 lyy1(i,j,k)*myy1(i,j,k)+&
 lzz1(i,j,k)*mzz1(i,j,k)+&
 2.*lxy1(i,j,k)*mxy1(i,j,k)+&
@@ -805,56 +803,56 @@ mzz1(i,j,k)*mzz1(i,j,k)+&
 2.*mxy1(i,j,k)*mxy1(i,j,k)+&
 2.*mxz1(i,j,k)*mxz1(i,j,k)+&
 2.*myz1(i,j,k)*myz1(i,j,k))
-endif
 
 enddo
 enddo
 enddo
 
 !FILTERING THE NON-CONSTANT CONSTANT
-call filx(smagC1f,smagC,di1,sx,vx,fiffx,fifx,ficx,fibx,fibbx,filax,&
-fiz1x,fiz2x,xsize(1),xsize(2),xsize(3),0)
+!call filx(smagC1f,smagC,di1,sx,vx,fiffx,fifx,ficx,fibx,fibbx,filax,&
+!fiz1x,fiz2x,xsize(1),xsize(2),xsize(3),0)
+!
+!call transpose_x_to_y(smagC1f,ta2)
+!
+!call fily(smagC2f,ta2,di2,sy,vy,fiffy,fify,ficy,&
+!fiby,fibby,filay,fiz1y,fiz2y,ysize(1),ysize(2),ysize(3),1)
+!
+!ta2=0.
+!call transpose_y_to_z(smagC2f,ta3)
+!
+!call filz(smagC3f,ta3,di3,sz,vz,fiffz,fifz,ficz,fibz,fibbz,filaz,&
+!fiz1z,fiz2z,zsize(1),zsize(2),zsize(3),1)
+!ta3=0.
+!
+!call transpose_z_to_y(smagC3f,smagC2f)
+!call transpose_y_to_x(smagC2f,smagC)
 
-call transpose_x_to_y(smagC1f,ta2)
 
-call fily(smagC2f,ta2,di2,sy,vy,fiffy,fify,ficy,&
-fiby,fibby,filay,fiz1y,fiz2y,ysize(1),ysize(2),ysize(3),1)
-
-ta2=0.
-call transpose_y_to_z(smagC2f,ta3)
-
-call filz(smagC3f,ta3,di3,sz,vz,fiffz,fifz,ficz,fibz,fibbz,filaz,&
-fiz1z,fiz2z,zsize(1),zsize(2),zsize(3),1)
-ta3=0.
-
-call transpose_z_to_y(smagC3f,smagC2f)
-call transpose_y_to_x(smagC2f,smagC)
-
+! What sort of averaging do we want ?
 ! Average coefficient within a horizontal plane
+
 tmpa1=0.
+
 do j=1,xsize(2)
-
-do k=1,xsize(3)
-do i=1,xsize(1)
-tmpa1(j)=tmpa1(j)+smagC(i,j,k)
-enddo
-enddo
-
+    do k=1,xsize(3)
+    do i=1,xsize(1)
+    tmpa1(j)=tmpa1(j)+smagC(i,j,k)
+    enddo
+    enddo
 ! DO the averaging
-dsmagHP1(i,j,k)=tmpa1(j)/xsize(1)/xsize(3)
+dsmagHP1_local(:,j,:)=tmpa1(j)/xsize(1)/xsize(3)
 enddo
-
-call transpose_x_to_y(dsmagHP1,dsmagHP2)
-
-!call MPI_ALLREDUCE(tmpa1,dsmagHP1,xsize(2),MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,code)
-
 endif
 
-!if (nrank==0) print*,"Cst = ",maxval(dsmagcst),minval(dsmagcst)
-!if (mod(itime,50)==0) print*,"Cst = ",maxval(dsmagcst),minval(dsmagcst)
-
+! Do the transpose to go to the y pencil
+call transpose_x_to_y(dsmagHP1_local,dsmagHP2_local)
 call transpose_x_to_y(srt_smag,srt_smag2)
-!!call transpose_x_to_y(dsmagcst,dsmagcst2)
+
+call MPI_ALLREDUCE(dsmagHP2_local,dsmagHP2,ysize(2),real_type,MPI_SUM,MPI_COMM_WORLD,code)
+
+dsmagHP2(:,:,:)=dsmagHP2(:,:,:)/p_col
+
+if (nrank==0) print*,"Max and Min of the Dynamic Smagorinsky Constant = ",maxval(dsmagHP2), minval(dsmagHP2)
 do k=1,ysize(3)
 do j=1,ysize(2)
 do i=1,ysize(1)
@@ -862,8 +860,8 @@ nut2(i,j,k)=(dsmagHP2(i,j,k)*del(j))**2.0*sqrt(2.*srt_smag2(i,j,k))
 enddo
 enddo
 enddo
+
 call transpose_y_to_x(nut2,nut1)
-if (nrank==0) print*,"Max and Min of the  Constant = ",maxval(dsmagHP1), minval(dsmagHP1)
 
 return 
 
