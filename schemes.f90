@@ -1214,7 +1214,7 @@ csttx = 0.
 !bsix  = (3./44. )/dx2
 !csix  = 0.
 !NUMERICAL DISSIPATION (see publications for help)
-!xxnu = 1.0/rxxnu        ! Dissipation coefficient nu_o/nu 
+!xxnu = 1.0/rxxnu        ! Dissipation coefficient nu/nu_0 
 !dpis3=2*pi/3            ! 2*kc/3 where kc=pi/dx (will be added next this is just the coeffs)
 !kppkc=pi*pi/xxnu+pi*pi  ! k''(kc) = (1+nu_o/nu)*kc^2
 !kppkm=dpis3*dpis3*exp(-((pi-dpis3)/(0.3*pi-dpis3))**2)/xxnu+dpis3*dpis3 ! k''(km)=(1+c1*nu_o/nu)*4*pi/9

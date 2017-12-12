@@ -115,26 +115,27 @@ for k in range(0,nz):
 
 D=nml['PostProcess']['D']
 Uinf=nml['PostProcess']['Uinf']
-xref=nml['PostProcess']['xref']
 TSR=nml['PostProcess']['TSR']
-xloc=nml['PostProcess']['xloc']
-yloc=nml['PostProcess']['yloc']
-zloc=nml['PostProcess']['zloc']
+xD=nml['PostProcess']['xD']
+xTurb=nml['PostProcess']['xTurb']
+OutputName=nml['PostProcess']['OutputName']
 R=D/2.0
 
 
-for i in range(len(xloc)):
-    print('Computing statistics at location ' + str(float(xloc[i]))+'...\n')
+for i in range(len(xD)):
     
-    ixloc=np.where(abs(x[:,0,0]-xloc[i])==abs(x[:,0,0]-xloc[i]).min())[0]
-    jxloc=np.where(abs(y[0,:,0]-yloc[i])==abs(y[0,:,0]-yloc[i]).min())[0]
+    print('Computing statistics at location ' + str(float(xD[i]))+' Diameters downstream the turbine.\n')
+    
+    ixloc=np.where(abs(x[:,0,0]-(xTurb[0]+xD[i]*D))==abs(x[:,0,0]-(xTurb[0]+xD[i]*D)).min())[0]
+    jxloc=np.where(abs(y[0,:,0]-xTurb[1])==abs(y[0,:,0]-xTurb[1]).min())[0]
+    kxloc=np.where(abs(z[0,0,:]-xTurb[2])==abs(z[0,0,:]-xTurb[2]).min())[0]
   
-    print 'found indices ', ixloc[0], jxloc[0]
+    print 'found indices ', ixloc[0], jxloc[0], kxloc[0]
     if args.write:     
-        with open(output+'TSR_'+str(round(TSR))+'_XD_'+str(round((xloc[i]-xref)/D))+'_Horizontal.dat','w') as fout:
-            fout.write('# y/R 1-u/Uref u/U k/Uref^2 up^2/Uref^2 upvp/Uref^2 upwp/Uref^2 vwp\n')
+        with open(output+OutputName+'_XD_'+str(round(xD[i],1))+'_Horizontal.dat','w') as fout:
+            fout.write('# y/R 1-u/Uref u/U k/Uref^2 up^2/Uref^2 upvp/Uref^2 upwp/Uref^2 vwpUref^2\n')
             for iwake in range(nz):
-                rR=float(-zlz/(2.0*R)+z[ixloc[0],jxloc[0],iwake]/R)
+                rR=float(-zlz/D+z[ixloc[0],jxloc[0],iwake]/R)
                 uUDef=float(1.-uav[ixloc[0],jxloc[0],iwake]/Uinf)
                 uU=float(uav[ixloc[0],jxloc[0],iwake]/Uinf)
                 TKEU2=float(0.5*(upup[ixloc[0],jxloc[0],iwake]+vpvp[ixloc[0],jxloc[0],iwake]+wpwp[ixloc[0],jxloc[0],iwake])/Uinf**2)
@@ -142,6 +143,19 @@ for i in range(len(xloc)):
                 upvpU2=float(upvp[ixloc[0],jxloc[0],iwake]/Uinf**2)
                 upwpU2=float(upwp[ixloc[0],jxloc[0],iwake]/Uinf**2)
                 vpwpU2=float(vpwp[ixloc[0],jxloc[0],iwake]/Uinf**2)
+                fout.write(str(rR)+' '+str(uUDef)+' '+str(uU) +' '+str(TKEU2)+' '+str(upupU2)+' '+str(upvpU2)+' '+str(upwpU2)+' '+str(vpwpU2)+'\n')
+     
+        with open(output+OutputName+'_XD_'+str(round(xD[i],1))+'_Vertical.dat','w') as fout:
+            fout.write('# y/R 1-u/Uref u/U k/Uref^2 up^2/Uref^2 upvp/Uref^2 upwp/Uref^2 vwpUref^2\n')
+            for iwake in range(ny):
+                rR=float(-(xTurb[1])/R+y[ixloc[0],iwake,kxloc]/R)
+                uUDef=float(1.-uav[ixloc[0],iwake,kxloc[0]]/Uinf)
+                uU=float(uav[ixloc[0],iwake,kxloc[0]]/Uinf)
+                TKEU2=float(0.5*(upup[ixloc[0],iwake,kxloc[0]]+vpvp[ixloc[0],iwake,kxloc[0]]+wpwp[ixloc[0],iwake,kxloc[0]])/Uinf**2)
+                upupU2=float(upup[ixloc[0],iwake,kxloc[0]]/Uinf**2)
+                upvpU2=float(upvp[ixloc[0],iwake,kxloc[0]]/Uinf**2)
+                upwpU2=float(upwp[ixloc[0],iwake,kxloc[0]]/Uinf**2)
+                vpwpU2=float(vpwp[ixloc[0],iwake,kxloc[0]]/Uinf**2)
                 fout.write(str(rR)+' '+str(uUDef)+' '+str(uU) +' '+str(TKEU2)+' '+str(upupU2)+' '+str(upvpU2)+' '+str(upwpU2)+' '+str(vpwpU2)+'\n')
             
     if args.plot:    

@@ -48,9 +48,9 @@ module variables
 !2-->every 2 mesh nodes
 !4-->every 4 mesh nodes
 !nvisu = size for visualization collection
-integer,parameter :: nx=128,ny=129,nz=128
+integer,parameter :: nx=128,ny=129,nz=125
 integer,parameter :: nstat=1,nvisu=1
-integer,parameter :: p_row=4,p_col=4
+integer,parameter :: p_row=4,p_col=3
 integer,parameter :: nxm=nx,nym=ny-1,nzm=nz
 !end module variables
 
@@ -66,6 +66,7 @@ real(mytype), dimension(nz,2) ::filaz,filazp
 real(mytype), dimension(nz) :: fifzp,ficzp,fibzp,fiffzp,fibbzp
 integer, dimension(200) :: idata
 real(mytype), dimension(p_col*p_row) :: Cs
+
 
 !module derivative
 real(mytype), dimension(nx) :: ffx,fcx,fbx,sfx,scx,sbx,fsx,fwx,ssx,swx
@@ -132,6 +133,14 @@ real(mytype), dimension(ny) :: yp,ypi,del
 real(mytype), dimension(ny) :: yeta,yetai
 real(mytype) :: alpha,beta
 
+!contains
+!    
+!    subroutine init_parameters
+!
+!    ! Allocate filter
+!    allocate(fifx(nx),ficx(nx),fibx(nx),fiffx(nx),fibbx(nx),fiz1x(nx),fiz2x(nx))
+!
+!    end subroutine init_parameters
 
 end module variables
 

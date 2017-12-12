@@ -138,7 +138,7 @@ write(*,1102) nclx,ncly,nclz
 write(*,1104) u1,u2 
 write(*,1105) re
 write(*,1106) dt
-if (nscheme.eq.1) print *,'Temporal scheme   : Adams-bashforth 4'
+if (nscheme.eq.1) print *,'Temporal scheme   : Adams-bashforth 2'
 if (nscheme.eq.2) print *,'Temporal scheme   : Runge-Kutta 3'
 if (nscheme.eq.3) print *,'Temporal scheme   : Runge-Kutta 4'
 if (iscalar.eq.0) print *,'Passive scalar    : off'

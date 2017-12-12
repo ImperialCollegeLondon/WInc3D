@@ -60,6 +60,7 @@ character(len=20) :: filename
 TYPE(DECOMP_INFO) :: phG,ph1,ph2,ph3,ph4
 
 CALL MPI_INIT(code)
+
 call decomp_2d_init(nx,ny,nz,p_row,p_col)
 !start from 1 == true
 call init_coarser_mesh_statS(nstat,nstat,nstat,.true.)
