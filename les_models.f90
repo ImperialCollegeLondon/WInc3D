@@ -781,17 +781,7 @@ do k=1,xsize(3)
 do j=1,xsize(2)
 do i=1,xsize(1)
 
-!Denom=(mxx1(i,j,k)*mxx1(i,j,k)+&
-!myy1(i,j,k)*myy1(i,j,k)+&
-!mzz1(i,j,k)*mzz1(i,j,k)+&
-!2.*mxy1(i,j,k)*mxy1(i,j,k)+&
-!2.*mxz1(i,j,k)*mxz1(i,j,k)+&
-!2.*myz1(i,j,k)*myz1(i,j,k))
-
-!if(abs(Denom).le.1e-15) then
-!    smagC(i,j,k)=0.01 ! 
-!else
-    smagC(i,j,k)=(lxx1(i,j,k)*mxx1(i,j,k)+&
+smagC(i,j,k)=(lxx1(i,j,k)*mxx1(i,j,k)+&
 lyy1(i,j,k)*myy1(i,j,k)+&
 lzz1(i,j,k)*mzz1(i,j,k)+&
 2.*lxy1(i,j,k)*mxy1(i,j,k)+&
