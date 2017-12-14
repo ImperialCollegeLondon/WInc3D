@@ -1158,7 +1158,8 @@ implicit none
 integer  :: i,j,k
 real(mytype) :: fpi2,alpha2,diskc,diskm,dpis3,kppkc,kppkm,xxnu
 real(mytype) :: xmpi2, xnpi2 
-! First derivative single sided coeffs
+
+! First derivative one-sided coeffs
 ! f_1'+2*f_2'=1/(2*dx)*(-5f_1+4.0*f_2+f_3+0.0*f_4)
 alfa1x= 2. ! multiplies f_2'
 af1x  =-(5./2.  )/dx ! multiplies f_1
@@ -1167,9 +1168,10 @@ cf1x  = (1./2.  )/dx ! multiplies f_3
 df1x  = 0.
 alfa2x= 1./4.
 af2x  = (3./4.  )/dx
-alfanx= 2.
-afnx  =-(5./2.  )/dx
-bfnx  = (   2.  )/dx
+! 2*f'_n-1+f'n=1/(2*dx)*(-5f_n+4.0*f_n-1+f_n-2+0.0*f_n-3) 
+alfanx= 2.              ! multiplies f_n-1'
+afnx  =-(5./2.  )/dx    
+bfnx  = (   2.  )/dx   
 cfnx  = (1./2.  )/dx
 dfnx  = 0.
 alfamx= 1./4.
@@ -1179,7 +1181,7 @@ alfaix= 1./3.
 afix  = (7./9.  )/dx 
 bfix  = (1./36. )/dx
 
-! Second Derivative three point formulations for no-slip and slip BCs
+! Second Derivative three point formulations for no-slip condition
 alsa1x = 11.
 as1x  = (13.    )/dx2
 bs1x  =-(27.    )/dx2
@@ -1227,10 +1229,11 @@ csttx = 0.
 
 !NUMERICAL DISSIPATION FOR 6th ORDER SCHEMES (see publications for help)
 !=========================================================================
-xxnu=1./rxxnu
+!xxnu=1./rxxnu
 dpis3=2*pi/3
-kppkc=pi*pi/xxnu+pi*pi
-kppkm=dpis3*dpis3*exp(-((pi-dpis3)/(0.3*pi-dpis3))**2)/xxnu+dpis3*dpis3
+kppkc=pi*pi*(1+rxxnu)
+kppkm=dpis3*dpis3*(1.+0.44*rxxnu)
+!kppkm=dpis3*dpis3*exp(-((pi-dpis3)/(0.3*pi-dpis3))**2)/xxnu+dpis3*dpis3
 xnpi2=kppkc
 xmpi2=kppkm
 !==========================================================================

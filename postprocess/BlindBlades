@@ -16,6 +16,14 @@ rR_N13=np.linspace(rR_ref[0],rR_ref[-1],14)
 cR_N13=np.interp(rR_N13,rR_ref,cR_ref)
 pitch_N13=np.interp(rR_N13,rR_ref,pitch_ref)
 
+rR_N20=np.linspace(rR_ref[0],rR_ref[-1],21)
+cR_N20=np.interp(rR_N20,rR_ref,cR_ref)
+pitch_N20=np.interp(rR_N20,rR_ref,pitch_ref)
+
+rR_N26=np.linspace(rR_ref[0],rR_ref[-1],27)
+cR_N26=np.interp(rR_N26,rR_ref,cR_ref)
+pitch_N26=np.interp(rR_N26,rR_ref,pitch_ref)
+
 rR_N35=np.linspace(rR_ref[0],rR_ref[-1],36)
 cR_N35=np.interp(rR_N35,rR_ref,cR_ref)
 pitch_N35=np.interp(rR_N35,rR_ref,pitch_ref)
@@ -24,27 +32,48 @@ rR_N52=np.linspace(rR_ref[0],rR_ref[-1],53)
 cR_N52=np.interp(rR_N52,rR_ref,cR_ref)
 pitch_N52=np.interp(rR_N52,rR_ref,pitch_ref)
 
-#plt.plot(rR_N20,cR_N20,'-g',rR_ref,cR_ref,'-b*',rR_N35,cR_N35,'-rs',rR_N52,cR_N52,'-k')
-#plt.axis('equal')
-#plt.show()
+rR_N70=np.linspace(rR_ref[0],rR_ref[-1],71)
+cR_N70=np.interp(rR_N70,rR_ref,cR_ref)
+pitch_N70=np.interp(rR_N70,rR_ref,pitch_ref)
+
 with open('Blade_N13.al','w') as fout:
-    fout.write('R  : 0.472 \n')
+    fout.write('R  : 0.447 \n')
     fout.write('Spanwise  : 0.0 0.0 1.0 \n')
     fout.write('NStations : 14 \n')
     for j in range(0,14):
         fout.write(str(rR_N13[j])+'\t'+str(cR_N13[j])+'\t'+str(pitch_N13[j])+'\t0.14\n')
 
+with open('Blade_N20.al','w') as fout:
+    fout.write('R  : 0.447 \n')
+    fout.write('Spanwise  : 0.0 0.0 1.0 \n')
+    fout.write('NStations : 14 \n')
+    for j in range(0,21):
+        fout.write(str(rR_N20[j])+'\t'+str(cR_N20[j])+'\t'+str(pitch_N20[j])+'\t0.14\n')
+
+with open('Blade_N26.al','w') as fout:
+    fout.write('R  : 0.447 \n')
+    fout.write('Spanwise  : 0.0 0.0 1.0 \n')
+    fout.write('NStations : 14 \n')
+    for j in range(0,27):
+        fout.write(str(rR_N26[j])+'\t'+str(cR_N26[j])+'\t'+str(pitch_N26[j])+'\t0.14\n')
+
 with open('Blade_N35.al','w') as fout:
-    fout.write('R  : 0.472 \n')
+    fout.write('R  : 0.447 \n')
     fout.write('Spanwise  : 0.0 0.0 1.0 \n')
     fout.write('NStations : 36 \n')
     for j in range(0,36):
         fout.write(str(rR_N35[j])+'\t'+str(cR_N35[j])+'\t'+str(pitch_N35[j])+'\t0.14\n')
 
 with open('Blade_N52.al','w') as fout:
-    fout.write('R  : 0.472 \n')
+    fout.write('R  : 0.447 \n')
     fout.write('Spanwise  : 0.0 0.0 1.0 \n')
     fout.write('NStations : 53 \n')
     for j in range(0,53):
         fout.write(str(rR_N52[j])+'\t'+str(cR_N52[j])+'\t'+str(pitch_N52[j])+'\t0.14\n')
 
+with open('Blade_N70.al','w') as fout:
+    fout.write('R  : 0.447 \n')
+    fout.write('Spanwise  : 0.0 0.0 1.0 \n')
+    fout.write('NStations : 71 \n')
+    for j in range(0,71):
+        fout.write(str(rR_N70[j])+'\t'+str(cR_N70[j])+'\t'+str(pitch_N70[j])+'\t0.14\n')
