@@ -50,12 +50,12 @@ character :: a*80
 
 ! Have you heard of NAMELISTs ?
 NAMELIST/FlowParam/xlx,yly,zlz,re,sc,u1,u2,noise,noise1,dt,ibuoyancy,icoriolis,Pr,TempRef,CoriolisFreq
-NAMELIST/NumConfig/nclx,ncly,nclz,itype,iin,TurbRadius,ifirst,ilast,nscheme,istret, &
+NAMELIST/NumConfig/nx,ny,nz,p_row,p_col,nclx,ncly,nclz,itype,iin,TurbRadius,ifirst,ilast,nscheme,istret, &
     beta,iskew,iscalar,jles,FSGS,jadv,smagcst,SmagWallDamp,nSmag,walecst,rxxnu 
 NAMELIST/FileParam/ilit,isave,imodulo
 NAMELIST/IBMParam/ivirt,ibmshape,cex,cey,cez,ra
 NAMELIST/ALMParam/ialm,NTurbines,TurbinesPath,NActuatorlines,ActuatorlinesPath,eps_factor
-NAMELIST/StatParam/spinup_time,iprobe,Probelistfile,nsampling 
+NAMELIST/StatParam/spinup_time,nstat,nvisu,iprobe,Probelistfile,nsampling 
 NAMELIST/ABLParam/iabl,z_zero,k_roughness,PsiM,ustar,IPressureGradient,Ug,epsilon_pert 
 #ifdef DOUBLE_PREC 
 pi=dacos(-1.d0) 
@@ -66,6 +66,13 @@ pi=acos(-1.)
 twopi=2.*pi
 
 ! IF variables are not set we will need to give them some default values
+nx=64
+ny=64
+nz=64
+p_col=2
+p_row=2
+nstat=1
+nvisu=1
 xlx=1.0
 yly=1.0
 zlz=1.0
@@ -167,18 +174,37 @@ endif
  1110 format(' Object length     : ',F6.2)
  1113 format(' Schmidt number    : ',F6.2)
 endif
-   
-if (nclx==0) dx=xlx/nx 
-if (nclx==1 .or. nclx==2) dx=xlx/(nx-1.) 
-if (ncly==0) dy=yly/ny 
-if (ncly==1.or.ncly==2) dy   =yly/(ny-1.) 
+ 
+if (nclx==0) then
+    dx=xlx/nx
+    nxm=nx
+
+else if (nclx==1 .or. nclx==2) then 
+    dx=xlx/(nx-1.)
+    nxm=nx-1
+else
+    write(*,*) "Select between nclx=0, 1 and 2"
+endif
+
+if (ncly==0) dy=yly/ny; nym=ny
+if (ncly==1.or.ncly==2) then 
+    dy=yly/(ny-1.) 
+    nym=ny-1
+endif
+
 dx2=dx*dx
 dy2=dy*dy
 #ifndef TWOD
-   if (nclz==0) dz=zlz/nz 
-   if (nclz==1.or.nclz==2) dz=zlz/(nz-1.) 
-   dz2=dz*dz
+   if (nclz==0) dz=zlz/nz ; nzm=nz
+   if (nclz==1.or.nclz==2) then 
+   dz=zlz/(nz-1.) 
+   nzm=nz-1
+   endif
+dz2=dz*dz
 #endif
+
+
+call init_module_parameters(nx,ny,nz,nxm,nym,nzm,p_row,p_col)
 
 xnu=1./re
 

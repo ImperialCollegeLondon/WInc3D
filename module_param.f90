@@ -48,33 +48,33 @@ module variables
 !2-->every 2 mesh nodes
 !4-->every 4 mesh nodes
 !nvisu = size for visualization collection
-integer,parameter :: nx=64,ny=65,nz=64
-integer,parameter :: nstat=1,nvisu=1
-integer,parameter :: p_row=4,p_col=2
-integer,parameter :: nxm=nx,nym=ny-1,nzm=nz
+integer,save :: nx,ny,nz
+integer,save :: nstat,nvisu
+integer,save :: p_row,p_col
+integer,save :: nxm,nym,nzm
 !end module variables
 
 !module filter
-real(mytype), dimension(nx) :: fifx,ficx,fibx,fiffx,fibbx,fiz1x,fiz2x
-real(mytype), dimension(nx,2) ::filax,filaxp
-real(mytype), dimension(nx) :: fifxp,ficxp,fibxp,fiffxp,fibbxp
-real(mytype), dimension(ny) :: fify,ficy,fiby,fiffy,fibby,fiz1y,fiz2y
-real(mytype), dimension(ny,2) ::filay,filayp
-real(mytype), dimension(ny) :: fifyp,ficyp,fibyp,fiffyp,fibbyp
-real(mytype), dimension(nz) :: fifz,ficz,fibz,fiffz,fibbz,fiz1z,fiz2z
-real(mytype), dimension(nz,2) ::filaz,filazp
-real(mytype), dimension(nz) :: fifzp,ficzp,fibzp,fiffzp,fibbzp
+real(mytype), save, allocatable, dimension(:) :: fifx,ficx,fibx,fiffx,fibbx,fiz1x,fiz2x
+real(mytype), save, allocatable, dimension(:,:) ::filax,filaxp
+real(mytype), save, allocatable, dimension(:) :: fifxp,ficxp,fibxp,fiffxp,fibbxp
+real(mytype), save, allocatable, dimension(:) :: fify,ficy,fiby,fiffy,fibby,fiz1y,fiz2y
+real(mytype), save, allocatable, dimension(:,:) ::filay,filayp
+real(mytype), save, allocatable, dimension(:) :: fifyp,ficyp,fibyp,fiffyp,fibbyp
+real(mytype), save, allocatable, dimension(:) :: fifz,ficz,fibz,fiffz,fibbz,fiz1z,fiz2z
+real(mytype), save, allocatable, dimension(:,:) ::filaz,filazp
+real(mytype), save, allocatable, dimension(:) :: fifzp,ficzp,fibzp,fiffzp,fibbzp
 integer, dimension(200) :: idata
-real(mytype), dimension(p_col*p_row) :: Cs
+real(mytype), save, allocatable, dimension(:) :: Cs
 
 
 !module derivative
-real(mytype), dimension(nx) :: ffx,fcx,fbx,sfx,scx,sbx,fsx,fwx,ssx,swx
-real(mytype), dimension(nx) :: ffxp,fsxp,fwxp,sfxp,ssxp,swxp
-real(mytype), dimension(ny) :: ffy,fcy,fby,sfy,scy,sby,fsy,fwy,ssy,swy
-real(mytype), dimension(ny) :: ffyp,fsyp,fwyp,sfyp,ssyp,swyp
-real(mytype), dimension(nz) :: ffz,fcz,fbz,sfz,scz,sbz,fsz,fwz,ssz,swz
-real(mytype), dimension(nz) :: ffzp,fszp,fwzp,sfzp,sszp,swzp
+real(mytype), save, allocatable, dimension(:) :: ffx,fcx,fbx,sfx,scx,sbx,fsx,fwx,ssx,swx
+real(mytype), save, allocatable, dimension(:) :: ffxp,fsxp,fwxp,sfxp,ssxp,swxp
+real(mytype), save, allocatable, dimension(:) :: ffy,fcy,fby,sfy,scy,sby,fsy,fwy,ssy,swy
+real(mytype), save, allocatable, dimension(:) :: ffyp,fsyp,fwyp,sfyp,ssyp,swyp
+real(mytype), save, allocatable, dimension(:) :: ffz,fcz,fbz,sfz,scz,sbz,fsz,fwz,ssz,swz
+real(mytype), save, allocatable, dimension(:) :: ffzp,fszp,fwzp,sfzp,sszp,swzp
 real(mytype), save, allocatable, dimension(:,:) :: sx,vx
 real(mytype), save, allocatable, dimension(:,:) :: sy,vy
 real(mytype), save, allocatable, dimension(:,:) :: sz,vz
@@ -85,13 +85,7 @@ real(mytype), save, allocatable, dimension(:,:) :: dpdxy1,dpdxyn,dpdzy1,dpdzyn
 real(mytype), save, allocatable, dimension(:,:) :: dpdxz1,dpdxzn,dpdyz1,dpdyzn
 
 !module solid_body
-integer,parameter           :: nxfin=(nx-1)*10+1,nyfin=ny*10,nzfin=(nz-1)*10+1
-integer,dimension(ny,nz)    :: nobjx
-integer,dimension(nx,nz)    :: nobjy
-integer,dimension(nx,ny)    :: nobjz
-real(mytype),dimension(20,ny,nz) :: xi,xf
-real(mytype),dimension(20,nx,nz) :: yi,yf
-real(mytype),dimension(20,nx,ny) :: zi,zf
+integer :: nxfin,nyfin,nzfin
 
 !module inflow
 real(mytype), save, allocatable, dimension(:,:) :: bxx1,bxy1,bxz1,bxxn,bxyn,bxzn,bxo,byo,bzo
@@ -102,43 +96,98 @@ real(mytype), save, allocatable, dimension(:,:) :: bzx1,bzy1,bzz1,bzxn,bzyn,bzzn
 real(mytype), dimension(3,7000) :: uensp,vensp,wensp
 
 !module derpres
-real(mytype),dimension(nxm) :: cfx6,ccx6,cbx6,cfxp6,ciwxp6,csxp6,&
+real(mytype), save, allocatable, dimension(:) :: cfx6,ccx6,cbx6,cfxp6,ciwxp6,csxp6,&
      cwxp6,csx6,cwx6,cifx6,cicx6,cisx6   
-real(mytype),dimension(nxm) :: cibx6,cifxp6,cisxp6,ciwx6
-real(mytype),dimension(nx) :: cfi6,cci6,cbi6,cfip6,csip6,cwip6,csi6,&
+real(mytype), save, allocatable, dimension(:) :: cibx6,cifxp6,cisxp6,ciwx6
+real(mytype), save, allocatable, dimension(:) :: cfi6,cci6,cbi6,cfip6,csip6,cwip6,csi6,&
     cwi6,cifi6,cici6,cibi6,cifip6  
-real(mytype),dimension(nx) :: cisip6,ciwip6,cisi6,ciwi6 
-real(mytype),dimension(nym) :: cfy6,ccy6,cby6,cfyp6,csyp6,cwyp6,csy6 
-real(mytype),dimension(nym) :: cwy6,cify6,cicy6,ciby6,cifyp6,cisyp6,&
+real(mytype), save, allocatable, dimension(:) :: cisip6,ciwip6,cisi6,ciwi6 
+real(mytype),save, allocatable, dimension(:) :: cfy6,ccy6,cby6,cfyp6,csyp6,cwyp6,csy6 
+real(mytype),save, allocatable, dimension(:) :: cwy6,cify6,cicy6,ciby6,cifyp6,cisyp6,&
      ciwyp6,cisy6,ciwy6 
-real(mytype),dimension(ny) :: cfi6y,cci6y,cbi6y,cfip6y,csip6y,cwip6y,&
+real(mytype),save, allocatable, dimension(:) :: cfi6y,cci6y,cbi6y,cfip6y,csip6y,cwip6y,&
      csi6y,cwi6y,cifi6y,cici6y  
-real(mytype),dimension(ny) :: cibi6y,cifip6y,cisip6y,ciwip6y,cisi6y,ciwi6y  
-real(mytype),dimension(nzm) :: cfz6,ccz6,cbz6,cfzp6,cszp6,cwzp6,csz6 
-real(mytype),dimension(nzm) :: cwz6,cifz6,cicz6,cibz6,cifzp6,ciszp6,&
+real(mytype),save, allocatable, dimension(:) :: cibi6y,cifip6y,cisip6y,ciwip6y,cisi6y,ciwi6y  
+real(mytype),save, allocatable, dimension(:) :: cfz6,ccz6,cbz6,cfzp6,cszp6,cwzp6,csz6 
+real(mytype),save, allocatable, dimension(:) :: cwz6,cifz6,cicz6,cibz6,cifzp6,ciszp6,&
      ciwzp6,cisz6,ciwz6 
-real(mytype),dimension(nz) :: cfi6z,cci6z,cbi6z,cfip6z,csip6z,cwip6z,&
+real(mytype),save, allocatable, dimension(:) :: cfi6z,cci6z,cbi6z,cfip6z,csip6z,cwip6z,&
      csi6z,cwi6z,cifi6z,cici6z  
-real(mytype),dimension(nz) :: cibi6z,cifip6z,cisip6z,ciwip6z,cisi6z,ciwi6z 
+real(mytype),save, allocatable, dimension(:) :: cibi6z,cifip6z,cisip6z,ciwip6z,cisi6z,ciwi6z 
 
 !module waves
-complex(mytype), dimension(nz/2+1) :: zkz,zk2,ezs
-complex(mytype), dimension(ny) :: yky,yk2,eys
-complex(mytype), dimension(nx) :: xkx,xk2,exs
+complex(mytype), save, allocatable, dimension(:) :: zkz,zk2,ezs
+complex(mytype), save, allocatable, dimension(:) :: yky,yk2,eys
+complex(mytype), save, allocatable, dimension(:) :: xkx,xk2,exs
 
 !module mesh
-real(mytype), dimension(ny) :: ppy,pp2y,pp4y
-real(mytype), dimension(ny) :: ppyi,pp2yi,pp4yi
-real(mytype), dimension(ny) :: yp,ypi,del
-real(mytype), dimension(ny) :: yeta,yetai
+real(mytype), save, allocatable, dimension(:) :: ppy,pp2y,pp4y
+real(mytype), save, allocatable, dimension(:) :: ppyi,pp2yi,pp4yi
+real(mytype), save, allocatable, dimension(:) :: yp,ypi,del
+real(mytype), save, allocatable, dimension(:) :: yeta,yetai
 real(mytype) :: alpha,beta
 
 contains
     
-    subroutine init_module_parameters
+    subroutine init_module_parameters(nx1,ny1,nz1,nxm1,nym1,nzm1,p_row1,p_col1)
 
-    ! Allocate filter
-    !allocate(fifx(nx),ficx(nx),fibx(nx),fiffx(nx),fibbx(nx),fiz1x(nx),fiz2x(nx))
+    implicit none
+    ! Allocate variables
+    integer :: nx1,ny1,nz1,nxm1,nym1,nzm1,p_row1,p_col1
+     
+    ! Allocate filter and interpolation parameters 
+    ! X-direction
+    allocate(fifx(nx1),ficx(nx1),fibx(nx1),fiffx(nx1),fibbx(nx1),fiz1x(nx1),fiz2x(nx1))
+    allocate(filax(nx1,2),filaxp(nx1,2))
+    allocate(fifxp(nx1),ficxp(nx1),fibxp(nx1),fiffxp(nx1),fibbxp(nx1))
+    ! Y-direction 
+    allocate(fify(ny1),ficy(ny1),fiby(ny1),fiffy(ny1),fibby(ny1),fiz1y(ny1),fiz2y(ny1))
+    allocate(filay(ny1,2),filayp(ny1,2))
+    allocate(fifyp(ny1),ficyp(ny1),fibyp(ny1),fiffyp(ny1),fibbyp(ny1))
+    ! Z-direction  
+    allocate(fifz(nz1),ficz(nz1),fibz(nz1),fiffz(nz1),fibbz(nz1),fiz1z(nz1),fiz2z(nz1))
+    allocate(filaz(nz1,2),filazp(nz1,2))
+    allocate(fifzp(nz1),ficzp(nz1),fibzp(nz1),fiffzp(nz1),fibbzp(nz1))
+    
+    allocate(Cs(p_col1*p_row1))
+
+    ! Allocate the derivatives coefficients
+    allocate(ffx(nx1),fcx(nx1),fbx(nx1),sfx(nx1),scx(nx1),sbx(nx1),fsx(nx1),fwx(nx1),ssx(nx1),swx(nx1))
+    allocate(ffxp(nx1),fsxp(nx1),fwxp(nx1),sfxp(nx1),ssxp(nx1),swxp(nx1))
+    allocate(ffy(ny1),fcy(ny1),fby(ny1),sfy(ny1),scy(ny1),sby(ny1),fsy(ny1),fwy(ny1),ssy(ny1),swy(ny1))
+    allocate(ffyp(ny1),fsyp(ny1),fwyp(ny1),sfyp(ny1),ssyp(ny1),swyp(ny1))
+    allocate(ffz(nz1),fcz(nz1),fbz(nz1),sfz(nz1),scz(nz1),sbz(nz1),fsz(nz1),fwz(nz1),ssz(nz1),swz(nz1))
+    allocate(ffzp(nz1),fszp(nz1),fwzp(nz1),sfzp(nz1),sszp(nz1),swzp(nz1))
+
+    ! Allocate Pressure derivatives
+    ! X-direction
+    allocate(cfx6(nxm1),ccx6(nxm1),cbx6(nxm1),cfxp6(nxm1),ciwxp6(nxm1),csxp6(nxm1),&
+     cwxp6(nxm1),csx6(nxm1),cwx6(nxm1),cifx6(nxm1),cicx6(nxm1),cisx6(nxm1))
+    allocate(cibx6(nxm1),cifxp6(nxm1),cisxp6(nxm1),ciwx6(nxm1))
+    allocate(cfi6(nx1),cci6(nx1),cbi6(nx1),cfip6(nx1),csip6(nx1),cwip6(nx1),csi6(nx1),cwi6(nx1),&
+        cifi6(nx1),cici6(nx1),cibi6(nx1),cifip6(nx1)) 
+    allocate(cisip6(nx1),ciwip6(nx1),cisi6(nx1),ciwi6(nx1))
+    ! Y-direction
+    allocate(cfy6(nym1),ccy6(nym1),cby6(nym1),cfyp6(nym1),csyp6(nym1),cwyp6(nym1),csy6(nym1))
+    allocate(cwy6(nym1),cify6(nym1),cicy6(nym1),ciby6(nym1),cifyp6(nym1),cisyp6(nym1),&
+     ciwyp6(nym1),cisy6(nym1),ciwy6(nym1)) 
+    allocate(cfi6y(ny1),cci6y(ny1),cbi6y(ny1),cfip6y(ny1),csip6y(ny1),cwip6y(ny1),&
+     csi6y(ny1),cwi6y(ny1),cifi6y(ny1),cici6y(ny1)) 
+    allocate(cibi6y(ny1),cifip6y(ny1),cisip6y(ny1),ciwip6y(ny1),cisi6y(ny1),ciwi6y(ny1)) 
+    ! Z-direction
+    allocate(cfz6(nzm1),ccz6(nzm1),cbz6(nzm1),cfzp6(nzm1),cszp6(nzm1),cwzp6(nzm1),csz6(nzm1))
+    allocate(cwz6(nzm1),cifz6(nzm1),cicz6(nzm1),cibz6(nzm1),cifzp6(nzm1),ciszp6(nzm1),ciwzp6(nzm1),cisz6(nzm1),ciwz6(nzm1))
+    allocate(cfi6z(nz1),cci6z(nz1),cbi6z(nz1),cfip6z(nz1),csip6z(nz1),cwip6z(nz1),& 
+        csi6z(nz1),cwi6z(nz1),cifi6z(nz1),cici6z(nz1))  
+    allocate(cibi6z(nz1),cifip6z(nz1),cisip6z(nz1),ciwip6z(nz1),cisi6z(nz1),ciwi6z(nz1)) 
+
+    ! Allocate waves
+    allocate(zkz(nz1/2+1),zk2(nz1/2+1),ezs(nz1/2+1))
+    allocate(yky(ny1),yk2(ny1),eys(ny1))
+    allocate(xkx(nx1),xk2(nx1),exs(nx1))
+
+    ! Allocate the stretch-mesh parameters
+    allocate(ppy(ny1),pp2y(ny1),pp4y(ny1),ppyi(ny1),pp2yi(ny1),pp4yi(ny1),yp(ny1),ypi(ny1),del(ny1),yeta(ny1),yetai(ny1))
 
     end subroutine init_module_parameters
 
@@ -185,15 +234,32 @@ use decomp_2d, only : mytype
 use variables, only : nx,ny,nz
 
   integer     ,parameter                  :: nobjmax=4
-  integer     ,dimension          (ny,nz) :: nobjx
-  integer     ,dimension          (nx,nz) :: nobjy
-  integer     ,dimension          (nx,ny) :: nobjz
-  integer     ,dimension(0:nobjmax,ny,nz) :: nxipif,nxfpif
-  integer     ,dimension(0:nobjmax,nx,nz) :: nyipif,nyfpif
-  integer     ,dimension(0:nobjmax,nx,ny) :: nzipif,nzfpif
-  real(mytype),dimension(  nobjmax,ny,nz) :: xi,xf
-  real(mytype),dimension(  nobjmax,nx,nz) :: yi,yf
-  real(mytype),dimension(  nobjmax,nx,ny) :: zi,zf
+  integer     ,save, allocatable, dimension          (:,:) :: nobjx
+  integer     ,save, allocatable, dimension          (:,:) :: nobjy
+  integer     ,save, allocatable, dimension          (:,:) :: nobjz
+  integer     ,save, allocatable, dimension(:,:,:) :: nxipif,nxfpif
+  integer     ,save, allocatable, dimension(:,:,:) :: nyipif,nyfpif
+  integer     ,save, allocatable, dimension(:,:,:) :: nzipif,nzfpif
+  real(mytype),save, allocatable, dimension(:,:,:) :: xi,xf
+  real(mytype),save, allocatable, dimension(:,:,:) :: yi,yf
+  real(mytype),save, allocatable, dimension(:,:,:) :: zi,zf
+    
+  contains
+      
+        subroutine init_complex_geometry(nx1,ny1,nz1)
+            implicit none
+            integer nx1, ny1, nz1        
+            
+            allocate(nobjx(ny1,nz1),nobjy(nx1,nz1),nobjz(nx1,ny1)) 
+            allocate(nxipif(0:nobjmax,ny1,nz1),nxfpif(0:nobjmax,ny1,nz1))
+            allocate(nyipif(0:nobjmax,nx1,nz1),nyfpif(0:nobjmax,nx1,nz1))
+            allocate(nzipif(0:nobjmax,nx1,ny1),nzfpif(0:nobjmax,nx1,ny1))
+            allocate(xi(nobjmax,ny1,nz1),xf(nobjmax,ny1,nz1))
+            allocate(yi(nobjmax,nx1,nz1),yf(nobjmax,nx1,nz1))
+            allocate(zi(nobjmax,nx1,ny1),zf(nobjmax,nx1,ny1)) 
+
+        end subroutine init_complex_geometry
+
 end module complex_geometry
 
 

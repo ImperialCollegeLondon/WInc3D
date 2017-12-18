@@ -80,14 +80,14 @@ end if
 
 call parameter(InputFN)
 
-call init_module_parameters
-
+! Decompose the problem into rows and columns 
 call decomp_2d_init(nx,ny,nz,p_row,p_col)
 
 call init_coarser_mesh_statS(nstat,nstat,nstat,.true.)
 call init_coarser_mesh_statV(nvisu,nvisu,nvisu,.true.)
 
 call init_variables
+
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 if (jLES==0) then
@@ -193,13 +193,7 @@ do itime=ifirst,ilast
       if (nclx.eq.2) then
          call inflow (ux1,uy1,uz1,phi1) !X PENCILS
          call outflow(ux1,uy1,uz1,phi1) !X PENCILS 
-      endif
-
-     !X-->Y-->Z-->Y-->X
-     ! call convdiff(ux1,uy1,uz1,ta1,tb1,tc1,td1,te1,tf1,tg1,th1,ti1,di1,&
-     !      ux2,uy2,uz2,ta2,tb2,tc2,td2,te2,tf2,tg2,th2,ti2,tj2,di2,&
-     !      ux3,uy3,uz3,ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3)
-      
+      endif 
         
       ! Potential Temperature -- to be computed before the convdiff
       if (ibuoyancy==1) then
@@ -284,10 +278,7 @@ do itime=ifirst,ilast
     if (nrank==0) then
        call actuator_line_model_write_output(itime/imodulo) ! Write the Turbine Statistics 
     end if
-   endif
-   
-
-      
+   endif 
 enddo
 
 t2=MPI_WTIME()-t1

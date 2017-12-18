@@ -34,7 +34,6 @@ fiz1x,fiz2x,xsize(1),xsize(2),xsize(3),0)
 call filx(uzf,uz,di1,sx,vx,fiffx,fifx,ficx,fibx,fibbx,filax,&
 fiz1x,fiz2x,xsize(1),xsize(2),xsize(3),0)
 
-
 ! Determine the shear stress using Moeng's formulation
 !*****************************************************************************************
     ux_HAve_local=0.

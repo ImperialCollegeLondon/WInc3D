@@ -20,6 +20,14 @@
 
 ! Numerical Configuration
 &NumConfig
+    ! Simulation size and parallelisation
+    nx=64                 ! X-direction nodes
+    ny=65                 ! Y-direction nodes
+    nz=64                 ! Z-direction nodes
+    p_row=4               ! Row partition
+    p_col=2               ! Column partition
+
+    ! Boundary conditions and numerical schemes
     nclx = 0              ! nclx (BC)
     ncly = 1              ! ncly (BC) 
     nclz = 0              ! nclz (BC)
@@ -33,10 +41,10 @@
     iskew = 1             ! (0:urotu, 1:skew, for the convective terms)
     iscalar = 0           ! iscalar# (0: no scalar, 1:scalar)
     
-    ! TURBULENCE MODELLING
-    jles=1                ! LES Model (0:DNS, 1: iLES 2:Smag, 3:WALE, 4: scale-invariant dyn. Smag, 5: scale-dependent dyn. Smag )
+    ! Large-eddy simulation modelling parameters
+    jles=2                ! LES Model (0:DNS, 1: iLES 2:Smag, 3:WALE, 4: scale-invariant dyn. Smag, 5: scale-dependent dyn. Smag )
     FSGS=1.0              ! Filter Size/ Grid Size for explicit LES only
-    smagcst=0.17           ! Smagorinsky constant
+    smagcst=0.17          ! Smagorinsky constant
     SmagWallDamp=1        ! Smagorinsky damping function for ABL if 1
     nSmag=1               ! Smagorinksy damping coefficient 
     walecst=0.5           ! WALES Model Coefficient
@@ -44,8 +52,10 @@
 /End
 
 &StatParam
-    spinup_time=250.	  !
-    iprobe = 0            !
+    spinup_time=250.	  ! Time after which statistics are collected (in seconds)
+    nstat=1               ! Size arrays for statistic collection 
+    nvisu=1               ! Size for visualisation collection 
+    iprobe = 0            ! Set probe
     Probelistfile='WakeList.prob'
     nsampling=5
 /End
