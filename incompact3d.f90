@@ -61,16 +61,11 @@ TYPE(DECOMP_INFO) :: phG,ph1,ph2,ph3,ph4
 
 CALL MPI_INIT(code)
 
-call decomp_2d_init(nx,ny,nz,p_row,p_col)
-!start from 1 == true
-call init_coarser_mesh_statS(nstat,nstat,nstat,.true.)
-call init_coarser_mesh_statV(nvisu,nvisu,nvisu,.true.)
-
 !==========================================================================
 ! Handle Input file
 nargin=command_argument_count()
 if (nargin <1) then
-    write(6,*) 'Please call the program with the name of the input file on the command line Ex. Incompact3d input.in'
+    write(6,*) 'Please call the program with the name of the input file on the command line Ex. incompact3d input.in'
     stop
 endif
 
@@ -85,7 +80,16 @@ end if
 
 call parameter(InputFN)
 
-!++++++++++++++++++++++++++++++++++++++
+call init_module_parameters
+
+call decomp_2d_init(nx,ny,nz,p_row,p_col)
+
+call init_coarser_mesh_statS(nstat,nstat,nstat,.true.)
+call init_coarser_mesh_statV(nvisu,nvisu,nvisu,.true.)
+
+call init_variables
+
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 if (jLES==0) then
     call schemes_dns()
     if(nrank==0) then
@@ -100,9 +104,7 @@ else if (jLES==2.OR.jLES==3.OR.jLES==4.OR.jLES==5) then
     call init_explicit_les() 
     call schemes_dns()
 endif
-!+++++++++++++++++++++++++++++++++++++
-
-call init_variables
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 if (nclx==0) then
    bcx=0

@@ -840,7 +840,7 @@ call transpose_x_to_y(srt_smag,srt_smag2)
 
 call MPI_ALLREDUCE(dsmagHP2_local,dsmagHP2,ysize(2),real_type,MPI_SUM,MPI_COMM_WORLD,code)
 
-dsmagHP2(:,:,:)=dsmagHP2(:,:,:)/p_col
+dsmagHP2(:,:,:)=dsmagHP2(:,:,:)/(p_col*p_row)
 
 if (nrank==0) print*,"Max and Min of the Dynamic Smagorinsky Constant = ",maxval(dsmagHP2), minval(dsmagHP2)
 do k=1,ysize(3)
