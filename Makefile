@@ -1,25 +1,9 @@
 #=======================================================================
-# Makefile for Incompact3D
+# Makefile for incompact3D
 #=======================================================================
-#SET COMPILER AND VERSION BASED ON WHETHER a HPC or local PC is used
-HOST=$(shell domainname | sed 's/\.//g')
-HOSTCX1=cx1hpcicacuk
-HOSTCX2=cx2hpcicacuk
 
 OPTIONS = -DDOUBLE_PREC
 
-ifeq ($(HOST),$(HOSTCX1))
-	
-FFT = fftw3
-FFTW3_INCLUDE = -I$(MKLROOT)/include/fftw
-FFTW3_LIB = -mkl -L$(MKLROOT)/interface/fftw3xf -lfftw3xf_intel 
-
-FC = mpiF90
-OPTFC = -O3 -xAVX -cpp
-CC=cc
-CFLAGS= -O3 -xAVX
-
-else
 # Choose an FFT engine, available options are:
 #   fftw3      - FFTW version 3.x
 #   generic    - A general FFT algorithm (no 3rd-party library needed)
@@ -37,6 +21,7 @@ CC = mpicc
 CFLAGS = -O3
 LIBS = #-llapack -lblas 
 DEGUG = #-g -static 
+
 # include PATH 
 ifeq ($(FFT),generic)
   INC=
@@ -51,14 +36,12 @@ else ifeq ($(FFT),fftw3)
    LIBFFT=$(FFTW3_LIB) $(SPUD_LIB)
 endif
 
-endif
-
 SRC = decomp_2d.f90 glassman.f90 fft_$(FFT).f90 module_param.f90 io.f90 variables.f90 poisson.f90 les_models.f90 schemes.f90 convdiff.f90 acl_utils.f90 airfoils.f90 dynstall.f90 acl_elem.f90 acl_turb.f90 acl_out.f90 acl_model.f90 acl_source.f90 incompact3d.f90 navier.f90 filter.f90 derive.f90 parameters.f90 tools.f90 visu.f90 probe.f90 cfl.f90 ABL.f90 
 
 SRCALM = decomp_2d.f90 acl_utils.f90 airfoils.f90 dynstall.f90 acl_elem.f90 acl_turb.f90 acl_out.f90 acl_model.f90 uALM.f90 
 
 ifneq (,$(findstring DSHM,$(OPTIONS)))
-SRC := FreeIPC.f90 $(SRC)  
+SRC := FreeIPC.f90 $(SRC) $(SRCALM)
 OBJ =	$(SRC:.f90=.o) alloc_shm.o FreeIPC_c.o
 OBJALM =	$(SRCALM:.f90=.o) alloc_shm.o FreeIPC_c.o
 else

@@ -351,13 +351,13 @@ byx1=0.;byy1=0.;byz1=0.
 bzx1=0.;bzy1=0.;bzz1=0. 
 
 !ITYPE=1 --> Uniform flow field
-!ITYPE=2 --> Laminar profile 1-y^2 
-!ITYPE=3 --> Turbulent Boundary Laywer 
-!ITYPE=4 --> Mixing layer with splitter plate
-!ITYPE=5 --> Channel flow
+!ITYPE=2 --> Channel flow starting with a laminar profile 1-y^2 
+!ITYPE=3 --> Turbulent boundary layer 
+!ITYPE=4 --> Precursor planes inflow 
+!ITYPE=5 --> Jet/Plume flow with no cross-flow 
 !ITYPE=6 --> Taylor Green vortices
-!ITYPE=7 --> Cavity flow
-!ITYPE=8 --> Atmospheric Boundary Layer
+!ITYPE=7 --> 
+!ITYPE=8 --> Atmospheric Boundary Layer with wall modelling
 
 if (itype.eq.1) then
    um=0.5*(u1+u2)
@@ -393,27 +393,7 @@ if (itype.eq.4) then
 endif
 
 if (itype.eq.5) then
-   if (nclx.ne.0) then
-      print *,'NOT POSSIBLE'
-      stop
-   endif
-   if (nclz.ne.0) then
-      print *,'NOT POSSIBLE'
-      stop
-   endif
-   if (ncly==0) then
-      print *,'NOT POSSIBLE'
-      stop
-   endif
-   do k=1,xsize(3)
-   do j=1,xsize(2)
-      if (istret.eq.0) y=(j+xstart(2)-1-1)*dy-yly/2.
-      if (istret.ne.0) y=yp(j)-yly/2.
-      do i=1,xsize(1)
-         ux1(i,j,k)=ux1(i,j,k)+1.-y*y
-      enddo
-   enddo
-   enddo
+
 endif
 
 if (itype.eq.6) then
@@ -454,22 +434,20 @@ if (itype.eq.8) then
       if (istret.ne.0) y=yp(j)
       do i=1,xsize(1)
          x=(i-1)*dx
-      bxx1(j,k)=ustar/k_roughness*log((y+z_zero)/z_zero)!+0.5*0.05*cos(2.*pi*x/xlx)*cos(2.*pi*y/yly)*sin(2.*pi*z/zlz)
-      bxy1(j,k)=0.!0.05*sin(2.*pi*x/xlx)*sin(2.*pi*y/yly)*sin(2.*pi*z/zlz)
-      bxz1(i,k)=0.!0.5*0.05*sin(2.*pi*x/xlx)*cos(2.*pi*y/yly)*cos(2.*pi*z/zlz)
+      bxx1(j,k)=ustar/k_roughness*log((y+z_zero)/z_zero)
+      bxy1(j,k)=0.
+      bxz1(i,k)=0.
       enddo
    enddo
    enddo
 endif
 
 if (itype.eq.9) then
-  
+ 
 endif
 
 
 if (itype.eq.10) then
-    ! This is an inflow-outflow configuration after a precursor simulation
-     
 endif
 
 return
@@ -483,7 +461,6 @@ subroutine init (ux1,uy1,uz1,ep1,phi1,gx1,gy1,gz1,phis1,hx1,hy1,hz1,phiss1)
 
 USE decomp_2d
 USE decomp_2d_io
-!USE variables
 USE param
 USE MPI
 
@@ -1136,53 +1113,6 @@ if (nclx==2) then
    enddo
 endif
 
-!if (itime==1) then
-!   dpdyx1=0.
-!   dpdzx1=0.
-!   dpdyxn=0.
-!   dpdzxn=0.
-!endif
-!
-!
-!!we are in X pencils:
-!do k=1,xsize(3)
-!do j=1,xsize(2)
-!   dpdyx1(j,k)=dpdyx1(j,k)*gdt(itr)
-!   dpdzx1(j,k)=dpdzx1(j,k)*gdt(itr)
-!   dpdyxn(j,k)=dpdyxn(j,k)*gdt(itr)
-!   dpdzxn(j,k)=dpdzxn(j,k)*gdt(itr)
-!enddo
-!enddo
-!
-!
-!if (nclx==2) then
-!   ut1=0.
-!   do k=1,xsize(3)
-!   do j=1,xsize(2)
-!      ut1=ut1+bxx1(j,k)
-!   enddo
-!   enddo
-!   ut1=ut1/xsize(2)/xsize(3)
-!   call MPI_ALLREDUCE(ut1,ut11,1,real_type,MPI_SUM,MPI_COMM_WORLD,code)
-!   ut11=ut11/nproc
-!   ut=0.
-!   do k=1,xsize(3)
-!   do j=1,xsize(2)
-!      ut=ut+bxxn(j,k)
-!   enddo
-!   enddo
-!   ut=ut/xsize(2)/xsize(3)
-!   call MPI_ALLREDUCE(ut,utt,1,real_type,MPI_SUM,MPI_COMM_WORLD,code)
-!   utt=utt/nproc
-!
-!   if (nrank==0) print *,'FLOW RATE I/O',ut11,utt
-!
-!   do k=1,xsize(3)
-!   do j=1,xsize(2)
-!      bxxn(j,k)=bxxn(j,k)-utt+ut11
-!   enddo
-!   enddo
-!endif
 
 !********NCLX==2*************************************
 !****************************************************
@@ -1379,12 +1309,6 @@ if (itype.eq.8) then
    endif
    
 endif
-!****************************************************
-!********NCLZ==2*************************************
-!****************************************************
-!****************************************************
-
-!##################################################### 
 
 return
 end subroutine pre_correc

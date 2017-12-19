@@ -1150,7 +1150,6 @@ USE param
 USE derivX
 USE derivY
 USE derivZ
-!USE variables
 USE var
 
 implicit none
