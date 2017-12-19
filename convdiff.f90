@@ -40,7 +40,6 @@ subroutine convdiff(ux1,uy1,uz1,phi1,uxt,uyt,uzt,ep1,divdiva,curldiva,ta1,tb1,tc
 !********************************************************************
 USE param
 USE var, only: FTx, FTy, FTz
-USE variables
 USE decomp_2d
 USE decomp_2d_io
 USE MPI
@@ -485,7 +484,6 @@ subroutine PotentialTemperature(ux1,uy1,uz1,phi1,phis1,phiss1,di1,ta1,tb1,tc1,td
 !************************************************************
 
 USE param
-USE variables
 USE decomp_2d
 
 implicit none
@@ -653,7 +651,6 @@ subroutine scalar(ux1,uy1,uz1,phi1,phis1,phiss1,di1,ta1,tb1,tc1,td1,&
 !************************************************************
 
 USE param
-USE variables
 USE decomp_2d
 
 implicit none

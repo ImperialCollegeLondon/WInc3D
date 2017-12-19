@@ -7,7 +7,7 @@
 subroutine init_probe
 
 use param
-use variables
+!use variables
 use var
 
     implicit none
@@ -38,7 +38,7 @@ subroutine probe(ux,uy,uz,phi)
 use actuator_line_model_utils ! used only for the trilinear interpolation
 USE param 
 USE decomp_2d
-USE variables
+!USE variables
 use var
 use MPI
 
@@ -229,7 +229,7 @@ end subroutine probe
 subroutine write_probe(isample)
 USE param 
 USE decomp_2d
-USE variables
+!USE variables
 use var
 
     implicit none

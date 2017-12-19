@@ -5,7 +5,6 @@
 subroutine cfl_compute(uxmax,uymax,uzmax)
 
 use param
-use variables
 use var
     
 implicit none

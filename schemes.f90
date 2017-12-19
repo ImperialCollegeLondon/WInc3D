@@ -40,7 +40,7 @@ USE param
 USE derivX
 USE derivY
 USE derivZ
-USE variables
+!USE variables
 USE var
 
 implicit none
@@ -1150,7 +1150,7 @@ USE param
 USE derivX
 USE derivY
 USE derivZ
-USE variables
+!USE variables
 USE var
 
 implicit none

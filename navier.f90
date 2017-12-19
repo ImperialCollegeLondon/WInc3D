@@ -37,7 +37,7 @@ subroutine  intt (ux,uy,uz,gx,gy,gz,hx,hy,hz,ta1,tb1,tc1)
 !********************************************************************
 
 USE param
-USE variables
+!USE variables
 USE decomp_2d
 
 implicit none
@@ -176,7 +176,7 @@ subroutine corgp (ux,gx,uy,uz,px,py,pz)
 !********************************************************************
 
 USE decomp_2d
-USE variables
+!USE variables
 USE param
 USE var
 USE MPI
@@ -219,7 +219,7 @@ subroutine inflow (ux,uy,uz,phi)
 
 USE param
 USE IBM
-USE variables
+!USE variables
 USE decomp_2d
 
 implicit none
@@ -267,7 +267,7 @@ subroutine outflow (ux,uy,uz,phi)
 !*********************************************************
 
 USE param
-USE variables
+!USE variables
 USE decomp_2d
 USE MPI
 
@@ -335,7 +335,7 @@ subroutine ecoule(ux1,uy1,uz1)
 
 USE param
 USE IBM
-USE variables
+!USE variables
 USE decomp_2d
 
 implicit none
@@ -483,7 +483,7 @@ subroutine init (ux1,uy1,uz1,ep1,phi1,gx1,gy1,gz1,phis1,hx1,hy1,hz1,phiss1)
 
 USE decomp_2d
 USE decomp_2d_io
-USE variables
+!USE variables
 USE param
 USE MPI
 
@@ -650,7 +650,7 @@ subroutine divergence (ux1,uy1,uz1,ep1,ta1,tb1,tc1,di1,td1,te1,tf1,&
 USE param
 USE IBM
 USE decomp_2d
-USE variables
+!USE variables
 USE MPI
    
 implicit none
@@ -775,7 +775,7 @@ subroutine gradp(ta1,tb1,tc1,di1,td2,tf2,ta2,tb2,tc2,di2,&
 
 USE param 
 USE decomp_2d
-USE variables
+!USE variables
 
 implicit none
 
@@ -893,7 +893,7 @@ subroutine corgp_IBM (ux,uy,uz,px,py,pz,nlock)
 
 USE param 
 USE decomp_2d
-USE variables
+!USE variables
 
 implicit none
 
@@ -948,7 +948,7 @@ subroutine body(ux,uy,uz,ep1)
 
 USE param 
 USE decomp_2d
-USE variables
+!USE variables
 USE IBM
 
 implicit none
@@ -995,7 +995,7 @@ subroutine pre_correc(ux,uy,uz,phi,gx)
 !****************************************************************************
 
 USE decomp_2d
-USE variables
+!USE variables
 USE param
 USE var
 USE MPI

@@ -36,21 +36,20 @@ subroutine parameter(InputFN)
 !
 !********************************************************************
   
-USE param
 USE IBM 
-USE variables
+USE param
 USE decomp_2d
 
 implicit none
 
 character(len=*),intent(in):: InputFN 
-real(mytype) :: re, theta, cfl,cf2 
+real(mytype) :: theta, cfl,cf2 
 integer :: longueur ,impi,j
 character :: a*80
 
 ! Have you heard of NAMELISTs ?
-NAMELIST/FlowParam/xlx,yly,zlz,re,sc,u1,u2,noise,noise1,dt,ibuoyancy,icoriolis,Pr,TempRef,CoriolisFreq
-NAMELIST/NumConfig/nx,ny,nz,p_row,p_col,nclx,ncly,nclz,itype,iin,TurbRadius,ifirst,ilast,nscheme,istret, &
+NAMELIST/FlowParam/itype,iin,xlx,yly,zlz,re,sc,u1,u2,noise,noise1,ibuoyancy,icoriolis,Pr,TempRef,CoriolisFreq
+NAMELIST/NumConfig/nx,ny,nz,p_row,p_col,nclx,ncly,nclz,TurbRadius,ifirst,ilast,nscheme,dt,istret, &
     beta,iskew,iscalar,jles,FSGS,jadv,smagcst,SmagWallDamp,nSmag,walecst,rxxnu 
 NAMELIST/FileParam/ilit,isave,imodulo
 NAMELIST/IBMParam/ivirt,ibmshape,cex,cey,cez,ra
@@ -175,102 +174,7 @@ endif
  1113 format(' Schmidt number    : ',F6.2)
 endif
  
-if (nclx==0) then
-    dx=xlx/nx
-    nxm=nx
-
-else if (nclx==1 .or. nclx==2) then 
-    dx=xlx/(nx-1.)
-    nxm=nx-1
-else
-    write(*,*) "Select between nclx=0, 1 and 2"
-endif
-
-if (ncly==0) dy=yly/ny; nym=ny
-if (ncly==1.or.ncly==2) then 
-    dy=yly/(ny-1.) 
-    nym=ny-1
-endif
-
-dx2=dx*dx
-dy2=dy*dy
-#ifndef TWOD
-   if (nclz==0) dz=zlz/nz ; nzm=nz
-   if (nclz==1.or.nclz==2) then 
-   dz=zlz/(nz-1.) 
-   nzm=nz-1
-   endif
-dz2=dz*dz
-#endif
-
-
-call init_module_parameters(nx,ny,nz,nxm,nym,nzm,p_row,p_col)
-
-xnu=1./re
-
-if (istret.eq.0) then
-   do j=1,ny
-      yp(j)=(j-1.)*dy
-      ypi(j)=(j-0.5)*dy
-   enddo
-else
-   call stretching()
-endif
-
-
-!******************************************************************
-!
-!**TIME ADVANCE***1=AB2***2=RK3***3=RK4C&K****************** 
-!
-!******************************************************************
-
-adt(:)=0. ; bdt(:)=0. ; cdt(:)=0. ; gdt(:)=0.
-if (nscheme==1) then!AB2
-   iadvance_time=1 
-   adt(1)=1.5*dt
-   bdt(1)=-0.5*dt
-   gdt(1)=adt(1)+bdt(1)
-   gdt(3)=gdt(1)
-endif
-if (nscheme==2) then !RK3
-   iadvance_time=3 
-   adt(1)=(8./15.)*dt
-   bdt(1)=0.
-   gdt(1)=adt(1)
-   adt(2)=(5./12.)*dt
-   bdt(2)=(-17./60.)*dt
-   gdt(2)=adt(2)+bdt(2)
-   adt(3)=(3./4.)*dt
-   bdt(3)=(-5./12.)*dt
-   gdt(3)=adt(3)+bdt(3)
-endif
-if (nscheme==3) then !RK4 Carpenter and Kennedy  
-   iadvance_time=5 
-   adt(1)=0.
-   adt(2)=-0.4178904745
-   adt(3)=-1.192151694643
-   adt(4)=-1.697784692471
-   adt(5)=-1.514183444257
-   bdt(1)=0.1496590219993
-   bdt(2)=0.3792103129999
-   bdt(3)=0.8229550293869
-   bdt(4)=0.6994504559488
-   bdt(5)=0.1530572479681
-   gdt(1)=0.1496590219993*dt
-   gdt(2)=0.220741935365*dt
-   gdt(3)=0.25185480577*dt
-   gdt(4)=0.33602636754*dt
-   gdt(5)=0.041717869325*dt
-endif
-
-if (nscheme==4) then!AB3
-   iadvance_time=1
-   adt(1)= (23./12.)*dt
-   bdt(1)=-(16./12.)*dt
-   cdt(1)= ( 5./12.)*dt
-   gdt(1)=adt(1)+bdt(1)+cdt(1)
-   gdt(3)=gdt(1)
-endif
+call init_module_parameters()
 
 return  
 end subroutine parameter

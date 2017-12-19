@@ -3,10 +3,9 @@
 !==========================================================
 subroutine wall_shear_stress(ux,uy,uz,nut1,sxy1,syz1,tauwallxy,tauwallzy,wallfluxx,wallfluxy,wallfluxz)
 
-USE param
-USE variables
-USE decomp_2d
-USE MPI
+    USE MPI
+    USE decomp_2d
+    USE param
 
 implicit none
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux,uy,uz,nut1

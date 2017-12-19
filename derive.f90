@@ -36,7 +36,7 @@ subroutine derx(tx,ux,rx,sx,ffx,fsx,fwx,nx,ny,nz,npaire)
 !
 !********************************************************************
 
-USE param
+USE param, only:nclx
 USE derivX
 
 implicit none
@@ -167,7 +167,7 @@ subroutine dery(ty,uy,ry,sy,ffy,fsy,fwy,ppy,nx,ny,nz,npaire)
 !
 !********************************************************************
   
-USE param
+USE param, only: ncly, istret
 USE derivY
 
 implicit none
@@ -397,7 +397,7 @@ subroutine derz(tz,uz,rz,sz,ffz,fsz,fwz,nx,ny,nz,npaire)
 !
 !********************************************************************
 
-USE param 
+USE param, only: nclz 
 USE derivZ 
 
 implicit none
@@ -618,7 +618,7 @@ subroutine derxx(tx,ux,rx,sx,sfx,ssx,swx,nx,ny,nz,npaire)
 !
 !********************************************************************
 
-USE param 
+USE param, only:nclx 
 USE derivX 
 
 implicit none
@@ -855,7 +855,7 @@ subroutine deryy(ty,uy,ry,sy,sfy,ssy,swy,nx,ny,nz,npaire)
 !
 !********************************************************************
 
-USE param 
+USE param, only:ncly, istret 
 USE derivY 
 
 implicit none
@@ -1180,7 +1180,7 @@ subroutine derzz(tz,uz,rz,sz,sfz,ssz,swz,nx,ny,nz,npaire)
 !
 !********************************************************************
 
-USE param 
+USE param, only: nclz 
 USE derivZ 
 
 implicit none
@@ -1508,7 +1508,7 @@ subroutine derxx_iles(tx,ux,rx,sx,sfx,ssx,swx,nx,ny,nz,npaire)
 !
 !********************************************************************
 
-USE param 
+USE param, only: nclx 
 USE derivX 
 
 implicit none
@@ -1847,7 +1847,7 @@ subroutine deryy_iles(ty,uy,ry,sy,sfy,ssy,swy,nx,ny,nz,npaire)
 !
 !********************************************************************
 
-USE param 
+USE param, only: ncly, istret 
 USE derivY 
 
 implicit none
@@ -2274,7 +2274,7 @@ subroutine derzz_iles(tz,uz,rz,sz,sfz,ssz,swz,nx,ny,nz,npaire)
 !
 !********************************************************************
 
-USE param 
+USE param, only: nclz 
 USE derivZ 
 
 implicit none
@@ -2711,7 +2711,7 @@ subroutine decx6(tx,ux,rx,sx,cfx6,csx6,cwx6,nx,nxm,ny,nz,npaire)
 !
 !********************************************************************
 
-USE param 
+USE param, only: nclx 
 USE derivX 
 
 implicit none
@@ -2826,7 +2826,7 @@ subroutine inter6(tx,ux,rx,sx,cifx6,cisx6,ciwx6,nx,nxm,ny,nz,npaire)
 !
 !********************************************************************
 
-USE param 
+USE param, only:nclx 
 USE derivX 
 
 implicit none
@@ -2931,7 +2931,7 @@ subroutine deci6(tx,ux,rx,sx,cfi6,csi6,cwi6,cfx6,csx6,cwx6,nxm,nx,ny,nz,npaire)
 !
 !********************************************************************
 
-USE param 
+USE param, only: nclx 
 USE derivX 
 
 implicit none
@@ -3019,7 +3019,7 @@ subroutine interi6(tx,ux,rx,sx,cifi6,cisi6,ciwi6,cifx6,cisx6,ciwx6,&
 !
 !********************************************************************
   
-USE param 
+USE param, only:nclx 
 USE derivX 
 
 implicit none
@@ -3128,7 +3128,7 @@ subroutine intery6(ty,uy,ry,sy,cify6,cisy6,ciwy6,nx,ny,nym,nz,npaire)
 !
 !********************************************************************
   
-USE param 
+USE param, only: ncly, istret 
 USE derivY 
 
 implicit none
@@ -3277,7 +3277,7 @@ subroutine decy6(ty,uy,ry,sy,cfy6,csy6,cwy6,ppyi,nx,ny,nym,nz,npaire)
 !
 !********************************************************************
   
-USE param
+USE param, only: ncly, istret
 USE derivY 
 
 implicit none
@@ -3424,7 +3424,7 @@ subroutine interiy6(ty,uy,ry,sy,cifi6y,cisi6y,ciwi6y,cify6,cisy6,ciwy6,&
 !
 !********************************************************************
   
-USE param
+USE param, only: ncly, istret
 USE derivY
 
 implicit none
@@ -3582,7 +3582,7 @@ subroutine deciy6(ty,uy,ry,sy,cfi6y,csi6y,cwi6y,cfy6,csy6,cwy6,&
 !
 !********************************************************************
   
-USE param
+USE param, only: ncly, istret
 USE derivY 
 
 implicit none
@@ -3727,7 +3727,7 @@ subroutine decz6(tz,uz,rz,sz,cfz6,csz6,cwz6,nx,ny,nz,nzm,npaire)
 !
 !********************************************************************
   
-USE param
+USE param, only: nclz
 USE derivZ 
 
 implicit none
@@ -3909,7 +3909,7 @@ subroutine interz6(tz,uz,rz,sz,cifz6,cisz6,ciwz6,nx,ny,nz,nzm,npaire)
 !
 !********************************************************************
   
-USE param 
+USE param, only:nclz 
 USE derivZ 
 
 implicit none
@@ -4060,7 +4060,7 @@ subroutine deciz6(tz,uz,rz,sz,cfiz6,csiz6,cwiz6,cfz6,csz6,cwz6,&
 !
 !********************************************************************
   
-USE param 
+USE param, only:nclz 
 USE derivZ 
 
 implicit none
@@ -4196,7 +4196,7 @@ subroutine interiz6(tz,uz,rz,sz,cifiz6,cisiz6,ciwiz6,cifz6,cisz6,ciwz6,&
 !
 !********************************************************************
   
-USE param
+USE param, only:nclz
 USE derivZ 
 
 implicit none

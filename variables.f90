@@ -33,7 +33,6 @@
 module var
 
 use decomp_2d
-USE variables
 USE param
 
 ! define all major arrays here

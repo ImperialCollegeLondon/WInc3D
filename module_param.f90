@@ -30,7 +30,7 @@
 !    Methods in Fluids, vol 67 (11), pp 1735-1757
 !################################################################################
 
-module variables
+module param 
 
   use decomp_2d, only : mytype
 
@@ -53,6 +53,29 @@ integer,save :: nstat,nvisu
 integer,save :: p_row,p_col
 integer,save :: nxm,nym,nzm
 !end module variables
+  
+integer :: nclx,ncly,nclz
+integer :: ifft, ivirt,istret,iforc_entree,iturb, ialm, Nturbines, NActuatorlines
+integer :: itype, iskew, iin, nscheme, ifirst, ilast, iles, jLES, jADV
+integer :: isave,ilit,srestart,idebmod, imodulo, idemarre, icommence, irecord
+integer :: iscalar,ilag,npif,izap
+integer :: iprobe, Nprobes, Nsampling
+integer :: iabl, ibmshape, SmagWallDamp, nSmag
+character :: Probelistfile*80
+integer :: nxboite, istat,iread,iadvance_time, ibuoyancy, icoriolis
+real(mytype) :: xlx,yly,zlz,dx,dy,dz,dx2,dy2,dz2
+real(mytype) :: dt,xnu,noise,noise1,pi,twopi,u1,u2,re,sc,Pr,TempRef,CoriolisFreq
+real(mytype) :: t,xxk1,xxk2, spinup_time
+real(mytype) :: smagcst, walecst,dys, FSGS, rxxnu
+real(mytype) :: eps_factor ! Smoothing factor 
+real(mytype) :: TurbRadius,z_zero,k_roughness,PsiM,ustar,u_shear,IPressureGradient,epsilon_pert
+real(mytype),dimension(3) :: Ug
+integer :: itr,itime
+character :: dirname*80
+character :: filesauve*80, filenoise*80, &
+     nchamp*80,filepath*80, fileturb*80, filevisu*80 
+character, dimension(100) :: turbinesPath*80, ActuatorlinesPath*80 ! Assign a maximum number of 100 turbines and alms
+real(mytype), dimension(5) :: adt,bdt,cdt,gdt
 
 !module filter
 real(mytype), save, allocatable, dimension(:) :: fifx,ficx,fibx,fiffx,fibbx,fiz1x,fiz2x
@@ -129,97 +152,238 @@ real(mytype) :: alpha,beta
 
 contains
     
-    subroutine init_module_parameters(nx1,ny1,nz1,nxm1,nym1,nzm1,p_row1,p_col1)
-
+    subroutine init_module_parameters()
+    
+    use decomp_2d, only: nrank
     implicit none
-    ! Allocate variables
-    integer :: nx1,ny1,nz1,nxm1,nym1,nzm1,p_row1,p_col1
-     
+    ! Allocate parameters
+    integer :: j 
+
+    ! Compute the sizing parameters 
+        ! X-DIRECTION
+    if (nclx==0) then
+        if(mod(nx,2)==0) then 
+            if (nrank==0) write(*,*) 'nx ok !'
+        else
+            if (nrank==0) write(*,*) 'nx should be an even number!'
+            stop
+        endif
+        dx=xlx/nx
+        nxm=nx 
+    else if (nclx==1 .or. nclx==2) then 
+        if(mod(nx,2)==1) then 
+            if (nrank==0) write(*,*) 'nx ok !'
+        else
+            if (nrank==0) write(*,*) 'nx should be an odd number!'
+            stop
+        endif
+        dx=xlx/(nx-1.)
+        nxm=nx-1
+    else
+        if (nrank==0) write(*,*) 'please select between nclx=0,1 and 2'
+        stop
+    endif
+        ! Y-DIRECTION 
+    if (ncly==0) then 
+        if(mod(ny,2)==0) then 
+            if (nrank==0) write(*,*) 'ny ok !'
+        else
+            if (nrank==0) write(*,*) 'ny should be an even number!'
+            stop
+        endif
+        dy=yly/ny 
+        nym=ny
+    else if (ncly==1.or.ncly==2) then 
+        if(mod(ny,2)==1) then 
+            if (nrank==0) write(*,*) 'ny ok !'
+        else
+            if (nrank==0) write(*,*) 'ny should be an odd number!'
+            stop
+        endif
+        dy=yly/(ny-1.) 
+        nym=ny-1
+    else
+        if (nrank==0) write(*,*) 'please select between ncly=0,1 and 2'
+        stop
+    endif
+        ! Z-DIRECTION  
+    if (nclz==0) then 
+        if(mod(nz,2)==0) then 
+            if (nrank==0) write(*,*) 'nz ok !'
+        else
+            if (nrank==0) write(*,*) 'ny should be an even number!'
+            stop
+        endif
+        dz=zlz/nz 
+        nzm=nz
+    else if (nclz==1.or.nclz==2) then 
+        if(mod(nz,2)==1) then 
+            if (nrank==0) write(*,*) 'nz ok !'
+        else
+            if (nrank==0) write(*,*) 'nz should be an odd number!'
+            stop
+        endif
+        dz=zlz/(nz-1.) 
+        nzm=nz-1
+    else
+        if (nrank==0) write(*,*) 'please select between nclz=0,1 and 2'
+        stop
+    endif
+    
+    ! Compute the squares of the grid size
+    dx2=dx*dx
+    dy2=dy*dy
+    dz2=dz*dz
+    
+
     ! Allocate filter and interpolation parameters 
     ! X-direction
-    allocate(fifx(nx1),ficx(nx1),fibx(nx1),fiffx(nx1),fibbx(nx1),fiz1x(nx1),fiz2x(nx1))
-    allocate(filax(nx1,2),filaxp(nx1,2))
-    allocate(fifxp(nx1),ficxp(nx1),fibxp(nx1),fiffxp(nx1),fibbxp(nx1))
+    allocate(fifx(nx),ficx(nx),fibx(nx),fiffx(nx),fibbx(nx),fiz1x(nx),fiz2x(nx))
+    allocate(filax(nx,2),filaxp(nx,2))
+    allocate(fifxp(nx),ficxp(nx),fibxp(nx),fiffxp(nx),fibbxp(nx))
     ! Y-direction 
-    allocate(fify(ny1),ficy(ny1),fiby(ny1),fiffy(ny1),fibby(ny1),fiz1y(ny1),fiz2y(ny1))
-    allocate(filay(ny1,2),filayp(ny1,2))
-    allocate(fifyp(ny1),ficyp(ny1),fibyp(ny1),fiffyp(ny1),fibbyp(ny1))
+    allocate(fify(ny),ficy(ny),fiby(ny),fiffy(ny),fibby(ny),fiz1y(ny),fiz2y(ny))
+    allocate(filay(ny,2),filayp(ny,2))
+    allocate(fifyp(ny),ficyp(ny),fibyp(ny),fiffyp(ny),fibbyp(ny))
     ! Z-direction  
-    allocate(fifz(nz1),ficz(nz1),fibz(nz1),fiffz(nz1),fibbz(nz1),fiz1z(nz1),fiz2z(nz1))
-    allocate(filaz(nz1,2),filazp(nz1,2))
-    allocate(fifzp(nz1),ficzp(nz1),fibzp(nz1),fiffzp(nz1),fibbzp(nz1))
+    allocate(fifz(nz),ficz(nz),fibz(nz),fiffz(nz),fibbz(nz),fiz1z(nz),fiz2z(nz))
+    allocate(filaz(nz,2),filazp(nz,2))
+    allocate(fifzp(nz),ficzp(nz),fibzp(nz),fiffzp(nz),fibbzp(nz))
     
-    allocate(Cs(p_col1*p_row1))
+    allocate(Cs(p_col*p_row))
 
     ! Allocate the derivatives coefficients
-    allocate(ffx(nx1),fcx(nx1),fbx(nx1),sfx(nx1),scx(nx1),sbx(nx1),fsx(nx1),fwx(nx1),ssx(nx1),swx(nx1))
-    allocate(ffxp(nx1),fsxp(nx1),fwxp(nx1),sfxp(nx1),ssxp(nx1),swxp(nx1))
-    allocate(ffy(ny1),fcy(ny1),fby(ny1),sfy(ny1),scy(ny1),sby(ny1),fsy(ny1),fwy(ny1),ssy(ny1),swy(ny1))
-    allocate(ffyp(ny1),fsyp(ny1),fwyp(ny1),sfyp(ny1),ssyp(ny1),swyp(ny1))
-    allocate(ffz(nz1),fcz(nz1),fbz(nz1),sfz(nz1),scz(nz1),sbz(nz1),fsz(nz1),fwz(nz1),ssz(nz1),swz(nz1))
-    allocate(ffzp(nz1),fszp(nz1),fwzp(nz1),sfzp(nz1),sszp(nz1),swzp(nz1))
+    allocate(ffx(nx),fcx(nx),fbx(nx),sfx(nx),scx(nx),sbx(nx),fsx(nx),fwx(nx),ssx(nx),swx(nx))
+    allocate(ffxp(nx),fsxp(nx),fwxp(nx),sfxp(nx),ssxp(nx),swxp(nx))
+    allocate(ffy(ny),fcy(ny),fby(ny),sfy(ny),scy(ny),sby(ny),fsy(ny),fwy(ny),ssy(ny),swy(ny))
+    allocate(ffyp(ny),fsyp(ny),fwyp(ny),sfyp(ny),ssyp(ny),swyp(ny))
+    allocate(ffz(nz),fcz(nz),fbz(nz),sfz(nz),scz(nz),sbz(nz),fsz(nz),fwz(nz),ssz(nz),swz(nz))
+    allocate(ffzp(nz),fszp(nz),fwzp(nz),sfzp(nz),sszp(nz),swzp(nz))
 
     ! Allocate Pressure derivatives
     ! X-direction
-    allocate(cfx6(nxm1),ccx6(nxm1),cbx6(nxm1),cfxp6(nxm1),ciwxp6(nxm1),csxp6(nxm1),&
-     cwxp6(nxm1),csx6(nxm1),cwx6(nxm1),cifx6(nxm1),cicx6(nxm1),cisx6(nxm1))
-    allocate(cibx6(nxm1),cifxp6(nxm1),cisxp6(nxm1),ciwx6(nxm1))
-    allocate(cfi6(nx1),cci6(nx1),cbi6(nx1),cfip6(nx1),csip6(nx1),cwip6(nx1),csi6(nx1),cwi6(nx1),&
-        cifi6(nx1),cici6(nx1),cibi6(nx1),cifip6(nx1)) 
-    allocate(cisip6(nx1),ciwip6(nx1),cisi6(nx1),ciwi6(nx1))
+    allocate(cfx6(nxm),ccx6(nxm),cbx6(nxm),cfxp6(nxm),ciwxp6(nxm),csxp6(nxm),&
+     cwxp6(nxm),csx6(nxm),cwx6(nxm),cifx6(nxm),cicx6(nxm),cisx6(nxm))
+    allocate(cibx6(nxm),cifxp6(nxm),cisxp6(nxm),ciwx6(nxm))
+    allocate(cfi6(nx),cci6(nx),cbi6(nx),cfip6(nx),csip6(nx),cwip6(nx),csi6(nx),cwi6(nx),&
+        cifi6(nx),cici6(nx),cibi6(nx),cifip6(nx)) 
+    allocate(cisip6(nx),ciwip6(nx),cisi6(nx),ciwi6(nx))
     ! Y-direction
-    allocate(cfy6(nym1),ccy6(nym1),cby6(nym1),cfyp6(nym1),csyp6(nym1),cwyp6(nym1),csy6(nym1))
-    allocate(cwy6(nym1),cify6(nym1),cicy6(nym1),ciby6(nym1),cifyp6(nym1),cisyp6(nym1),&
-     ciwyp6(nym1),cisy6(nym1),ciwy6(nym1)) 
-    allocate(cfi6y(ny1),cci6y(ny1),cbi6y(ny1),cfip6y(ny1),csip6y(ny1),cwip6y(ny1),&
-     csi6y(ny1),cwi6y(ny1),cifi6y(ny1),cici6y(ny1)) 
-    allocate(cibi6y(ny1),cifip6y(ny1),cisip6y(ny1),ciwip6y(ny1),cisi6y(ny1),ciwi6y(ny1)) 
+    allocate(cfy6(nym),ccy6(nym),cby6(nym),cfyp6(nym),csyp6(nym),cwyp6(nym),csy6(nym))
+    allocate(cwy6(nym),cify6(nym),cicy6(nym),ciby6(nym),cifyp6(nym),cisyp6(nym),&
+     ciwyp6(nym),cisy6(nym),ciwy6(nym)) 
+    allocate(cfi6y(ny),cci6y(ny),cbi6y(ny),cfip6y(ny),csip6y(ny),cwip6y(ny),&
+     csi6y(ny),cwi6y(ny),cifi6y(ny),cici6y(ny)) 
+    allocate(cibi6y(ny),cifip6y(ny),cisip6y(ny),ciwip6y(ny),cisi6y(ny),ciwi6y(ny)) 
     ! Z-direction
-    allocate(cfz6(nzm1),ccz6(nzm1),cbz6(nzm1),cfzp6(nzm1),cszp6(nzm1),cwzp6(nzm1),csz6(nzm1))
-    allocate(cwz6(nzm1),cifz6(nzm1),cicz6(nzm1),cibz6(nzm1),cifzp6(nzm1),ciszp6(nzm1),ciwzp6(nzm1),cisz6(nzm1),ciwz6(nzm1))
-    allocate(cfi6z(nz1),cci6z(nz1),cbi6z(nz1),cfip6z(nz1),csip6z(nz1),cwip6z(nz1),& 
-        csi6z(nz1),cwi6z(nz1),cifi6z(nz1),cici6z(nz1))  
-    allocate(cibi6z(nz1),cifip6z(nz1),cisip6z(nz1),ciwip6z(nz1),cisi6z(nz1),ciwi6z(nz1)) 
+    allocate(cfz6(nzm),ccz6(nzm),cbz6(nzm),cfzp6(nzm),cszp6(nzm),cwzp6(nzm),csz6(nzm))
+    allocate(cwz6(nzm),cifz6(nzm),cicz6(nzm),cibz6(nzm),cifzp6(nzm),ciszp6(nzm),ciwzp6(nzm),cisz6(nzm),ciwz6(nzm))
+    allocate(cfi6z(nz),cci6z(nz),cbi6z(nz),cfip6z(nz),csip6z(nz),cwip6z(nz),& 
+        csi6z(nz),cwi6z(nz),cifi6z(nz),cici6z(nz))  
+    allocate(cibi6z(nz),cifip6z(nz),cisip6z(nz),ciwip6z(nz),cisi6z(nz),ciwi6z(nz)) 
 
     ! Allocate waves
-    allocate(zkz(nz1/2+1),zk2(nz1/2+1),ezs(nz1/2+1))
-    allocate(yky(ny1),yk2(ny1),eys(ny1))
-    allocate(xkx(nx1),xk2(nx1),exs(nx1))
+    allocate(zkz(nz/2+1),zk2(nz/2+1),ezs(nz/2+1))
+    allocate(yky(ny),yk2(ny),eys(ny))
+    allocate(xkx(nx),xk2(nx),exs(nx))
 
     ! Allocate the stretch-mesh parameters
-    allocate(ppy(ny1),pp2y(ny1),pp4y(ny1),ppyi(ny1),pp2yi(ny1),pp4yi(ny1),yp(ny1),ypi(ny1),del(ny1),yeta(ny1),yetai(ny1))
+    allocate(ppy(ny),pp2y(ny),pp4y(ny),ppyi(ny),pp2yi(ny),pp4yi(ny),yp(ny),ypi(ny),del(ny),yeta(ny),yetai(ny))
+    
+    ! Do the stretching
+    if (istret.eq.0) then
+       do j=1,ny
+          yp(j)=(j-1.)*dy
+          ypi(j)=(j-0.5)*dy
+       enddo
+    else
+       call stretching()
+    endif
+    
+    ! Define non-dimensional parameters    
+    xnu=1./re
+   
+    ! Define the coefficients for time-marching
+    adt(:)=0. ; bdt(:)=0. ; cdt(:)=0. ; gdt(:)=0.
+    if (nscheme==1) then!AB2
+       iadvance_time=1 
+       adt(1)=1.5*dt
+       bdt(1)=-0.5*dt
+       gdt(1)=adt(1)+bdt(1)
+       gdt(3)=gdt(1)
+    endif
+    if (nscheme==2) then !RK3
+       iadvance_time=3 
+       adt(1)=(8./15.)*dt
+       bdt(1)=0.
+       gdt(1)=adt(1)
+       adt(2)=(5./12.)*dt
+       bdt(2)=(-17./60.)*dt
+       gdt(2)=adt(2)+bdt(2)
+       adt(3)=(3./4.)*dt
+       bdt(3)=(-5./12.)*dt
+       gdt(3)=adt(3)+bdt(3)
+    endif
+    if (nscheme==3) then !RK4 Carpenter and Kennedy  
+       iadvance_time=5 
+       adt(1)=0.
+       adt(2)=-0.4178904745
+       adt(3)=-1.192151694643
+       adt(4)=-1.697784692471
+       adt(5)=-1.514183444257
+       bdt(1)=0.1496590219993
+       bdt(2)=0.3792103129999
+       bdt(3)=0.8229550293869
+       bdt(4)=0.6994504559488
+       bdt(5)=0.1530572479681
+       gdt(1)=0.1496590219993*dt
+       gdt(2)=0.220741935365*dt
+       gdt(3)=0.25185480577*dt
+       gdt(4)=0.33602636754*dt
+       gdt(5)=0.041717869325*dt
+    endif
+    
+    if (nscheme==4) then!AB3
+       iadvance_time=1
+       adt(1)= (23./12.)*dt
+       bdt(1)=-(16./12.)*dt
+       cdt(1)= ( 5./12.)*dt
+       gdt(1)=adt(1)+bdt(1)+cdt(1)
+       gdt(3)=gdt(1)
+    endif
+
 
     end subroutine init_module_parameters
 
-end module variables
+end module param 
 
-module param
-
-use decomp_2d, only : mytype
-
-  integer :: nclx,ncly,nclz
-  integer :: ifft, ivirt,istret,iforc_entree,iturb, ialm, Nturbines, NActuatorlines
-  integer :: itype, iskew, iin, nscheme, ifirst, ilast, iles, jLES, jADV
-  integer :: isave,ilit,srestart,idebmod, imodulo, idemarre, icommence, irecord
-  integer :: iscalar,ilag,npif,izap
-  integer :: iprobe, Nprobes, Nsampling
-  integer :: iabl, ibmshape, SmagWallDamp, nSmag
-  character :: Probelistfile*80
-  integer :: nxboite, istat,iread,iadvance_time, ibuoyancy, icoriolis
-  real(mytype) :: xlx,yly,zlz,dx,dy,dz,dx2,dy2,dz2
-  real(mytype) :: dt,xnu,noise,noise1,pi,twopi,u1,u2,sc,Pr,TempRef,CoriolisFreq
-  real(mytype) :: t,xxk1,xxk2, spinup_time
-  real(mytype) :: smagcst, walecst,dys, FSGS, rxxnu
-  real(mytype) :: eps_factor ! Smoothing factor 
-  real(mytype) :: TurbRadius,z_zero,k_roughness,PsiM,ustar,u_shear,IPressureGradient,epsilon_pert
-  real(mytype),dimension(3) :: Ug
-  integer :: itr,itime
-  character :: dirname*80
-  character :: filesauve*80, filenoise*80, &
-       nchamp*80,filepath*80, fileturb*80, filevisu*80 
-  character, dimension(100) :: turbinesPath*80, ActuatorlinesPath*80 ! Assign a maximum number of 100 turbines and alms
-   real(mytype), dimension(5) :: adt,bdt,cdt,gdt
-end module param
+!module param
+!
+!use decomp_2d, only : mytype
+!
+!  integer :: nclx,ncly,nclz
+!  integer :: ifft, ivirt,istret,iforc_entree,iturb, ialm, Nturbines, NActuatorlines
+!  integer :: itype, iskew, iin, nscheme, ifirst, ilast, iles, jLES, jADV
+!  integer :: isave,ilit,srestart,idebmod, imodulo, idemarre, icommence, irecord
+!  integer :: iscalar,ilag,npif,izap
+!  integer :: iprobe, Nprobes, Nsampling
+!  integer :: iabl, ibmshape, SmagWallDamp, nSmag
+!  character :: Probelistfile*80
+!  integer :: nxboite, istat,iread,iadvance_time, ibuoyancy, icoriolis
+!  real(mytype) :: xlx,yly,zlz,dx,dy,dz,dx2,dy2,dz2
+!  real(mytype) :: dt,xnu,noise,noise1,pi,twopi,u1,u2,re,sc,Pr,TempRef,CoriolisFreq
+!  real(mytype) :: t,xxk1,xxk2, spinup_time
+!  real(mytype) :: smagcst, walecst,dys, FSGS, rxxnu
+!  real(mytype) :: eps_factor ! Smoothing factor 
+!  real(mytype) :: TurbRadius,z_zero,k_roughness,PsiM,ustar,u_shear,IPressureGradient,epsilon_pert
+!  real(mytype),dimension(3) :: Ug
+!  integer :: itr,itime
+!  character :: dirname*80
+!  character :: filesauve*80, filenoise*80, &
+!       nchamp*80,filepath*80, fileturb*80, filevisu*80 
+!  character, dimension(100) :: turbinesPath*80, ActuatorlinesPath*80 ! Assign a maximum number of 100 turbines and alms
+!   real(mytype), dimension(5) :: adt,bdt,cdt,gdt
+!end module param
 
 module IBM
 
@@ -231,7 +395,7 @@ end module IBM
 module complex_geometry
 
 use decomp_2d, only : mytype
-use variables, only : nx,ny,nz
+use param, only : nx,ny,nz
 
   integer     ,parameter                  :: nobjmax=4
   integer     ,save, allocatable, dimension          (:,:) :: nobjx

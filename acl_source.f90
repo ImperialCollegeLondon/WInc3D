@@ -229,8 +229,7 @@ contains
 
         use decomp_2d, only: mytype, nproc, xstart, xend, xsize
         use MPI
-        use param 
-        use variables, only: yp
+        use param, only: dx,dy,dz,eps_factor, xnu,yp,istret
         use var, only: ux1, uy1, uz1, FTx, FTy, FTz
         
         implicit none

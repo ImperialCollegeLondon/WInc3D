@@ -37,7 +37,7 @@ subroutine filx(tx,ux,rx,sx,vx,fiffx,fifx,ficx,fibx,fibbx,filax,fiz1x,&
 !
 !*********************************************************************
   
-USE param 
+USE param, only: nclx, ncly, nclz  
 USE parfiX 
 
 implicit none
@@ -378,7 +378,7 @@ subroutine fily(ty,uy,ry,sy,vy,fiffy,fify,ficy,fiby,fibby,filay,fiz1y,&
 !
 !*********************************************************************
   
-USE param
+USE param, only: ncly
 USE parfiY 
 
 implicit none
@@ -711,7 +711,7 @@ subroutine filz(tz,uz,rz,sz,vz,fiffz,fifz,ficz,fibz,fibbz,filaz,fiz1z,&
 !
 !*********************************************************************
  
-USE param 
+USE param, only:nclz 
 USE parfiZ 
 
 implicit none
@@ -1043,7 +1043,7 @@ USE param
 USE parfiX 
 USE parfiY 
 USE parfiZ
-USE variables
+!USE variables
  
 implicit none
 

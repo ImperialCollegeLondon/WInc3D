@@ -36,7 +36,7 @@ module decomp_2d_poisson
   use decomp_2d_fft
 
   use param
-  use variables
+  !use variables
 
   implicit none
 
@@ -1444,7 +1444,8 @@ contains
   
   subroutine abxyz(ax,ay,az,bx,by,bz,nx,ny,nz,bcx,bcy,bcz)
 	
-    use param
+    !use param
+    use decomp_2d
 
     implicit none
 
@@ -1512,7 +1513,7 @@ USE derivY
 USE derivZ 
 USE param
 USE decomp_2d
-USE variables
+!USE variables
 use decomp_2d_fft
 
 implicit none
@@ -1768,7 +1769,7 @@ subroutine matrice_refinement()
 !**************************************************************************
 
 USE decomp_2d
-USE variables
+!USE variables
 USE param
 USE var
 USE MPI

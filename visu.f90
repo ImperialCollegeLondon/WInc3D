@@ -40,7 +40,6 @@ subroutine VISU_INSTA (ux1,uy1,uz1,phi1,ta1,tb1,tc1,td1,te1,tf1,tg1,th1,ti1,di1,
 
 USE param
 USE var, only: FTx, FTy, FTz, ep1, nut1
-USE variables
 USE decomp_2d
 USE decomp_2d_io
 
@@ -225,7 +224,6 @@ subroutine STATISTIC(ux1,uy1,uz1,phi1,ta1,umean,vmean,wmean,phimean,uumean,vvmea
 !############################################################################
 
 USE param
-USE variables
 USE decomp_2d
 USE decomp_2d_io
 
@@ -325,7 +323,6 @@ subroutine VISU_PRE (pp3,ta1,tb1,di1,ta2,tb2,di2,&
 !############################################################################
 
 USE param
-USE variables
 USE decomp_2d
 USE decomp_2d_io
 

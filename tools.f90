@@ -38,7 +38,6 @@ subroutine test_scalar_min_max(phi)
 
 USE decomp_2d
 USE decomp_2d_poisson
-USE variables
 USE param
 USE var
 USE MPI
@@ -84,7 +83,6 @@ subroutine test_speed_min_max(ux,uy,uz)
 
 USE decomp_2d
 USE decomp_2d_poisson
-USE variables
 USE param
 USE var
 USE MPI
@@ -144,7 +142,6 @@ subroutine restart(ux1,uy1,uz1,ep1,pp3,phi1,gx1,gy1,gz1,px1,py1,pz1,phis1,&
 
 USE decomp_2d
 USE decomp_2d_io
-USE variables
 USE param
 USE MPI
 
@@ -437,7 +434,6 @@ subroutine stretching()
 !
 USE decomp_2d
 USE decomp_2d_poisson
-USE variables
 USE param
 USE var
 USE MPI
@@ -593,7 +589,6 @@ subroutine inversion5_v1(aaa,eee,spI)
 
 USE decomp_2d
 USE decomp_2d_poisson
-USE variables
 USE param
 USE var
 USE MPI
@@ -736,7 +731,6 @@ subroutine inversion5_v2(aaa,eee,spI)
 
 USE decomp_2d
 USE decomp_2d_poisson
-USE variables
 USE param
 USE var
 USE MPI
@@ -877,7 +871,6 @@ subroutine channel (ux)
 
 USE decomp_2d
 USE decomp_2d_poisson
-USE variables
 USE param
 USE var
 USE MPI
@@ -930,7 +923,6 @@ subroutine abl (ux) ! Routine to force the abl in periodic boundary conditions
 
 USE decomp_2d
 USE decomp_2d_poisson
-USE variables
 USE param
 USE var
 USE MPI
@@ -988,7 +980,6 @@ subroutine collect_data()
 
 USE decomp_2d
 USE decomp_2d_poisson
-USE variables
 USE param
 USE var
 USE MPI

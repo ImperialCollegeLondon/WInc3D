@@ -620,7 +620,6 @@ contains
   subroutine mpiio_write_real_coarse(ipencil,var,filename,icoarse)
     
     USE param
-    USE variables
 
     implicit none
     

@@ -35,7 +35,6 @@ PROGRAM incompact3d
 USE decomp_2d
 USE decomp_2d_poisson
 use decomp_2d_io
-USE variables
 USE param
 USE var
 USE MPI
