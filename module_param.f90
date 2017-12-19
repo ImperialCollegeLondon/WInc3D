@@ -211,7 +211,7 @@ contains
         if(mod(nz,2)==0) then 
             if (nrank==0) write(*,*) 'nz ok !'
         else
-            if (nrank==0) write(*,*) 'ny should be an even number!'
+            if (nrank==0) write(*,*) 'nz should be an even number!'
             stop
         endif
         dz=zlz/nz 
