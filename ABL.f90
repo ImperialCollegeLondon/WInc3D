@@ -91,11 +91,10 @@ fiz1x,fiz2x,xsize(1),xsize(2),xsize(3),0)
     wallfluxy(i,1,k) = 0.!-(tauwallxy(i,k)-tauwallxy(i-1,k))/dx-(tauwallzy(i,k)-tauwallzy(i,k-1))/dz
     wallfluxz(i,1,k) = -(-1./2.*(-2.*nut1(i,3,k)*syz1(i,3,k))+&
         2.*(-2.*nut1(i,2,k)*syz1(i,2,k))-3./2.*tauwallzy(i,k))/(2.*delta)
-    !wallfluxz(i,1,k) = -(-2.*nut1(i,2,k)*syz1(i,2,k)-tauwallzy(i,k))/(2.*delta)
     else
-    wallfluxx(i,1,k) = tauwallxy(i,k)*dx*dz
-    wallfluxy(i,1,k) = 0. 
-    wallfluxz(i,1,k) = tauwallzy(i,k)*dx*dz
+    wallfluxx(i,1,k) = 0.
+    wallfluxy(i,1,k) = 0.
+    wallfluxz(i,1,k) = 0.
     endif
     
     enddo
