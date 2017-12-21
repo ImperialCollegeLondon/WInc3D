@@ -350,11 +350,12 @@ endif
 
 ! Apply first condition for wall model
 if(jLES==1.and.iabl==1) then
+    call wall_shear_stress(ux1,uy1,uz1,nut1,sxy1,syz1,tauwallxy1,tauwallzy1,wallfluxx1,wallfluxy1,wallfluxz1)
+    ! Calculate the derxx_iles
     call derxx_iles(tf1_abl,uz1,di1,sx,sfxp,ssxp,swxp,xsize(1),xsize(2),xsize(3),1)
-    call transpose_x_to_y(tf1_abl,tf2_abl)
-     
+    call transpose_x_to_y(tf1_abl,tf2_abl) 
     if(ystart(2)==1) then
-    td2(:,1,:)=-1./(k_roughness*(dy/2.)**2.)+ta2(:,1,:) 
+    td2(:,1,:)=-u_shear*z_zero/(k_roughness*(dy/2.)**2.)+ta2(:,1,:) 
     tf2(:,1,:)=tf2_abl(:,1,:)
     endif
 endif
@@ -438,7 +439,7 @@ endif
 ! Compute additional Models
 !***************************************
 ! 
-if (iabl==1) then
+if (iabl==1.and.jLES.ge.2) then
     call wall_shear_stress(ux1,uy1,uz1,nut1,sxy1,syz1,tauwallxy1,tauwallzy1,wallfluxx1,wallfluxy1,wallfluxz1)
     ta1(:,:,:)=ta1(:,:,:)+wallfluxx1(:,:,:)
     tb1(:,:,:)=tb1(:,:,:)+wallfluxy1(:,:,:)
