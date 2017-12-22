@@ -28,7 +28,7 @@
     nx=64                 ! X-direction nodes
     ny=65                 ! Y-direction nodes
     nz=64                 ! Z-direction nodes
-    p_row=4               ! Row partition
+    p_row=2               ! Row partition
     p_col=2               ! Column partition
 
     ! Boundary conditions and mesh 
