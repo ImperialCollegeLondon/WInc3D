@@ -1,4 +1,4 @@
-!################################################################################
+!###############################################################################
 !This file is part of Incompact3d.
 !
 !Incompact3d
@@ -87,8 +87,66 @@ call init_coarser_mesh_statV(nvisu,nvisu,nvisu,.true.)
 
 call init_variables
 
+! Print out the parameters  
+if (nrank==0) then
+print *,'==========================================================='
+print *,'==========================================================='
+print *,'==========================================================='
+print *,'======================Incompact3d=========================='
+print *,'===Copyright (c) 2012 Eric Lamballais and Sylvain Laizet==='
+print *,'eric.lamballais@univ-poitiers.fr / sylvain.laizet@gmail.com'
+print *,'Imperial College London Version: '
+print *,'Currently in development by G. Deskos'
+print *,'==========================================================='
+print *,'==========================================================='
+print *,'==========================================================='
+print *,''
+print *,''
+print *,''
+if (itype.eq.1) print *,'Fluid flow problem : Constant flow field/wake in a confined domain'
+if (itype.eq.2) print *,'Fluid flow problem : Smooth turbulent channel flow'
+if (itype.eq.3) print *,'Fluid flow problem : Various configurations: Flow field is imported from a precursor simulation through planes'
+if (itype.eq.4) print *,'Fluid flow problem : Not defined yet'
+if (itype.eq.5) print *,'Fluid flow problem : Not defined yet'
+if (itype.eq.6) print *,'Fluid flow problem : Taylor Green vortices'
+if (itype.eq.7) print *,'Fluid flow problem : 3D cavity flow'
+if (itype.eq.8) print *,'Fluid flow problem : Atmospheric Boundary Layer'
+if (itype.eq.9) print *,'Fluid flow problem : Not defined yet'
+write(*,1101) nx,ny,nz
+write(*,1103) xlx,yly,zlz 
+write(*,1102) nclx,ncly,nclz 
+write(*,1104) u1,u2 
+write(*,1105) re
+write(*,1106) dt
+if (nscheme.eq.1) print *,'Temporal scheme   : Adams-bashforth 2'
+if (nscheme.eq.2) print *,'Temporal scheme   : Runge-Kutta 3'
+if (nscheme.eq.3) print *,'Temporal scheme   : Runge-Kutta 4'
 
-!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+if (ivirt.eq.0) print *,'Immersed boundary : off'
+if (ivirt.eq.1) then
+   print *,'Immersed boundary : on old school'
+   write(*,1107) cex,cey,cez
+   write(*,1110) ra
+endif
+if (ivirt.eq.2) then
+   print *,'Immersed boundary : on with Lagrangian Poly'
+endif
+
+
+ 1101 format(' Spatial Resolution: (nx,ny,nz)=(',I4,',',I4,',',I4,')')
+ 1102 format(' Boundary condition: (nclx,ncly,nclz)=(',I1,',',I1,',',I1,')')
+ 1103 format(' Domain dimension  : (lx,ly,lz)=(',F6.1,',',F6.1,',',F6.1,')')
+ 1104 format(' High and low speed: u1=',F6.2,' and u2=',F6.2)
+ 1105 format(' Reynolds number Re: ',F15.8)
+ 1106 format(' Time step dt      : ',F15.8)
+ 1107 format(' Object centred at : (',F6.2,',',F6.2,',',F6.2,')')
+ 1110 format(' Object length     : ',F6.2)
+ 1113 format(' Schmidt number    : ',F6.2)
+endif
+
+! ======================================================================================================
+! Initialize the schemes (Currently deciding between the optimal sixth-order Pade and the modified iSVV
+! ======================================================================================================
 if (jLES==0) then
     call schemes_dns()
     if(nrank==0) then
@@ -103,8 +161,9 @@ else if (jLES==2.OR.jLES==3.OR.jLES==4.OR.jLES==5) then
     call init_explicit_les() 
     call schemes_dns()
 endif
-!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
+! ================================================
+! Dealing with pressure
+! ================================================
 if (nclx==0) then
    bcx=0
 else
@@ -125,9 +184,9 @@ call decomp_2d_poisson_init(bcx,bcy,bcz)
 
 call decomp_info_init(nxm,nym,nzm,phG)
 
-!if you want to collect 100 snapshots randomly on XXXXX time steps
-!call collect_data() !it will generate 100 random time steps
-
+! ======================================================
+! Initialise flow in the domain -- init or restart 
+! ======================================================
 if (ilit==0) call init(ux1,uy1,uz1,ep1,phi1,gx1,gy1,gz1,phis1,hx1,hy1,hz1,phiss1)  
 if (ilit==1) call restart(ux1,uy1,uz1,ep1,pp3,phi1,gx1,gy1,gz1,&
         px1,py1,pz1,phis1,hx1,hy1,hz1,phiss1,phG,0)
@@ -174,8 +233,7 @@ do itime=ifirst,ilast
       write(*,*) '========================================'
    endif
 
-   if(ialm==1) then !>> GDeskos Turbine model
-      ! First we need to ask for the velocities  
+   if(ialm==1) then
       if (nrank==0) then
           write(6,*) '' 
           write(6,*) 'Unsteady ACtuator Line Model INFO:'
