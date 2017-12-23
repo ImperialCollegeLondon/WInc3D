@@ -13,8 +13,6 @@ real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: uxf,uyf,uzf
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: wallfluxx,wallfluxy,wallfluxz
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: sxy1, syz1 
 real(mytype),dimension(xsize(1),xsize(3)) :: tauwallxy, tauwallzy 
-!real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: tauwallxy2, tauwallzy2 
-!real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: tauwallxy3, tauwallzy3
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: gxy1,gyx1,gyz1,gzy1,di1
 real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: gxy2,gzy2,gyz2,di2
 real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: gyz3,di3

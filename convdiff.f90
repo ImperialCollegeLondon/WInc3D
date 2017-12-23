@@ -47,10 +47,10 @@ USE MPI
 
 implicit none
 
-real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux1,uy1,uz1,phi1,ep1,ucx1,ucy1,ucz1
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux1,uy1,uz1,phi1,ep1,ucx1,ucy1,ucz1,deltaphi1
 real(mytype),dimension(xsize(1),xsize(2),xsize(3),25) :: uxt,uyt,uzt
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ta1,tb1,tc1,td1,te1,tf1,tf1_abl,tg1,th1,ti1,di1
-real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: ux2,uy2,uz2,phi2 
+real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: ux2,uy2,uz2,phi2,deltaphi2 
 real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: ta2,tb2,tc2,td2,te2,tf2,tf2_abl,tg2,th2,ti2,tj2,di2
 real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: ux3,uy3,uz3,phi3
 real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3
@@ -73,7 +73,7 @@ real(mytype),dimension(xszS(1),xszS(2),xszS(3)) :: divdiva,curldiva
 real(mytype),dimension(xszV(1),xszV(2),xszV(3)) :: uvisu
 
 ! Buoyancy 
-real(mytype),dimension(xsize(2)) :: tmp1, phiPlaneAve !Horizontally-averaged potential temperature
+real(mytype),dimension(ysize(2)) :: tmpphi, phiPlaneAve !Horizontally-averaged potential temperature
 
 !ABL boundary conditions
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: tablx1, tably1, tablz1
@@ -449,26 +449,30 @@ endif
 ! Buoyancy Effects
 if (ibuoyancy==1) then     
     ! Average quantities over the x-z plane 
-    tmp1=0. ! First zero the tmp variable
-   
-    do j=1,xsize(2)
-    do k=1,xsize(3)
-    do i=1,xsize(1)
-    tmp1(j)=tmp1(j)+phi1(i,j,k)
+    tmpphi=0. ! First zero the tmp variable
+    
+    call transpose_x_to_y(phi1,phi2) 
+    do j=1,ysize(2)
+    do k=1,ysize(3)
+    do i=1,ysize(1)
+    tmpphi(j)=tmpphi(j)+phi2(i,j,k)
     enddo
     enddo
     ! Do the averaging
-    tmp1(j)=tmp1(j)/xsize(1)/xsize(3)
+    tmpphi(j)=tmpphi(j)/ysize(1)/ysize(3)
     enddo
 
-    call MPI_ALLREDUCE(tmp1,phiPlaneAve,xsize(2),MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,code)
+    call MPI_ALLREDUCE(tmpphi,phiPlaneAve,ysize(2),MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,code)
 
-    phiPlaneAve(:)=phiPlaneAve(:)/p_col
+    phiPlaneAve(:)=phiPlaneAve(:)/(p_col*p_row)
     
+    do j=1,ysize(2)
+    deltaphi2(:,j,:)=phi2(:,j,:)-phiPlaneAve(j)
+    enddo    
+    call transpose_y_to_x(deltaphi2,deltaphi1) 
     ! Buoyancy added in the y direction not the z 
-    do j=1,xsize(2)
-    tb1(:,j,:)=tb1(:,j,:) + 9.81*(phi1(:,j,:)-phiPlaneAve(j))/TempRef
-    enddo
+    
+    tb1(:,:,:)=tb1(:,:,:) !+ deltaphi1(:,:,:)/TempRef
 endif
 
 if (IPressureGradient==1) then
@@ -489,6 +493,7 @@ if (ialm==1) then
 endif
 
 end subroutine convdiff
+
 !************************************************************
 !
 subroutine PotentialTemperature(ux1,uy1,uz1,phi1,phis1,phiss1,di1,ta1,tb1,tc1,td1,&
@@ -535,11 +540,10 @@ do ijk=1,nvect2
    ta2(ijk,1,1)=uy2(ijk,1,1)*phi2(ijk,1,1)
 enddo
 
-call dery (tb2,ta2,di2,sy,ffy,fsy,fwy,ppy,ysize(1),ysize(2),ysize(3),0)
+call dery(tb2,ta2,di2,sy,ffy,fsy,fwy,ppy,ysize(1),ysize(2),ysize(3),0)
 
-if (istret.ne.0) then 
-        
-    call dery (tc2,phi2,di2,sy,ffy,fsy,fwy,ppy,ysize(1),ysize(2),ysize(3),0)
+if (istret.ne.0) then         
+    call dery(tc2,phi2,di2,sy,ffy,fsy,fwy,ppy,ysize(1),ysize(2),ysize(3),0)
     
     if (jles==1) then
         call deryy_iles (ta2,phi2,di2,sy,sfyp,ssyp,swyp,ysize(1),ysize(2),ysize(3),1)
@@ -652,8 +656,7 @@ if (nscheme==4) then
    endif
 endif
 
-
- end subroutine PotentialTemperature
+end subroutine PotentialTemperature
 
 
 !************************************************************

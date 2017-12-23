@@ -118,9 +118,10 @@ write(*,1102) nclx,ncly,nclz
 write(*,1104) u1,u2 
 write(*,1105) re
 write(*,1106) dt
-if (nscheme.eq.1) print *,'Temporal scheme   : Adams-bashforth 2'
+if (nscheme.eq.1) print *,'Temporal scheme   : Adams-Bashforth 2'
 if (nscheme.eq.2) print *,'Temporal scheme   : Runge-Kutta 3'
 if (nscheme.eq.3) print *,'Temporal scheme   : Runge-Kutta 4'
+if (nscheme.eq.2) print *,'Temporal scheme   : Adams-Bashforth 4'
 
 if (ivirt.eq.0) print *,'Immersed boundary : off'
 if (ivirt.eq.1) then
@@ -144,9 +145,9 @@ endif
  1113 format(' Schmidt number    : ',F6.2)
 endif
 
-! ======================================================================================================
-! Initialize the schemes (Currently deciding between the optimal sixth-order Pade and the modified iSVV
-! ======================================================================================================
+! ==========================================================================================================
+! Initialize the schemes (Currently deciding between the optimal sixth-order Pade and the sixth-order iSVV
+! ==========================================================================================================
 if (jLES==0) then
     call schemes_dns()
     if(nrank==0) then
@@ -209,16 +210,13 @@ call decomp_info_init(nxm, ny, nz, ph4)
 call decomp_info_init(nxm, ny, nz, ph2)  
 call decomp_info_init(nxm, nym, nz, ph3) 
 
-!GD
-!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-! Initialize the Turbine Model
+! Initialise the Turbine Model
 if (ialm==1) then
   call actuator_line_model_init(Nturbines,Nactuatorlines,TurbinesPath,ActuatorlinesPath,dt)  
   call initialize_actuator_source 
 endif
-!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-!GD
+! Initialise the Probe inside the domain
 if (iprobe==1) then
     call init_probe
 endif
@@ -252,25 +250,18 @@ do itime=ifirst,ilast
          call outflow(ux1,uy1,uz1,phi1) !X PENCILS 
       endif 
         
-      ! Potential Temperature -- to be computed before the convdiff
-      if (ibuoyancy==1) then
-          ! Transport equation for potential temperature
-          call PotentialTemperature(ux1,uy1,uz1,phi1,phis1,phiss1,di1,tg1,th1,ti1,td1,&
-              uy2,uz2,phi2,di2,ta2,tb2,tc2,td2,uz3,phi3,di3,ta3,tb3,ep1)  
-      endif
-
       call convdiff(ux1,uy1,uz1,phi1,uxt,uyt,uzt,ep1,divdiva,curldiva,ta1,tb1,tc1,&
       td1,te1,tf1,tg1,th1,ti1,di1,ux2,uy2,uz2,phi2,ta2,tb2,tc2,td2,te2,tf2,tg2,th2,&
       ti2,tj2,di2,ux3,uy3,uz3,phi3,ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3,nut1,ucx1,&
       ucy1,ucz1,tmean,sgszmean,sgsxmean,sgsymean)
 
-      
-      ! Passive scalar
-      if (iscalar==1) then
-         call scalar(ux1,uy1,uz1,phi1,phis1,phiss1,di1,tg1,th1,ti1,td1,&
-              uy2,uz2,phi2,di2,ta2,tb2,tc2,td2,uz3,phi3,di3,ta3,tb3,ep1) 
+      ! Potential Temperature -- to be computed after the convdiff
+      if (ibuoyancy==1) then
+          ! Transport equation for potential temperature
+          call PotentialTemperature(ux1,uy1,uz1,phi1,phis1,phiss1,di1,tg1,th1,ti1,td1,&
+              uy2,uz2,phi2,di2,ta2,tb2,tc2,td2,uz3,phi3,di3,ta3,tb3,ep1)  
       endif
-
+      
       !X PENCILS
       call intt (ux1,uy1,uz1,gx1,gy1,gz1,hx1,hy1,hz1,ta1,tb1,tc1) 
       

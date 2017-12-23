@@ -201,13 +201,6 @@ if (itype==2) then !channel flow
    call transpose_y_to_x(gx,ux)
 endif
 
-! No need for this one. A forcing term can do the same job !
-!if (itype==8) then ! atmospheric Boundary Layer
-!   call transpose_x_to_y(ux,gx)
-!   call abl(gx)
-!   call transpose_y_to_x(gx,ux)
-!endif
-
 return
 end subroutine corgp
 
@@ -228,7 +221,7 @@ integer  :: k,j
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux,uy,uz,phi
 real(mytype) :: r1,r2,r3,y,z,um
 
-call ecoule(ux,uy,uz)
+call ecoule(ux,uy,uz,phi)
 
 call random_number(bxo)
 call random_number(byo)
@@ -329,35 +322,26 @@ end subroutine outflow
 
 !**********************************************************************
 !
-subroutine ecoule(ux1,uy1,uz1)
+subroutine ecoule(ux1,uy1,uz1,phi1)
 !
 !**********************************************************************
 
 USE param
 USE IBM
-!USE variables
 USE decomp_2d
 
 implicit none
 
 integer  :: i,j,k,jj1,jj2 
-real(mytype), dimension(xsize(1),xsize(2),xsize(3)) :: ux1,uy1,uz1
+real(mytype), dimension(xsize(1),xsize(2),xsize(3)) :: ux1,uy1,uz1,phi1
 real(mytype) :: x,y,z,ym
 real(mytype) :: r1,r2,r3,r
 real(mytype) :: uh,ud,um,xv,bruit1
 
+phi1=0.
 bxx1=0.;bxy1=0.;bxz1=0.
 byx1=0.;byy1=0.;byz1=0.
 bzx1=0.;bzy1=0.;bzz1=0. 
-
-!ITYPE=1 --> Uniform flow field
-!ITYPE=2 --> Channel flow starting with a laminar profile 1-y^2 
-!ITYPE=3 --> Turbulent boundary layer 
-!ITYPE=4 --> Precursor planes inflow 
-!ITYPE=5 --> Jet/Plume flow with no cross-flow 
-!ITYPE=6 --> Taylor Green vortices
-!ITYPE=7 --> 
-!ITYPE=8 --> Atmospheric Boundary Layer with wall modelling
 
 if (itype.eq.1) then
    um=0.5*(u1+u2)
@@ -428,16 +412,17 @@ if (itype.eq.8) then
       stop
     endif
    do k=1,xsize(3)
-      z=(k+xstart(3)-1-1)*dz
    do j=1,xsize(2)
       if (istret.eq.0) y=(j+xstart(2)-1-1)*dy
       if (istret.ne.0) y=yp(j)
-      do i=1,xsize(1)
-         x=(i-1)*dx
+   do i=1,xsize(1)
       bxx1(j,k)=ustar/k_roughness*log((y+z_zero)/z_zero)
       bxy1(j,k)=0.
       bxz1(i,k)=0.
-      enddo
+      if (ibuoyancy==1) then
+      phi1(i,j,k)=TempRef+y*0.01
+      endif
+   enddo
    enddo
    enddo
 endif
@@ -475,7 +460,7 @@ integer :: k,j,i,fh,ierror,ii
 integer :: code
 integer (kind=MPI_OFFSET_KIND) :: disp
 
-if (iin.eq.1) then !generation of a random noise in the middle of the channel
+if (iin.eq.1) then !generation of a random noise near the bottom of the channel
 
 call system_clock(count=code)
 call random_seed(size = ii)
@@ -513,15 +498,11 @@ call random_seed(put = code+63946*nrank*(/ (i - 1, i = 1, ii) /)) !
    enddo
    enddo
 
-   if (iscalar==1) then
+   if (ibuoyancy==1) then
       do k=1,xsize(3)
       do j=1,xsize(2)
       do i=1,xsize(1)
-   !      if ((j+xstart(2)-1).ge.nym) then
-   !         phi1(i,j,k)=1.
-   !      else
-            phi1(i,j,k)=0.
-   !      endif
+         phi1(i,j,k)=0.
          phis1(i,j,k)=phi1(i,j,k)
          phiss1(i,j,k)=phis1(i,j,k)
       enddo
@@ -583,7 +564,7 @@ if (iin.eq.2) then !read a correlated noise generated in the middle
 endif
 
 !MEAN FLOW PROFILE
-call ecoule(ux1,uy1,uz1)
+call ecoule(ux1,uy1,uz1,phi1)
 !INIT FOR G AND U=MEAN FLOW + NOISE
 do k=1,xsize(3)
 do j=1,xsize(2)

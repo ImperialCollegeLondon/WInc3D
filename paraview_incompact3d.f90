@@ -2,7 +2,7 @@ program visu_paraview
 
   implicit none
 
-  integer(4) :: nx,ny,nz, ialm, ivirt,jles
+  integer(4) :: nx,ny,nz, ialm, ivirt,jles,ibuoyancy
   real(4) :: xlx,yly,zlz,dt,dx,dy,dz
   integer(4) :: nfiles, icrfile, file1, filen, ifile, dig1, dig2, dig3, dig4
   real(4), allocatable :: yp(:),y1(:),y3(:)
@@ -12,7 +12,7 @@ program visu_paraview
   character(len=80) :: InputFN, FNBase
 
   character(4) :: chits
-  NAMELIST/PostProcess/nx,ny,nz,xlx,yly,zlz,nclx,ncly,nclz,istret,nfiles,file1,filen,ialm,ivirt,jles
+  NAMELIST/PostProcess/nx,ny,nz,xlx,yly,zlz,nclx,ncly,nclz,istret,nfiles,file1,filen,ialm,ivirt,jles,ibuoyancy
  !==========================================================================
  ! Handle Input file
  nargin=command_argument_count()
@@ -191,6 +191,16 @@ program visu_paraview
      write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
      write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
      write(nfil,*)'                  nuSGS'//chits
+     write(nfil,*)'               </DataItem>'
+     write(nfil,*)'            </Attribute>'
+     endif
+     
+     if(ibuoyancy==1) then
+     write(nfil,*)'            <Attribute Name="Temp" Center="Node">'
+     write(nfil,*)'               <DataItem Format="Binary" '
+     write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
+     write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
+     write(nfil,*)'                  Temp'//chits
      write(nfil,*)'               </DataItem>'
      write(nfil,*)'            </Attribute>'
      endif
