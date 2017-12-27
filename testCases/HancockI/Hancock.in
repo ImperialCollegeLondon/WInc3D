@@ -15,8 +15,8 @@
     noise1 = 0.0          ! Turbulence intensity (1=100%) !! Inflow condition
     
     ! Additional effects  
-    ibuoyancy=0           ! Buoyancy flag (0: No buoyanancy 1: Buoyancy)
-    Pr=0.5                ! Prandtl number
+    ibuoyancy=1           ! Buoyancy flag (0: No buoyanancy 1: Buoyancy)
+    Pr=0.333                ! Prandtl number
     TempRef=265           ! Reference potential Temperature in Kelvin 
     icoriolis=0           ! Coriolis flag (0: No buoyanancy 1: Buoyancy)
     CoriolisFreq=1.39e-4  ! Corolios frequency in rad/second

@@ -467,12 +467,12 @@ if (ibuoyancy==1) then
     phiPlaneAve(:)=phiPlaneAve(:)/(p_col*p_row)
     
     do j=1,ysize(2)
-    deltaphi2(:,j,:)=phi2(:,j,:)-phiPlaneAve(j)
+    deltaphi2(:,j,:)=(phi2(:,j,:)-phiPlaneAve(j))/phiPlaneAve(j)
     enddo    
     call transpose_y_to_x(deltaphi2,deltaphi1) 
     ! Buoyancy added in the y direction not the z 
     
-    tb1(:,:,:)=tb1(:,:,:) !+ deltaphi1(:,:,:)/TempRef
+    tb1(:,:,:)=tb1(:,:,:) + 9.81*deltaphi1(:,:,:)
 endif
 
 if (IPressureGradient==1) then
