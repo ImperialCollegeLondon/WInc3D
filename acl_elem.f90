@@ -192,7 +192,7 @@ end type ActuatorLineType
     
     actuatorline%EAOA_LAST(:)=-666.0
     
-    ! If for stall
+    ! If  dynamic stall is enabled
     if (actuatorline%do_dynamic_stall) then
     do ielem=1,actuatorline%Nelem
     call dystl_init_LB(actuatorline%EDynstall_Model(ielem),actuatorline%dynstallfile)
