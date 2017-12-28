@@ -9,7 +9,7 @@ type ActuatorLineType
     integer :: NElem                    ! Number of Elements of the Blade
     character(len=100):: name           ! Actuator line name
     character(len=100):: geom_file      ! Actuator line file name (is not used for the turbines)
-    character(len=80):: dynstallfile    ! Dynstallfile to load options
+    character(len=100):: dynstallfile    ! Dynstallfile to load options
 
     ! Station parameters
     logical :: FlipN =.false.           ! Flip Normal
@@ -97,7 +97,7 @@ type ActuatorLineType
     type(AirfoilType), allocatable :: EAirfoil(:)      ! Element Airfoil 
     integer :: NAirfoilData
     type(AirfoilType), allocatable :: AirfoilData(:)   ! Element Airfoil 
-    type(LB_Type), allocatable :: EDynStall_Model(:)        ! Element Dynamic Stall Model
+    type(DS_Type), allocatable :: EDynstall(:)        ! Element Dynamic Stall Model
     
     ! Forces and Torques on the ActuatorLine 
     real(mytype) :: Fx     ! Element Force in the global x-direction
@@ -195,7 +195,7 @@ end type ActuatorLineType
     ! If  dynamic stall is enabled
     if (actuatorline%do_dynamic_stall) then
     do ielem=1,actuatorline%Nelem
-    call dystl_init_LB(actuatorline%EDynstall_Model(ielem),actuatorline%dynstallfile)
+    call dystl_init(actuatorline%EDynstall(ielem),actuatorline%dynstallfile)
     end do
     endif
     
@@ -738,7 +738,7 @@ end type ActuatorLineType
     allocate(actuatorline%ETtoC(NElem))
     allocate(actuatorline%Eepsilon(NElem))
     allocate(actuatorline%EAirfoil(Nelem))
-    allocate(actuatorline%EDynstall_Model(Nelem))
+    allocate(actuatorline%EDynstall(Nelem))
     allocate(actuatorline%ERdist(Nelem))
     allocate(actuatorline%EVx(NElem))
     allocate(actuatorline%EVy(NElem))
