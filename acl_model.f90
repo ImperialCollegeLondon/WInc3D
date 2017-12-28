@@ -213,21 +213,22 @@ contains
             Turbine(i)%Is_constant_rotation_operated= .true.
             Turbine(i)%Uref=uref
             Turbine(i)%TSR=tsr
-            if(RotFlag==1) then
-                Turbine(i)%IsClockwise=.true.
-            elseif(RotFlag==2) then
-                Turbine(i)%IsCounterClockwise=.true.
-                Turbine(i)%RotN=-Turbine(i)%RotN
-            else
-                write(6,*) "You should not be here. The options are clockwise and counterclockwise"
-                stop
-            endif 
         else if(OperFlag==2) then
-            Turbine(i)%Is_force_based_operated = .true. 
+            Turbine(i)%Is_control_based = .true. 
         else
-            write(*,*) "At the moment only the constant and the force_based rotational velocity models are supported"
+            write(*,*) "Only contant_rotation and control_based is used"
             stop
         endif
+            
+        if(RotFlag==1) then
+            Turbine(i)%IsClockwise=.true.
+        elseif(RotFlag==2) then
+            Turbine(i)%IsCounterClockwise=.true.
+            Turbine(i)%RotN=-Turbine(i)%RotN
+        else
+            write(6,*) "You should not be here. The options are clockwise and counterclockwise"
+            stop
+        endif 
 
         !##################4 Get Unsteady Effects Modelling Options ##################
         if(RandomWalkForcingFlag==1) then
@@ -359,6 +360,15 @@ contains
         if (Ntur>0) then
             do i=1,Ntur
             if(Turbine(i)%Is_constant_rotation_operated) then
+                theta=Turbine(i)%angularVel*DeltaT
+                Turbine(i)%AzimAngle=Turbine(i)%AzimAngle+theta
+                call rotate_turbine(Turbine(i),Turbine(i)%RotN,theta)
+                call Compute_Turbine_RotVel(Turbine(i))  
+            else if(Turbine(i)%Is_control_based) then
+            if(nrank==0) write(*,*) 'Entering the control-based operatin for turbine', Turbine(i)%name 
+		! First do control
+		
+		! Then Calculate the angular velocity and compute the DeltaTheta  and AzimAngle              
                 theta=Turbine(i)%angularVel*DeltaT
                 Turbine(i)%AzimAngle=Turbine(i)%AzimAngle+theta
                 call rotate_turbine(Turbine(i),Turbine(i)%RotN,theta)

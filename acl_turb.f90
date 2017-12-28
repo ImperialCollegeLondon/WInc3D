@@ -17,12 +17,13 @@ type TurbineType
     real(mytype) :: hub_tilt_angle, blade_cone_angle, yaw_angle 
     real(mytype) :: Rmax ! Reference radius, velocity, viscosity
     real(mytype) :: A   ! Rotor area
-    real(mytype) :: angularVel,TSR,Uref
+    real(mytype) :: angularVel,TSR,Uref ! parameters for prescribed simulations
+    real(mytype) :: torque,torque_generator, drivetrain, angularVel_previous ! parameters for control
     real(mytype) :: AzimAngle=0.0
     real(mytype) :: dist_from_axis=0.0
     integer :: No_rev=0.0
     logical :: Is_constant_rotation_operated = .false. ! For a constant rotational velocity (in Revolutions Per Minute)
-    logical :: Is_force_based_operated = .false. ! For a forced based rotational velocity (Computed during the simulation)
+    logical :: Is_control_based = .false. ! For a active control-based rotational velocity computed at run time
     logical :: IsClockwise = .false.
     logical :: IsCounterClockwise = .false. 
     logical :: Has_Tower=.false.
@@ -103,8 +104,7 @@ contains
 
     ! Rotate Blade 1 to forme the other blades 
     call rotate_actuatorline(turbine%blade(iblade),turbine%blade(iblade)%COR,turbine%RotN,(iblade-1)*theta)   
-
-    
+ 
     call make_actuatorline_geometry(turbine%blade(iblade))
 
     ! Populate element Airfoils 
@@ -235,6 +235,10 @@ contains
             Torq_tot=torq_tot+Torque_i
     end do
 
+    ! Assign torque and loads
+    turbine%torque=Torq_tot
+  
+    ! Coefficients
     turbine%CFx=FX_tot/(0.5*turbine%A*turbine%Uref**2)
     turbine%CFy=FY_tot/(0.5*turbine%A*turbine%Uref**2)
     turbine%CFz=Fz_tot/(0.5*turbine%A*turbine%Uref**2)
