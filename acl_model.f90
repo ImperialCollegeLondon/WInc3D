@@ -6,6 +6,7 @@ module actuator_line_model
     use airfoils
     use actuator_line_element
     use actuator_line_turbine
+    use actuator_line_controller 
     use actuator_line_write_output
     use dynstall
 

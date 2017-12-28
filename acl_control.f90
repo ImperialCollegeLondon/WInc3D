@@ -1,4 +1,4 @@
-module acl_control
+module actuator_line_controller
     
 use decomp_2d, only: mytype, nrank
 use actuator_line_turbine
@@ -36,4 +36,4 @@ subroutine Controller(turbine,time)
 
 end subroutine Controller
 
-end module acl_control
+end module actuator_line_controller
