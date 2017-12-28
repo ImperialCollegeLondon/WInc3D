@@ -2,27 +2,9 @@ module actuator_line_controller
 
      use decomp_2d, only: mytype, nrank
      
-	implicit none
-
-type controller
-
-! Local Variables:
-real(mytype) :: Alpha                 ! Current coefficient in the recursive, single-pole, low-pass filter, (-).
-real(mytype) :: BlPitch   (3)         ! Current values of the blade pitch angles, rad.
-real(mytype) :: ElapTime              ! Elapsed time since the last call to the controller, sec.
+implicit none
+! Define some parameters
 real(mytype), parameter :: CornerFreq = 1.570796 ! Corner frequency (-3dB point) in the recursive, single-pole, 
-                                                 !low-pass filter, rad/s. -- chosen to be 1/4 the blade edgewise 
-                                                 !natural frequency ( 1/4 of approx. 1Hz = 0.25Hz = 1.570796rad/s)
-real(mytype)       :: GenSpeed        ! Current  HSS (generator) speed, rad/s.
-real(mytype), save :: GenSpeedF       ! Filtered HSS (generator) speed, rad/s.
-real(mytype)       :: GenTrq          ! Electrical generator torque, N-m.
-real(mytype)       :: GK              ! Current value of the gain correction factor, used in the gain scheduling law of the pitch controller, (-).
-real(mytype)       :: HorWindV        ! Horizontal hub-heigh wind speed, m/s.
-real(mytype), save :: IntSpdErr       ! Current integral of speed error w.r.t. time, rad.
-real(mytype), save :: LastGenTrq      ! Commanded electrical generator torque the last time the controller was called, N-m.
-real(mytype), save :: LastTime        ! Last time this contoller was called, sec.
-real(mytype), save :: LastTimePC      ! Last time the pitch  controller was called, sec.
-real(mytype), save :: LastTimeVS      ! Last time the torque controller was called, sec.
 real(mytype), parameter :: OnePlusEps= 1.0 + EPSILON(OnePlusEps)       ! The number slighty greater than unity in single precision.
 real(mytype), parameter :: PC_DT= 0.00125  !JASON:THIS CHANGED FOR ITI BARGE: 0.0001 ! Communication interval for pitch  controller, sec.
 real(mytype), parameter :: PC_KI= 0.008068634  ! Integral gain for pitch controller at rated pitch (zero), (-).
@@ -34,16 +16,8 @@ real(mytype), parameter :: PC_MaxPit = 1.570796     ! Maximum pitch setting in p
 real(mytype), parameter :: PC_MaxRat = 0.1396263    ! Maximum pitch  rate (in absolute value) in pitch  controller, rad/s.
 real(mytype), parameter :: PC_MinPit = 0.0          ! Minimum pitch setting in pitch controller, rad.
 real(mytype), parameter :: PC_RefSpd = 122.9096     ! Desired (reference) HSS speed for pitch controller, rad/s.
-real(mytype), save :: PitCom(3)                ! Commanded pitch of each blade the last time the controller was called, rad.
-real(mytype) :: PitComI                  ! Integral term of command pitch, rad.
-real(mytype) :: PitComP                  ! Proportional term of command pitch, rad.
-real(mytype) :: PitComT                  ! Total command pitch based on the sum of the proportional and integral terms, rad.
-real(mytype) :: PitRate(3)                ! Pitch rates of each blade based on the current pitch angles and current pitch command, rad/s.
 real(mytype), parameter :: R2D   =  57.295780 ! Factor to convert radians to degrees.
 real(mytype), parameter :: RPS2RPM= 9.5492966 ! Factor to convert radians per second to revolutions per minute.
-real(mytype) :: SpdErr  ! Current speed error, rad/s.
-real(mytype) :: Time    ! Current simulation time, sec.
-real(mytype) :: TrqRate ! Torque rate based on the current and last torque commands, N-m/s.
 real(mytype), parameter :: VS_CtInSp = 70.16224 ! Transitional generator speed (HSS side) between regions 1 and 1 1/2, rad/s.
 real(mytype), parameter :: VS_DT = 0.00125      ! JASON:THIS CHANGED FOR ITI BARGE:0.0001 !Communication interval for torque controller, sec.
 real(mytype), parameter :: VS_MaxRat = 15000.0  ! Maximum torque rate (in absolute value) in torque controller, N-m/s.
@@ -54,31 +28,43 @@ real(mytype), parameter :: VS_Rgn3MP= 0.01745329! Minimum pitch angle at which t
 						! regardless of the generator speed, rad. -- chosen to be 1.0 degree above PC_MinPit
 real(mytype), parameter :: VS_RtGnSp=121.6805   ! Rated generator speed (HSS side), rad/s. -- chosen to be 99% of PC_RefSpd
 real(mytype), parameter :: VS_RtPwr= 5296610.0  ! Rated generator generator power in Region 3, Watts. 
+real(mytype), parameter :: VS_SlPc=10.0         ! Rated generator slip percentage in Region 2 1/2, %.
 						! -- chosen to be 5MW divided by the electrical generator efficiency of 94.4%
+
+type ControllerType
+
+! Local Variables:
+real(mytype) :: Alpha                 ! Current coefficient in the recursive, single-pole, low-pass filter, (-).
+real(mytype) :: BlPitch   (3)         ! Current values of the blade pitch angles, rad.
+real(mytype) :: ElapTime              ! Elapsed time since the last call to the controller, sec.
+                                                 !low-pass filter, rad/s. -- chosen to be 1/4 the blade edgewise 
+                                                 !natural frequency ( 1/4 of approx. 1Hz = 0.25Hz = 1.570796rad/s)
+real(mytype) :: GenSpeed        ! Current  HSS (generator) speed, rad/s.
+real(mytype) :: GenSpeedF       ! Filtered HSS (generator) speed, rad/s.
+real(mytype) :: GenTrq          ! Electrical generator torque, N-m.
+real(mytype) :: GK              ! Current value of the gain correction factor, used in the gain scheduling law of the pitch controller, (-).
+real(mytype) :: HorWindV        ! Horizontal hub-heigh wind speed, m/s.
+real(mytype) :: IntSpdErr       ! Current integral of speed error w.r.t. time, rad.
+real(mytype) :: LastGenTrq      ! Commanded electrical generator torque the last time the controller was called, N-m.
+real(mytype) :: LastTime        ! Last time this contoller was called, sec.
+real(mytype) :: LastTimePC      ! Last time the pitch  controller was called, sec.
+real(mytype) :: LastTimeVS      ! Last time the torque controller was called, sec.
+real(mytype) :: PitCom(3)                ! Commanded pitch of each blade the last time the controller was called, rad.
+real(mytype) :: PitComI                  ! Integral term of command pitch, rad.
+real(mytype) :: PitComP                  ! Proportional term of command pitch, rad.
+real(mytype) :: PitComT                  ! Total command pitch based on the sum of the proportional and integral terms, rad.
+real(mytype) :: PitRate(3)                ! Pitch rates of each blade based on the current pitch angles and current pitch command, rad/s.
+real(mytype) :: SpdErr  ! Current speed error, rad/s.
+real(mytype) :: Time    ! Current simulation time, sec.
+real(mytype) :: TrqRate ! Torque rate based on the current and last torque commands, N-m/s.
 real(mytype) :: VS_Slope15           ! Torque/speed slope of region 1 1/2 cut-in torque ramp , N-m/(rad/s).
 real(mytype) :: VS_Slope25           ! Torque/speed slope of region 2 1/2 induction generator, N-m/(rad/s).
-real(mytype), parameter :: VS_SlPc=10.0         ! Rated generator slip percentage in Region 2 1/2, %.
-real(mytype), save :: VS_SySp                   ! Synchronous speed of region 2 1/2 induction generator, rad/s.
-real(mytype), save :: VS_TrGnSp                 ! Transitional generator speed (HSS side) between regions 2 and 2 1/2, rad/s.
+real(mytype) :: VS_SySp                   ! Synchronous speed of region 2 1/2 induction generator, rad/s.
+real(mytype) :: VS_TrGnSp                 ! Transitional generator speed (HSS side) between regions 2 and 2 1/2, rad/s.
 integer :: I              			! Generic index.
 integer :: iStatus        			! A status flag set by the simulation as follows: 0 if this is the first call, 
 						! 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
-integer            :: K         	        ! Loops through blades.
-integer            :: NumBl     	        ! Number of blades, (-).
-integer, PARAMETER :: UnDb = 85 	        ! I/O unit for the debugging information
-INTEGER(1)            :: iInFile   ( 256)       ! CHARACTER string cInFile  stored as a 1-byte array.
-INTEGER(1)            :: iMessage  ( 256)       ! CHARACTER string cMessage stored as a 1-byte array.
-INTEGER(1), SAVE      :: iOutName  (1024)       ! CHARACTER string cOutName stored as a 1-byte array.
-LOGICAL(1), PARAMETER :: PC_DbgOut = .FALSE.    ! Flag to indicate whether to output debugging information
-
-CHARACTER( 256)       :: cInFile                ! CHARACTER string giving the name of the parameter input file, 'DISCON.IN'
-CHARACTER( 256)              :: cMessage ! CHARACTER string giving a message that will be displayed by the calling program if aviFAIL <> 0.
-CHARACTER(1024), SAVE        :: cOutName ! CHARACTER string giving the simulation run name without extension.
-CHARACTER(   1), PARAMETER   :: Tab           = CHAR( 9 )                       ! The tab character.
-CHARACTER(  25), PARAMETER   :: FmtDat    = "(F8.3,99('"//Tab//"',ES10.3E2,:))" ! The format of the debugging data
-     
-
-end type controller 
+end type ControllerType
 
 contains
 
@@ -86,6 +72,7 @@ subroutine init_controller(control)
 	
 	implicit none
 	! Read control parameters
+	type(ControllerType), intent(inout) :: control
 
 end subroutine init_controller
 
