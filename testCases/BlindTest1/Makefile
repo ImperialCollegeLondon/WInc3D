@@ -1,5 +1,5 @@
 run:
-	mpirun -np 8 ../../incompact3d BlindTest1.in
+	mpirun -np 4 ../../incompact3d BlindTest1.in
 
 vis:
 	~/incompact3d/visualize BlindTest1.pprc

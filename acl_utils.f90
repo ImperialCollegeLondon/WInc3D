@@ -50,6 +50,7 @@ contains
         ! Interpolate along Z
         trilinear_interpolation=c0*(1-zd)+c1*zd
 
+        return
 
     end function trilinear_interpolation
 

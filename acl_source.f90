@@ -263,15 +263,15 @@ contains
         zmin=(xstart(3)-1)*dz-dz/2.0 ! Add a -dz/2.0 overlap
         zmax=(xend(3)-1)*dz+dz/2.0   ! Add a +dz/2.0 overlap
         
-        !write(*,*) 'Rank=', nrank, 'X index Limits=', xstart(1), xend(1), 'X lims='
+        !write(*,*) 'Rank=', nrank, 'X index Limits=', xstart(1), xend(1), 'X lims=', (xstart(1)-1)*dx, (xend(1)-1)*dx
         !write(*,*) 'Rank=', nrank, 'Y index Limits=', xstart(2), xend(2), 'Y lims=', ymin, ymax 
         !write(*,*) 'Rank=', nrank, 'Z index Limits=', xstart(3), xend(3), 'Z lims=', zmin, zmax
-        
+       
         do isource=1,NSource
         
         min_dist=1e6
-        if((Sy(isource)>=ymin).and.(Sy(isource)<=ymax).and.(Sz(isource)>=zmin).and.(Sz(isource)<=zmax)) then
-            !write(*,*) 'Warning: I own this node'
+        if((Sy(isource)>=ymin).and.(Sy(isource)<ymax).and.(Sz(isource)>=zmin).and.(Sz(isource)<zmax)) then
+            !write(*,*) 'nrank= ',nrank, 'owns this node'
             do k=xstart(3),xend(3)
             zmesh=(k-1)*dz 
             do j=xstart(2),xend(2)
@@ -279,7 +279,7 @@ contains
             if (istret.ne.0) ymesh=yp(j)
             do i=xstart(1),xend(1)
             xmesh=(i-1)*dx
-            dist = sqrt((Sx(isource)-xmesh)**2+(Sy(isource)-ymesh)**2+(Sz(isource)-zmesh)**2) 
+            dist = sqrt((Sx(isource)-xmesh)**2.+(Sy(isource)-ymesh)**2.+(Sz(isource)-zmesh)**2.) 
             
             if (dist<min_dist) then
                 min_dist=dist
@@ -295,6 +295,11 @@ contains
             if(Sy(isource)>ymax.or.Sy(isource)<ymin) then
             write(*,*) 'In processor ', nrank
             write(*,*) 'Sy =', Sy(isource),'is not within the', ymin, ymax, 'limits'
+            stop
+            endif 
+            if(Sz(isource)>zmax.or.Sz(isource)<zmin) then
+            write(*,*) 'In processor ', nrank
+            write(*,*) 'Sz =', Sz(isource),'is not within the', zmin, zmax, 'limits'
             stop
             endif 
 
