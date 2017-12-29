@@ -162,15 +162,15 @@ end type ActuatorLineType
     if(actuatorline%pitch_control) then
          pitch(istation)=actuatorline%pitch_angle_init   
     endif
-
-    actuatorline%tx(istation)= cos(pitch(istation)/180.0*pi)    
-    actuatorline%ty(istation)= sin(pitch(istation)/180.0*pi)     
+    
+    actuatorline%tx(istation)=  cos(pitch(istation)/180.0*pi)    
+    actuatorline%ty(istation)= -sin(pitch(istation)/180.0*pi)     
     actuatorline%tz(istation)= 0.0     
-
     actuatorline%C(istation)=ctoR(istation)*length
     actuatorline%thick(istation)=thick(istation)
-    actuatorline%FlipN=.true.
+    actuatorline%pitch(istation)=pitch(istation)/180.0*pi    
     end do
+    actuatorline%FlipN=.false.
 
     call make_actuatorline_geometry(actuatorline)
     
