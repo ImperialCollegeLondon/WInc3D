@@ -277,10 +277,6 @@ end type ActuatorLineType
     
     act_line%EAOAdot(ielem)=dal/dt
     act_line%EUndot(ielem)=dUn/dt
-    !====================================
-    ! Correct for flow curvature
-    !====================================
-
          
     !====================================
     ! Compute the Aerofoil Coefficients
@@ -291,9 +287,10 @@ end type ActuatorLineType
     ! Correct for dynamic stall 
     !=============================================== 
     if(act_line%do_dynamic_stall) then 
+    call DynstallCorrect(act_line%EDynstall(ielem),act_line%EAirfoil(ielem),time,dt,act_line%EUr(ielem),&
+					ElemChord,alpha,act_line%ERe(ielem),CLdyn,CDdyn,CM25dyn)
     CL=CLdyn
     CD=CDdyn
-    ds=2.0*ur*dt/ElemChord
     end if
     
     !===============================================
