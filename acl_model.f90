@@ -118,14 +118,14 @@ contains
         !-------------------------------------
         ! Dummy variables
         !-------------------------------------
-        character(len=100) :: name, blade_geom, tower_geom, afname, dynstallfile
+        character(len=100) :: name, blade_geom, tower_geom, afname, dynstall_param_file
         real(mytype), dimension(3) :: origin
         integer :: numblades,numfoil,towerFlag, TypeFlag, OperFlag, RotFlag, AddedMassFlag, DynStallFlag, EndEffectsFlag
         integer :: TipCorr, RootCorr, RandomWalkForcingFlag
         real(mytype) :: toweroffset,tower_drag,tower_lift,tower_strouhal, uref, tsr, ShenC1, ShenC2 
         NAMELIST/TurbineSpecs/name,origin,numblades,blade_geom,numfoil,afname,towerFlag,towerOffset, &
             tower_geom,tower_drag,tower_lift,tower_strouhal,TypeFlag, OperFlag, tsr, uref,RotFlag, AddedMassFlag, &
-            RandomWalkForcingFlag, DynStallFlag,dynstallfile,EndEffectsFlag, TipCorr, RootCorr,ShenC1, ShenC2
+            RandomWalkForcingFlag, DynStallFlag,dynstall_param_file,EndEffectsFlag, TipCorr, RootCorr,ShenC1, ShenC2
 
         if (nrank==0) then
             write(6,*) 'Loading the turbine options ...'
@@ -247,7 +247,7 @@ contains
         if(DynStallFlag==1) then
             do j=1,Turbine(i)%NBlades
             Turbine(i)%Blade(j)%do_dynamic_stall=.true.  
-            Turbine(i)%Blade(j)%DynStallFile=dynstallfile
+            Turbine(i)%Blade(j)%DynStallFile=dynstall_param_file
             end do
         endif
         
@@ -279,13 +279,13 @@ contains
         !-------------------------------------
         ! Dummy variables
         !-------------------------------------
-        character(len=100) :: name, actuatorline_geom, afname, dynstallfile
+        character(len=100) :: name, actuatorline_geom, afname, dynstall_param_file
         real(mytype), dimension(3) :: origin
         real(mytype) :: PitchStartTime, PitchEndTime, PitchAngleInit, PitchAmp, AngularPitchFreq
         integer :: numfoil, AddedMassFlag, DynStallFlag, EndEffectsFlag, RandomWalkForcingFlag, PitchControlFlag
         NAMELIST/ActuatorLineSpecs/name,origin, actuatorline_geom,numfoil,afname, AddedMassFlag, &
-            RandomWalkForcingFlag, DynStallFlag,EndEffectsFlag, PitchControlFlag,PitchStartTime, &
-            PitchEndTime, PitchAngleInit, PitchAmp, AngularPitchFreq, dynstallfile
+            DynStallFlag,EndEffectsFlag, PitchControlFlag,PitchStartTime, &
+            PitchEndTime, PitchAngleInit, PitchAmp, AngularPitchFreq, dynstall_param_file
         
         if (nrank==0) then
             write(6,*) 'Loading the actuator line options ...'
@@ -325,7 +325,7 @@ contains
 
         if(DynStallFlag==1) then
             Actuatorline%do_dynamic_stall=.true.
-            Actuatorline%DynStallFile=dynstallfile
+            Actuatorline%DynStallFile=dynstall_param_file
         endif
     
     !    !##################4 Get Pitching Opions ##################

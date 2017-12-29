@@ -58,15 +58,45 @@ module dynstall
 
     contains
 
-    subroutine dystl_init(ds,dynstallpath)
+    subroutine dystl_init(ds,dynstallfile)
         
         implicit none
         type(DS_Type),intent(inout) :: ds
-        character(len=100),intent(in) :: dynstallpath
+        character(len=100),intent(in) :: dynstallfile
         character(len=80) :: stallfile
         character(1000) :: ReadLine
         integer :: i, Nstall
- 
+        real(mytype) :: Tp, Tf, TAlpha, alphaDS0DiffDeg, r0, Tv, Tvl, B1, B2, eta, E0 
+	NAMELIST/DynstallParam/Tp, Tf, TAlpha, alphaDS0DiffDeg, r0, Tv, Tvl, B1, B2, eta, E0, Stallfile
+
+        ! Default values for the parameters
+        Tp=1.7
+        Tf=3.0
+        TAlpha=6.25
+        alphaDS0DiffDeg=3.8
+        r0=0.01
+        Tv=11.0
+        Tvl=8.7
+        B1=0.5
+        B2=0.2
+        eta=0.98
+        E0=0.16
+	! READ from file
+      	open(30,file=dynstallfile) 
+        read(30,nml=DynstallParam)
+
+        ds%Tp=Tp
+        ds%Tf=Tf
+        ds%TAlpha=TAlpha
+        ds%alphaDS0DiffDeg=alphaDS0DiffDeg
+        ds%r0=r0
+        ds%Tv=Tv
+        ds%Tvl=Tvl
+        ds%B1=B1
+        ds%B2=B2
+        ds%eta=eta
+        ds%E0=E0
+        
         ! SET ALL OTHER INITIAL CONDITIONS
         ds%X=0.0
         ds%X_prev=0.0
@@ -127,24 +157,11 @@ module dynstall
         ds%r=0.0
         ds%DAlpha=0.0
         ds%DAlpha_prev=0.0
-
-        ! READ PARAMETERS
-        !call get_option(trim(dynstallpath)//"Tp",ds%Tp,default=1.7)
-        !call get_option(trim(dynstallpath)//"Tf",ds%Tf,default=3.0)
-        !call get_option(trim(dynstallpath)//"TAlpha",ds%TAlpha,default=6.25)
-        !call get_option(trim(dynstallpath)//"alphaDS0DiffDeg",ds%alphaDS0DiffDeg,default=3.8)
-        !call get_option(trim(dynstallpath)//"r0",ds%r0,default=0.01)
-        !call get_option(trim(dynstallpath)//"Tv",ds%Tv,default=11.0)
-        !call get_option(trim(dynstallpath)//"Tvl",ds%Tvl,default=8.7)
-        !call get_option(trim(dynstallpath)//"B1",ds%B1,default=0.5)
-        !call get_option(trim(dynstallpath)//"B2",ds%B1,default=0.2)
-        !call get_option(trim(dynstallpath)//"eta",ds%eta,default=0.98)
-        !call get_option(trim(dynstallpath)//"E0",ds%E0,default=0.16)
-    
+ 
         !! READ parameter or compute them from the Static foil Data
         !call get_option(trim(dynstallpath)//"stall_data/file_name",StallFile)
 
-        open(15,file=StallFile)
+        open(15,file=Stallfile)
         ! Read the Number of Blades
         
         read(15,'(A)') ReadLine

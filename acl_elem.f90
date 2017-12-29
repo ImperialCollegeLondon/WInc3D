@@ -9,7 +9,7 @@ type ActuatorLineType
     integer :: NElem                    ! Number of Elements of the Blade
     character(len=100):: name           ! Actuator line name
     character(len=100):: geom_file      ! Actuator line file name (is not used for the turbines)
-    character(len=100):: dynstallfile    ! Dynstallfile to load options
+    character(len=100):: dynstallfile   ! Dynstallfile to load options
 
     ! Station parameters
     logical :: FlipN =.false.           ! Flip Normal
@@ -139,9 +139,11 @@ end type ActuatorLineType
     real(mytype) :: SVec(3), length 
     integer :: Nstations, Istation, ielem
 
-
+    if (nrank==0) then
+    write(*,*) '======================================='
     write(*,*) 'Actuatorline Name : ', actuatorline%name 
     write(*,*) '========================================'
+    endif
 
     call read_actuatorline_geometry(actuatorline%geom_file,length,SVec,rR,ctoR,pitch,thick,Nstations)
     
@@ -162,7 +164,7 @@ end type ActuatorLineType
     endif
 
     actuatorline%tx(istation)= cos(pitch(istation)/180.0*pi)    
-    actuatorline%ty(istation)= -sin(pitch(istation)/180.0*pi)     
+    actuatorline%ty(istation)= sin(pitch(istation)/180.0*pi)     
     actuatorline%tz(istation)= 0.0     
 
     actuatorline%C(istation)=ctoR(istation)*length
@@ -289,11 +291,9 @@ end type ActuatorLineType
     ! Correct for dynamic stall 
     !=============================================== 
     if(act_line%do_dynamic_stall) then 
-    !call LeishmanBeddoesCorrect(act_line%E_LB_Model(ielem),act_line%EAirfoil(ielem),time,dt,ur,ElemChord,alpha,act_line%ERe(ielem),CLdyn,CDdyn,CM25dyn)
     CL=CLdyn
     CD=CDdyn
     ds=2.0*ur*dt/ElemChord
-    !call LB_UpdateStates(act_line%E_LB_Model(ielem),act_line%EAirfoil(ielem),act_line%ERE(ielem),ds)
     end if
     
     !===============================================

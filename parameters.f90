@@ -115,7 +115,6 @@ read(10,nml=ALMParam)
 read(10,nml=ABLParam)
 
 close(10) 
-
  
 call init_module_parameters()
 
