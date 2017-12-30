@@ -386,6 +386,12 @@ contains
                 do j=1,Nstation
                 ActuatorLine(i)%pitch(j)=ActuatorLine(i)%pitch_angle_init+actuatorline(i)%pitchAmp*sin(actuatorline(i)%angular_pitch_freq*(ctime-ActuatorLine(i)%pitch_start_time))
                 end do
+                if(nrank==0) then
+                print *, '-----------------------'
+		print *, ' Harmonic pitch :'
+		print *, '-----------------------'
+		print *, 'Current pitch angle : ', sum(ActuatorLine(i)%pitch)/ActuatorLine%Nelem
+		endif
                 call pitch_actuator_line(actuatorline(i))
             endif
             enddo

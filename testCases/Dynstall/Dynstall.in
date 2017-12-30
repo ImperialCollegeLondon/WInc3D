@@ -31,7 +31,7 @@
     
     TurbRadius=0.5	  ! Turbulence radius
     ifirst = 1            ! First iteration   
-    ilast = 10000         ! Last iteration 
+    ilast = 4000         ! Last iteration 
     nscheme = 2           ! Temporal scheme (1:AB2, 2: RK3, 3:RK4, 4:AB3)
     dt=0.005		  ! time step
 
@@ -58,9 +58,9 @@
 /End
 
 &FileParam
-    ilit=0                ! Read initial flow field ?
-    isave=10000     	  ! Frequency for writing backup file  
-    imodulo=25           ! Frequency for visualization 
+    ilit=0                 ! Read initial flow field ?
+    isave=1000     	   ! Frequency for writing backup file  
+    imodulo=50             ! Frequency for visualization 
 /End
 
 &IBMParam

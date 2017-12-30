@@ -4,8 +4,13 @@ origin = 1.,1.,1.                  ! Turbine Origin
 actuatorline_geom='Wing.al'        ! Blade Specification
 numfoil=1                          ! Number of Airfoils
 afname='naca_0015.air'
-PitchControlFlag=0                 ! 0: No pitch control, 1: Sinusoidal , 2: Ramp-up
+PitchControlFlag=1                 ! 0: No pitch control, 1: Sinusoidal , 2: Ramp-up
+PitchStartTime=0.05
+PitchEndTime=1.0
+PitchAngleInit=5.0
+PitchAmp=10.
+AngularPitchFreq=2.54
 AddedMassFlag=0                    ! 0: No added mass, 1: Added mass
-DynStallFlag=0			   ! 0: No Dynstall, 1: Yes to dynamic stall
+DynStallFlag=1			   ! 0: No Dynstall, 1: Yes to dynamic stall
 dynstall_param_file='naca_0015.dyn' ! Dynamic stall parameter file 
 /END

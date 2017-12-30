@@ -84,7 +84,7 @@ module dynstall
 	! READ from file
       	open(30,file=dynstallfile) 
         read(30,nml=DynstallParam)
-
+	close(30)
         ds%Tp=Tp
         ds%Tf=Tf
         ds%TAlpha=TAlpha
@@ -236,11 +236,13 @@ module dynstall
         dynstall%deltaAlpha=dynstall%Alpha-dynstall%alpha_Prev
         dynstall%deltaS=2.0*Urel*dt/chord
 
-        if (dynstall%do_calcAlphaEquiv) then
-            call calcAlphaEquiv(dynstall)
-        else
-            dynstall%alphaEquiv = dynstall%alpha
-        endif
+        !if (dynstall%do_calcAlphaEquiv) then
+        !    call calcAlphaEquiv(dynstall)
+        !else
+        
+	dynstall%alphaEquiv = dynstall%alpha
+        
+	!endif
         ! Evaluate static coefficient data if if has changed from 
         ! the Reynolds number correction
         
@@ -251,11 +253,6 @@ module dynstall
         call calcSeparated(dynstall)
     
         ! Info for dynstall
-        if(nrank==0) then
-        write(*,*) '=================='
-        write(*,*) 'Element in stall ?', dynstall%StallFlag
-        write(*,*) '=================='
-        endif
 
         ! Modify Coefficients
         CLdyn=dynstall%CN*cos(dynstall%alpha)+dynstall%CT*sin(dynstall%alpha)
@@ -368,7 +365,7 @@ module dynstall
         endif
 
         ! Calculate lagged angle of attack
-        ds%DAlpha=ds%DAlpha_prev*exp(ds%deltaS/ds%TAlpha)+(ds%alpha-ds%alpha_prev)*exp(ds%deltaS/(2.0*ds%TAlpha))
+        ds%DAlpha=ds%DAlpha_prev*exp(-ds%deltaS/ds%TAlpha)+(ds%alpha-ds%alpha_prev)*exp(-ds%deltaS/(2.0*ds%TAlpha))
         
         ds%AlphaPrime=ds%alpha-ds%DAlpha
 
@@ -389,7 +386,6 @@ module dynstall
              ds%StallFlag=.true.
         endif
 
-
         return
 
     end subroutine calcUnsteady
@@ -399,7 +395,8 @@ module dynstall
         type(DS_type),intent(inout):: ds
         real(mytype) :: f, Tf,Tv, Tst, KN, m, cmf, cpv,cmv
 
-        ! Calculate trailing-edge sepration point
+	
+        ! Calculate trailing-edge separation point
         if (abs(ds%alphaPrime) < ds%alpha1) then
             ds%fprime=1.0-0.4*exp((abs(ds%alphaPrime) -ds%alpha1)/ds%S1) 
         else
@@ -423,13 +420,13 @@ module dynstall
         if(ds%tau>=0.0.and.ds%tau<=ds%Tvl) then
             ds%Vx=sin(pi*ds%tau/(2.0*ds%Tvl))**1.5
         else if (ds%tau>ds%Tvl) then
-            ds%Vx=cos(pi*(ds%tau-ds%Tvl)/ds%Tv)**1.5
+            ds%Vx=cos(pi*(ds%tau-ds%Tvl)/ds%Tv)**2.0
         else
             ds%Vx=0.0
         endif
 
         ! Calculate normal force coefficient including dynamic separation point
-        ds%CNF=ds%CNAlpha*ds%alphaEquiv*((1.0+sqrt(ds%fDoublePrime))/2.0)**2
+        ds%CNF=ds%CNAlpha*ds%alphaEquiv*((1.0+sqrt(ds%fDoublePrime))/2.0)**2.
 
         ! Calculate tangential force coefficient
         ds%CT=ds%eta*ds%CNAlpha*ds%alphaEquiv*ds%alphaEquiv*(sqrt(ds%fDoublePrime)-ds%E0)
