@@ -76,15 +76,10 @@ subroutine init_controller(control)
 
 end subroutine init_controller
 
-!=======================================================================
-!SUBROUTINE DISCON ( avrSWAP, aviFAIL, accINFILE, avcOUTNAME, avcMSG )
-!!DEC$ ATTRIBUTES DLLEXPORT, ALIAS:'DISCON' :: DISCON
-!
-!
-!   ! This Bladed-style DLL controller is used to implement a variable-speed
-!   ! generator-torque controller and PI collective blade pitch controller for
-!   ! the NREL Offshore 5MW baseline wind turbine.  This routine was written by
-!   ! J. Jonkman of NREL/NWTC for use in the IEA Annex XXIII OC3 studies.
+   ! This Bladed-style DLL controller is used to implement a variable-speed
+   ! generator-torque controller and PI collective blade pitch controller for
+   ! the NREL Offshore 5MW baseline wind turbine.  This routine was written by
+   ! J. Jonkman of NREL/NWTC for use in the IEA Annex XXIII OC3 studies.
 !
 !
 !IMPLICIT                        NONE
