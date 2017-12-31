@@ -18,6 +18,10 @@ module actuator_line_model
     real(mytype),save :: DeltaT, Visc, ctime
     logical,save :: actuator_line_model_writeFlag=.true.
 
+    ! TurbineStatistics
+    real(mytype), allocatable, save :: CP_ave(:), CT_ave(:), Torque_ave(:)
+    type(ActuatorLineType), allocatable, save :: Blade_ave(:)
+
     public :: actuator_line_model_init, actuator_line_model_write_output, &
     actuator_line_model_update, actuator_line_model_compute_forces 
 
@@ -133,7 +137,9 @@ contains
 
         ! Allocate Turbines Arrays
         Allocate(Turbine(Ntur))
-        ! ==========================================
+	! Allocate statistics for turbine
+	Allocate(CP_ave(Ntur),CT_ave(Ntur),Torque_ave(NTur),Blade_ave(NTur))
+	! ==========================================
         ! Get Turbines' options and INITIALIZE THEM
         ! ==========================================
         do i=1, Ntur 
@@ -162,6 +168,7 @@ contains
 
         ! Allocate Blades
         Allocate(Turbine(i)%Blade(Turbine(i)%NBlades))
+
         ! Count how many Airfoil Sections are available
         nfoils = numfoil
         if(nfoils==0) then
@@ -443,5 +450,19 @@ contains
         return
 
     end subroutine actuator_line_model_compute_forces
+
+subroutine actuator_line_statistics()
+
+	implicit none
+	integer :: itur
+	
+	if(nrank==0) print *, 'Writing statistics for alm'
+	do itur=1,Ntur		
+	CP_ave(itur)=CP_ave(itur)+Turbine(itur)%CP	
+	CT_ave(itur)=CT_ave(itur)+Turbine(itur)%CT	
+	Torque_ave(itur)=CP_ave(itur)+Turbine(itur)%Torque
+	enddo
+
+end subroutine actuator_line_statistics
 
 end module actuator_line_model

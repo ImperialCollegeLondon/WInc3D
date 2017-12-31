@@ -303,6 +303,7 @@ do itime=ifirst,ilast
    if (t>=spinup_time) then
        call STATISTIC(ux1,uy1,uz1,phi1,ta1,umean,vmean,wmean,phimean,uumean,vvmean,wwmean,&
            uvmean,uwmean,vwmean,phiphimean,tmean)
+       if(ialm==1) call actuator_line_statistics()
        if(iprobe==1) then
            if (mod(itime,nsampling)==0) then
                call probe(ux1,uy1,uz1,phi1)

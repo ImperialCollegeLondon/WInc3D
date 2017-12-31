@@ -4,8 +4,8 @@ module actuator_line_write_output
     use actuator_line_element
 
 contains
-
-    subroutine actuator_line_element_write_output(act_line,dir)
+ 
+	subroutine actuator_line_element_write_output(act_line,dir)
 
         implicit none
         type(ActuatorLineType),intent(in) :: act_line
