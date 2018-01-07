@@ -355,7 +355,7 @@ if(jLES==1.and.iabl==1) then
     call derxx_iles(tf1_abl,uz1,di1,sx,sfxp,ssxp,swxp,xsize(1),xsize(2),xsize(3),1)
     call transpose_x_to_y(tf1_abl,tf2_abl) 
     if(ystart(2)==1) then
-    td2(:,1,:)=-u_shear/(k_roughness*(dy/2.)**2.)+ta2(:,1,:) 
+    td2(:,1,:)=-1./(k_roughness*(dy/2.)**2.)+ta2(:,1,:) 
     tf2(:,1,:)=tf2_abl(:,1,:)
     endif
 endif

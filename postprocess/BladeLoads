@@ -56,19 +56,19 @@ for i in range(N):
     Y[i]=Data[i,2];
     Z[i]=Data[i,3];
     rdistR[i]=Data[i,4];
-    pitch[i]=Data[i,5];
-    AOA[i]=Data[i,6];
-    AOAdot[i]=Data[i,7];
-    Re[i]=Data[i,8];
-    Ur[i]=Data[i,9];
-    epsilon[i]=Data[i,10];
-    CL[i]=Data[i,11];
-    CD[i]=Data[i,12];
-    CM[i]=Data[i,13];
-    CN[i]=Data[i,14];
-    CT[i]=Data[i,15];
-    Fn[i]=Data[i,16];
-    Ft[i]=Data[i,17];
+    pitch[i]=Data[i,6];
+    AOA[i]=Data[i,7];
+    AOAdot[i]=Data[i,8];
+    Re[i]=Data[i,9];
+    Ur[i]=Data[i,10];
+    epsilon[i]=Data[i,11];
+    CL[i]=Data[i,12];
+    CD[i]=Data[i,13];
+    CM[i]=Data[i,14];
+    CN[i]=Data[i,15];
+    CT[i]=Data[i,16];
+    Fn[i]=Data[i,17];
+    Ft[i]=Data[i,18];
     
 ####--------------- Plotting -------------------##### 
 plt.figure(1)

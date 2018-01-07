@@ -106,6 +106,7 @@ type ActuatorLineType
 
     real(mytype) :: Area   ! Effective Airfoil Area
     real(mytype) :: L 
+    real(mytype) :: Inertia	   ! Moment of inertia
     ! Degrees of Freedom
     
     real(mytype) :: COR(3)       ! Center of Rotation
@@ -160,15 +161,16 @@ end type ActuatorLineType
     actuatorline%QCz(istation)=rR(istation)*length*Svec(3)+actuatorline%COR(3)
     
     if(actuatorline%pitch_control) then
-         pitch(istation)=actuatorline%pitch_angle_init   
+         actuatorline%pitch(istation)=actuatorline%pitch_angle_init/180.0*pi+pi/2.  
     endif
     
-    actuatorline%tx(istation)=  cos(pitch(istation)/180.0*pi)    
-    actuatorline%ty(istation)= -sin(pitch(istation)/180.0*pi)     
+    actuatorline%pitch(istation)=pitch(istation)/180.0*pi+pi/2.    
+ 
+    actuatorline%tx(istation)=  sin(actuatorline%pitch(istation))    
+    actuatorline%ty(istation)=  cos(actuatorline%pitch(istation))     
     actuatorline%tz(istation)= 0.0     
     actuatorline%C(istation)=ctoR(istation)*length
     actuatorline%thick(istation)=thick(istation)
-    actuatorline%pitch(istation)=pitch(istation)/180.0*pi    
     end do
     actuatorline%FlipN=.false.
 
@@ -291,6 +293,7 @@ end type ActuatorLineType
 					ElemChord,alpha,act_line%ERe(ielem),CLdyn,CDdyn,CM25dyn)
     CL=CLdyn
     CD=CDdyn
+    CM25=CM25dyn
     end if
     
     !===============================================
@@ -461,7 +464,6 @@ end type ActuatorLineType
     Nstation=act_line%Nelem+1
 
     do istation=1,Nstation 
-
     pitch_angle=act_line%pitch(istation)
     !> Define the Pitch Rotation Matrix
     R=reshape((/cos(pitch_angle*pi/180.0),0.0d0,-sin(pitch_angle*pi/180.0),0.0d0,1.0d0,0.0d0,sin(pitch_angle*pi/180.0),0.0d0,cos(pitch_angle*pi/180.0)/),(/3,3/))
@@ -470,12 +472,16 @@ end type ActuatorLineType
     t(3,1)=act_line%tz(istation)     
     t=matmul(R,t)
     !>Reassign the tangential vector
-    act_line%tx(istation)=cos(pitch_angle*pi/180.0)
-    act_line%ty(istation)=0.0
-    act_line%tz(istation)=-sin(pitch_angle*pi/180.0)
+
+    	act_line%tx(istation)=sin(pitch_angle*pi/180.0)
+    	act_line%ty(istation)=-cos(pitch_angle*pi/180.0)
+    	act_line%tz(istation)=0.0
+
     end do
 
     call make_actuatorline_geometry(act_line) 
+
+    return
 
     end subroutine pitch_actuator_line 
 
@@ -625,6 +631,7 @@ end type ActuatorLineType
 
     ! Calculates element geometry from element end geometry
     nbe=blade%NElem
+    blade%Inertia=0. ! zero the blade inertia before computing it
 
     do j=1,nbe
     nej=1+j
@@ -693,8 +700,11 @@ end type ActuatorLineType
     blade%EC(nej-1)=blade%EArea(nej-1)/sEM
     blade%ETtoC(nej-1)=0.5*(blade%thick(nej)+blade%thick(nej-1))
     blade%Epitch(nej-1)=0.5*(blade%pitch(nej)+blade%pitch(nej-1))
+   
+    blade%Inertia=blade%Inertia+blade%EArea(nej-1)*blade%ETtoC(nej-1)*blade%EC(nej-1)*blade%ERdist(nej-1)**2.  
     end do
-
+	
+    return
     end subroutine make_actuatorline_geometry 
     
     subroutine allocate_actuatorline(actuatorline,NStations)

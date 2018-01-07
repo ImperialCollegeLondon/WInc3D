@@ -4,6 +4,7 @@ module actuator_line_turbine
     use actuator_line_model_utils
     use Airfoils
     use actuator_line_element
+    use actuator_line_controller
 
     implicit none
 
@@ -16,14 +17,15 @@ type TurbineType
     real(mytype), dimension(3) :: RotN, origin ! Rotational vectors in the normal and perpendicular directions
     real(mytype) :: hub_tilt_angle, blade_cone_angle, yaw_angle 
     real(mytype) :: Rmax ! Reference radius, velocity, viscosity
-    real(mytype) :: A   ! Rotor area
-    real(mytype) :: angularVel,TSR,Uref ! parameters for prescribed simulations
-    real(mytype) :: torque,torque_generator, drivetrain, angularVel_previous ! parameters for control
+    real(mytype) :: IRotor ! Inertia of the Rotor
+    real(mytype) :: A ! Rotor area
+    real(mytype) :: Torque, angularVel,deltaOmega,TSR,Uref ! Torque and rotation for the shaft
     real(mytype) :: AzimAngle=0.0
     real(mytype) :: dist_from_axis=0.0
     integer :: No_rev=0.0
     logical :: Is_constant_rotation_operated = .false. ! For a constant rotational velocity (in Revolutions Per Minute)
     logical :: Is_control_based = .false. ! For a active control-based rotational velocity computed at run time
+    type(ControllerType) :: controller
     logical :: IsClockwise = .false.
     logical :: IsCounterClockwise = .false. 
     logical :: Has_Tower=.false.
@@ -114,12 +116,15 @@ contains
     turbine%Blade(iblade)%Eepsilon(:)=0.0
     turbine%Blade(iblade)%EEndeffects_factor(:)=1.0
     
-    ! Initialize LB_model and Tip Correction Coeffs
+    ! Initialise Dynamic stall model
     do ielem=1,turbine%blade(iblade)%Nelem
     if(turbine%blade(iblade)%do_dynamic_stall) then
-    !    call dystl_init_LB(turbine%blade(iblade)%E_LB_Model(ielem))
+    call dystl_init(turbine%blade(iblade)%EDynstall(ielem),turbine%blade(iblade)%DynStallFile)
     endif
     end do 
+    
+    ! Apply Initial Yaw and Tilt for the turbine
+
     ! Rotate the turbine according to the tilt and yaw angle
     ! Yaw
     !call rotate_turbine(turbine,(/0.0d0,0.0d0,-1.0d0/),turbine%yaw_angle*pi/180.0d0)
@@ -174,8 +179,15 @@ contains
     turbine%angularVel=turbine%Uref*turbine%TSR/turbine%Rmax
     turbine%A=pi*turbine%Rmax**2
     
+    turbine%IRotor=0. 
+    do iblade=1,turbine%NBlades
+    turbine%IRotor=turbine%IRotor+turbine%Blade(iblade)%Inertia
+    enddo   
+ 
     call Compute_Turbine_RotVel(turbine)
     
+    return
+
     end subroutine set_turbine_geometry
     
     subroutine compute_performance(turbine)

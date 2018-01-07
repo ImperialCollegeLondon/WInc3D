@@ -4,12 +4,12 @@
     iin=2
 
     xlx = 4.00           ! Lx (Size of the box in x-direction)
-    yly = 2.00           ! Ly (Size of the box in y-direction) 
-    zlz = 2.00           ! Lz (Size of the box in z-direction) 
-    re  = 100000         ! Kinematic Viscosity
+    yly = 2.13           ! Ly (Size of the box in y-direction) 
+    zlz = 1.61           ! Lz (Size of the box in z-direction) 
+    re  = 1000000        ! Kinematic Viscosity
     sc  = 1.             ! Schmidt number (if passive scalar)
-    u1  = 1.             ! u1 (max velocity) (for inflow condition)
-    u2  = 1.             ! u2 (min velocity) (for inflow condition) 
+    u1  = 10.             ! u1 (max velocity) (for inflow condition)
+    u2  = 10.             ! u2 (min velocity) (for inflow condition) 
     noise  = 0.00        ! Turbulence intensity (1=100%) !! Initial condition
     noise1 = 0.00        ! Turbulence intensity (1=100%) !! Inflow condition
 /End
@@ -19,8 +19,8 @@
     nx=129		  ! X-direction nodes
     ny=65		  ! Y-direction nodes
     nz=65	 	  ! Z-direction nodes
-    p_row=1		  ! Row partition
-    p_col=1 		  ! Column partition
+    p_row=2		  ! Row partition
+    p_col=2 		  ! Column partition
 
     ! Boundary conditions and mesh
     nclx = 2              ! nclx (BC)
@@ -31,17 +31,17 @@
     
     TurbRadius=0.5	  ! Turbulence radius
     ifirst = 1            ! First iteration   
-    ilast = 4000         ! Last iteration 
+    ilast = 5000         ! Last iteration 
     nscheme = 2           ! Temporal scheme (1:AB2, 2: RK3, 3:RK4, 4:AB3)
-    dt=0.005		  ! time step
+    dt=0.001		  ! time step
 
     iskew = 1             ! (0:urotu, 1:skew, for the convective terms)
     iscalar = 0           ! iscalar# (0: no scalar, 1:scalar)
     
     ! TURBULENCE MODELLING
-    jles=1                ! LES Model (0:DNS, 1: iLES 2:Smag, 3:WALE, 4: DynSmag)
-    FSGS=2.0              ! Filter Size/ Grid Size for explicit LES only
-    smagcst=0.1           ! Smagorinsky constant
+    jles=2                ! LES Model (0:DNS, 1: iLES 2:Smag, 3:WALE, 4: DynSmag)
+    FSGS=1.0              ! Filter Size/ Grid Size for explicit LES only
+    smagcst=0.2           ! Smagorinsky constant
     SmagWallDamp=0        !
     nSmag=1	          !
     walecst=0.5           ! WALES Model Coefficient

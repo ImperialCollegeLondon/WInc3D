@@ -1,5 +1,5 @@
 run:
-	mpirun -np 1 ../../incompact3d Dynstall.in
+	mpirun -np 4 ../../incompact3d Dynstall.in
 
 vis:
 	~/incompact3d/visualize Dynstall.pprc

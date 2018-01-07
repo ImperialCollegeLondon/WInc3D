@@ -129,7 +129,7 @@ contains
         real(mytype) :: toweroffset,tower_drag,tower_lift,tower_strouhal, uref, tsr, ShenC1, ShenC2 
         NAMELIST/TurbineSpecs/name,origin,numblades,blade_geom,numfoil,afname,towerFlag,towerOffset, &
             tower_geom,tower_drag,tower_lift,tower_strouhal,TypeFlag, OperFlag, tsr, uref,RotFlag, AddedMassFlag, &
-            RandomWalkForcingFlag, DynStallFlag,dynstall_param_file,EndEffectsFlag, TipCorr, RootCorr,ShenC1, ShenC2
+            RandomWalkForcingFlag, DynStallFlag,dynstall_param_file,EndEffectsFlag,TipCorr, RootCorr,ShenC1, ShenC2
 
         if (nrank==0) then
             write(6,*) 'Loading the turbine options ...'
@@ -223,7 +223,12 @@ contains
             Turbine(i)%TSR=tsr
         else if(OperFlag==2) then
             Turbine(i)%Is_control_based = .true. 
-        else
+            ! Assign the Uref and TSR to compute the optimum tip-speed ratio (This applies only to the first time step)
+	    Turbine(i)%Uref=uref
+            Turbine(i)%TSR=tsr
+            call init_controller(Turbine(i)%Controller) 
+	    Turbine(i)%Controller%IStatus=0
+ 	else
             write(*,*) "Only contant_rotation and control_based is used"
             stop
         endif
@@ -359,7 +364,7 @@ contains
         implicit none
         real(mytype),intent(inout) :: current_time, dt
         integer :: i,j, Nstation
-        real(mytype) :: theta 
+        real(mytype) :: theta
         ! This routine updates the location of the actuator lines
 
         ctime=current_time
@@ -373,14 +378,17 @@ contains
                 call rotate_turbine(Turbine(i),Turbine(i)%RotN,theta)
                 call Compute_Turbine_RotVel(Turbine(i))  
             else if(Turbine(i)%Is_control_based) then
-            if(nrank==0) write(*,*) 'Entering the control-based operatin for turbine', Turbine(i)%name 
-		! First do control
-		
-		! Then Calculate the angular velocity and compute the DeltaTheta  and AzimAngle              
+            if(nrank==0) write(*,*) 'Entering the control-based operation for turbine', Turbine(i)%name 
+		! First do control	
+		call operate_controller(Turbine(i)%Controller,ctime,Turbine(i)%NBlades)
+          	Turbine(i)%deltaOmega=(Turbine(i)%Torque-Turbine(i)%Controller%GearBoxRatio*Turbine(i)%Controller%GenTrq)/(Turbine(i)%IRotor+Turbine(i)%Controller%GearBoxRatio**2.*Turbine(i)%Controller%IGenerator)*DeltaT
+                Turbine(i)%angularVel=Turbine(i)%angularVel+Turbine(i)%deltaOmega
+  		! Then Calculate the angular velocity and compute the DeltaTheta  and AzimAngle              
                 theta=Turbine(i)%angularVel*DeltaT
                 Turbine(i)%AzimAngle=Turbine(i)%AzimAngle+theta
                 call rotate_turbine(Turbine(i),Turbine(i)%RotN,theta)
                 call Compute_Turbine_RotVel(Turbine(i))  
+		Turbine(i)%Controller%IStatus=Turbine(i)%Controller%IStatus+1
             endif
             enddo
         endif
