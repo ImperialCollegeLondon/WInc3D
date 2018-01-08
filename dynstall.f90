@@ -34,7 +34,7 @@ module dynstall
     real(mytype) :: CNC, CNAlpha
     real(mytype) :: lambdaL,lambdaL_prev
     real(mytype) :: lambdaM,lambdaM_prev
-    real(mytype) :: TI,E0
+    real(mytype) :: TI,E0, AlphaZeroLift
 
     real(mytype) :: speed_of_sound
     real(mytype) :: H,H_prev,J,J_prev
@@ -219,33 +219,36 @@ module dynstall
         real(mytype) :: mach
 
         ! update previous values if time has changed
-        if (time.ne.dynstall%time_prev) then
-            dynstall%nNewTimes=dynstall%nNewTimes+1
-            if (dynstall%nNewTimes > 1) then
-               call update_DynStall(dynstall,time)
-            end if
-        end if
-
+        !if (time.ne.dynstall%time_prev) then
+	!    dynstall%nNewTimes=dynstall%nNewTimes+1
+        !    if (dynstall%nNewTimes > 1) then
+        !       call update_DynStall(dynstall,time)
+        !    	print *, 'Hi from the update'
+	! 	stop
+        !    end if
+        !end if
+	
+	dynstall%nNewTimes=dynstall%nNewTimes+1
+	! Set previous angle equal to the current one if first time step with dynstall
+ 
         if (dynstall%nNewTimes <=1) then
             dynstall%alpha_Prev=alpha
         endif
-
+	
         dynstall%Alpha=alpha
         dynstall%mach=urel/dynstall%speed_of_sound 
         dynstall%Re=Re
         dynstall%deltaAlpha=dynstall%Alpha-dynstall%alpha_Prev
         dynstall%deltaS=2.0*Urel*dt/chord
+ 
+	dynstall%alphaEquiv = dynstall%Alpha
+        dynstall%AlphaZeroLift=airfoil%alzer*pi/180. ! Make it in rad
+	! Ok
+	!if (nrank==0) print *, 180*dynstall%Alpha/pi, dynstall%mach, dynstall%Re, dynstall%deltaAlpha, dynstall%deltaS
+        ! Ok
 
-        !if (dynstall%do_calcAlphaEquiv) then
-        !    call calcAlphaEquiv(dynstall)
-        !else
-        
-	dynstall%alphaEquiv = dynstall%alpha
-        
-	!endif
-        ! Evaluate static coefficient data if if has changed from 
+	! Evaluate static coefficient data if if has changed from 
         ! the Reynolds number correction
-        
         call EvalStaticData(dynstall)
         
         call calcUnsteady(dynstall,chord,Urel,dt)
@@ -258,7 +261,8 @@ module dynstall
         CLdyn=dynstall%CN*cos(dynstall%alpha)+dynstall%CT*sin(dynstall%alpha)
         CDdyn=dynstall%CN*sin(dynstall%alpha)-dynstall%CT*cos(dynstall%alpha)+dynstall%CD0
         CM25dyn=dynstall%CM
-        
+	  
+	call update_DynStall(dynstall,time)
         return
 
     end subroutine DynstallCorrect
@@ -318,7 +322,7 @@ module dynstall
         ds%K2=ds%K2List(ilow)+(ds%Re-ds%ReList(ilow))*(ds%K2list(iup)-ds%K2List(ilow))/(ds%ReList(iup)-ds%ReList(ilow))
 
         endif
-        
+       
         return
 
 
@@ -331,7 +335,7 @@ module dynstall
         real(mytype) :: kAlpha, dAlphaDS
     
         ! Calculate the circulatory normal force coefficient
-        ds%CNC=ds%CNAlpha*ds%alphaEquiv
+        ds%CNC=ds%CNAlpha*ds%alphaEquiv ! Here CNAlpha is the Normal Force/ alpha (rad) slope
 
         ! Calculate the impulsive normal force coefficient
         ds%lambdaL=(pi/4.0)*(ds%alpha+chord/(4.0*Ur)*ds%deltaAlpha/dt)
@@ -348,27 +352,19 @@ module dynstall
         
         ds%CMI=-4.0/ds%mach*ds%J
 
-        ! Calculate total normal force coefficient
+        ! Calculate total normal force and pitching moment coefficient
         ds%CNP = ds%CNC + ds%CNI
-
+	
         ! Apply first-order lag to normal force coefficient
         ds%DP=ds%DP_prev*exp(-ds%deltaS/ds%Tp)+(ds%CNP-ds%CN_prev)*exp(-ds%deltaS/(2.0*ds%Tp))
         
         ds%CNprime=ds%CNP-ds%DP
 
         ! Calculate lagged angle of attack
-        ds%alphaPrime=ds%CNPrime/ds%CNAlpha
-
-        ! Set the stalled switch
-        if(abs(ds%CNPrime)>ds%CN1) then
-             ds%StallFlag=.true.
-        endif
-
-        ! Calculate lagged angle of attack
         ds%DAlpha=ds%DAlpha_prev*exp(-ds%deltaS/ds%TAlpha)+(ds%alpha-ds%alpha_prev)*exp(-ds%deltaS/(2.0*ds%TAlpha))
         
         ds%AlphaPrime=ds%alpha-ds%DAlpha
-
+	
         ! Calculate reduced pitch rate
         ds%r=ds%deltaAlpha/dt*chord/(2.*Ur)
 
@@ -384,6 +380,7 @@ module dynstall
 
         if(abs(ds%AlphaPrime)>ds%AlphaCrit) then
              ds%StallFlag=.true.
+             if (nrank==0) print *, 'Section is Stalled'
         endif
 
         return
@@ -395,7 +392,7 @@ module dynstall
         type(DS_type),intent(inout):: ds
         real(mytype) :: f, Tf,Tv, Tst, KN, m, cmf, cpv,cmv
 
-	
+        	
         ! Calculate trailing-edge separation point
         if (abs(ds%alphaPrime) < ds%alpha1) then
             ds%fprime=1.0-0.4*exp((abs(ds%alphaPrime) -ds%alpha1)/ds%S1) 
@@ -426,19 +423,20 @@ module dynstall
         endif
 
         ! Calculate normal force coefficient including dynamic separation point
-        ds%CNF=ds%CNAlpha*ds%alphaEquiv*((1.0+sqrt(ds%fDoublePrime))/2.0)**2.
+	ds%fDoublePrime=1.
+        ds%CNF=ds%CNAlpha*(ds%alphaEquiv-ds%AlphaZeroLift)*((1.0+sqrt(ds%fDoublePrime))/2.0)**2+ds%CNI
 
         ! Calculate tangential force coefficient
-        ds%CT=ds%eta*ds%CNAlpha*ds%alphaEquiv*ds%alphaEquiv*(sqrt(ds%fDoublePrime)-ds%E0)
+        ds%CT=ds%eta*ds%CNAlpha*(ds%alphaEquiv-ds%AlphaZeroLift)**2.*(sqrt(ds%fDoublePrime)-ds%E0)
         
         ! Calculate static trailing-edge separation point
         if(abs(ds%alpha)<abs(ds%alpha1)) then
             f=1.0-0.4*exp((abs(ds%alpha)-ds%alpha1)/ds%S1)
         else
-            f=0.02-0.58*exp((ds%alpha1-ds%alpha)/ds%S2)
+            f=0.02-0.58*exp((ds%alpha1-abs(ds%alpha))/ds%S2)
         endif
 
-        ! Calculate vorex lift contribution
+        ! Calculate vortex lift contribution
         ds%CNV=ds%B1*(ds%fDoublePrime-f)*ds%VX
 
         ! Total normal force coefficient is the combination of that from 
@@ -446,7 +444,9 @@ module dynstall
         ! lift
         ds%CN=ds%CNF+ds%CNV
 
-        ! Calculate moment coefficient
+	if (nrank==0) print *, ds%AlphaEquiv-ds%AlphaZeroLift, ds%CNAlpha, ds%fDoublePrime, ds%CNF, ds%CNV, ds%tau
+        
+	! Calculate moment coefficient
         m=ds%cmFitExponent
         cmf=(ds%K0+ds%K1*(1-ds%fDoublePrime)+ds%K2*sin(pi*ds%fDoublePrime**m))*ds%CNC
         ! + moment coefficient at Zero lift angle of attack

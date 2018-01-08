@@ -1,13 +1,13 @@
 &ActuatorLineSpecs
-name='ShengEtAl2008'                ! Turbine Name
-origin = 1.,1.065,0.805             ! Turbine Origin 
+name='Sheng'                ! Turbine Name
+origin = 1.,1.0,1.0             ! Turbine Origin 
 actuatorline_geom='Wing.al'         ! Blade Specification
 numfoil=1                           ! Number of Airfoils
 afname='S809.air'
 PitchControlFlag=1                  ! 0: No pitch control, 1: Sinusoidal , 2: Ramp-up
 PitchStartTime=1.0
 PitchEndTime=5.0
-PitchAngleInit=15.0
+PitchAngleInit=5.0
 PitchAmp=10.
 AngularPitchFreq=1.81
 AddedMassFlag=0                     ! 0: No added mass, 1: Added mass

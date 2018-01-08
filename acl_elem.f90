@@ -162,9 +162,9 @@ end type ActuatorLineType
     
     if(actuatorline%pitch_control) then
          actuatorline%pitch(istation)=actuatorline%pitch_angle_init/180.0*pi+pi/2.  
-    endif
-    
+    else 
     actuatorline%pitch(istation)=pitch(istation)/180.0*pi+pi/2.    
+    endif
  
     actuatorline%tx(istation)=  sin(actuatorline%pitch(istation))    
     actuatorline%ty(istation)=  cos(actuatorline%pitch(istation))     

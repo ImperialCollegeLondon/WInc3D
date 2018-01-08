@@ -3,8 +3,8 @@
     ny=65
     nz=65
     xlx = 4.00         ! Lx (Size of the box in x-direction)
-    yly = 2.13         ! Ly (Size of the box in y-direction) 
-    zlz = 1.61         ! Lz (Size of the box in z-direction) 
+    yly = 2.00         ! Ly (Size of the box in y-direction) 
+    zlz = 2.00         ! Lz (Size of the box in z-direction) 
     nclx=2
     ncly=1
     nclz=1

@@ -4,8 +4,8 @@
     iin=2
 
     xlx = 4.00           ! Lx (Size of the box in x-direction)
-    yly = 2.13           ! Ly (Size of the box in y-direction) 
-    zlz = 1.61           ! Lz (Size of the box in z-direction) 
+    yly = 2.00           ! Ly (Size of the box in y-direction) 
+    zlz = 2.00           ! Lz (Size of the box in z-direction) 
     re  = 1000000        ! Kinematic Viscosity
     sc  = 1.             ! Schmidt number (if passive scalar)
     u1  = 10.             ! u1 (max velocity) (for inflow condition)
