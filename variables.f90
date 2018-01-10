@@ -47,6 +47,9 @@ real(mytype), save, allocatable, dimension(:,:,:) :: ep1
 real(mytype), save, allocatable, dimension(:,:,:) :: nut1
 real(mytype), save, allocatable, dimension(:,:,:,:) :: uxt,uyt,uzt
 
+! Define inflow file
+real(mytype), save, allocatable, dimension(:,:,:) :: ux_inflow, uy_inflow, uz_inflow
+
 ! define the Momentum Source arrays for the three directions
 real(mytype), save, allocatable, dimension(:,:,:) :: FTx, FTy, FTz
 
@@ -143,7 +146,12 @@ call alloc_x(nut1);call alloc_x(ucx1);call alloc_x(ucy1);call alloc_x(ucz1);
     allocate(dpdzy1(xsize(1),xsize(3)),dpdzyn(xsize(1),xsize(3)))
     allocate(dpdxz1(xsize(1),xsize(2)),dpdxzn(xsize(1),xsize(2)))
     allocate(dpdyz1(xsize(1),xsize(2)),dpdyzn(xsize(1),xsize(2)))
-    
+
+    if (iin==3) then 
+        allocate(ux_inflow(INFLOW_TIMESTEPS,xsize(2),xsize(3))) 
+        allocate(uy_inflow(INFLOW_TIMESTEPS,xsize(2),xsize(3))) 
+        allocate(uz_inflow(INFLOW_TIMESTEPS,xsize(2),xsize(3))) 
+    endif
     ! Allocate Momentum Source Terms
     if (ialm==1) then
     allocate(FTx(xsize(1),xsize(2),xsize(3)))

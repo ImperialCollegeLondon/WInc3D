@@ -221,6 +221,11 @@ if (iprobe==1) then
     call init_probe
 endif
 
+! Initialise inflow file
+if (iin==3) then
+    call read_inflow(ux_inflow,uy_inflow,uz_inflow)
+endif
+
 do itime=ifirst,ilast
    t=(itime-1)*dt
 

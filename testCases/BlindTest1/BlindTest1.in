@@ -1,7 +1,7 @@
 &FlowParam
     ! Flow type 
     itype=1
-    iin=1
+    iin=0
 
     xlx = 11.15          ! Lx (Size of the box in x-direction)
     yly = 1.80           ! Ly (Size of the box in y-direction) 

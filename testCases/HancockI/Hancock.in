@@ -1,7 +1,7 @@
 &FlowParam
     ! Flow type
     itype = 8             ! Type of Flow  
-    iin = 1               ! Inflow conditions (1: classic, 2: turbinit)
+    iin = 2               ! Inflow conditions (1: Random uniform, 2: Random near the bottom)
     
     ! Domain and scaling
     xlx = 5.              ! Lx (Size of the box in x-direction)
@@ -49,7 +49,7 @@
     iscalar = 0           ! iscalar# (0: no scalar, 1:scalar)
     
     ! Large-eddy simulation modelling parameters
-    jles=1                ! LES Model (0:DNS, 1: iLES 2:Smag, 3:WALE, 4: scale-invariant dyn. Smag, 5: scale-dependent dyn. Smag )
+    jles=2                ! LES Model (0:DNS, 1: iLES 2:Smag, 3:WALE, 4: scale-invariant dyn. Smag, 5: scale-dependent dyn. Smag )
     FSGS=1.0              ! Filter Size/ Grid Size for explicit LES only
     smagcst=0.17          ! Smagorinsky constant
     SmagWallDamp=1        ! Smagorinsky damping function for ABL if 1

@@ -426,7 +426,38 @@ endif
 endif
 
 end subroutine restart
-!
+
+subroutine read_inflow(ux,uy,uz)
+
+USE decomp_2d
+USE decomp_2d_io
+USE param
+USE MPI
+
+implicit none
+
+TYPE(DECOMP_INFO) :: phG
+integer :: i,j,k,irestart,nzmsize,fh,ierror,code
+real(mytype), dimension(INFLOW_TIMESTEPS,xsize(2),xsize(3)) :: ux,uy,uz
+integer (kind=MPI_OFFSET_KIND) :: filesize, disp
+real(mytype) :: xdt
+integer, dimension(2) :: dims, dummy_coords
+logical, dimension(2) :: dummy_periods
+
+call MPI_FILE_OPEN(MPI_COMM_WORLD, inflow_file, &
+     MPI_MODE_CREATE+MPI_MODE_WRONLY, MPI_INFO_NULL, &
+     fh, ierror)
+filesize = 0_MPI_OFFSET_KIND
+call MPI_FILE_SET_SIZE(fh,filesize,ierror)  ! guarantee overwriting
+disp = 0_MPI_OFFSET_KIND
+call decomp_2d_read_var(fh,disp,1,ux)
+call decomp_2d_read_var(fh,disp,1,uy)
+call decomp_2d_read_var(fh,disp,1,uz)
+call MPI_FILE_CLOSE(fh,ierror)
+
+
+end subroutine read_inflow
+
 !*******************************************************************
 subroutine stretching()
 !

@@ -48,7 +48,8 @@ integer :: longueur ,impi,j
 character :: a*80
 
 ! Have you heard of NAMELISTs ?
-NAMELIST/FlowParam/itype,iin,xlx,yly,zlz,re,sc,u1,u2,noise,noise1,ibuoyancy,icoriolis,Pr,TempRef,CoriolisFreq
+NAMELIST/FlowParam/itype,iin,xlx,yly,zlz,re,sc,u1,u2,noise,noise1,ibuoyancy,icoriolis,Pr,TempRef,CoriolisFreq, &
+    INFLOW_TIMESTEPS,inflow_file
 NAMELIST/NumConfig/nx,ny,nz,p_row,p_col,nclx,ncly,nclz,TurbRadius,ifirst,ilast,nscheme,dt,istret, &
     beta,iskew,iscalar,jles,FSGS,jadv,smagcst,SmagWallDamp,nSmag,walecst,rxxnu 
 NAMELIST/FileParam/ilit,isave,imodulo

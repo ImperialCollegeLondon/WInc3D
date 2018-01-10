@@ -59,6 +59,8 @@ integer :: ifft, ivirt,istret,iforc_entree,iturb, ialm, Nturbines, NActuatorline
 integer :: itype, iskew, iin, nscheme, ifirst, ilast, iles, jLES, jADV
 integer :: isave,ilit,srestart,idebmod, imodulo, idemarre, icommence, irecord
 integer :: iscalar,ilag,npif,izap
+integer :: INFLOW_TIMESTEPS
+character :: inflow_file
 integer :: iprobe, Nprobes, Nsampling
 integer :: iabl, ibmshape, SmagWallDamp, nSmag
 character :: Probelistfile*80
@@ -74,7 +76,7 @@ integer :: itr,itime
 character :: dirname*80
 character :: filesauve*80, filenoise*80, &
      nchamp*80,filepath*80, fileturb*80, filevisu*80 
-character, dimension(100) :: turbinesPath*80, ActuatorlinesPath*80 ! Assign a maximum number of 100 turbines and alms
+character,dimension(100) :: turbinesPath*80, ActuatorlinesPath*80 ! Assign a maximum number of 100 turbines and alms
 real(mytype), dimension(5) :: adt,bdt,cdt,gdt
 
 !module filter

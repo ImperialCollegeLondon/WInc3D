@@ -9,6 +9,11 @@ OPTIONS = -DDOUBLE_PREC
 #   generic    - A general FFT algorithm (no 3rd-party library needed)
 FFT= generic
 
+# Paths to OpenFast
+#OPENFAST_PATH=/home/gdeskos/openfast
+#OPENFAST_INCLUDE=-I$(OPENFAST_PATH)/build/ftnmods
+#OPENFAST_LIB=-L$(OPENFAST_PATH)/install/lib/libopenfastlib.a
+
 # Paths to FFTW 3
 FFTW3_PATH=   # full path of FFTW installation if using fftw3 engine above
 FFTW3_INCLUDE = -I$(FFTW3_PATH)/include
@@ -29,16 +34,7 @@ else ifeq ($(FFT),fftw3)
   INC=
 endif
 
-# library path
-ifeq ($(FFT),generic)
-   LIBFFT= $(SPUD_LIB)
-else ifeq ($(FFT),fftw3)
-   LIBFFT=$(FFTW3_LIB) $(SPUD_LIB)
-endif
-
 SRC = decomp_2d.f90 glassman.f90 fft_$(FFT).f90 module_param.f90 io.f90 variables.f90 poisson.f90 les_models.f90 schemes.f90 convdiff.f90 acl_utils.f90 airfoils.f90 dynstall.f90 acl_elem.f90 acl_controller.f90 acl_turb.f90 acl_out.f90 acl_model.f90 acl_source.f90 incompact3d.f90 navier.f90 filter.f90 derive.f90 parameters.f90 tools.f90 visu.f90 probe.f90 cfl.f90 ABL.f90 
-
-SRCALM = decomp_2d.f90 acl_utils.f90 airfoils.f90 dynstall.f90 acl_elem.f90 acl_turb.f90 acl_controller.f90 acl_out.f90 acl_model.f90 uALM.f90 
 
 ifneq (,$(findstring DSHM,$(OPTIONS)))
 SRC := FreeIPC.f90 $(SRC) $(SRCALM)
@@ -59,10 +55,6 @@ FreeIPC_c.o: FreeIPC_c.c
 
 incompact3d : $(OBJ)
 	$(FC) -O3 -o $@ $(OBJ) $(LIBFFT) $(LIBS) $(DEBUG)
-
-uALM : $(OBJALM)
-	$(FC) -O3 -o $@ $(OBJALM) $(LIBFFT) $(LIBS) $(DEBUG)
-
 
 %.o : %.f90
 	$(FC) $(OPTFC) $(OPTIONS) $(INC) $(DEBUG) -c $<
