@@ -1,7 +1,7 @@
 &FlowParam
     ! Flow type 
     itype=1
-    iin=2
+    iin=1
 
     xlx = 11.15          ! Lx (Size of the box in x-direction)
     yly = 1.80           ! Ly (Size of the box in y-direction) 
@@ -10,8 +10,8 @@
     sc  = 1.             ! Schmidt number (if passive scalar)
     u1  = 1.             ! u1 (max velocity) (for inflow condition)
     u2  = 1.             ! u2 (min velocity) (for inflow condition) 
-    noise  = 0.00        ! Turbulence intensity (1=100%) !! Initial condition
-    noise1 = 0.00        ! Turbulence intensity (1=100%) !! Inflow condition
+    noise  = 0.10        ! Turbulence intensity (1=100%) !! Initial condition
+    noise1 = 0.10        ! Turbulence intensity (1=100%) !! Inflow condition
 /End
 
 &NumConfig

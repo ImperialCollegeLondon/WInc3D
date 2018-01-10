@@ -161,13 +161,13 @@ end type ActuatorLineType
     actuatorline%QCz(istation)=rR(istation)*length*Svec(3)+actuatorline%COR(3)
     
     if(actuatorline%pitch_control) then
-         actuatorline%pitch(istation)=actuatorline%pitch_angle_init/180.0*pi+pi/2.  
+        actuatorline%pitch(istation)=actuatorline%pitch_angle_init/180.0*pi+pi/2.  
     else 
-    actuatorline%pitch(istation)=pitch(istation)/180.0*pi+pi/2.    
+        actuatorline%pitch(istation)=pitch(istation)/180.0*pi+pi/2.    
     endif
  
-    actuatorline%tx(istation)=  sin(actuatorline%pitch(istation))    
-    actuatorline%ty(istation)=  cos(actuatorline%pitch(istation))     
+    actuatorline%tx(istation)= sin(actuatorline%pitch(istation))    
+    actuatorline%ty(istation)= cos(actuatorline%pitch(istation))     
     actuatorline%tz(istation)= 0.0     
     actuatorline%C(istation)=ctoR(istation)*length
     actuatorline%thick(istation)=thick(istation)
@@ -290,7 +290,7 @@ end type ActuatorLineType
     !=============================================== 
     if(act_line%do_dynamic_stall) then 
     call DynstallCorrect(act_line%EDynstall(ielem),act_line%EAirfoil(ielem),time,dt,act_line%EUr(ielem),&
-					ElemChord,alpha,act_line%ERe(ielem),CLdyn,CDdyn,CM25dyn)
+                         ElemChord,alpha,act_line%ERe(ielem),CLdyn,CDdyn,CM25dyn)
     CL=CLdyn
     CD=CDdyn
     CM25=CM25dyn
@@ -473,9 +473,9 @@ end type ActuatorLineType
     t=matmul(R,t)
     !>Reassign the tangential vector
 
-    	act_line%tx(istation)=sin(pitch_angle*pi/180.0)
-    	act_line%ty(istation)=-cos(pitch_angle*pi/180.0)
-    	act_line%tz(istation)=0.0
+    act_line%tx(istation)=sin(pitch_angle)
+    act_line%ty(istation)=cos(pitch_angle)
+    act_line%tz(istation)=0.0
 
     end do
 

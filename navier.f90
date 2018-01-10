@@ -212,7 +212,7 @@ subroutine inflow (ux,uy,uz,phi)
 
 USE param
 USE IBM
-!USE variables
+!USE turbsim_types
 USE decomp_2d
 
 implicit none
@@ -227,18 +227,20 @@ call random_number(bxo)
 call random_number(byo)
 call random_number(bzo)
 
+! Random Walk
 if (iin.eq.1) then  
    do k=1,xsize(3)
-      z=(k+xstart(3)-1-1)*dz-zlz/2.
-   do j=1,xsize(2)
+    z=(k+xstart(3)-1-1)*dz
+    do j=1,xsize(2)
       ! Making noise to go to zero at the boundaries
-      if (istret.eq.0) y=(j+xstart(2)-1-1)*dy-yly/2.
-      if (istret.ne.0) y=yp(j+xstart(2)-1)-yly/2.
-      um=exp(-16*y*y) ! This creates a low-level jet when applied at the ABL
-      ! Not tested yet
+      if (istret.eq.0) y=(j+xstart(2)-1-1)*dy
+      if (istret.ne.0) y=yp(j+xstart(2)-1)
+      um=(u1+u2)/2.
+      if (y>3*dy.and.y<yly-3*dy.and.z>3*dz.and.z<zlz-3*dz) then
       bxx1(j,k)=bxx1(j,k)+bxo(j,k)*noise1*um
       bxy1(j,k)=bxy1(j,k)+byo(j,k)*noise1*um
       bxz1(j,k)=bxz1(j,k)+bzo(j,k)*noise1*um
+      endif
    enddo
    enddo
    if (iscalar==1) then
@@ -250,7 +252,21 @@ if (iin.eq.1) then
    endif
 endif
 
+! Synthetic Eddy Method using SimTurb
+if (iin.eq.3) then  
+   do k=1,xsize(3)
+      z=(k+xstart(3)-1-1)*dz-zlz/2.
+   do j=1,xsize(2)
+      ! Making noise to go to zero at the boundaries
+      if (istret.eq.0) y=(j+xstart(2)-1-1)*dy
+      if (istret.ne.0) y=yp(j+xstart(2)-1)
+    enddo
+    enddo
+endif
+
+
 return
+
 end subroutine inflow 
 
 !*********************************************************
@@ -461,7 +477,6 @@ integer :: code
 integer (kind=MPI_OFFSET_KIND) :: disp
 
 if (iin.eq.1) then !generation of a random noise near the bottom of the channel
-
 call system_clock(count=code)
 call random_seed(size = ii)
 call random_seed(put = code+63946*nrank*(/ (i - 1, i = 1, ii) /)) !
@@ -482,14 +497,14 @@ call random_seed(put = code+63946*nrank*(/ (i - 1, i = 1, ii) /)) !
 
 !modulation of the random noise
    do k=1,xsize(3)
+      z=(k+xstart(3)-1-1)*dz
    do j=1,xsize(2)
       if (istret.eq.0) y=(j+xstart(2)-1-1)*dy
       if (istret.ne.0) y=yp(j+xstart(2)-1)
-      if (y<6*dy.and.y>0.) then
-      um=0.5*(u1+u2) ! This creates a low-level jet when applied at the ABL
-        else
-        um=0.
-    endif
+      um=0.
+      if (y>3*dy.and.y<yly-3*dy.and.z>3*dz.and.z<zlz-3*dz) then
+      um=0.5*(u1+u2) ! This a uniform distribution of Random Walk in the channel
+      endif
       do i=1,xsize(1)
          ux1(i,j,k)=um*ux1(i,j,k)
          uy1(i,j,k)=um*uy1(i,j,k)
@@ -497,7 +512,6 @@ call random_seed(put = code+63946*nrank*(/ (i - 1, i = 1, ii) /)) !
       enddo
    enddo
    enddo
-
    if (ibuoyancy==1) then
       do k=1,xsize(3)
       do j=1,xsize(2)
@@ -511,11 +525,10 @@ call random_seed(put = code+63946*nrank*(/ (i - 1, i = 1, ii) /)) !
    endif
 endif
 
-if (iin.eq.2) then !read a correlated noise generated in the middle
-
-    call system_clock(count=code)
-    call random_seed(size = ii)
-    call random_seed(put = code+63946*nrank*(/ (i - 1, i = 1, ii) /)) !
+if (iin.eq.2) then !generation of a random noise near the bottom of the channel
+call system_clock(count=code)
+call random_seed(size = ii)
+call random_seed(put = code+63946*nrank*(/ (i - 1, i = 1, ii) /)) !
     
    call random_number(ux1)
    call random_number(uy1)
@@ -533,11 +546,15 @@ if (iin.eq.2) then !read a correlated noise generated in the middle
 
 !modulation of the random noise
    do k=1,xsize(3)
+      z=(k+xstart(3)-1-1)*dz
    do j=1,xsize(2)
-      z=(k+xstart(3)-1-1)*dz-zlz/2.
-      if (istret.eq.0) y=(j+xstart(2)-1-1)*dy-yly/2.
-      if (istret.ne.0) y=yp(j+xstart(2)-1)-yly/2.
-      um=(u1+u2)*exp(-16*y*y) ! This creates a low-level jet when applied at the ABL
+      if (istret.eq.0) y=(j+xstart(2)-1-1)*dy
+      if (istret.ne.0) y=yp(j+xstart(2)-1)
+      if (y<6*dy.and.y>0.) then
+      um=0.5*(u1+u2) ! This creates a low-level jet when applied at the ABL
+        else
+        um=0.
+    endif
       do i=1,xsize(1)
          ux1(i,j,k)=um*ux1(i,j,k)
          uy1(i,j,k)=um*uy1(i,j,k)
@@ -545,16 +562,11 @@ if (iin.eq.2) then !read a correlated noise generated in the middle
       enddo
    enddo
    enddo
-
-   if (iscalar==1) then
+   if (ibuoyancy==1) then
       do k=1,xsize(3)
       do j=1,xsize(2)
       do i=1,xsize(1)
-   !      if ((j+xstart(2)-1).ge.nym) then
-   !         phi1(i,j,k)=1.
-   !      else
-            phi1(i,j,k)=0.
-   !      endif
+         phi1(i,j,k)=0.
          phis1(i,j,k)=phi1(i,j,k)
          phiss1(i,j,k)=phis1(i,j,k)
       enddo

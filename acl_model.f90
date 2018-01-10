@@ -137,9 +137,9 @@ contains
 
         ! Allocate Turbines Arrays
         Allocate(Turbine(Ntur))
-	! Allocate statistics for turbine
-	Allocate(CP_ave(Ntur),CT_ave(Ntur),Torque_ave(NTur),Blade_ave(NTur))
-	! ==========================================
+        ! Allocate statistics for turbine
+        Allocate(CP_ave(Ntur),CT_ave(Ntur),Torque_ave(NTur),Blade_ave(NTur))
+        ! ==========================================
         ! Get Turbines' options and INITIALIZE THEM
         ! ==========================================
         do i=1, Ntur 
@@ -224,11 +224,11 @@ contains
         else if(OperFlag==2) then
             Turbine(i)%Is_control_based = .true. 
             ! Assign the Uref and TSR to compute the optimum tip-speed ratio (This applies only to the first time step)
-	    Turbine(i)%Uref=uref
+            Turbine(i)%Uref=uref
             Turbine(i)%TSR=tsr
             call init_controller(Turbine(i)%Controller) 
-	    Turbine(i)%Controller%IStatus=0
- 	else
+            Turbine(i)%Controller%IStatus=0
+        else
             write(*,*) "Only contant_rotation and control_based is used"
             stop
         endif
@@ -379,16 +379,16 @@ contains
                 call Compute_Turbine_RotVel(Turbine(i))  
             else if(Turbine(i)%Is_control_based) then
             if(nrank==0) write(*,*) 'Entering the control-based operation for turbine', Turbine(i)%name 
-		! First do control	
-		call operate_controller(Turbine(i)%Controller,ctime,Turbine(i)%NBlades)
-          	Turbine(i)%deltaOmega=(Turbine(i)%Torque-Turbine(i)%Controller%GearBoxRatio*Turbine(i)%Controller%GenTrq)/(Turbine(i)%IRotor+Turbine(i)%Controller%GearBoxRatio**2.*Turbine(i)%Controller%IGenerator)*DeltaT
-                Turbine(i)%angularVel=Turbine(i)%angularVel+Turbine(i)%deltaOmega
-  		! Then Calculate the angular velocity and compute the DeltaTheta  and AzimAngle              
-                theta=Turbine(i)%angularVel*DeltaT
-                Turbine(i)%AzimAngle=Turbine(i)%AzimAngle+theta
-                call rotate_turbine(Turbine(i),Turbine(i)%RotN,theta)
-                call Compute_Turbine_RotVel(Turbine(i))  
-		Turbine(i)%Controller%IStatus=Turbine(i)%Controller%IStatus+1
+            ! First do control	
+            call operate_controller(Turbine(i)%Controller,ctime,Turbine(i)%NBlades)
+            Turbine(i)%deltaOmega=(Turbine(i)%Torque-Turbine(i)%Controller%GearBoxRatio*Turbine(i)%Controller%GenTrq)/(Turbine(i)%IRotor+Turbine(i)%Controller%GearBoxRatio**2.*Turbine(i)%Controller%IGenerator)*DeltaT
+            Turbine(i)%angularVel=Turbine(i)%angularVel+Turbine(i)%deltaOmega
+            ! Then Calculate the angular velocity and compute the DeltaTheta  and AzimAngle              
+            theta=Turbine(i)%angularVel*DeltaT
+            Turbine(i)%AzimAngle=Turbine(i)%AzimAngle+theta
+            call rotate_turbine(Turbine(i),Turbine(i)%RotN,theta)
+            call Compute_Turbine_RotVel(Turbine(i))  
+            Turbine(i)%Controller%IStatus=Turbine(i)%Controller%IStatus+1
             endif
             enddo
         endif
@@ -399,14 +399,14 @@ contains
                 !> Do harmonic pitch control for all elements of the actuator line
                 Nstation=ActuatorLine(i)%NElem+1
                 do j=1,Nstation
-                ActuatorLine(i)%pitch(j)=ActuatorLine(i)%pitch_angle_init+actuatorline(i)%pitchAmp*sin(actuatorline(i)%angular_pitch_freq*(ctime-ActuatorLine(i)%pitch_start_time))
+                ActuatorLine(i)%pitch(j)=ActuatorLine(i)%pitch_angle_init*conrad+pi/2.+conrad*actuatorline(i)%pitchAmp*sin(actuatorline(i)%angular_pitch_freq*(ctime-ActuatorLine(i)%pitch_start_time))
                 end do
                 if(nrank==0) then
                 print *, '-----------------------'
-		print *, ' Harmonic pitch :'
-		print *, '-----------------------'
-		print *, 'Current pitch angle : ', sum(ActuatorLine(i)%pitch)/ActuatorLine%Nelem
-		endif
+                print *, ' Harmonic pitch :'
+                print *, '-----------------------'
+                print *, 'Current pitch angle : ', condeg*sum(ActuatorLine(i)%pitch)/ActuatorLine%Nelem-90
+                endif
                 call pitch_actuator_line(actuatorline(i))
             endif
             enddo
@@ -461,15 +461,17 @@ contains
 
 subroutine actuator_line_statistics()
 
-	implicit none
-	integer :: itur
-	
-	if(nrank==0) print *, 'Writing statistics for alm'
-	do itur=1,Ntur		
-	CP_ave(itur)=CP_ave(itur)+Turbine(itur)%CP	
-	CT_ave(itur)=CT_ave(itur)+Turbine(itur)%CT	
-	Torque_ave(itur)=CP_ave(itur)+Turbine(itur)%Torque
-	enddo
+    implicit none
+    integer :: itur
+    
+    if(nrank==0) print *, 'Writing statistics for alm'
+    do itur=1,Ntur
+    CP_ave(itur)=CP_ave(itur)+Turbine(itur)%CP
+    CT_ave(itur)=CT_ave(itur)+Turbine(itur)%CT
+    Torque_ave(itur)=CP_ave(itur)+Turbine(itur)%Torque
+    enddo
+
+    return
 
 end subroutine actuator_line_statistics
 

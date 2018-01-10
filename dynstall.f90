@@ -4,6 +4,7 @@ module dynstall
     use airfoils
 
     implicit none
+    real(mytype), parameter :: SMALL= TINY(1.0)       ! The number slighty greater than unity in single precision.
     
     type DS_Type 
     !=====================================
@@ -67,7 +68,7 @@ module dynstall
         character(1000) :: ReadLine
         integer :: i, Nstall
         real(mytype) :: Tp, Tf, TAlpha, alphaDS0DiffDeg, r0, Tv, Tvl, B1, B2, eta, E0 
-	NAMELIST/DynstallParam/Tp, Tf, TAlpha, alphaDS0DiffDeg, r0, Tv, Tvl, B1, B2, eta, E0, Stallfile
+        NAMELIST/DynstallParam/Tp, Tf, TAlpha, alphaDS0DiffDeg, r0, Tv, Tvl, B1, B2, eta, E0, Stallfile
 
         ! Default values for the parameters
         Tp=1.7
@@ -81,10 +82,10 @@ module dynstall
         B2=0.2
         eta=0.98
         E0=0.16
-	! READ from file
-      	open(30,file=dynstallfile) 
+        ! READ from file
+        open(30,file=dynstallfile) 
         read(30,nml=DynstallParam)
-	close(30)
+        close(30)
         ds%Tp=Tp
         ds%Tf=Tf
         ds%TAlpha=TAlpha
@@ -115,8 +116,8 @@ module dynstall
         ds%DP_prev=0.0
         ds%CNP=0.0
         ds%CNP_prev=0.0
-        ds%fprime=0.0
-        ds%fprime_prev=0.0
+        ds%fprime=1.0
+        ds%fprime_prev=1.0
         ds%DF=0.0
         ds%DF_prev=0.0
         ds%CV=0.0
@@ -133,7 +134,7 @@ module dynstall
         ds%cmFitExponent=2
         ds%CM=0.0
         ds%Re=0.0
-        ds%speed_of_sound=340.0
+        ds%speed_of_sound=343.0
         ds%etaL=0.0
         ds%etaL_prev=0.0
         ds%A1=0.165
@@ -169,13 +170,13 @@ module dynstall
         
         read(15,'(A)') ReadLine ! skip header
         
-        allocate(ds%ReList(Nstall),ds%CNAlphaList(Nstall),ds%CD0List(Nstall),ds%CN1List(Nstall),ds%alpha1List(Nstall),ds%S1List(Nstall),ds%S2List(Nstall),ds%alphaSSList(Nstall),ds%K1List(Nstall),ds%K2List(Nstall))
+        allocate(ds%ReList(Nstall),ds%CNAlphaList(Nstall),ds%CD0List(Nstall),ds%alpha1List(Nstall),ds%S1List(Nstall),ds%S2List(Nstall),ds%alphaSSList(Nstall),ds%K1List(Nstall),ds%K2List(Nstall))
         ! Read the stations specs
         do i=1,NStall
         
         read(15,'(A)') ReadLine ! Stall parameters ....
 
-        read(ReadLine,*) ds%ReList(i),ds%CNAlphaList(i),ds%CD0List(i),ds%CN1List(i),ds%alpha1List(i),ds%S1List(i),ds%S2List(i),ds%alphaSSList(i),ds%K1List(i), ds%K2List(i)
+        read(ReadLine,*) ds%ReList(i),ds%CNAlphaList(i),ds%CD0List(i),ds%alpha1List(i),ds%S1List(i),ds%S2List(i),ds%alphaSSList(i),ds%K1List(i), ds%K2List(i)
 
         end do
         
@@ -220,34 +221,33 @@ module dynstall
 
         ! update previous values if time has changed
         !if (time.ne.dynstall%time_prev) then
-	!    dynstall%nNewTimes=dynstall%nNewTimes+1
+        !    dynstall%nNewTimes=dynstall%nNewTimes+1
         !    if (dynstall%nNewTimes > 1) then
         !       call update_DynStall(dynstall,time)
         !    	print *, 'Hi from the update'
-	! 	stop
+        ! 	stop
         !    end if
         !end if
-	
-	dynstall%nNewTimes=dynstall%nNewTimes+1
-	! Set previous angle equal to the current one if first time step with dynstall
+        dynstall%nNewTimes=dynstall%nNewTimes+1
+        ! Set previous angle equal to the current one if first time step with dynstall
  
         if (dynstall%nNewTimes <=1) then
             dynstall%alpha_Prev=alpha
         endif
-	
+    
         dynstall%Alpha=alpha
         dynstall%mach=urel/dynstall%speed_of_sound 
         dynstall%Re=Re
         dynstall%deltaAlpha=dynstall%Alpha-dynstall%alpha_Prev
         dynstall%deltaS=2.0*Urel*dt/chord
  
-	dynstall%alphaEquiv = dynstall%Alpha
-        dynstall%AlphaZeroLift=airfoil%alzer*pi/180. ! Make it in rad
-	! Ok
-	!if (nrank==0) print *, 180*dynstall%Alpha/pi, dynstall%mach, dynstall%Re, dynstall%deltaAlpha, dynstall%deltaS
+        dynstall%alphaEquiv = dynstall%Alpha
+        dynstall%AlphaZeroLift=airfoil%alzer*conrad ! Make it in rad
+        ! Ok
+        !if (nrank==0) print *, 180*dynstall%Alpha/pi, dynstall%mach, dynstall%Re, dynstall%deltaAlpha, dynstall%deltaS
         ! Ok
 
-	! Evaluate static coefficient data if if has changed from 
+        ! Evaluate static coefficient data if if has changed from 
         ! the Reynolds number correction
         call EvalStaticData(dynstall)
         
@@ -261,8 +261,8 @@ module dynstall
         CLdyn=dynstall%CN*cos(dynstall%alpha)+dynstall%CT*sin(dynstall%alpha)
         CDdyn=dynstall%CN*sin(dynstall%alpha)-dynstall%CT*cos(dynstall%alpha)+dynstall%CD0
         CM25dyn=dynstall%CM
-	  
-	call update_DynStall(dynstall,time)
+          
+        call update_DynStall(dynstall,time)
         return
 
     end subroutine DynstallCorrect
@@ -313,20 +313,27 @@ module dynstall
         else
         ds%CNAlpha=ds%CNAlphalist(ilow)+(ds%Re-ds%ReList(ilow))*(ds%CNAlphalist(iup)-ds%CNAlphaList(ilow))/(ds%ReList(iup)-ds%ReList(ilow))
         ds%CD0=ds%CD0List(ilow)+(ds%Re-ds%ReList(ilow))*(ds%CD0List(iup)-ds%CD0List(ilow))/(ds%ReList(iup)-ds%ReList(ilow))
-        ds%CN1=ds%CN1List(ilow)+(ds%Re-ds%ReList(ilow))*(ds%CN1List(iup)-ds%CN1List(ilow))/(ds%ReList(iup)-ds%ReList(ilow))
         ds%alpha1=ds%alpha1list(ilow)+(ds%Re-ds%ReList(ilow))*(ds%alpha1list(iup)-ds%alpha1List(ilow))/(ds%ReList(iup)-ds%ReList(ilow))
         ds%S1=ds%S1List(ilow)+(ds%Re-ds%ReList(ilow))*(ds%S1list(iup)-ds%S1List(ilow))/(ds%ReList(iup)-ds%ReList(ilow))
         ds%S2=ds%S2List(ilow)+(ds%Re-ds%ReList(ilow))*(ds%S2List(iup)-ds%S2List(ilow))/(ds%ReList(iup)-ds%ReList(ilow))
         ds%alphaSS=ds%alphaSSList(ilow)+(ds%Re-ds%ReList(ilow))*(ds%alphaSSlist(iup)-ds%alphaSSList(ilow))/(ds%ReList(iup)-ds%ReList(ilow))
         ds%K1=ds%K1List(ilow)+(ds%Re-ds%ReList(ilow))*(ds%K1list(iup)-ds%K1List(ilow))/(ds%ReList(iup)-ds%ReList(ilow))
         ds%K2=ds%K2List(ilow)+(ds%Re-ds%ReList(ilow))*(ds%K2list(iup)-ds%K2List(ilow))/(ds%ReList(iup)-ds%ReList(ilow))
-
         endif
+
+        ds%alpha1=ds%alpha1*conrad
+        ds%alphaSS=ds%alphaSS*conrad
+        ! Define CN1 using fcrit=0.7 (Hardcoded)
+        ds%CN1=ds%CNAlpha*ds%alpha1*(1.+sqrt(0.7)/2.0)**2.
+
+        ! Here we need to compute S1, S2, K1, K2
+         
        
         return
 
 
     end subroutine EvalStaticData
+
 
     subroutine calcUnsteady(ds,chord,Ur,dt)
         implicit none
@@ -342,21 +349,21 @@ module dynstall
 
         ds%TI=chord/ds%speed_of_sound*(1.0+3.0*ds%mach)/4.0
 
-        ds%H=ds%H_prev*exp(-ds%deltaS/ds%TI)+(ds%lambdaL-ds%lambdaL_prev)*exp(-ds%deltaS/(2.0*ds%TI))
+        ds%H=ds%H_prev*exp(-dt/ds%TI)+(ds%lambdaL-ds%lambdaL_prev)*exp(-dt/(2.0*ds%TI))
         ds%CNI=4.0/ds%mach*ds%H
 
         ! Calculate the impulsive moment coefficient
         ds%lambdaM=3*pi/16.0*(ds%alpha+chord/(4.0*Ur)*ds%deltaAlpha/dt)+pi/16*chord/Ur*ds%deltaAlpha/dt
         
-        ds%J=ds%J_prev*exp(-ds%deltaS/ds%TI)+(ds%lambdaM-ds%lambdaM_prev)*exp(-ds%deltaS/(2.0*ds%TI))
+        ds%J=ds%J_prev*exp(-dt/ds%TI)+(ds%lambdaM-ds%lambdaM_prev)*exp(-dt/(2.0*ds%TI))
         
         ds%CMI=-4.0/ds%mach*ds%J
 
         ! Calculate total normal force and pitching moment coefficient
         ds%CNP = ds%CNC + ds%CNI
-	
+
         ! Apply first-order lag to normal force coefficient
-        ds%DP=ds%DP_prev*exp(-ds%deltaS/ds%Tp)+(ds%CNP-ds%CN_prev)*exp(-ds%deltaS/(2.0*ds%Tp))
+        ds%DP=ds%DP_prev*exp(-ds%deltaS/ds%Tp)+(ds%CNP-ds%CNP_prev)*exp(-ds%deltaS/(2.0*ds%Tp))
         
         ds%CNprime=ds%CNP-ds%DP
 
@@ -364,12 +371,12 @@ module dynstall
         ds%DAlpha=ds%DAlpha_prev*exp(-ds%deltaS/ds%TAlpha)+(ds%alpha-ds%alpha_prev)*exp(-ds%deltaS/(2.0*ds%TAlpha))
         
         ds%AlphaPrime=ds%alpha-ds%DAlpha
-	
+    
         ! Calculate reduced pitch rate
         ds%r=ds%deltaAlpha/dt*chord/(2.*Ur)
 
         ! Claculate alphaDS0
-        dAlphaDS=ds%alphaDS0DiffDeg/180.0*pi
+        dAlphaDS=ds%alphaDS0DiffDeg*conrad
         ds%alphaDS0=ds%alphaSS + dAlphaDS
         
         if (abs(ds%r)>=ds%r0) then
@@ -392,7 +399,6 @@ module dynstall
         type(DS_type),intent(inout):: ds
         real(mytype) :: f, Tf,Tv, Tst, KN, m, cmf, cpv,cmv
 
-        	
         ! Calculate trailing-edge separation point
         if (abs(ds%alphaPrime) < ds%alpha1) then
             ds%fprime=1.0-0.4*exp((abs(ds%alphaPrime) -ds%alpha1)/ds%S1) 
@@ -423,7 +429,6 @@ module dynstall
         endif
 
         ! Calculate normal force coefficient including dynamic separation point
-	ds%fDoublePrime=1.
         ds%CNF=ds%CNAlpha*(ds%alphaEquiv-ds%AlphaZeroLift)*((1.0+sqrt(ds%fDoublePrime))/2.0)**2+ds%CNI
 
         ! Calculate tangential force coefficient
@@ -443,10 +448,8 @@ module dynstall
         ! circulatory effects, impulsive effects, dynamic separation, and vortex
         ! lift
         ds%CN=ds%CNF+ds%CNV
-
-	if (nrank==0) print *, ds%AlphaEquiv-ds%AlphaZeroLift, ds%CNAlpha, ds%fDoublePrime, ds%CNF, ds%CNV, ds%tau
         
-	! Calculate moment coefficient
+        ! Calculate moment coefficient
         m=ds%cmFitExponent
         cmf=(ds%K0+ds%K1*(1-ds%fDoublePrime)+ds%K2*sin(pi*ds%fDoublePrime**m))*ds%CNC
         ! + moment coefficient at Zero lift angle of attack
