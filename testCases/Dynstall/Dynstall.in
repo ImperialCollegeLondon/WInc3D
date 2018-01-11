@@ -6,10 +6,10 @@
     xlx = 4.00           ! Lx (Size of the box in x-direction)
     yly = 2.00           ! Ly (Size of the box in y-direction) 
     zlz = 2.00           ! Lz (Size of the box in z-direction) 
-    re  = 1000000        ! Kinematic Viscosity
+    re  = 10000		 ! Kinematic Viscosity
     sc  = 1.             ! Schmidt number (if passive scalar)
-    u1  = 10.             ! u1 (max velocity) (for inflow condition)
-    u2  = 10.             ! u2 (min velocity) (for inflow condition) 
+    u1  = 1.            ! u1 (max velocity) (for inflow condition)
+    u2  = 1.            ! u2 (min velocity) (for inflow condition) 
     noise  = 0.00        ! Turbulence intensity (1=100%) !! Initial condition
     noise1 = 0.00        ! Turbulence intensity (1=100%) !! Inflow condition
 /End
@@ -33,7 +33,7 @@
     ifirst = 1            ! First iteration   
     ilast = 5000         ! Last iteration 
     nscheme = 2           ! Temporal scheme (1:AB2, 2: RK3, 3:RK4, 4:AB3)
-    dt=0.001		  ! time step
+    dt=0.0005		  ! time step
 
     iskew = 1             ! (0:urotu, 1:skew, for the convective terms)
     iscalar = 0           ! iscalar# (0: no scalar, 1:scalar)
@@ -60,7 +60,7 @@
 &FileParam
     ilit=0                 ! Read initial flow field ?
     isave=1000     	       ! Frequency for writing backup file  
-    imodulo=50            ! Frequency for visualization 
+    imodulo=1            ! Frequency for visualization 
 /End
 
 &IBMParam

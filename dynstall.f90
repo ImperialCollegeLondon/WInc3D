@@ -64,11 +64,10 @@ module dynstall
         implicit none
         type(DS_Type),intent(inout) :: ds
         character(len=100),intent(in) :: dynstallfile
-        character(len=80) :: stallfile
         character(1000) :: ReadLine
         integer :: i, Nstall
-        real(mytype) :: Tp, Tf, TAlpha, alphaDS0DiffDeg, r0, Tv, Tvl, B1, B2, eta, E0 
-        NAMELIST/DynstallParam/Tp, Tf, TAlpha, alphaDS0DiffDeg, r0, Tv, Tvl, B1, B2, eta, E0, Stallfile
+        real(mytype) :: Tp, Tf, TAlpha, alphaDS0DiffDeg, r0, Tv, Tvl, B1, B2, eta, E0, CNAlpha,CD0,alpha1,S1,S2,alphaSS,K1,K2 
+        NAMELIST/DynstallParam/Tp, Tf, TAlpha, alphaDS0DiffDeg, r0, Tv, Tvl, B1, B2, eta, E0, CNAlpha, CD0,alpha1,S1,S2,alphaSS,K1,K2
 
         ! Default values for the parameters
         Tp=1.7
@@ -82,6 +81,15 @@ module dynstall
         B2=0.2
         eta=0.98
         E0=0.16
+	CNAlpha=6.498  
+	CD0=0.01   
+	alpha1=10.92  
+	S1=0.0483 
+	S2=0.0894 
+	alphaSS=12.49 
+	K1=2.77e-8 
+	K2=-1.43e-6	
+
         ! READ from file
         open(30,file=dynstallfile) 
         read(30,nml=DynstallParam)
@@ -97,6 +105,22 @@ module dynstall
         ds%B2=B2
         ds%eta=eta
         ds%E0=E0
+	ds%CNAlpha=CNAlpha  
+	ds%CD0=CD0   
+	ds%Alpha1=Alpha1  
+	ds%S1=S1 
+	ds%S2=S2 
+	ds%AlphaSS=alphaSS 
+	ds%K1=K1
+	ds%K2=K2	
+        
+	! Convert degrees to radians
+	ds%alpha1=ds%alpha1*conrad
+        ds%alphaSS=ds%alphaSS!*conrad
+        ! Define CN1 using fcrit=0.7 (Hardcoded)
+        ds%CN1=ds%CNAlpha*ds%alpha1*(1.+sqrt(0.7)/2.0)**2.
+
+        ! Here we need to compute S1, S2, K1, K2
         
         ! SET ALL OTHER INITIAL CONDITIONS
         ds%X=0.0
@@ -152,36 +176,13 @@ module dynstall
         ds%lambdaM_prev=0.0
         ds%CMC=0.0
         ds%CMI=0.0
-        ds%fcrit=0.6
+        ds%fcrit=0.7
         ds%AlphaPrime=0.0
         ds%AlphaCrit=17.0
         ds%r=0.0
         ds%DAlpha=0.0
         ds%DAlpha_prev=0.0
  
-        !! READ parameter or compute them from the Static foil Data
-        !call get_option(trim(dynstallpath)//"stall_data/file_name",StallFile)
-
-        open(15,file=Stallfile)
-        ! Read the Number of Blades
-        
-        read(15,'(A)') ReadLine
-        read(ReadLine(index(ReadLine,':')+1:),*) NStall 
-        
-        read(15,'(A)') ReadLine ! skip header
-        
-        allocate(ds%ReList(Nstall),ds%CNAlphaList(Nstall),ds%CD0List(Nstall),ds%alpha1List(Nstall),ds%S1List(Nstall),ds%S2List(Nstall),ds%alphaSSList(Nstall),ds%K1List(Nstall),ds%K2List(Nstall))
-        ! Read the stations specs
-        do i=1,NStall
-        
-        read(15,'(A)') ReadLine ! Stall parameters ....
-
-        read(ReadLine,*) ds%ReList(i),ds%CNAlphaList(i),ds%CD0List(i),ds%alpha1List(i),ds%S1List(i),ds%S2List(i),ds%alphaSSList(i),ds%K1List(i), ds%K2List(i)
-
-        end do
-        
-        close(15)
-
         return
 
     end subroutine dystl_init
@@ -249,13 +250,13 @@ module dynstall
 
         ! Evaluate static coefficient data if if has changed from 
         ! the Reynolds number correction
-        call EvalStaticData(dynstall)
+        
+	! call EvalStaticData(dynstall)
         
         call calcUnsteady(dynstall,chord,Urel,dt)
         
         call calcSeparated(dynstall)
     
-        ! Info for dynstall
 
         ! Modify Coefficients
         CLdyn=dynstall%CN*cos(dynstall%alpha)+dynstall%CT*sin(dynstall%alpha)
@@ -331,7 +332,6 @@ module dynstall
        
         return
 
-
     end subroutine EvalStaticData
 
 
@@ -350,8 +350,10 @@ module dynstall
         ds%TI=chord/ds%speed_of_sound*(1.0+3.0*ds%mach)/4.0
 
         ds%H=ds%H_prev*exp(-dt/ds%TI)+(ds%lambdaL-ds%lambdaL_prev)*exp(-dt/(2.0*ds%TI))
-        ds%CNI=4.0/ds%mach*ds%H
-
+	
+        
+	ds%CNI=4.0/ds%mach*ds%H
+	
         ! Calculate the impulsive moment coefficient
         ds%lambdaM=3*pi/16.0*(ds%alpha+chord/(4.0*Ur)*ds%deltaAlpha/dt)+pi/16*chord/Ur*ds%deltaAlpha/dt
         
@@ -428,8 +430,8 @@ module dynstall
             ds%Vx=0.0
         endif
 
-        ! Calculate normal force coefficient including dynamic separation point
-        ds%CNF=ds%CNAlpha*(ds%alphaEquiv-ds%AlphaZeroLift)*((1.0+sqrt(ds%fDoublePrime))/2.0)**2+ds%CNI
+	! Calculate normal force coefficient including dynamic separation point
+        ds%CNF=ds%CNAlpha*(ds%alphaEquiv-ds%AlphaZeroLift)*((1.0+sqrt(ds%fDoublePrime))/2.0)**2 !+ds%CNI
 
         ! Calculate tangential force coefficient
         ds%CT=ds%eta*ds%CNAlpha*(ds%alphaEquiv-ds%AlphaZeroLift)**2.*(sqrt(ds%fDoublePrime)-ds%E0)
@@ -448,7 +450,9 @@ module dynstall
         ! circulatory effects, impulsive effects, dynamic separation, and vortex
         ! lift
         ds%CN=ds%CNF+ds%CNV
-        
+       
+	if (nrank==0) print *, ds%CN
+	 
         ! Calculate moment coefficient
         m=ds%cmFitExponent
         cmf=(ds%K0+ds%K1*(1-ds%fDoublePrime)+ds%K2*sin(pi*ds%fDoublePrime**m))*ds%CNC
