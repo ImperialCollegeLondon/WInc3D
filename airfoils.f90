@@ -58,6 +58,7 @@ contains
 
     airfoil1%afname=airfoil2%afname
     airfoil1%aftitle=airfoil2%aftitle
+    airfoil1%alzer=airfoil2%alzer
     airfoil1%camb=airfoil2%camb
     airfoil1%tc=airfoil2%tc
     airfoil1%TA(1:MaxAOAVals,1:MaxReVals)=airfoil2%TA(1:MaxAOAVals,1:MaxReVals)
@@ -280,7 +281,7 @@ contains
     end subroutine compute_StaticLoads
  
     subroutine EvalStaticCoeff(RE,ALPHA,CL,CD,CM25,airfoil)   
-        
+	! TAKEN FROM CACTUS !        
         implicit none
 
         real(mytype),intent(IN) :: RE, ALPHA

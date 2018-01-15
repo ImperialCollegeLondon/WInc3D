@@ -1,16 +1,16 @@
 &ActuatorLineSpecs
 name='Sheng'                ! Turbine Name
-origin = 1.,1.0,1.0             ! Turbine Origin 
+origin = .5,1.0,1.0             ! Turbine Origin 
 actuatorline_geom='Wing.al'         ! Blade Specification
 numfoil=1                           ! Number of Airfoils
 afname='S826_Ostavan.air'
 PitchControlFlag=1                  ! 0: No pitch control, 1: Sinusoidal , 2: Ramp-up
-PitchStartTime=1.0
+PitchStartTime=0.0
 PitchEndTime=5.0
 PitchAngleInit=10.0
-PitchAmp=10.
+PitchAmp=5.
 AngularPitchFreq=1.21
 AddedMassFlag=0                     ! 0: No added mass, 1: Added mass
 DynStallFlag=1	        	    ! 0: No Dynstall, 1: Yes to dynamic stall
-dynstall_param_file='S809.dyn' ! Dynamic stall parameter file 
+dynstall_param_file='S826.dyn' ! Dynamic stall parameter file 
 /END

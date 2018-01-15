@@ -116,7 +116,7 @@ module dynstall
         
 	! Convert degrees to radians
 	ds%alpha1=ds%alpha1*conrad
-        ds%alphaSS=ds%alphaSS!*conrad
+        ds%alphaSS=ds%alphaSS*conrad
         ! Define CN1 using fcrit=0.7 (Hardcoded)
         ds%CN1=ds%CNAlpha*ds%alpha1*(1.+sqrt(0.7)/2.0)**2.
 
@@ -221,14 +221,6 @@ module dynstall
         real(mytype) :: mach
 
         ! update previous values if time has changed
-        !if (time.ne.dynstall%time_prev) then
-        !    dynstall%nNewTimes=dynstall%nNewTimes+1
-        !    if (dynstall%nNewTimes > 1) then
-        !       call update_DynStall(dynstall,time)
-        !    	print *, 'Hi from the update'
-        ! 	stop
-        !    end if
-        !end if
         dynstall%nNewTimes=dynstall%nNewTimes+1
         ! Set previous angle equal to the current one if first time step with dynstall
  
@@ -244,7 +236,7 @@ module dynstall
  
         dynstall%alphaEquiv = dynstall%Alpha
         dynstall%AlphaZeroLift=airfoil%alzer*conrad ! Make it in rad
-        ! Ok
+	! Ok
         !if (nrank==0) print *, 180*dynstall%Alpha/pi, dynstall%mach, dynstall%Re, dynstall%deltaAlpha, dynstall%deltaS
         ! Ok
 
@@ -342,7 +334,7 @@ module dynstall
         real(mytype) :: kAlpha, dAlphaDS
     
         ! Calculate the circulatory normal force coefficient
-        ds%CNC=ds%CNAlpha*ds%alphaEquiv ! Here CNAlpha is the Normal Force/ alpha (rad) slope
+        ds%CNC=ds%CNAlpha*(ds%alphaEquiv-ds%AlphaZeroLift) ! Here CNAlpha is the Normal Force/ alpha (rad) slope
 
         ! Calculate the impulsive normal force coefficient
         ds%lambdaL=(pi/4.0)*(ds%alpha+chord/(4.0*Ur)*ds%deltaAlpha/dt)
@@ -373,11 +365,11 @@ module dynstall
         ds%DAlpha=ds%DAlpha_prev*exp(-ds%deltaS/ds%TAlpha)+(ds%alpha-ds%alpha_prev)*exp(-ds%deltaS/(2.0*ds%TAlpha))
         
         ds%AlphaPrime=ds%alpha-ds%DAlpha
-    
-        ! Calculate reduced pitch rate
+        
+	! Calculate reduced pitch rate
         ds%r=ds%deltaAlpha/dt*chord/(2.*Ur)
 
-        ! Claculate alphaDS0
+        ! Calculate alphaDS0
         dAlphaDS=ds%alphaDS0DiffDeg*conrad
         ds%alphaDS0=ds%alphaSS + dAlphaDS
         
@@ -422,10 +414,10 @@ module dynstall
         ds%fDoublePrime=ds%fprime-ds%DF
 
         ! Calculate vortex modulation parameter
-        if(ds%tau>=0.0.and.ds%tau<=ds%Tvl) then
-            ds%Vx=sin(pi*ds%tau/(2.0*ds%Tvl))**1.5
-        else if (ds%tau>ds%Tvl) then
-            ds%Vx=cos(pi*(ds%tau-ds%Tvl)/ds%Tv)**2.0
+        if(ds%tau>=0.0.and.ds%tau<=ds%Tv) then
+            ds%Vx=sin(pi*ds%tau/(2.0*ds%Tv))**1.5
+        else if (ds%tau>ds%Tv) then
+            ds%Vx=cos(pi*(ds%tau-ds%Tv)/ds%Tvl)**2.0
         else
             ds%Vx=0.0
         endif
@@ -440,7 +432,7 @@ module dynstall
         if(abs(ds%alpha)<abs(ds%alpha1)) then
             f=1.0-0.4*exp((abs(ds%alpha)-ds%alpha1)/ds%S1)
         else
-            f=0.02-0.58*exp((ds%alpha1-abs(ds%alpha))/ds%S2)
+            f=0.02+0.58*exp((ds%alpha1-abs(ds%alpha))/ds%S2)
         endif
 
         ! Calculate vortex lift contribution
@@ -450,14 +442,12 @@ module dynstall
         ! circulatory effects, impulsive effects, dynamic separation, and vortex
         ! lift
         ds%CN=ds%CNF+ds%CNV
-       
-	if (nrank==0) print *, ds%CN
-	 
+       	
         ! Calculate moment coefficient
         m=ds%cmFitExponent
-        cmf=(ds%K0+ds%K1*(1-ds%fDoublePrime)+ds%K2*sin(pi*ds%fDoublePrime**m))*ds%CNC
+        cmf=(ds%K0+ds%K1*(1-ds%fDoublePrime)+ds%K2*sin(pi*ds%fDoublePrime**2))*ds%CNC
         ! + moment coefficient at Zero lift angle of attack
-        cmv = ds%B2*(1.0-cos(pi*ds%tau/ds%Tvl))*ds%CNV
+        cmv = ds%B2*(1.0-cos(pi*ds%tau/ds%Tv))*ds%CNV
         ds%CM=cmf+cmv+ds%CMI
         
         return
