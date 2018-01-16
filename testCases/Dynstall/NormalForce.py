@@ -20,7 +20,7 @@ Dynamic_AOA=[];
 Dynamic_CN=[];
 time=[];
 
-for i in range (1,26):
+for i in range (1,400):
     DynamicData=np.genfromtxt('ALM/'+str(i)+'/Sheng.load',skip_header=1,delimiter=',')
     Dynamic_AOA.append(DynamicData[11,7])
     Dynamic_CN.append(DynamicData[11,15])
@@ -30,5 +30,5 @@ plt.plot(Static_AOA1,Static_CL1,'-ko')
 plt.plot(Static_AOA2,Static_CL2,'-ks')
 plt.plot(Dynamic_AOA,Dynamic_CN,'-r+')
 plt.xlim(-5.,35)
-plt.ylim(-0.2,1.5)
+plt.ylim(-0.2,2.5)
 plt.show()

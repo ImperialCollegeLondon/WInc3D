@@ -342,10 +342,9 @@ module dynstall
         ds%TI=chord/ds%speed_of_sound*(1.0+3.0*ds%mach)/4.0
 
         ds%H=ds%H_prev*exp(-dt/ds%TI)+(ds%lambdaL-ds%lambdaL_prev)*exp(-dt/(2.0*ds%TI))
-	
         
-	ds%CNI=4.0/ds%mach*ds%H
-	
+        ds%CNI=4.0/ds%mach*ds%H
+    
         ! Calculate the impulsive moment coefficient
         ds%lambdaM=3*pi/16.0*(ds%alpha+chord/(4.0*Ur)*ds%deltaAlpha/dt)+pi/16*chord/Ur*ds%deltaAlpha/dt
         
@@ -366,7 +365,7 @@ module dynstall
         
         ds%AlphaPrime=ds%alpha-ds%DAlpha
         
-	! Calculate reduced pitch rate
+        ! Calculate reduced pitch rate
         ds%r=ds%deltaAlpha/dt*chord/(2.*Ur)
 
         ! Calculate alphaDS0
@@ -409,8 +408,14 @@ module dynstall
             endif
         endif
         
+        if(ds%tau>ds%Tf) then
+            Tf=ds%Tf/2.
+        else
+            Tf=ds%Tf
+        endif
+        
         ! Calculate dynamic separation point
-        ds%DF=ds%DF_prev*exp(-ds%deltaS/ds%Tf)+(ds%fprime-ds%fprime_prev)*exp(-ds%deltaS/(2.*ds%Tf))
+        ds%DF=ds%DF_prev*exp(-ds%deltaS/Tf)+(ds%fprime-ds%fprime_prev)*exp(-ds%deltaS/(2.*Tf))
         ds%fDoublePrime=ds%fprime-ds%DF
 
         ! Calculate vortex modulation parameter
@@ -418,11 +423,13 @@ module dynstall
             ds%Vx=sin(pi*ds%tau/(2.0*ds%Tv))**1.5
         else if (ds%tau>ds%Tv) then
             ds%Vx=cos(pi*(ds%tau-ds%Tv)/ds%Tvl)**2.0
-        else
+        endif
+        
+        if (ds%tau>ds%Tvl) then
             ds%Vx=0.0
         endif
 
-	! Calculate normal force coefficient including dynamic separation point
+        ! Calculate normal force coefficient including dynamic separation point
         ds%CNF=ds%CNAlpha*(ds%alphaEquiv-ds%AlphaZeroLift)*((1.0+sqrt(ds%fDoublePrime))/2.0)**2 !+ds%CNI
 
         ! Calculate tangential force coefficient

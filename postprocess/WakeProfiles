@@ -104,6 +104,7 @@ wpwp=wwmean.reshape((nx,ny,nz),order='F')/Nsteps-wav**2
 upvp=uvmean.reshape((nx,ny,nz),order='F')/Nsteps-uav*vav
 upwp=uwmean.reshape((nx,ny,nz),order='F')/Nsteps-uav*wav
 vpwp=vwmean.reshape((nx,ny,nz),order='F')/Nsteps-vav*wav
+TKE=0.5*(upup+vpvp+wpwp)
 
 for i in range(0,nx):
     x[i,:,:]=i*dx
@@ -138,7 +139,7 @@ for i in range(len(xD)):
                 rR=float(-zlz/D+z[ixloc[0],jxloc[0],iwake]/R)
                 uUDef=float(1.-uav[ixloc[0],jxloc[0],iwake]/Uinf)
                 uU=float(uav[ixloc[0],jxloc[0],iwake]/Uinf)
-                TKEU2=float(0.5*(upup[ixloc[0],jxloc[0],iwake]+vpvp[ixloc[0],jxloc[0],iwake]+wpwp[ixloc[0],jxloc[0],iwake])/Uinf**2)
+                TKEU2=float(TKE[ixloc[0],jxloc[0],iwake]/Uinf**2)
                 upupU2=float(upup[ixloc[0],jxloc[0],iwake]/Uinf**2)
                 upvpU2=float(upvp[ixloc[0],jxloc[0],iwake]/Uinf**2)
                 upwpU2=float(upwp[ixloc[0],jxloc[0],iwake]/Uinf**2)
@@ -151,28 +152,22 @@ for i in range(len(xD)):
                 rR=float(-(xTurb[1])/R+y[ixloc[0],iwake,kxloc]/R)
                 uUDef=float(1.-uav[ixloc[0],iwake,kxloc[0]]/Uinf)
                 uU=float(uav[ixloc[0],iwake,kxloc[0]]/Uinf)
-                TKEU2=float(0.5*(upup[ixloc[0],iwake,kxloc[0]]+vpvp[ixloc[0],iwake,kxloc[0]]+wpwp[ixloc[0],iwake,kxloc[0]])/Uinf**2)
+                TKEU2=float(TKE[ixloc[0],iwake,kxloc[0]]/Uinf**2)
                 upupU2=float(upup[ixloc[0],iwake,kxloc[0]]/Uinf**2)
                 upvpU2=float(upvp[ixloc[0],iwake,kxloc[0]]/Uinf**2)
                 upwpU2=float(upwp[ixloc[0],iwake,kxloc[0]]/Uinf**2)
                 vpwpU2=float(vpwp[ixloc[0],iwake,kxloc[0]]/Uinf**2)
                 fout.write(str(rR)+' '+str(uUDef)+' '+str(uU) +' '+str(TKEU2)+' '+str(upupU2)+' '+str(upvpU2)+' '+str(upwpU2)+' '+str(vpwpU2)+'\n')
             
-    if args.plot:    
-        plt.figure(1)
-        plt.plot(-zlz/(2.0*R)+z[ixloc[0],jxloc[0],:].reshape(nz,1)/R,uav[ixloc[0],jxloc[0],:].reshape(nz,1)/Uinf,'k')
-        plt.show()
-
-        plt.figure(2)
-        plt.plot(-zlz/(2.0*R)+z[ixloc[0],jxloc[0],:].reshape(nz,1)/R,upup[ixloc[0],jxloc[0],:].reshape(nz,1)/Uinf**2,'k')
-        plt.show()
-
-exit()
-
-plt.figure()
-plt.pcolormesh(x[:,49,:],z[:,49,:],upup[:,49,:],cmap=plt.get_cmap('jet'))
-plt.colorbar()
-plt.xlim(0,11.15)
-plt.ylim(0,2.7)
-plt.axis('equal')
-plt.show()
+if args.plot:    
+    plt.figure(1,figsize=(xlx,zlz),dpi=10,edgecolor='w')
+    plt.pcolormesh(x[:,jxloc[0],:],z[:,jxloc[0],:],uav[:,jxloc[0],:]/Uinf,cmap=plt.get_cmap('jet'),edgecolor='none',vmin=0.4,vmax=1.2)
+    plt.xlim(0,xlx)
+    plt.ylim(0,zlz)
+    plt.savefig(output+OutputName+'_U.eps',format='eps',dpi=10)
+    
+    plt.figure(2,figsize=(xlx,zlz),dpi=10,edgecolor='w')
+    plt.pcolormesh(x[:,jxloc[0],:],z[:,jxloc[0],:],TKE[:,jxloc[0],:]/Uinf**2.,cmap=plt.get_cmap('jet'),edgecolor='none',vmin=0.,vmax=0.05)
+    plt.xlim(0,xlx)
+    plt.ylim(0,zlz)
+    plt.savefig(output+OutputName+'_TKE.eps',format='eps',dpi=10)    
