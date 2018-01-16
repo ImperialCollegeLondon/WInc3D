@@ -9,6 +9,7 @@ import csv
 import f90nml
 import numpy as np
 from scipy import interpolate
+from pylab import *
 import matplotlib.pyplot as plt
 
 # ====================================
@@ -161,13 +162,17 @@ for i in range(len(xD)):
             
 if args.plot:    
     plt.figure(1,figsize=(xlx,zlz),dpi=10,edgecolor='w')
-    plt.pcolormesh(x[:,jxloc[0],:],z[:,jxloc[0],:],uav[:,jxloc[0],:]/Uinf,cmap=plt.get_cmap('jet'),edgecolor='none',vmin=0.4,vmax=1.2)
+    plt.pcolormesh(x[:,jxloc[0],:],z[:,jxloc[0],:],uav[:,jxloc[0],:]/Uinf,cmap=plt.get_cmap('jet'),edgecolor='none',vmin=0.4,vmax=1.2,linewidth=0)
     plt.xlim(0,xlx)
     plt.ylim(0,zlz)
+    plt.xticks([])
+    plt.yticks([])
     plt.savefig(output+OutputName+'_U.eps',format='eps',dpi=10)
     
     plt.figure(2,figsize=(xlx,zlz),dpi=10,edgecolor='w')
-    plt.pcolormesh(x[:,jxloc[0],:],z[:,jxloc[0],:],TKE[:,jxloc[0],:]/Uinf**2.,cmap=plt.get_cmap('jet'),edgecolor='none',vmin=0.,vmax=0.05)
+    plt.pcolormesh(x[:,jxloc[0],:],z[:,jxloc[0],:],TKE[:,jxloc[0],:]/Uinf**2.,cmap=plt.get_cmap('jet'),edgecolor='none',vmin=0.,vmax=0.05,linewidth=0)
     plt.xlim(0,xlx)
     plt.ylim(0,zlz)
+    plt.xticks([])
+    plt.yticks([])
     plt.savefig(output+OutputName+'_TKE.eps',format='eps',dpi=10)    
