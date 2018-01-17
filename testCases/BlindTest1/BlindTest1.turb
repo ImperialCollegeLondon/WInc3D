@@ -16,9 +16,10 @@ OperFlag=1              ! 1: Constant rotation, 2: Control_based
 uref=1.0                ! Reference Velocity
 tsr=6                   ! Tip Speed Ratio
 RotFlag=2               ! 1: Clockwise, 2: Counterclockwise
+DynStallFlag=1	        	    ! 0: No Dynstall, 1: Yes to dynamic stall
+dynstall_param_file='S826.dyn' ! Dynamic stall parameter file 
 AddedMassFlag=0         ! 0: No added mass, 1: Added mass
 RandomWalkForcingFlag=0 ! 0: No Random Walk turbulence from blades
 EndEffectsFlag=2	! 0: TLC, 1: Glauert,  2: Shen et al 2005
 TipCorr=1
-DynStallFlag=0
 /End
