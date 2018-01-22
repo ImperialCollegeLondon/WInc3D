@@ -45,7 +45,10 @@ type TurbineType
     real(mytype) :: CFy ! Fy coefficient 
     real(mytype) :: CFz ! Fz coefficient 
     real(mytype) :: CT  ! Thrust coefficient    
-    
+   
+    ! Rotor Statistics
+    real(mytype) :: CT_ave, CP_ave, Torque_ave
+
 end type TurbineType
     
 

@@ -148,9 +148,9 @@ call alloc_x(nut1);call alloc_x(ucx1);call alloc_x(ucy1);call alloc_x(ucz1);
     allocate(dpdyz1(xsize(1),xsize(2)),dpdyzn(xsize(1),xsize(2)))
 
     if (iin==3) then 
-        allocate(ux_inflow(INFLOW_TIMESTEPS,xsize(2),xsize(3))) 
-        allocate(uy_inflow(INFLOW_TIMESTEPS,xsize(2),xsize(3))) 
-        allocate(uz_inflow(INFLOW_TIMESTEPS,xsize(2),xsize(3))) 
+        allocate(ux_inflow(1,xsize(2),xsize(3))) 
+        allocate(uy_inflow(1,xsize(2),xsize(3))) 
+        allocate(uz_inflow(1,xsize(2),xsize(3))) 
     endif
     ! Allocate Momentum Source Terms
     if (ialm==1) then

@@ -59,11 +59,10 @@ integer :: ifft, ivirt,istret,iforc_entree,iturb, ialm, Nturbines, NActuatorline
 integer :: itype, iskew, iin, nscheme, ifirst, ilast, iles, jLES, jADV
 integer :: isave,ilit,srestart,idebmod, imodulo, idemarre, icommence, irecord
 integer :: iscalar,ilag,npif,izap
-integer :: INFLOW_TIMESTEPS
-character :: inflow_file
-integer :: iprobe, Nprobes, Nsampling
+character :: inflow_file*80
+integer :: iprobe, Nprobes, Nsampling, ioutflow, refinflowtime
 integer :: iabl, ibmshape, SmagWallDamp, nSmag
-character :: Probelistfile*80
+character :: Probelistfile*80, inflowdir*80
 integer :: nxboite, istat,iread,iadvance_time, ibuoyancy, icoriolis
 real(mytype) :: xlx,yly,zlz,dx,dy,dz,dx2,dy2,dz2
 real(mytype) :: dt,xnu,noise,noise1,pi,twopi,u1,u2,re,sc,Pr,TempRef,CoriolisFreq

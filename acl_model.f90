@@ -18,9 +18,6 @@ module actuator_line_model
     real(mytype),save :: DeltaT, Visc, ctime
     logical,save :: actuator_line_model_writeFlag=.true.
 
-    ! TurbineStatistics
-    real(mytype), allocatable, save :: CP_ave(:), CT_ave(:), Torque_ave(:)
-    type(ActuatorLineType), allocatable, save :: Blade_ave(:)
 
     public :: actuator_line_model_init, actuator_line_model_write_output, &
     actuator_line_model_update, actuator_line_model_compute_forces 
@@ -137,8 +134,6 @@ contains
 
         ! Allocate Turbines Arrays
         Allocate(Turbine(Ntur))
-        ! Allocate statistics for turbine
-        Allocate(CP_ave(Ntur),CT_ave(Ntur),Torque_ave(NTur),Blade_ave(NTur))
         ! ==========================================
         ! Get Turbines' options and INITIALIZE THEM
         ! ==========================================
@@ -477,12 +472,17 @@ subroutine actuator_line_statistics()
 
     implicit none
     integer :: itur
-    
-    if(nrank==0) print *, 'Writing statistics for alm'
+     
     do itur=1,Ntur
-    CP_ave(itur)=CP_ave(itur)+Turbine(itur)%CP
-    CT_ave(itur)=CT_ave(itur)+Turbine(itur)%CT
-    Torque_ave(itur)=CP_ave(itur)+Turbine(itur)%Torque
+    turbine(itur)%CP_ave    =turbine(itur)%CP_ave+Turbine(itur)%CP
+    turbine(itur)%CT_ave    =turbine(itur)%CT_ave+Turbine(itur)%CT
+    turbine(itur)%Torque_ave=turbine(itur)%CP_ave+Turbine(itur)%Torque
+    if(nrank==0) then
+        print *, 'Writing statistics for alm'
+        print *, 'Turbine name , CT_ave, CP_ave, Torque_ave'
+        print *, turbine(itur)%name, turbine(itur)%CT_ave, turbine(itur)%CP_ave, turbine(itur)%Torque_ave
+    endif
+
     enddo
 
     return

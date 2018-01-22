@@ -427,10 +427,14 @@ endif
 
 end subroutine restart
 
+! ************************************************************************
 subroutine read_inflow(ux,uy,uz)
+!
+! ************************************************************************
 
 USE decomp_2d
 USE decomp_2d_io
+USE actuator_line_model_utils
 USE param
 USE MPI
 
@@ -438,25 +442,65 @@ implicit none
 
 TYPE(DECOMP_INFO) :: phG
 integer :: i,j,k,irestart,nzmsize,fh,ierror,code
-real(mytype), dimension(INFLOW_TIMESTEPS,xsize(2),xsize(3)) :: ux,uy,uz
+real(mytype), dimension(1,xsize(2),xsize(3)) :: ux,uy,uz
 integer (kind=MPI_OFFSET_KIND) :: filesize, disp
 real(mytype) :: xdt
 integer, dimension(2) :: dims, dummy_coords
 logical, dimension(2) :: dummy_periods
 
-call MPI_FILE_OPEN(MPI_COMM_WORLD, inflow_file, &
-     MPI_MODE_CREATE+MPI_MODE_WRONLY, MPI_INFO_NULL, &
+inflow_file=trim(inflowdir)//adjustl(trim(outdirname(itime+refinflowtime)))
+
+call MPI_FILE_OPEN(MPI_COMM_WORLD,trim(inflow_file)//'/ux' , &
+     MPI_MODE_RDONLY, MPI_INFO_NULL, &
      fh, ierror)
-filesize = 0_MPI_OFFSET_KIND
-call MPI_FILE_SET_SIZE(fh,filesize,ierror)  ! guarantee overwriting
 disp = 0_MPI_OFFSET_KIND
 call decomp_2d_read_var(fh,disp,1,ux)
+call MPI_FILE_CLOSE(fh,ierror)
+
+call MPI_FILE_OPEN(MPI_COMM_WORLD, trim(inflow_file)//'/uy', &
+     MPI_MODE_RDONLY, MPI_INFO_NULL, &
+     fh, ierror)
+disp = 0_MPI_OFFSET_KIND
 call decomp_2d_read_var(fh,disp,1,uy)
+call MPI_FILE_CLOSE(fh,ierror)
+
+call MPI_FILE_OPEN(MPI_COMM_WORLD, trim(inflow_file)//'/uz', &
+     MPI_MODE_RDONLY, MPI_INFO_NULL, &
+     fh, ierror)
+disp = 0_MPI_OFFSET_KIND
 call decomp_2d_read_var(fh,disp,1,uz)
 call MPI_FILE_CLOSE(fh,ierror)
 
-
 end subroutine read_inflow
+
+
+! ***********************************************************************
+subroutine write_outflow(ux,uy,uz)
+!
+! ***********************************************************************
+    USE decomp_2d
+    USE decomp_2d_io
+    USE actuator_line_model_utils
+    USE param
+    USE MPI
+
+implicit none
+
+real(mytype), dimension(xsize(1),xsize(2),xsize(3)) :: ux,uy,uz
+character :: outdir*80, filename*80
+        
+call system('mkdir -p Outflow/'//adjustl(trim(outdirname(itime))))
+        
+outdir='Outflow/'//adjustl(trim(outdirname(itime)))
+
+filename=trim(outdir)//'/ux'
+call decomp_2d_write_plane(1,ux,1,nxm/2,filename)
+filename=trim(outdir)//'/uy'
+call decomp_2d_write_plane(1,uy,1,nxm/2,filename)
+filename=trim(outdir)//'/uz'
+call decomp_2d_write_plane(1,uz,1,nxm/2,filename)
+
+end subroutine write_outflow
 
 !*******************************************************************
 subroutine stretching()

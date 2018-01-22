@@ -5,7 +5,7 @@ module actuator_line_write_output
 
 contains
  
-	subroutine actuator_line_element_write_output(act_line,dir)
+    subroutine actuator_line_element_write_output(act_line,dir)
 
         implicit none
         type(ActuatorLineType),intent(in) :: act_line
@@ -53,5 +53,20 @@ write(2016,Format) turbine%AzimAngle/(2*pi),',',turbine%IRotor,',',turbine%CFx,'
         close(2016)
 
     end subroutine actuator_line_turbine_write_output
+    
+    subroutine actuator_line_turbine_write_statistics(turbine,dir)
+
+        implicit none
+        type(TurbineType),intent(in) :: turbine
+        character(len=100),intent(in) :: dir
+        character(LEN=22) :: Format
+        
+        open(2019,File=trim(dir)//'/'//trim(turbine%name)//'.stat')
+        write(2019,*) 'Cd_ave , Cp_ave , Torque_ave'
+        Format="(3(E14.7,A))"
+        write(2019,Format) turbine%CT_ave,',',turbine%CP_ave,',',turbine%Torque_ave
+        close(2019)
+
+    end subroutine actuator_line_turbine_write_statistics
 
 end module actuator_line_write_output

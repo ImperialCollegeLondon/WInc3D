@@ -1,7 +1,7 @@
 &FlowParam
     ! Flow type
     itype = 8             ! Type of Flow  
-    iin = 2               ! Inflow conditions (1: Random uniform, 2: Random near the bottom)
+    iin = 2               ! Inflow conditions (1: Random uniform, 2: Random near the bottom 3: from planes)
     
     ! Domain and scaling
     xlx = 5.              ! Lx (Size of the box in x-direction)
@@ -40,7 +40,7 @@
 
     ! Time and time-marching schemes
     ifirst = 1	          ! First iteration   
-    ilast = 450000        ! Last iteration 
+    ilast = 100        ! Last iteration 
     nscheme = 4           ! Temporal scheme (1: ?, 2: RK3, 3:RK4, 4:AB2)
     dt = 0.001            ! Time step
     
@@ -59,7 +59,7 @@
 /End
 
 &StatParam
-    spinup_time=250.	  ! Time after which statistics are collected (in seconds)
+    spinup_time=0.	  ! Time after which statistics are collected (in seconds)
     nstat=1               ! Size arrays for statistic collection 
     nvisu=1               ! Size for visualisation collection 
     iprobe = 0            ! Set probe
@@ -69,8 +69,11 @@
 
 &FileParam
     ilit=0                ! Read initial flow field ?
-    isave=1000     	  ! Frequency for writing backup file  
+    isave=1000     	      ! Frequency for writing backup file  
     imodulo=200           ! Frequency for visualization 
+    ioutflow=0            ! Outflow flag
+    inflowdir='Outflow/'  ! Inflow read directory
+    refinflowtime=10       ! Reference number for starting counting 
 /End
 
 &IBMParam

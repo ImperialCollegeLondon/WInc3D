@@ -219,7 +219,7 @@ USE MPI
 implicit none
 
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux,uy,uz,phi
-real(mytype),dimension(INFLOW_TIMESTEPS,xsize(2),xsize(3)) :: ux_in,uy_in,uz_in,phi_in
+real(mytype),dimension(1,xsize(2),xsize(3)) :: ux_in,uy_in,uz_in,phi_in
 real(mytype) :: r1,r2,r3,y,z,um
 integer :: k,j,i,fh,ierror,ii
 integer :: code
@@ -284,23 +284,16 @@ endif
 ! READING FROM FILES
 if (iin.eq.3) then   
    
-   if (nrank==0) print *,'READ inflow from Planes'
-   
-   do k=1,xsize(3)
-      z=(k+xstart(3)-1-1)*dz-zlz/2.
-   do j=1,xsize(2)
+   if (nrank==0) print *,'READ inflow from planes'
+
+    call read_inflow(ux_in,uy_in,uz_in)
+
+    do k=1,xsize(3)
+    do j=1,xsize(2)
       ! Making noise to go to zero at the boundaries
-      if (istret.eq.0) y=(j+xstart(2)-1-1)*dy
-      if (istret.ne.0) y=yp(j+xstart(2)-1)
-        if (itime<=INFLOW_TIMESTEPS) then
-            bxx1(j,k)=ux_in(itime,j,k)  
-            bxy1(j,k)=uy_in(itime,j,k)
-            bxz1(j,k)=uz_in(itime,j,k)
-        else
-            bxx1(j,k)=0.!ux_in(itime,j,k)  
-            bxy1(j,k)=0.!uy_in(itime,j,k)
-            bxz1(j,k)=0.!uz_in(itime,j,k) 
-        endif
+            bxx1(j,k)=ux_in(1,j,k)  
+            bxy1(j,k)=uy_in(1,j,k)
+            bxz1(j,k)=uz_in(1,j,k)
     enddo
     enddo
 endif

@@ -308,7 +308,11 @@ do itime=ifirst,ilast
    if (t>=spinup_time) then
        call STATISTIC(ux1,uy1,uz1,phi1,ta1,umean,vmean,wmean,phimean,uumean,vvmean,wwmean,&
            uvmean,uwmean,vwmean,phiphimean,tmean)
+        
+       if(ioutflow==1) call write_outflow(ux1,uy1,uz1) 
+
        if(ialm==1) call actuator_line_statistics()
+
        if(iprobe==1) then
            if (mod(itime,nsampling)==0) then
                call probe(ux1,uy1,uz1,phi1)
@@ -330,7 +334,7 @@ do itime=ifirst,ilast
 
    if (ialm==1) then
     if (nrank==0) then
-       call actuator_line_model_write_output(itime/imodulo) ! Write the Turbine Statistics 
+       call actuator_line_model_write_output(itime/imodulo) ! Write the Rotor output
     end if
    endif 
 enddo
