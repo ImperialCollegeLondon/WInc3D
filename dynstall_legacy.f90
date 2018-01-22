@@ -275,9 +275,9 @@ subroutine LB_DynStall(airfoil,lb,CLstat,CDstat,alphaL,alpha5,Re,CL,CD)
 
     ! Airfoil data
     AOA0=airfoil%alzer
-    call EvalStaticStallParams(airfoil,Re,CLCritP,CLCritN,CLa)
-    lb%CLCritP=CLCritP
-    lb%CLCritN=CLCritN
+    !call EvalStaticStallParams(airfoil,Re,CLCritP,CLCritN,CLa)
+    lb%CLCritP=1.0
+    lb%CLCritN=-1.0
     ! Model constants
     KD=0.1          ! Trailing Edge separation drag factor
 

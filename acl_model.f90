@@ -256,11 +256,19 @@ contains
             end do
         endif
 
-        if(DynStallFlag==1) then
-            do j=1,Turbine(i)%NBlades
-            Turbine(i)%Blade(j)%do_dynamic_stall=.true.  
-            Turbine(i)%Blade(j)%DynStallFile=dynstall_param_file
-            end do
+        if(DynStallFlag>0) then
+		if(DynStallFlag==1) then ! Do Sheng et al. modelling
+            		do j=1,Turbine(i)%NBlades
+            		Turbine(i)%Blade(j)%do_dynamic_stall=.true.  
+            		Turbine(i)%Blade(j)%DynStallFile=dynstall_param_file
+            		end do
+		endif
+		if(DynStallFlag==2) then ! Do the legacy LB model
+            		do j=1,Turbine(i)%NBlades
+            		Turbine(i)%Blade(j)%do_LB_stall=.true.  
+            		Turbine(i)%Blade(j)%DynStallFile=dynstall_param_file
+            		end do	
+		endif
         endif
         
         if (EndEffectsFlag>0) then
@@ -335,9 +343,15 @@ contains
             Actuatorline%do_added_mass=.true.
         endif
 
-        if(DynStallFlag==1) then
-            Actuatorline%do_dynamic_stall=.true.
-            Actuatorline%DynStallFile=dynstall_param_file
+        if(DynStallFlag>0) then
+		if(DynStallFlag==1) then
+            		Actuatorline%do_dynamic_stall=.true.
+            		Actuatorline%DynStallFile=dynstall_param_file
+		endif
+		if(DynstallFlag==2) then
+            		Actuatorline%do_LB_stall=.true.
+            		Actuatorline%DynStallFile=dynstall_param_file	
+		endif
         endif
     
     !    !##################4 Get Pitching Opions ##################

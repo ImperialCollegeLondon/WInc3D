@@ -249,7 +249,6 @@ module dynstall
         
         call calcSeparated(dynstall)
     
-
         ! Modify Coefficients
         CLdyn=dynstall%CN*cos(dynstall%alpha)+dynstall%CT*sin(dynstall%alpha)
         CDdyn=dynstall%CN*sin(dynstall%alpha)-dynstall%CT*cos(dynstall%alpha)+dynstall%CD0
@@ -346,7 +345,7 @@ module dynstall
         ds%CNI=4.0/ds%mach*ds%H
     
         ! Calculate the impulsive moment coefficient
-        ds%lambdaM=3*pi/16.0*(ds%alpha+chord/(4.0*Ur)*ds%deltaAlpha/dt)+pi/16*chord/Ur*ds%deltaAlpha/dt
+        ds%lambdaM=3*pi/16.0*(ds%alpha+chord/(4.0*Ur)*ds%deltaAlpha/dt)+pi/16.*chord/Ur*ds%deltaAlpha/dt
         
         ds%J=ds%J_prev*exp(-dt/ds%TI)+(ds%lambdaM-ds%lambdaM_prev)*exp(-dt/(2.0*ds%TI))
         
@@ -393,10 +392,10 @@ module dynstall
         real(mytype) :: f, Tf,Tv, Tst, KN, m, cmf, cpv,cmv
 
         ! Calculate trailing-edge separation point
-        if (abs(ds%alphaPrime) < ds%alpha1) then
-            ds%fprime=1.0-0.4*exp((abs(ds%alphaPrime) -ds%alpha1)/ds%S1) 
+        if (abs(ds%alphaPrime)<ds%alpha1) then
+            ds%fprime=1.0-0.4*exp((abs(ds%alphaPrime)-ds%alpha1)/ds%S1) 
         else
-            ds%fprime=0.02+0.58*exp((ds%alpha1 -abs(ds%alphaPrime))/ds%S2)
+            ds%fprime=0.02+0.58*exp((ds%alpha1-abs(ds%alphaPrime))/ds%S2)
         endif
 
         ! Calculate vortex tracking time
