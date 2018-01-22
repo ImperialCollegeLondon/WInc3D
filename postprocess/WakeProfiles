@@ -151,7 +151,7 @@ for i in range(len(xD)):
         with open(output+OutputName+'_XD_'+str(round(xD[i],1))+'_Vertical.dat','w') as fout:
             fout.write('# y/R 1-u/Uref u/U k/Uref^2 up^2/Uref^2 upvp/Uref^2 upwp/Uref^2 vwpUref^2\n')
             for iwake in range(ny):
-                rR=float(-(xTurb[1])/R+y[ixloc[0],iwake,kxloc]/R)
+                rR=float(-(xTurb[1])/R+y[ixloc[0],iwake,kxloc[0]]/R)
                 uUDef=float(1.-uav[ixloc[0],iwake,kxloc[0]]/Uinf)
                 uU=float(uav[ixloc[0],iwake,kxloc[0]]/Uinf)
                 TKEU2=float(TKE[ixloc[0],iwake,kxloc[0]]/Uinf**2)

@@ -3,6 +3,7 @@ module actuator_line_element
     use decomp_2d, only: mytype
     use actuator_line_model_utils 
     use airfoils
+    use dynstall_legacy
     use dynstall
 
 type ActuatorLineType
@@ -97,7 +98,8 @@ type ActuatorLineType
     type(AirfoilType), allocatable :: EAirfoil(:)      ! Element Airfoil 
     integer :: NAirfoilData
     type(AirfoilType), allocatable :: AirfoilData(:)   ! Element Airfoil 
-    type(DS_Type), allocatable :: EDynstall(:)        ! Element Dynamic Stall Model
+    type(DS_Type), allocatable :: EDynstall(:)         ! Element Dynamic Stall Model of the Sheng et. al. 2008 model
+    type(LB_Type), allocatable :: ELBStall(:)	       ! Element Dynamic Stall Model of the classic Leishman-Beddoes model (Taken from CACTUS)
     
     ! Forces and Torques on the ActuatorLine 
     real(mytype) :: Fx     ! Element Force in the global x-direction
@@ -115,6 +117,7 @@ type ActuatorLineType
     ! Unsteady Loading
     logical :: do_added_mass=.false.
     logical :: do_dynamic_stall=.false.
+    logical :: do_lb_stall=.false.
     logical :: do_DynStall_AlphaEquiv=.false.
     logical :: do_random_walk_forcing=.false.
 
@@ -746,6 +749,7 @@ end type ActuatorLineType
     allocate(actuatorline%Eepsilon(NElem))
     allocate(actuatorline%EAirfoil(Nelem))
     allocate(actuatorline%EDynstall(Nelem))
+    allocate(actuatorline%ELBstall(Nelem))
     allocate(actuatorline%ERdist(Nelem))
     allocate(actuatorline%EVx(NElem))
     allocate(actuatorline%EVy(NElem))
