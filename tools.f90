@@ -428,48 +428,23 @@ endif
 end subroutine restart
 
 ! ************************************************************************
-subroutine read_inflow(ux,uy,uz)
+subroutine read_inflow(ux,uy,uz,filename)
 !
 ! ************************************************************************
 
 USE decomp_2d
 USE decomp_2d_io
-USE actuator_line_model_utils
 USE param
 USE MPI
 
 implicit none
 
-TYPE(DECOMP_INFO) :: phG
-integer :: i,j,k,irestart,nzmsize,fh,ierror,code
-real(mytype), dimension(1,xsize(2),xsize(3)) :: ux,uy,uz
-integer (kind=MPI_OFFSET_KIND) :: filesize, disp
-real(mytype) :: xdt
-integer, dimension(2) :: dims, dummy_coords
-logical, dimension(2) :: dummy_periods
+real(mytype), dimension(xsize(2),xsize(3)),intent(inout) :: ux,uy,uz
+character :: filename*80
 
-inflow_file=trim(inflowdir)//adjustl(trim(outdirname(itime+refinflowtime)))
-
-call MPI_FILE_OPEN(MPI_COMM_WORLD,trim(inflow_file)//'/ux' , &
-     MPI_MODE_RDONLY, MPI_INFO_NULL, &
-     fh, ierror)
-disp = 0_MPI_OFFSET_KIND
-call decomp_2d_read_var(fh,disp,1,ux)
-call MPI_FILE_CLOSE(fh,ierror)
-
-call MPI_FILE_OPEN(MPI_COMM_WORLD, trim(inflow_file)//'/uy', &
-     MPI_MODE_RDONLY, MPI_INFO_NULL, &
-     fh, ierror)
-disp = 0_MPI_OFFSET_KIND
-call decomp_2d_read_var(fh,disp,1,uy)
-call MPI_FILE_CLOSE(fh,ierror)
-
-call MPI_FILE_OPEN(MPI_COMM_WORLD, trim(inflow_file)//'/uz', &
-     MPI_MODE_RDONLY, MPI_INFO_NULL, &
-     fh, ierror)
-disp = 0_MPI_OFFSET_KIND
-call decomp_2d_read_var(fh,disp,1,uz)
-call MPI_FILE_CLOSE(fh,ierror)
+    call decomp_2d_read_plane(1,ux,1,1,trim(filename)//'/ux')
+    call decomp_2d_read_plane(1,uy,1,1,trim(filename)//'/uy')
+    call decomp_2d_read_plane(1,uz,1,1,trim(filename)//'/uz')
 
 end subroutine read_inflow
 

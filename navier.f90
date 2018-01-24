@@ -214,6 +214,7 @@ USE param
 USE IBM
 USE decomp_2d
 USE decomp_2d_io
+USE actuator_line_model_utils
 USE MPI
 
 implicit none
@@ -283,19 +284,9 @@ endif
 
 ! READING FROM FILES
 if (iin.eq.3) then   
-   
-   if (nrank==0) print *,'READ inflow from planes'
-
-    call read_inflow(ux_in,uy_in,uz_in)
-
-    do k=1,xsize(3)
-    do j=1,xsize(2)
-      ! Making noise to go to zero at the boundaries
-            bxx1(j,k)=ux_in(1,j,k)  
-            bxy1(j,k)=uy_in(1,j,k)
-            bxz1(j,k)=uz_in(1,j,k)
-    enddo
-    enddo
+    if (nrank==0) print *,'READ inflow from planes'
+    inflow_file=trim(inflowdir)//adjustl(trim(outdirname(itime+refinflowtime)))
+    call read_inflow(bxx1,bxy1,bxz1,inflow_file)
 endif
 
 
@@ -378,7 +369,8 @@ subroutine ecoule(ux1,uy1,uz1,phi1)
 
 USE param
 USE IBM
-USE decomp_2d
+USE decomp_2d 
+USE actuator_line_model_utils
 
 implicit none
 
@@ -419,7 +411,14 @@ if (itype.eq.2) then
 endif
 
 if (itype.eq.3) then
-
+    if (nrank==0) print *,'READ inflow from planes'
+    do i=1,xsize(1)
+         inflow_file=trim(inflowdir)//adjustl(trim(outdirname(itime)))
+         call read_inflow(bxx1,bxy1,bxz1,inflow_file)
+         ux1(xsize(1)-i+1,:,:)=bxx1(:,:)
+         uy1(xsize(1)-i+1,:,:)=bxy1(:,:)
+         uz1(xsize(1)-i+1,:,:)=bxz1(:,:)
+    enddo
 endif
 
 if (itype.eq.4) then

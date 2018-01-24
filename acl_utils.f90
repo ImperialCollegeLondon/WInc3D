@@ -3,7 +3,6 @@ module actuator_line_model_utils
     use decomp_2d, only: mytype
     implicit none
     ! Define parameters for ALM
-    real(mytype), parameter :: pi=3.14159265359    
 
     public QuatRot, cross, IsoKernel, AnIsoKernel, int2str
 
@@ -158,6 +157,7 @@ contains
         implicit none
         integer, intent(in) :: dim
         real(mytype), intent(in) :: dr, epsilon_par
+        real(mytype), parameter :: pi=3.14159265359    
             
             if(dim==2) then    
             IsoKernel = 1.0/(epsilon_par**2*pi)*exp(-(dr/epsilon_par)**2.0)
@@ -175,6 +175,7 @@ contains
         implicit none
         real(mytype),intent(in) :: dx,dy,dz,nx,ny,nz,tx,ty,tz,sx,sy,sz,ec,et,es
         real(mytype) :: n,t,s
+        real(mytype), parameter :: pi=3.14159265359    
 
         n=dx*nx+dy*ny+dz*nz ! normal projection
         t=dx*tx+dy*ty+dz*tz ! Chordwise projection
