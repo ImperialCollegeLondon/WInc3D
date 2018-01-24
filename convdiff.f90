@@ -51,9 +51,9 @@ real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux1,uy1,uz1,phi1,ep1,ucx1,
 real(mytype),dimension(xsize(1),xsize(2),xsize(3),25) :: uxt,uyt,uzt
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ta1,tb1,tc1,td1,te1,tf1,tf1_abl,tg1,th1,ti1,di1
 real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: ux2,uy2,uz2,phi2,deltaphi2 
-real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: ta2,tb2,tc2,td2,te2,tf2,tf2_abl,tg2,th2,ti2,tj2,di2
+real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: ta2,tb2,tc2,td2,te2,tf2,tf2_abl,ta2_abl,tg2,th2,ti2,tj2,di2
 real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: ux3,uy3,uz3,phi3
-real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3
+real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3,ta3_abl
 
 !LES Arrays
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: sxx1,syy1,szz1,&
@@ -348,14 +348,17 @@ else
 endif
 
 
-! Apply first condition for wall model
+! Apply boundary conditions of the wall model
 if(jLES==1.and.iabl==1) then
     call wall_shear_stress(ux1,uy1,uz1,nut1,sxy1,syz1,tauwallxy1,tauwallzy1,wallfluxx1,wallfluxy1,wallfluxz1)
     ! Calculate the derxx_iles
-    call derxx_iles(tf1_abl,uz1,di1,sx,sfxp,ssxp,swxp,xsize(1),xsize(2),xsize(3),1)
+    call derzz (ta3_abl,ux3,di3,sz,sfzp,sszp,swzp,zsize(1),zsize(2),zsize(3),1)
+    call transpose_z_to_y(ta3_abl,ta2_abl) 
+    
+    call derxx(tf1_abl,uz1,di1,sx,sfxp,ssxp,swxp,xsize(1),xsize(2),xsize(3),1)
     call transpose_x_to_y(tf1_abl,tf2_abl) 
     if(ystart(2)==1) then
-    td2(:,1,:)=-1./(k_roughness*(dy/2.)**2.)+ta2(:,1,:) 
+    td2(:,1,:)=-1/(k_roughness*(dy/2.)**2.)+ta2_abl(:,1,:) 
     tf2(:,1,:)=tf2_abl(:,1,:)
     endif
 endif
@@ -419,10 +422,6 @@ elseif(jLES==4) then ! scale-invariant dynamic Smagorinsky
     ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)+sgsx1(:,:,:)
     tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)+sgsy1(:,:,:)
     tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)+sgsz1(:,:,:)
-elseif(jLES==5) then ! scale-dependent dynamic Smagorinsky 
-    ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)+sgsx1(:,:,:)
-    tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)+sgsy1(:,:,:)
-    tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)+sgsz1(:,:,:)
 else
     if(nrank==0) then
     write(*,*) 'Dont know what to do. This LES model is not defined'
@@ -431,7 +430,6 @@ else
     write(*,*) '               : 2--> standard Smagorinsky'
     write(*,*) '               : 3--> Wall-Adaptive LES'
     write(*,*) '               : 4--> Scale-invariant dynamic smagorinsky model'
-    write(*,*) '               : 5--> Scale-dependent dynamic smagorinsky model'
     endif
     stop
 endif

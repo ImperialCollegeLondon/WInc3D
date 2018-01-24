@@ -49,13 +49,13 @@
     iscalar = 0           ! iscalar# (0: no scalar, 1:scalar)
     
     ! Large-eddy simulation modelling parameters
-    jles=2                ! LES Model (0:DNS, 1: iLES 2:Smag, 3:WALE, 4: scale-invariant dyn. Smag, 5: scale-dependent dyn. Smag )
+    jles=1                ! LES Model (0:DNS, 1: iLES 2:Smag, 3:WALE, 4: scale-invariant dyn. Smag, 5: scale-dependent dyn. Smag )
     FSGS=1.0              ! Filter Size/ Grid Size for explicit LES only
     smagcst=0.17          ! Smagorinsky constant
     SmagWallDamp=1        ! Smagorinsky damping function for ABL if 1
     nSmag=1               ! Smagorinksy damping coefficient 
     walecst=0.5           ! WALES Model Coefficient
-    rxxnu=10        	  ! Implicit LES factor 
+    rxxnu=100        	  ! Implicit LES factor 
 /End
 
 &StatParam
