@@ -4,6 +4,7 @@ module Airfoils
   use actuator_line_model_utils
 
   implicit none
+  real(mytype), parameter :: pi=acos(-1.0)
   real(mytype), parameter :: conrad = pi / 180.0 
   real(mytype), parameter :: condeg = 180.0 / pi  
   
