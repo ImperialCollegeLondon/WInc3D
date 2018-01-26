@@ -40,7 +40,7 @@
 
     ! Time and time-marching schemes
     ifirst = 1	          ! First iteration   
-    ilast = 650000        ! Last iteration 
+    ilast = 450000        ! Last iteration 
     nscheme = 4           ! Temporal scheme (1: ?, 2: RK3, 3:RK4, 4:AB2)
     dt = 0.001            ! Time step
     
