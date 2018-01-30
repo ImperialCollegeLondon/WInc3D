@@ -16,6 +16,7 @@ module dynstall_legacy
     integer :: LESepState
     real(mytype) :: CLRef 
     real(mytype) :: CLRefLE
+    real(mytype) :: CLA
     real(mytype) :: CLCritP
     real(mytype) :: CLCritN
     integer :: CLRateFlag
@@ -38,11 +39,14 @@ module dynstall_legacy
 
     contains
 
-    subroutine dystl_init_LB(lb)
+    subroutine dystl_init_LB(lb,dynstallfile)
         
         implicit none
         type(LB_Type) :: lb
-       
+        character :: dynstallfile*80
+	real(mytype) :: CLcritp, CLcritn, CLalpha 
+        NAMELIST/LBParam/CLcritp,CLcritn,CLalpha
+
         lb%StallFlag = .true.
         lb%dp=0.0
         lb%dF=0.0
@@ -52,10 +56,19 @@ module dynstall_legacy
         lb%CLRef_Last=0.0
         lb%CLRefLE_Last=0.0
         lb%Fstat_Last=1.0
-        lb%cv_Last=0.0
- 
+        lb%cv_Last=0.0 
         lb%LB_LogicOutputs(:)=0
-
+        
+        open(30,file=dynstallfile) 
+        read(30,nml=LBParam)
+        close(30)
+	
+	lb%CLCritP=CLcritp
+	lb%CLCritN=CLcritn
+	lb%CLA=CLalpha
+		
+	return
+	
     end subroutine dystl_init_LB
 
     subroutine LB_EvalIdealCL(AOA,AOA0,CLa,RefFlag,CLID)
@@ -275,15 +288,13 @@ subroutine LB_DynStall(airfoil,lb,CLstat,CDstat,alphaL,alpha5,Re,CL,CD)
 
     ! Airfoil data
     AOA0=airfoil%alzer
-    !call EvalStaticStallParams(airfoil,Re,CLCritP,CLCritN,CLa)
-    lb%CLCritP=1.0
-    lb%CLCritN=-1.0
+    
     ! Model constants
     KD=0.1          ! Trailing Edge separation drag factor
 
     ! Evaluate the ideal CL curve at current AOA
-    call LB_EvalIdealCL(alphaL,AOA0,CLa,1,lb%CLRef) 
-    call LB_EvalIdealCL(alphaL,AOA0,CLa,0,CLID)
+    call LB_EvalIdealCL(alphaL,AOA0,lb%CLa,1,lb%CLRef) 
+    call LB_EvalIdealCL(alphaL,AOA0,lb%CLa,0,CLID)
     
     ! calc lagged ideal CL for comparison with critical LE separation CL
     Trans=(cos(alphaL-AOA0))**2 ! fair effect to zero at 90 deg. AOA...

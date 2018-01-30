@@ -121,9 +121,12 @@ contains
     
     ! Initialise Dynamic stall model
     do ielem=1,turbine%blade(iblade)%Nelem
-    if(turbine%blade(iblade)%do_dynamic_stall) then
-    call dystl_init(turbine%blade(iblade)%EDynstall(ielem),turbine%blade(iblade)%DynStallFile)
-    endif
+    	if(turbine%blade(iblade)%do_Sheng_stall) then
+    	call dystl_init(turbine%blade(iblade)%EDynstall(ielem),turbine%blade(iblade)%DynStallFile)
+    	endif
+    	if(turbine%blade(iblade)%do_lb_stall) then
+	call dystl_init_lb(turbine%blade(iblade)%ELBstall(ielem),turbine%blade(iblade)%DynStallFile)
+	endif
     end do 
     
     ! Apply Initial Yaw and Tilt for the turbine

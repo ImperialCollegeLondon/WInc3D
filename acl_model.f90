@@ -86,7 +86,7 @@ contains
                 do iblade=1,turbine(itur)%NBlades
                  call actuator_line_element_write_output(turbine(itur)%Blade(iblade),dir)
                  
-                 if (turbine(itur)%Blade(iblade)%do_dynamic_stall) then
+                 if (turbine(itur)%Blade(iblade)%do_Sheng_stall) then
                     call dynamic_stall_write_output(turbine(itur)%Blade(iblade),dir) 
                  end if
 
@@ -100,7 +100,7 @@ contains
         if (Nal>0) then
             do ial=1,Nal
             call actuator_line_element_write_output(actuatorline(ial),dir)
-            if (actuatorline(ial)%do_dynamic_stall) then
+            if (actuatorline(ial)%do_Sheng_stall) then
                call dynamic_stall_write_output(actuatorline(ial),dir) 
             end if
             end do
@@ -254,7 +254,7 @@ contains
         if(DynStallFlag>0) then
 		if(DynStallFlag==1) then ! Do Sheng et al. modelling
             		do j=1,Turbine(i)%NBlades
-            		Turbine(i)%Blade(j)%do_dynamic_stall=.true.  
+            		Turbine(i)%Blade(j)%do_Sheng_stall=.true.  
             		Turbine(i)%Blade(j)%DynStallFile=dynstall_param_file
             		end do
 		endif
@@ -340,7 +340,7 @@ contains
 
         if(DynStallFlag>0) then
 		if(DynStallFlag==1) then
-            		Actuatorline%do_dynamic_stall=.true.
+            		Actuatorline%do_Sheng_stall=.true.
             		Actuatorline%DynStallFile=dynstall_param_file
 		endif
 		if(DynstallFlag==2) then

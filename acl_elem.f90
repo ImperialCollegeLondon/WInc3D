@@ -13,7 +13,7 @@ type ActuatorLineType
     character(len=100):: dynstallfile   ! Dynstallfile to load options
 
     ! Station parameters
-    logical :: FlipN =.false.           ! Flip Normal
+    logical :: FlipN =.false.           	! Flip Normal
     real(mytype), allocatable :: QCx(:)         ! Blade quarter-chord line x coordinates at element ends
     real(mytype), allocatable :: QCy(:)         ! Blade quarter-chord line y coordinates at element ends
     real(mytype), allocatable :: QCz(:)         ! Blade quarter-chord line z coordinates at element ends
@@ -116,8 +116,8 @@ type ActuatorLineType
    
     ! Unsteady Loading
     logical :: do_added_mass=.false.
-    logical :: do_dynamic_stall=.false.
-    logical :: do_lb_stall=.false.
+    logical :: do_Sheng_stall=.false.
+    logical :: do_LB_stall=.false.
     logical :: do_DynStall_AlphaEquiv=.false.
     logical :: do_random_walk_forcing=.false.
 
@@ -199,13 +199,19 @@ end type ActuatorLineType
     
     actuatorline%EAOA_LAST(:)=-666.0
     
-    ! If  dynamic stall is enabled
-    if (actuatorline%do_dynamic_stall) then
+    ! If  the Sheng dynamic stall is enabled
+    if (actuatorline%do_Sheng_stall) then
     do ielem=1,actuatorline%Nelem
     call dystl_init(actuatorline%EDynstall(ielem),actuatorline%dynstallfile)
     end do
     endif
     
+    ! If the LB dynamic stall is enabled
+    if (actuatorline%do_lb_stall) then
+    do ielem=1,actuatorline%Nelem
+    call dystl_init_lb(actuatorline%ELBStall(ielem),actuatorline%dynstallfile)
+    end do
+    endif
 
     end subroutine set_actuatorline_geometry
     
@@ -220,6 +226,7 @@ end type ActuatorLineType
     real(mytype) :: urdn,urdc,ur,alpha,ds
     real(mytype) :: CL,CD,CN,CT,CM25,MS,FN,FT,FX,Fy,Fz
     real(mytype) :: dal,dUn
+    real(mytype) :: CLstat, CDstat
     real(mytype) :: CLdyn,CDdyn, CM25dyn, CNAM,CTAM,CMAM
     real(mytype) :: rand(3000), freq, Strouhal ! To add random walk on the lift/drag coefficients
     integer :: ielem
@@ -291,13 +298,23 @@ end type ActuatorLineType
     !===============================================
     ! Correct for dynamic stall 
     !=============================================== 
-    if(act_line%do_dynamic_stall) then 
+    if(act_line%do_Sheng_stall) then 
     call DynstallCorrect(act_line%EDynstall(ielem),act_line%EAirfoil(ielem),time,dt,act_line%EUr(ielem),&
                          ElemChord,alpha,act_line%ERe(ielem),CLdyn,CDdyn,CM25dyn)
     CL=CLdyn
     CD=CDdyn
     CM25=CM25dyn
     end if
+   
+    if(act_line%do_LB_stall) then
+	CLstat=CL
+	CDstat=CD
+	call LB_DynStall(act_line%EAirfoil(ielem),act_line%ELBStall(ielem),CLstat,CDstat,alpha,alpha,act_line%ERe(ielem),CLdyn,CDdyn) 
+    	CL=CLdyn
+    	CD=CDdyn
+	ds=2.*act_line%EUr(ielem)*dt/ElemChord
+    	call LB_UpdateStates(act_line%ELBStall(ielem),act_line%EAirfoil(ielem),act_line%ERe(ielem),ds)
+    endif 
     
     !===============================================
     ! Correct for added mass
