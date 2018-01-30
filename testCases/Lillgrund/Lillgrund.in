@@ -1,0 +1,85 @@
+&FlowParam
+    ! Flow type 
+    itype=1
+    iin=0
+
+    xlx = 11.15          ! Lx (Size of the box in x-direction)
+    yly = 1.80           ! Ly (Size of the box in y-direction) 
+    zlz = 2.70           ! Lz (Size of the box in z-direction) 
+    re  = 100000         ! Kinematic Viscosity
+    sc  = 1.             ! Schmidt number (if passive scalar)
+    u1  = 1.             ! u1 (max velocity) (for inflow condition)
+    u2  = 1.             ! u2 (min velocity) (for inflow condition) 
+    noise  = 0.10        ! Turbulence intensity (1=100%) !! Initial condition
+    noise1 = 0.10        ! Turbulence intensity (1=100%) !! Inflow condition
+/End
+
+&NumConfig
+    ! Simulation size and parallelisation
+    nx=241		  ! X-direction nodes
+    ny=49		  ! Y-direction nodes
+    nz=49	 	  ! Z-direction nodes
+    p_row=2		  ! Row partition
+    p_col=2 		  ! Column partition
+
+    ! Boundary conditions and mesh
+    nclx = 2              ! nclx (BC)
+    ncly = 1              ! ncly (BC) 
+    nclz = 1              ! nclz (BC)
+    istret = 0            ! y mesh refinement (0:no, 1:center, 2:both sides, 3:bottom)
+    beta = 0.259065151    ! Refinement parameter (beta) 
+    
+    TurbRadius=0.5	  ! Turbulence radius
+    ifirst = 1            ! First iteration   
+    ilast = 100            ! Last iteration 
+    nscheme = 2           ! Temporal scheme (1:AB2, 2: RK3, 3:RK4, 4:AB3)
+    dt=0.0005		  ! time step
+
+    iskew = 1             ! (0:urotu, 1:skew, for the convective terms)
+    iscalar = 0           ! iscalar# (0: no scalar, 1:scalar)
+    
+    ! TURBULENCE MODELLING
+    jles=1                ! LES Model (0:DNS, 1: iLES 2:Smag, 3:WALE, 4: DynSmag)
+    FSGS=2.0              ! Filter Size/ Grid Size for explicit LES only
+    smagcst=0.1           ! Smagorinsky constant
+    SmagWallDamp=0        !
+    nSmag=1	          !
+    walecst=0.5           ! WALES Model Coefficient
+    rxxnu=100         	  ! Implicit LES factor 
+/End
+
+&StatParam
+    spinup_time=10.0	  ! Time after which statistics are collected (in seconds)
+    nstat=1		  ! Size arrays for statistic collection
+    nvisu=1		  ! Size for visualisation collection
+    iprobe = 0            ! Set probe		
+    Probelistfile='WakeList.prob'
+    nsampling=5
+/End
+
+&FileParam
+    ilit=0                ! Read initial flow field ?
+    isave=10000     	  ! Frequency for writing backup file  
+    imodulo=1             ! Frequency for visualization 
+/End
+
+&IBMParam
+    ivirt=0               ! IBM? (1: old school, 2: Lagrangian Poly)
+    cex=5.                ! X-centre position of the solid body
+    cey=5.                ! Y-centre position of the solid body
+    cez=0.                ! Z-centre position of the solid body
+    ra=0.5                ! Radius of the solid body
+/End
+
+&ALMParam
+ialm=1                    ! ialm (0: turbine model off, 1: turbine model on)
+eps_factor=2.2            ! Smoothing parameter factor
+Nturbines=1               ! Number of Turbines
+TurbinesPath='BlindTest1.turb'
+/End
+
+&ABLParam
+iabl=0			  ! No Boundary layer for these simulations
+/End
+
+
