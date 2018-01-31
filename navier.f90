@@ -266,7 +266,7 @@ if (iin.eq.2) then
       if (istret.eq.0) y=(j+xstart(2)-1-1)*dy
       if (istret.ne.0) y=yp(j+xstart(2)-1)
       um=(u1+u2)/2.
-      if (y>3*dy.and.y<yly-3*dy.and.z>3*dz.and.z<zlz-3*dz) then
+      if (y>dy.and.y<6*dy) then
       bxx1(j,k)=bxx1(j,k)+bxo(j,k)*noise1*um
       bxy1(j,k)=bxy1(j,k)+byo(j,k)*noise1*um
       bxz1(j,k)=bxz1(j,k)+bzo(j,k)*noise1*um
