@@ -1,0 +1,143 @@
+#!/usr/bin/env python
+"""
+Script that extracts the mean velocity from Incompact3D
+Author : Georgios (Yorgos) Deskos 2017
+"""
+import math
+import argparse
+import csv
+import f90nml
+import matplotlib
+matplotlib.use('Agg')
+import numpy as np
+from scipy import interpolate
+from pylab import *
+import matplotlib.pyplot as plt
+# ====================================
+# Parser Arguments
+# ====================================
+parser = argparse.ArgumentParser(description="Script to extract Boundary Layer Flow statistics from *.dat files")
+parser.add_argument("-v","--verbose",action="store_true",help="Print location")
+parser.add_argument("-p","--plot",action="store_true",help="Plots the wake profiles")
+parser.add_argument("-w","--write",action="store_true",help="Write results in a .csv file")
+parser.add_argument("PATH", type=str, help="path to where the umean, vmean etc. files are (should end with a / )")
+parser.add_argument("FILENAME", type=str, help="Filename, should end with .pprc")
+parser.add_argument("OUTPUT", type=str, help="OUTPUT FOLDER")
+
+args = parser.parse_args()
+path = args.PATH
+name = args.FILENAME
+output = args.OUTPUT
+
+# Read the fortran nml (NAMELIST)
+nml=f90nml.read(name)
+
+with open(name) as nml_file:
+    nml = f90nml.read(nml_file)
+
+nx=nml['PostProcess']['nx']
+ny=nml['PostProcess']['ny']
+nz=nml['PostProcess']['nz']
+xlx=nml['PostProcess']['xlx']
+yly=nml['PostProcess']['yly']
+zlz=nml['PostProcess']['zlz']
+
+# This is not valid for always
+nxd=nx-1
+nyd=ny-1
+nzd=nz-1
+
+dx=xlx/nxd
+dy=yly/nyd
+dz=zlz/nzd
+
+
+# UMEAN - Average velocities for u, v and w
+ufile=open(path+"umean.dat","rb")
+vfile=open(path+"vmean.dat","rb")
+wfile=open(path+"wmean.dat","rb")
+# uu - Average of the squares of the velocities u, v and w
+# This is not the <u'u'> etc.
+# To compute the <u'u'> we need to do <u'u'>=<uu> - <u><u>
+# and similarly for the other quantities
+uufile=open(path+"uumean.dat","rb")
+vvfile=open(path+"vvmean.dat","rb")
+wwfile=open(path+"wwmean.dat","rb")
+uvfile=open(path+"uvmean.dat","rb")
+uwfile=open(path+"uwmean.dat","rb")
+vwfile=open(path+"vwmean.dat","rb")
+# vu, wu, wv are ommited due to symmetry
+
+# Reading the binary files into numpy vectors
+umean=np.fromfile(ufile,dtype=np.float64)
+vmean=np.fromfile(vfile,dtype=np.float64)
+wmean=np.fromfile(wfile,dtype=np.float64)
+uumean=np.fromfile(uufile,dtype=np.float64)
+vvmean=np.fromfile(vvfile,dtype=np.float64)
+wwmean=np.fromfile(wwfile,dtype=np.float64)
+uvmean=np.fromfile(uvfile,dtype=np.float64)
+uwmean=np.fromfile(uwfile,dtype=np.float64)
+vwmean=np.fromfile(vwfile,dtype=np.float64)
+
+
+# Initialising the 3D arrays to map the velocities etc.
+x=np.zeros((nx,ny,nz))
+y=np.zeros((nx,ny,nz))
+z=np.zeros((nx,ny,nz))
+uav=np.zeros((nx,ny,nz))
+vav=np.zeros((nx,ny,nz))
+wav=np.zeros((nx,ny,nz))
+upup=np.zeros((nx,ny,nz))
+vpvp=np.zeros((nx,ny,nz))
+wpwp=np.zeros((nx,ny,nz))
+upvp=np.zeros((nx,ny,nz))
+upwp=np.zeros((nx,ny,nz))
+vpwp=np.zeros((nx,ny,nz))
+
+# Compute average quantities + reshape
+Nsteps=nml['PostProcess']['NSteps']
+
+uav=umean.reshape((nx,ny,nz),order='F')/Nsteps
+vav=vmean.reshape((nx,ny,nz),order='F')/Nsteps
+wav=wmean.reshape((nx,ny,nz),order='F')/Nsteps
+upup=uumean.reshape((nx,ny,nz),order='F')/Nsteps-uav**2
+vpvp=vvmean.reshape((nx,ny,nz),order='F')/Nsteps-vav**2
+wpwp=wwmean.reshape((nx,ny,nz),order='F')/Nsteps-wav**2
+upvp=uvmean.reshape((nx,ny,nz),order='F')/Nsteps-uav*vav
+upwp=uwmean.reshape((nx,ny,nz),order='F')/Nsteps-uav*wav
+vpwp=vwmean.reshape((nx,ny,nz),order='F')/Nsteps-vav*wav
+TKE=0.5*(upup+vpvp+wpwp)
+
+for i in range(0,nx):
+    x[i,:,:]=i*dx
+for j in range(0,ny):
+    y[:,j,:]=j*dy
+for k in range(0,nz):
+    z[:,:,k]=k*dz
+
+
+Href=nml['PostProcess']['Href']
+Uref=nml['PostProcess']['Uref']
+ustar=nml['PostProcess']['ustar']
+xProfile=nml['PostProcess']['xTurb']
+OutputName=nml['PostProcess']['OutputName']
+
+
+for i in range(len(xD)):
+    
+    print('Computing statistics at location ' + str(float(xProfile[i]))+'channel length from inflow\n')
+    
+    ixloc=np.where(abs(x[:,0,0]-(xTurb[0]+xD[i]*D))==abs(x[:,0,0]-(xTurb[0]+xD[i]*D)).min())[0]
+    jxloc=np.where(abs(y[0,:,0]-xTurb[1])==abs(y[0,:,0]-xTurb[1]).min())[0]
+    kxloc=np.where(abs(z[0,0,:]-xTurb[2])==abs(z[0,0,:]-xTurb[2]).min())[0]
+  
+    print 'found indices ', ixloc[0], jxloc[0], kxloc[0]
+    if args.write:      
+	with open(output+'profile.dat','w') as fout:
+	    fout.write('# y U/Uref up/Uref vp/Uref wp/Uref upvp/Uref \n')
+	    for iprofile in range(ny):
+	        y=float(ysim[iprofile])
+	        UUref=float(umean[iprofile]/Uref)
+	        upU=float(sqrt(upupmean[iprofile]))/float(umean[iprofile])
+	        upvpUref2=float(upvpmean[iprofile]/Uref**2.)
+	        fout.write(str(y) + ' '+ str(UUref)+' '+str(upU)+' '+str(-upvpUref2)+'\n')
