@@ -67,7 +67,7 @@ integer :: nxboite, istat,iread,iadvance_time, ibuoyancy, icoriolis
 real(mytype) :: xlx,yly,zlz,dx,dy,dz,dx2,dy2,dz2
 real(mytype) :: dt,xnu,noise,noise1,pi,twopi,u1,u2,re,sc,Pr,TempRef,CoriolisFreq
 real(mytype) :: t,xxk1,xxk2, spinup_time
-real(mytype) :: smagcst, walecst,dys, FSGS, rxxnu
+real(mytype) :: smagcst, walecst,dys, FSGS, rxxnu, cnu
 real(mytype) :: eps_factor ! Smoothing factor 
 real(mytype) :: TurbRadius,z_zero,k_roughness,PsiM,ustar,u_shear,IPressureGradient,epsilon_pert
 real(mytype),dimension(3) :: Ug
