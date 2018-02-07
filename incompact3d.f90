@@ -156,7 +156,7 @@ if (jLES==0) then
 else if (jLES==1) then
     call schemes_iles()
     if(nrank==0) then
-        write(*,*) 'Implicit LES with xxnu = 1 / ', rxxnu
+        write(*,*) 'Implicit LES with xxnu = 1 / ', rxxnu, ' and cnu = ', cnu
     endif
 else if (jLES==2.OR.jLES==3.OR.jLES==4.OR.jLES==5) then 
     call init_explicit_les() 

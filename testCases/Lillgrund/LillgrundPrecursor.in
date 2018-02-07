@@ -6,7 +6,7 @@
     ! Domain and scaling
     xlx = 3500.              ! Lx (Size of the box in x-direction)
     yly = 1000.             ! Ly (Size of the box in y-direction) 
-    zlz = 3000.           ! Lz (Size of the box in z-direction) 
+    zlz = 1200.           ! Lz (Size of the box in z-direction) 
     re  = 66667           ! nu=1/re (Kinematic Viscosity)
     sc  = 1.              ! Schmidt number (if passive scalar)
     u1  = 1.              ! u1 (max velocity) (for inflow condition)
@@ -25,9 +25,9 @@
 ! Numerical Configuration
 &NumConfig
     ! Simulation size and parallelisation
-    nx=572                 ! X-direction nodes
-    ny=573                 ! Y-direction nodes
-    nz=144                 ! Z-direction nodes
+    nx=72                ! X-direction nodes
+    ny=73                 ! Y-direction nodes
+    nz=72                ! Z-direction nodes
     p_row=2               ! Row partition
     p_col=2               ! Column partition
 
@@ -40,16 +40,16 @@
 
     ! Time and time-marching schemes
     ifirst = 1	          ! First iteration   
-    ilast = 450000        ! Last iteration 
+    ilast = 280000        ! Last iteration 
     nscheme = 4           ! Temporal scheme (1: ?, 2: RK3, 3:RK4, 4:AB2)
-    dt = 0.25             ! Time step
+    dt = 0.05             ! Time step
     
     ! Governing equations formulations
     iskew = 1             ! (0:urotu, 1:skew, for the convective terms)
     iscalar = 0           ! iscalar# (0: no scalar, 1:scalar)
     
     ! Large-eddy simulation modelling parameters
-    jles=2                ! LES Model (0:DNS, 1: iLES 2:Smag, 3:WALE, 4: scale-invariant dyn. Smag, 5: scale-dependent dyn. Smag )
+    jles=1                ! LES Model (0:DNS, 1: iLES 2:Smag, 3:WALE, 4: scale-invariant dyn. Smag, 5: scale-dependent dyn. Smag )
     FSGS=1.0              ! Filter Size/ Grid Size for explicit LES only
     smagcst=0.17          ! Smagorinsky constant
     SmagWallDamp=1        ! Smagorinsky damping function for ABL if 1
@@ -59,7 +59,7 @@
 /End
 
 &StatParam
-    spinup_time=250.	  ! Time after which statistics are collected (in seconds)
+    spinup_time=12000.	  ! Time after which statistics are collected (in seconds)
     nstat=1               ! Size arrays for statistic collection 
     nvisu=1               ! Size for visualisation collection 
     iprobe = 0            ! Set probe
@@ -69,8 +69,8 @@
 
 &FileParam
     ilit=0                ! Read initial flow field ?
-    isave=1000     	      ! Frequency for writing backup file  
-    imodulo=200            ! Frequency for visualization 
+    isave=10000     	  ! Frequency for writing backup file  
+    imodulo=5000          ! Frequency for visualization 
     ioutflow=1            ! Outflow flag
     inflowdir='Outflow/'  ! Inflow read directory
     refinflowtime=1       ! Reference number for starting counting 
@@ -96,7 +96,7 @@ TurbinesPath='Turbine.turb'
 iabl=1                    ! iabl (1: atmospheric boundary layer modelling by applying a shear stress)
 z_zero=0.0001             ! Roughness length
 k_roughness=0.4           ! von Karman constant (usually taken to be equal to 0.41)
-ustar=0.061	          ! friction velocity
+ustar=0.24	          ! friction velocity
 PsiM=0                    ! stability correction for momentum (taken equal to 0 for neutral stability)
 IPressureGradient=1	      ! if 1 then apply a pressure gradient
 /End
