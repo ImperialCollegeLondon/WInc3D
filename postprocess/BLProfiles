@@ -43,9 +43,9 @@ yly=nml['PostProcess']['yly']
 zlz=nml['PostProcess']['zlz']
 
 # This is not valid for always
-nxd=nx-1
+nxd=nx
 nyd=ny-1
-nzd=nz-1
+nzd=nz
 
 dx=xlx/nxd
 dy=yly/nyd
@@ -119,25 +119,26 @@ for k in range(0,nz):
 Href=nml['PostProcess']['Href']
 Uref=nml['PostProcess']['Uref']
 ustar=nml['PostProcess']['ustar']
-xProfile=nml['PostProcess']['xTurb']
+xProfile=nml['PostProcess']['xProfile']
 OutputName=nml['PostProcess']['OutputName']
 
 
-for i in range(len(xD)):
-    
-    print('Computing statistics at location ' + str(float(xProfile[i]))+'channel length from inflow\n')
-    
-    ixloc=np.where(abs(x[:,0,0]-(xTurb[0]+xD[i]*D))==abs(x[:,0,0]-(xTurb[0]+xD[i]*D)).min())[0]
-    jxloc=np.where(abs(y[0,:,0]-xTurb[1])==abs(y[0,:,0]-xTurb[1]).min())[0]
-    kxloc=np.where(abs(z[0,0,:]-xTurb[2])==abs(z[0,0,:]-xTurb[2]).min())[0]
-  
-    print 'found indices ', ixloc[0], jxloc[0], kxloc[0]
-    if args.write:      
-	with open(output+'profile.dat','w') as fout:
-	    fout.write('# y U/Uref up/Uref vp/Uref wp/Uref upvp/Uref \n')
-	    for iprofile in range(ny):
-	        y=float(ysim[iprofile])
-	        UUref=float(umean[iprofile]/Uref)
-	        upU=float(sqrt(upupmean[iprofile]))/float(umean[iprofile])
-	        upvpUref2=float(upvpmean[iprofile]/Uref**2.)
-	        fout.write(str(y) + ' '+ str(UUref)+' '+str(upU)+' '+str(-upvpUref2)+'\n')
+     
+ixloc=np.where(abs(x[:,0,0]-xProfile[0])==abs(x[:,0,0]-xProfile[0]).min())[0]
+jxloc=np.where(abs(y[0,:,0]-xProfile[1])==abs(y[0,:,0]-xProfile[1]).min())[0]
+kxloc=np.where(abs(z[0,0,:]-xProfile[2])==abs(z[0,0,:]-xProfile[2]).min())[0]
+
+# Calculate the u gradient
+dudy=np.gradient(uav[ixloc[0],:,kxloc[0]],dy)
+
+print 'found indices ', ixloc[0], jxloc[0], kxloc[0]
+if args.write:      
+    with open(output+'profile.dat','w') as fout:
+        fout.write('# y U/Uref U/u* Phi up/Uref vp/Uref wp/Uref upvp/Uref \n')
+        for jprofile in range(1,ny):
+            yH=float(y[ixloc[0],jprofile,kxloc[0]]/Href)
+            UUref=float(uav[ixloc[0],jprofile,kxloc[0]]/Uref)
+            Uustar=float(uav[ixloc[0],jprofile,kxloc[0]]/ustar)
+            Phi=float(dudy[jprofile]*y[ixloc[0],jprofile,kxloc[0]]*0.41/ustar)
+            upvpUref2=float(upvp[ixloc[0],jprofile,kxloc[0]]/Uref**2.)
+            fout.write(str(yH) + ' '+ str(UUref)+' '+str(Uustar)+' '+str(Phi)+' '+str(-upvpUref2)+'\n')
