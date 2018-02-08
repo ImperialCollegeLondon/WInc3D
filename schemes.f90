@@ -1228,8 +1228,8 @@ csttx = 0.
 !NUMERICAL DISSIPATION FOR 6th ORDER SCHEMES (see publications for help)
 !=========================================================================
 !xxnu=1./rxxnu
-dpis3=2*pi/3
-kppkc=pi*pi*(1+rxxnu)
+dpis3=2.*pi/3.
+kppkc=pi*pi*(1.+rxxnu)
 kppkm=dpis3*dpis3*(1.+cnu*rxxnu)
 !kppkm=dpis3*dpis3*exp(-((pi-dpis3)/(0.3*pi-dpis3))**2)/xxnu+dpis3*dpis3
 xnpi2=kppkc

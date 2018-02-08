@@ -317,6 +317,7 @@ contains
         phi=asin((turbine%RotN(1)*(u-ub)+turbine%RotN(2)*(v-vb)+turbine%RotN(3)*(w-wb))/(axis_mag*ur))
             endif
         endif
+	
         rroot=turbine%blade(iblade)%ERdist(ielem)/turbine%Rmax
         rtip=(turbine%Rmax-turbine%blade(iblade)%ERdist(ielem))/turbine%Rmax
         
@@ -333,8 +334,8 @@ contains
                 stop
             endif
             if (abs(exp(-g1*turbine%Nblades/2.0*(1.0/rroot-1.0)/sin(phi)))>1) then
-                write(*,*) "Something is wrong with the tip correction model"
-                stop
+                write(*,*) "Something went wrong with the tip correction model -- phi =", phi
+                Ftip=1.
             endif
             Ftip=2.0/pi*acos(exp(-g1*turbine%Nblades/2.0*(1.0/rroot-1.0)/sin(phi)))
         endif
