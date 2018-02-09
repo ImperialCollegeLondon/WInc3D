@@ -119,7 +119,8 @@ contains
         !-------------------------------------
         ! Dummy variables
         !-------------------------------------
-        character(len=100) :: name, blade_geom, tower_geom, afname, dynstall_param_file
+        character(len=100) :: name, blade_geom, tower_geom, dynstall_param_file
+        character(len=100),dimension(10) :: afname
         real(mytype), dimension(3) :: origin
         integer :: numblades,numfoil,towerFlag, TypeFlag, OperFlag, RotFlag, AddedMassFlag, DynStallFlag, EndEffectsFlag
         integer :: TipCorr, RootCorr, RandomWalkForcingFlag
@@ -166,18 +167,27 @@ contains
 
         ! Count how many Airfoil Sections are available
         nfoils = numfoil
+        
         if(nfoils==0) then
             write(6,*) "You need to provide at least one static_foils_data entry for the computation of the blade forces"
             stop 
+        else
+            if (nrank==0) then
+            write(6,*) "Loaded a total of : ", nfoils, "airfoil data sets"
+            do k=1,nfoils
+            write(6,*) "Airfoil :", k, "is ", afname(k)
+            enddo
+            endif
         end if
+        
         ! Allocate the memory of the Airfoils
-
+        
         do j=1,Turbine(i)%NBlades
         Turbine(i)%Blade(j)%NAirfoilData=nfoils
         Allocate(Turbine(i)%Blade(j)%AirfoilData(nfoils))
-        do k=1, Turbine(i)%Blade(j)%NAirfoilData
 
-        Turbine(i)%Blade(j)%AirfoilData(k)%afname=afname
+        do k=1, Turbine(i)%Blade(j)%NAirfoilData
+        Turbine(i)%Blade(j)%AirfoilData(k)%afname=afname(k)
         ! Read and Store Airfoils
         call airfoil_init_data(Turbine(i)%Blade(j)%AirfoilData(k))
         end do
