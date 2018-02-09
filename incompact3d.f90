@@ -121,7 +121,7 @@ write(*,1106) dt
 if (nscheme.eq.1) print *,'Temporal scheme   : Adams-Bashforth 2'
 if (nscheme.eq.2) print *,'Temporal scheme   : Runge-Kutta 3'
 if (nscheme.eq.3) print *,'Temporal scheme   : Runge-Kutta 4'
-if (nscheme.eq.2) print *,'Temporal scheme   : Adams-Bashforth 4'
+if (nscheme.eq.4) print *,'Temporal scheme   : Adams-Bashforth 4'
 
 if (ivirt.eq.0) print *,'Immersed boundary : off'
 if (ivirt.eq.1) then
@@ -188,6 +188,7 @@ call decomp_info_init(nxm,nym,nzm,phG)
 ! ======================================================
 ! Initialise flow in the domain -- init or restart 
 ! ======================================================
+if (iinflow==1) call read_inflow(ux_inflow,uy_inflow,uz_inflow)
 if (ilit==0) call init(ux1,uy1,uz1,ep1,phi1,gx1,gy1,gz1,phis1,hx1,hy1,hz1,phiss1)  
 if (ilit==1) call restart(ux1,uy1,uz1,ep1,pp3,phi1,gx1,gy1,gz1,&
         px1,py1,pz1,phis1,hx1,hy1,hz1,phiss1,phG,0)
@@ -303,17 +304,20 @@ do itime=ifirst,ilast
       call test_speed_min_max(ux1,uy1,uz1)
       if (iscalar==1) call test_scalar_min_max(phi1)
 
-   enddo
-   
-   if (t>=spinup_time) then
-       call STATISTIC(ux1,uy1,uz1,phi1,ta1,umean,vmean,wmean,phimean,uumean,vvmean,wwmean,&
+      enddo
+       
+        if(ioutflow==1) then
+        if (itime>=OutflowOnsetIndex.and.itime<OutflowOnsetIndex+NtimeSteps) call append_outflow(ux1,uy1,uz1,itime) 
+        if (mod(itime,isave)==0) call write_outflow(ux_recOutflow,uy_recOutflow,uz_recOutflow)  
+        endif
+
+        if (t>=spinup_time) then
+        call STATISTIC(ux1,uy1,uz1,phi1,ta1,umean,vmean,wmean,phimean,uumean,vvmean,wwmean,&
            uvmean,uwmean,vwmean,phiphimean,tmean)
-        
-       if(ioutflow==1) call write_outflow(ux1,uy1,uz1) 
 
-       if(ialm==1) call actuator_line_statistics()
+        if(ialm==1) call actuator_line_statistics()
 
-       if(iprobe==1) then
+        if(iprobe==1) then
            if (mod(itime,nsampling)==0) then
                call probe(ux1,uy1,uz1,phi1)
                call write_probe(itime/nsampling) 
@@ -338,6 +342,9 @@ do itime=ifirst,ilast
     end if
    endif 
 enddo
+    ! Write Outflow 
+    
+    if (ioutflow==1) call write_outflow(ux_recOutflow,uy_recOutflow,uz_recOutflow)  
 
 t2=MPI_WTIME()-t1
 call MPI_ALLREDUCE(t2,t1,1,MPI_REAL8,MPI_SUM, &

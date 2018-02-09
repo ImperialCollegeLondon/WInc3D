@@ -216,6 +216,7 @@ USE decomp_2d
 USE decomp_2d_io
 USE actuator_line_model_utils
 USE MPI
+USE var, only: ux_inflow, uy_inflow, uz_inflow
 
 implicit none
 
@@ -284,9 +285,18 @@ endif
 
 ! READING FROM FILES
 if (iin.eq.3) then   
-    if (nrank==0) print *,'READ inflow from planes'
-    inflow_file=trim(inflowdir)//adjustl(trim(outdirname(itime+refinflowtime)))
-    call read_inflow(bxx1,bxy1,bxz1,inflow_file)
+    if (nrank==0) print *,'READ inflow from a file'
+    if (itime>NTimeSteps-xsize(1).and.NTimeSteps<xsize(1).and.nrank==0) then 
+       write(*,*) "Ntimesteps should be at least equal to nx and the time steps of the simulations less than NTimesteps-nx"
+       stop
+    endif 
+    do k=1,xsize(3)
+    do j=1,xsize(2)
+      bxx1(j,k)=ux_inflow(NTimeSteps-xsize(1)-itime+1,j,k)
+      bxy1(j,k)=uy_inflow(NTimeSteps-xsize(1)-itime+1,j,k)
+      bxz1(j,k)=uz_inflow(NTimeSteps-xsize(1)-itime+1,j,k)
+    enddo
+    enddo
 endif
 
 
@@ -371,7 +381,7 @@ USE param
 USE IBM
 USE decomp_2d 
 USE actuator_line_model_utils
-
+USE var, only: ux_inflow, uy_inflow, uz_inflow
 implicit none
 
 integer  :: i,j,k,jj1,jj2 
@@ -411,14 +421,20 @@ if (itype.eq.2) then
 endif
 
 if (itype.eq.3) then
-    if (nrank==0) print *,'READ inflow from planes'
-    do i=1,xsize(1)
-         inflow_file=trim(inflowdir)//adjustl(trim(outdirname(itime)))
-         call read_inflow(bxx1,bxy1,bxz1,inflow_file)
-         ux1(xsize(1)-i+1,:,:)=bxx1(:,:)
-         uy1(xsize(1)-i+1,:,:)=bxy1(:,:)
-         uz1(xsize(1)-i+1,:,:)=bxz1(:,:)
-    enddo
+    if (nrank==0) print *,'READ initial conditions from file'
+    if (NTimeSteps<xsize(1).and.nrank==0) write(*,*) "Ntimesteps should be at least equal to nx"
+   do k=1,xsize(3)
+   do j=1,xsize(2)
+   do i=1,xsize(1)
+      ux1(i,j,k)=ux_inflow(xsize(1)-i+1,j,k)
+      uy1(i,j,k)=uy_inflow(xsize(1)-i+1,j,k)
+      uz1(i,j,k)=uz_inflow(xsize(1)-i+1,j,k)
+      bxx1(j,k)=0.
+      bxy1(j,k)=0.
+      bxz1(j,k)=0.
+   enddo
+   enddo
+   enddo
 endif
 
 if (itype.eq.4) then
@@ -497,6 +513,7 @@ USE decomp_2d
 USE decomp_2d_io
 USE param
 USE MPI
+USE var, only: ux_inflow, uy_inflow, uz_inflow
 
 implicit none
 
@@ -606,6 +623,9 @@ call random_seed(put = code+63946*nrank*(/ (i - 1, i = 1, ii) /)) !
       enddo
       enddo
    endif
+endif
+
+if (iin==3) then
 endif
 
 !MEAN FLOW PROFILE

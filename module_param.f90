@@ -60,7 +60,7 @@ integer :: itype, iskew, iin, nscheme, ifirst, ilast, iles, jLES, jADV
 integer :: isave,ilit,srestart,idebmod, imodulo, idemarre, icommence, irecord
 integer :: iscalar,ilag,npif,izap
 character :: inflow_file*80
-integer :: iprobe, Nprobes, Nsampling, ioutflow, refinflowtime
+integer :: iprobe, Nprobes, Nsampling, ioutflow, iinflow, OutflowOnsetIndex, NTimeSteps
 integer :: iabl, ibmshape, SmagWallDamp, nSmag
 character :: Probelistfile*80, inflowdir*80
 integer :: nxboite, istat,iread,iadvance_time, ibuoyancy, icoriolis

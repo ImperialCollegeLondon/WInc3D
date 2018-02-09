@@ -428,7 +428,7 @@ endif
 end subroutine restart
 
 ! ************************************************************************
-subroutine read_inflow(ux,uy,uz,filename)
+subroutine read_inflow(ux1,uy1,uz1)
 !
 ! ************************************************************************
 
@@ -439,43 +439,86 @@ USE MPI
 
 implicit none
 
-real(mytype), dimension(xsize(2),xsize(3)),intent(inout) :: ux,uy,uz
-character :: filename*80
+TYPE(DECOMP_INFO) :: phG
+integer :: i,j,k,irestart,nzmsize,fh,ierror,code
+real(mytype), dimension(NTimeSteps,xsize(2),xsize(3)) :: ux1,uy1,uz1
+integer (kind=MPI_OFFSET_KIND) :: filesize, disp
+real(mytype) :: xdt
+integer, dimension(2) :: dims, dummy_coords
+logical, dimension(2) :: dummy_periods
 
-    call decomp_2d_read_plane(1,ux,1,1,trim(filename)//'/ux')
-    call decomp_2d_read_plane(1,uy,1,1,trim(filename)//'/uy')
-    call decomp_2d_read_plane(1,uz,1,1,trim(filename)//'/uz')
+if (iscalar==0) then
+    if (nrank==0) print *,'READING INFLOW'
+    call MPI_FILE_OPEN(MPI_COMM_WORLD, 'inflow.dat', &
+         MPI_MODE_RDONLY, MPI_INFO_NULL, &
+         fh, ierror)
+    disp = 0_MPI_OFFSET_KIND
+    call decomp_2d_read_var(fh,disp,1,ux1)   
+    call decomp_2d_read_var(fh,disp,1,uy1)
+    call decomp_2d_read_var(fh,disp,1,uz1)
+    call MPI_FILE_CLOSE(fh,ierror)
+endif
 
 end subroutine read_inflow
 
 
 ! ***********************************************************************
-subroutine write_outflow(ux,uy,uz)
+subroutine append_outflow(ux,uy,uz,timestep)
 !
 ! ***********************************************************************
     USE decomp_2d
     USE decomp_2d_io
-    USE actuator_line_model_utils
+    USE var
+    USE param
+
+implicit none
+
+real(mytype), dimension(xsize(1),xsize(2),xsize(3)) :: ux,uy,uz
+integer, intent(in) :: timestep
+integer :: i,j,k
+
+! Record planes in the middle
+ux_recOutflow(itime-OutflowOnsetIndex+1,:,:)=ux(xsize(1)/2,:,:)
+uy_recOutflow(itime-OutflowOnsetIndex+1,:,:)=uy(xsize(1)/2,:,:)
+uz_recOutflow(itime-OutflowOnsetIndex+1,:,:)=uz(xsize(1)/2,:,:)
+
+end subroutine append_outflow
+
+! ***********************************************************************
+subroutine write_outflow(ux1,uy1,uz1)
+!
+! ***********************************************************************
+    USE decomp_2d
+    USE decomp_2d_io
     USE param
     USE MPI
 
 implicit none
 
-real(mytype), dimension(xsize(1),xsize(2),xsize(3)) :: ux,uy,uz
-character :: outdir*80, filename*80
-        
-call system('mkdir -p Outflow/'//adjustl(trim(outdirname(itime))))
-        
-outdir='Outflow/'//adjustl(trim(outdirname(itime)))
+TYPE(DECOMP_INFO) :: phG
+integer :: i,j,k,irestart,nzmsize,fh,ierror,code
+real(mytype), dimension(NTimeSteps,xsize(2),xsize(3)) :: ux1,uy1,uz1
+integer (kind=MPI_OFFSET_KIND) :: filesize, disp
+real(mytype) :: xdt
+integer, dimension(2) :: dims, dummy_coords
+logical, dimension(2) :: dummy_periods
 
-filename=trim(outdir)//'/ux'
-call decomp_2d_write_plane(1,ux,1,nxm/2,filename)
-filename=trim(outdir)//'/uy'
-call decomp_2d_write_plane(1,uy,1,nxm/2,filename)
-filename=trim(outdir)//'/uz'
-call decomp_2d_write_plane(1,uz,1,nxm/2,filename)
+if (iscalar==0) then
+    if (nrank==0) print *,'WRITING OUTFLOW'
+    call MPI_FILE_OPEN(MPI_COMM_WORLD, 'outflow.dat', &
+         MPI_MODE_CREATE+MPI_MODE_WRONLY, MPI_INFO_NULL, &
+         fh, ierror)
+    filesize = 0_MPI_OFFSET_KIND
+    call MPI_FILE_SET_SIZE(fh,filesize,ierror)  ! guarantee overwriting
+    disp = 0_MPI_OFFSET_KIND
+    call decomp_2d_write_var(fh,disp,1,ux1)
+    call decomp_2d_write_var(fh,disp,1,uy1)
+    call decomp_2d_write_var(fh,disp,1,uz1)
+    call MPI_FILE_CLOSE(fh,ierror)
+endif
 
 end subroutine write_outflow
+
 
 !*******************************************************************
 subroutine stretching()
