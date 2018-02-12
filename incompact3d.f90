@@ -337,7 +337,7 @@ do itime=ifirst,ilast
    endif
 
    if (ialm==1) then
-    if (nrank==0) then
+    if (nrank==0.and.mod(itime,imodulo)==0) then
        call actuator_line_model_write_output(itime/imodulo) ! Write the Rotor output
     end if
    endif 
