@@ -116,3 +116,28 @@ if (nrank==0) write(*,*)  'Minimum wall shear stress for x and z', minval(tauwal
 return
 
 end subroutine wall_shear_stress
+
+subroutine numerical_tripping(Ftrip,x0,lx,ly,time,ts)
+    
+   USE decomp_2d
+   USE param
+
+implicit none
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: Ftrip 
+real(mytype),intent(in) :: x0, lx,ly,time,ts
+real(mytype) :: x,y,z
+integer :: i,j,k
+
+do k=1,xsize(3)
+	z=(k+xstart(3)-1-1)*dz
+do j=1,xsize(2)
+   if (istret.eq.0) y=(j+xstart(2)-1-1)*dy
+   if (istret.ne.0) y=yp(j)
+do i=1,xsize(1)
+	x=(i+xstart(1)-1-1)*dx
+	Ftrip=exp(((x-x0)/lx)**2.-(y/ly)**2.)
+enddo
+enddo
+enddo
+
+end subroutine numerical_tripping
