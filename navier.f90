@@ -224,7 +224,7 @@ real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux,uy,uz,phi
 real(mytype),dimension(1,xsize(2),xsize(3)) :: ux_in,uy_in,uz_in,phi_in
 real(mytype) :: r1,r2,r3,y,z,um
 integer :: k,j,i,fh,ierror,ii
-integer :: code
+integer :: code, itime_input
 integer (kind=MPI_OFFSET_KIND) :: disp
 
 call ecoule(ux,uy,uz,phi)
@@ -286,15 +286,16 @@ endif
 ! READING FROM FILES
 if (iin.eq.3) then   
     if (nrank==0) print *,'READ inflow from a file'
-    if (itime>NTimeSteps-xsize(1).and.NTimeSteps<xsize(1).and.nrank==0) then 
+    itime_input=mod(itime,NTimeSteps)
+    if (itime>NTimeSteps.and.NTimeSteps<xsize(1).and.nrank==0) then 
        write(*,*) "Ntimesteps should be at least equal to nx and the time steps of the simulations less than NTimesteps-nx"
        stop
     endif 
     do k=1,xsize(3)
     do j=1,xsize(2)
-      bxx1(j,k)=ux_inflow(NTimeSteps-xsize(1)-itime+1,j,k)
-      bxy1(j,k)=uy_inflow(NTimeSteps-xsize(1)-itime+1,j,k)
-      bxz1(j,k)=uz_inflow(NTimeSteps-xsize(1)-itime+1,j,k)
+      bxx1(j,k)=ux_inflow(NTimeSteps-itime_input+1,j,k)
+      bxy1(j,k)=uy_inflow(NTimeSteps-itime_input+1,j,k)
+      bxz1(j,k)=uz_inflow(NTimeSteps-itime_input+1,j,k)
     enddo
     enddo
 endif
@@ -483,7 +484,7 @@ if (itype.eq.8) then
    do i=1,xsize(1)
       bxx1(j,k)=ustar/k_roughness*log((y+z_zero)/z_zero)
       bxy1(j,k)=0.
-      bxz1(i,k)=0.
+      bxz1(j,k)=0.
       if (ibuoyancy==1) then
       phi1(i,j,k)=TempRef+y*0.01
       endif
@@ -754,7 +755,6 @@ pp3(i,j,k)=td3(i,j,k)+te3(i,j,k)+tf3(i,j,k)
 enddo
 enddo
 enddo
-
 
 if (nlock==2) then
    pp3(:,:,:)=pp3(:,:,:)-pp3(ph1%zst(1),ph1%zst(2),nzmsize)

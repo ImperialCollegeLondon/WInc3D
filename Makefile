@@ -23,7 +23,7 @@ FFTW3_LIB = -L$(FFTW3_PATH)/lib -lfftw3 -lfftw3f
 FC = mpif90
 OPTFC = -O3 -funroll-loops -ftree-vectorize -fcray-pointer -cpp -ffree-line-length-0 #-ffpe-trap=invalid,zero
 CC = mpicc
-CFLAGS = -O3
+CFLAGS = -O3 
 LIBS = #-llapack -lblas 
 DEGUG = #-g -static 
 

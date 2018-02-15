@@ -307,8 +307,7 @@ do itime=ifirst,ilast
       enddo
        
         if(ioutflow==1) then
-        if (itime>=OutflowOnsetIndex.and.itime<OutflowOnsetIndex+NtimeSteps) call append_outflow(ux1,uy1,uz1,itime) 
-        if (mod(itime,isave)==0) call write_outflow(ux_recOutflow,uy_recOutflow,uz_recOutflow)  
+        call append_outflow(ux1,uy1,uz1,itime) 
         endif
 
         if (t>=spinup_time) then
@@ -344,7 +343,7 @@ do itime=ifirst,ilast
 enddo
     ! Write Outflow 
     
-    if (ioutflow==1) call write_outflow(ux_recOutflow,uy_recOutflow,uz_recOutflow)  
+    if (ioutflow==1) call write_outflow()  
 
 t2=MPI_WTIME()-t1
 call MPI_ALLREDUCE(t2,t1,1,MPI_REAL8,MPI_SUM, &

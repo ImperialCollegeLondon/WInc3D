@@ -317,7 +317,8 @@ contains
         phi=asin((turbine%RotN(1)*(u-ub)+turbine%RotN(2)*(v-vb)+turbine%RotN(3)*(w-wb))/(axis_mag*ur))
             endif
         endif
-	
+        if (abs(phi)>1) phi=1.0
+
         rroot=turbine%blade(iblade)%ERdist(ielem)/turbine%Rmax
         rtip=(turbine%Rmax-turbine%blade(iblade)%ERdist(ielem))/turbine%Rmax
         
