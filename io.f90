@@ -28,8 +28,8 @@ module decomp_2d_io
        decomp_2d_write_var, decomp_2d_read_var, &
        decomp_2d_write_scalar, decomp_2d_read_scalar, &
        decomp_2d_write_plane, decomp_2d_write_every, &
-       decomp_2d_write_subdomain, decomp_2d_read_plane
-
+       decomp_2d_write_subdomain, decomp_2d_read_plane, &
+	decomp_2d_write_outflow, decomp_2d_read_inflow	
   ! Generic interface to handle multiple data types
 
   interface decomp_2d_write_one
@@ -87,6 +87,14 @@ end interface decomp_2d_read_plane
   interface decomp_2d_write_subdomain
      module procedure write_subdomain
   end interface decomp_2d_write_subdomain
+
+  interface decomp_2d_write_outflow
+     module procedure write_outflow
+  end interface decomp_2d_write_outflow
+
+  interface decomp_2d_read_inflow
+     module procedure read_inflow
+  end interface decomp_2d_read_inflow
 
 contains
   
@@ -232,6 +240,31 @@ contains
     return
   end subroutine write_var_complex
 
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  ! Write a 3D array as part of a big MPI-IO file, starting from 
+  !  displacement 'disp'; 'disp' will be updated after the writing
+  !  operation to prepare the writing of next chunk of data.
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  subroutine write_outflow(fh,disp,NTimeSteps,var,opt_decomp)
+
+    implicit none
+
+    integer, intent(IN) :: fh
+    integer(KIND=MPI_OFFSET_KIND), intent(INOUT) :: disp
+    integer, intent(IN) :: NTimeSteps 
+    real(mytype), dimension(:,:,:), intent(IN) :: var
+    TYPE(DECOMP_INFO), intent(IN), optional :: opt_decomp
+
+    TYPE(DECOMP_INFO) :: decomp
+    integer, dimension(3) :: sizes, subsizes, starts
+    integer :: ierror, newtype, data_type
+
+    data_type = real_type
+
+#include "io_write_outflow.f90"
+
+    return
+  end subroutine write_outflow
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! Read a 3D array as part of a big MPI-IO file, starting from 
@@ -281,6 +314,26 @@ contains
     return
   end subroutine read_var_complex
 
+  subroutine read_inflow(fh,disp,NTimeSteps,var,opt_decomp)
+
+    implicit none
+
+    integer, intent(IN) :: fh
+    integer(KIND=MPI_OFFSET_KIND), intent(INOUT) :: disp
+    integer, intent(IN) :: NTimeSteps
+    real(mytype), dimension(:,:,:), intent(INOUT) :: var
+    TYPE(DECOMP_INFO), intent(IN), optional :: opt_decomp
+
+    TYPE(DECOMP_INFO) :: decomp
+    integer, dimension(3) :: sizes, subsizes, starts
+    integer :: ierror, newtype, data_type
+
+    data_type = real_type
+
+#include "io_read_inflow.f90"
+
+    return
+  end subroutine read_inflow
   
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! Write scalar variables as part of a big MPI-IO file, starting from 

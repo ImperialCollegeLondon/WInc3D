@@ -454,9 +454,9 @@ if (iscalar==0) then
          MPI_MODE_RDONLY, MPI_INFO_NULL, &
          fh, ierror)
     disp = 0_MPI_OFFSET_KIND
-    call decomp_2d_read_var(fh,disp,1,ux_inflow)   
-    call decomp_2d_read_var(fh,disp,1,uy_inflow)
-    call decomp_2d_read_var(fh,disp,1,uz_inflow)
+    call decomp_2d_read_inflow(fh,disp,NTimeSteps,ux_inflow)   
+    call decomp_2d_read_inflow(fh,disp,NTimeSteps,uy_inflow)
+    call decomp_2d_read_inflow(fh,disp,NTimeSteps,uz_inflow)
     call MPI_FILE_CLOSE(fh,ierror)
 endif
 
@@ -478,9 +478,10 @@ real(mytype), dimension(xsize(1),xsize(2),xsize(3)) :: ux,uy,uz
 integer, intent(in) :: timestep
 integer :: i,j,k
 
+if (nrank==0) print *, itime 
 ! Record planes in the middle
-do k=xstart(3),xend(3)
-do j=xstart(2),xend(2)
+do k=1,xsize(3)
+do j=1,xsize(2)
 ux_recOutflow(itime,j,k)=ux(xend(1),j,k)
 uy_recOutflow(itime,j,k)=uy(xend(1),j,k)
 uz_recOutflow(itime,j,k)=uz(xend(1),j,k)
@@ -519,9 +520,9 @@ if (iscalar==0) then
     filesize = 0_MPI_OFFSET_KIND
     call MPI_FILE_SET_SIZE(fh,filesize,ierror)  ! guarantee overwriting
     disp = 0_MPI_OFFSET_KIND
-    call decomp_2d_write_var(fh,disp,1,ux_recOutflow)
-    call decomp_2d_write_var(fh,disp,1,uy_recOutflow)
-    call decomp_2d_write_var(fh,disp,1,uz_recOutflow)
+    call decomp_2d_write_outflow(fh,disp,NTimeSteps,ux_recOutflow)
+    call decomp_2d_write_outflow(fh,disp,NTimeSteps,uy_recOutflow)
+    call decomp_2d_write_outflow(fh,disp,NTimeSteps,uz_recOutflow)
     call MPI_FILE_CLOSE(fh,ierror)
 endif
 
