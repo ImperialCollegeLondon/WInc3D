@@ -221,7 +221,6 @@ USE var, only: ux_inflow, uy_inflow, uz_inflow
 implicit none
 
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux,uy,uz,phi
-real(mytype),dimension(1,xsize(2),xsize(3)) :: ux_in,uy_in,uz_in,phi_in
 real(mytype) :: r1,r2,r3,y,z,um
 integer :: k,j,i,fh,ierror,ii
 integer :: code, itime_input

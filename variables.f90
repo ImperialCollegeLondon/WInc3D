@@ -36,7 +36,6 @@ use decomp_2d
 USE param
 
 ! define all major arrays here
-
 real(mytype), save, allocatable, dimension(:,:,:) :: ux1, ux2, ux3,po3,dv3,pp3,ucx1,ucy1,ucz1
 real(mytype), save, allocatable, dimension(:,:,:) :: uy1, uy2, uy3
 real(mytype), save, allocatable, dimension(:,:,:) :: uz1, uz2, uz3

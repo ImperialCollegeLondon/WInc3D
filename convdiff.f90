@@ -30,14 +30,13 @@
 !    Methods in Fluids, vol 67 (11), pp 1735-1757
 !################################################################################
 
-!********************************************************************
-!
+!*************************************************************************************
 subroutine convdiff(ux1,uy1,uz1,phi1,uxt,uyt,uzt,ep1,divdiva,curldiva,ta1,tb1,tc1,&
      td1,te1,tf1,tg1,th1,ti1,di1,ux2,uy2,uz2,phi2,ta2,tb2,tc2,td2,te2,tf2,tg2,th2,&
      ti2,tj2,di2,ux3,uy3,phi3,uz3,ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3,nut1,ucx1,&
      ucy1,ucz1,tmean,sgszmean,sgsxmean,sgsymean)
-! 
-!********************************************************************
+!*************************************************************************************
+
 USE param
 USE var, only: FTx, FTy, FTz
 USE decomp_2d
@@ -47,6 +46,7 @@ USE MPI
 
 implicit none
 
+! GLOBAL ARRAYS
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux1,uy1,uz1,phi1,ep1,ucx1,ucy1,ucz1,deltaphi1
 real(mytype),dimension(xsize(1),xsize(2),xsize(3),25) :: uxt,uyt,uzt
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ta1,tb1,tc1,td1,te1,tf1,tf1_abl,tg1,th1,ti1,di1
