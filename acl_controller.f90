@@ -6,7 +6,7 @@ implicit none
 ! Define some parameters
 real(mytype), parameter :: OnePlusEps= 1.0 + EPSILON(OnePlusEps)       ! The number slighty greater than unity in single precision.
 real(mytype), parameter :: R2D   =  57.295780   ! Factor to convert radians to degrees.
-real(mytype), parameter :: RPS2RPM= 9.5492966   ! Factor to convert radians per second to revolutions per minute.
+real(mytype), parameter :: RPM2RPS= 9.5492966   ! Factor to convert radians per second to revolutions per minute.
 
 type ControllerType
 ! Input parameters
@@ -63,18 +63,21 @@ end type ControllerType
 
 contains
 
-subroutine init_controller(control,GeneratorInertia,GBRatio,GBEfficiency,RatedRotSpeed,RateLimitGenTorque,CutInGenSpeed)
+subroutine init_controller(control,GeneratorInertia,GBRatio,GBEfficiency,RatedRotSpeed,RatedLimitGenTorque,CutInGenSpeed)
 
     implicit none
     ! Read control parameters
     type(ControllerType), intent(inout) :: control
-    real(mytype), intent(in) :: GeneratorInertia,GBRatio,GBEfficiency,RatedRotSpeed,RateLimitGenTorque,CutInGenSpeed
+    real(mytype), intent(in) :: GeneratorInertia,GBRatio,GBEfficiency,RatedRotSpeed,RatedLimitGenTorque,CutInGenSpeed
 
     integer :: AviFail
     
     control%GearBoxRatio=GBRatio             ! Gear box ratio
     control%IGenerator=GeneratorInertia      ! Moment of Inertia for the Generator
-    
+    control%VS_CtInSp=CutInGenSpeed 
+    control%VS_RtGnSp=RatedRotSpeed          ! In rad/s
+    control%VS_MaxRat=RatedLimitGenTorque
+
     control%CornerFreq = 1.570796 ! Corner frequency (-3dB point) in the recursive, single-pole, 
     control%PC_DT=0.0025          ! 
     control%PC_KI=0.008068634     ! Integral gain for pitch controller at rated pitch (zero), (-).
@@ -84,14 +87,11 @@ subroutine init_controller(control,GeneratorInertia,GBRatio,GBEfficiency,RatedRo
     control%PC_MaxRat = 0.1396263 ! Maximum pitch  rate (in absolute value) in pitch  controller, rad/s.
     control%PC_MinPit = 0.0       ! Minimum pitch setting in pitch controller, rad.
     control%PC_RefSpd = 122.9096  ! Desired (reference) HSS speed for pitch controller, rad/s. 
-    control%VS_CtInSp = 70.16224  ! Transitional generator speed (HSS side) between regions 1 and 1 1/2, rad/s.
     control%VS_DT = 0.00125       ! JASON:THIS CHANGED FOR ITI BARGE:0.0001 !Communication interval for torque controller, sec.
-    control%VS_MaxRat = 15000.0   ! Maximum torque rate (in absolute value) in torque controller, N-m/s.
     control%VS_MaxTq = 47402.91   ! Maximum generator torque in Region 3 (HSS side), N-m. -- chosen to be 10% above VS_RtTq = 43.09355kNm
     control%VS_Rgn2K = 2.332287   ! Generator torque constant in Region 2 (HSS side), N-m/(rad/s)^2.
     control%VS_Rgn2Sp= 91.21091   ! Transitional generator speed (HSS side) between regions 1 1/2 and 2, rad/s.
     control%VS_Rgn3MP= 0.01745329 ! Minimum pitch angle at which the torque is computed as if we are in region 3 regardless of the generator speed, rad. -- chosen to be 1.0 degree above PC_MinPit
-    control%VS_RtGnSp=121.6805    ! Rated generator speed (HSS side), rad/s. -- chosen to be 99% of PC_RefSpd
     control%VS_RtPwr= 5296610.0   ! Rated generator generator power in Region 3, Watts. 
     control%VS_SlPc=10.0          ! Rated generator slip percentage in Region 2 1/2, %. -- chosen to be 5MW divided by the electrical generator efficiency of 94.4%
 
@@ -208,18 +208,19 @@ return
 
 end subroutine init_controller
 
-subroutine operate_controller(control,time,NumBl)
+subroutine operate_controller(control,time,NumBl,rotSpeed)
 
     implicit none
     type(ControllerType), intent(inout) :: control
-   	real(mytype), intent(in) :: Time
-        integer,intent(in) :: NumBl
+   	real(mytype), intent(in) :: Time, rotSpeed
+    integer,intent(in) :: NumBl
 
     ! This Bladed-style DLL controller is used to implement a variable-speed
     ! generator-torque controller and PI collective blade pitch controller for
     ! the NREL Offshore 5MW baseline wind turbine.  This routine was written by
     ! J. Jonkman of NREL/NWTC for use in the IEA Annex XXIII OC3 studies.
-
+    control%GenSpeed=rotSpeed*control%GearBoxRatio
+    
     if(control%iStatus==0) then
     control%GenSpeedF=control%GenSpeed !This will ensure that generator speed filter will use the initial value of the generator speed on the first pass
     control%PitCom=control%BlPitch ! This will ensure that the variable speed controller picks the correct control region and the pitch controller pickes the correct gain on the first call
@@ -229,7 +230,7 @@ subroutine operate_controller(control,time,NumBl)
     control%LastTimePC=Time-control%PC_DT  ! This will ensure that the pitch  controller is called on the first pass 
     control%LastTimeVS =Time-control%VS_DT ! This will ensure that the torque controller is called on the first pass 
     endif  
-    
+   
     IF (control%iStatus>=0)  THEN  ! .TRUE. if were want to do control
     
     !Main control calculations:
@@ -260,7 +261,7 @@ subroutine operate_controller(control,time,NumBl)
     IF((control%GenSpeedF>=control%VS_RtGnSp).OR.(control%PitCom(1)>=control%VS_Rgn3MP)) THEN ! We are in region 3 - power is constant
          control%GenTrq = control%VS_RtPwr/control%GenSpeedF
       ELSEIF(control%GenSpeedF<=control%VS_CtInSp)  THEN ! We are in region 1 - torque is zero
-       control%GenTrq = 0.0
+       control%GenTrq = control%VS_CtInSp ! use the cut-in speed for the turbine
       ELSEIF(control%GenSpeedF<control%VS_Rgn2Sp)  THEN  ! We are in region 1 1/2 - linear ramp in torque from zero to optimal
        control%GenTrq =control%VS_Slope15*(control%GenSpeedF-control%VS_CtInSp)
       ELSEIF(control%GenSpeedF<control%VS_TrGnSp)  THEN  ! We are in region 2 - optimal torque is proportional to the square of the generator speed
@@ -273,16 +274,14 @@ subroutine operate_controller(control,time,NumBl)
     control%GenTrq = MIN(control%GenTrq,control%VS_MaxTq)   ! Saturate the command using the maximum torque limit
    ! Saturate the commanded torque using the torque rate limit:
 
-      	if (control%iStatus==0) control%LastGenTrq = control%GenTrq   ! Initialize the value of LastGenTrq on the first pass only
-      	
-	control%TrqRate=(control%GenTrq-control%LastGenTrq)/control%ElapTime               ! Torque rate (unsaturated)
+    if (control%iStatus==0) control%LastGenTrq = control%GenTrq   ! Initialize the value of LastGenTrq on the first pass only
+        control%TrqRate=(control%GenTrq-control%LastGenTrq)/control%ElapTime               ! Torque rate (unsaturated)
         control%TrqRate=MIN(MAX(control%TrqRate,-control%VS_MaxRat),control%VS_MaxRat)   ! Saturate the torque rate using its maximum absolute value
         control%GenTrq=control%LastGenTrq+control%TrqRate*control%ElapTime ! Saturate the command using the torque rate limit
-	! Reset the values of LastTimeVS and LastGenTrq to the current values:
+        ! Reset the values of LastTimeVS and LastGenTrq to the current values:
         control%LastTimeVS = Time
         control%LastGenTrq = control%GenTrq
-        ENDIF
-   	
+    ENDIF
 !!=======================================================================
 !
 !

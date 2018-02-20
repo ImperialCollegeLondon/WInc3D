@@ -45,7 +45,8 @@ type TurbineType
     real(mytype) :: CFy ! Fy coefficient 
     real(mytype) :: CFz ! Fz coefficient 
     real(mytype) :: CT  ! Thrust coefficient    
-   
+    real(mytype) :: Thrust, Power ! Absolute values for Thrust and Power
+
     ! Rotor Statistics
     real(mytype) :: CT_ave, CP_ave, Torque_ave
 
@@ -253,15 +254,16 @@ contains
             Torq_tot=torq_tot+Torque_i
     end do
 
-    ! Assign torque and loads
-    turbine%torque=Torq_tot
   
-    ! Coefficients
+    ! Coefficients and Absolute values
     turbine%CFx=FX_tot/(0.5*turbine%A*turbine%Uref**2)
     turbine%CFy=FY_tot/(0.5*turbine%A*turbine%Uref**2)
     turbine%CFz=Fz_tot/(0.5*turbine%A*turbine%Uref**2)
+    turbine%Thrust=sqrt(FX_tot**2.0+FY_tot**2.0+FZ_tot**2.0)
     turbine%CT=sqrt(turbine%CFx**2.0+turbine%CFy**2.0+turbine%CFz**2.0)
+    turbine%torque=Torq_tot
     turbine%CTR=Torq_tot/(0.5*turbine%A*turbine%Rmax*turbine%Uref**2.0)
+    turbine%Power=abs(Torq_tot)*turbine%angularVel
     turbine%CP= abs(turbine%CTR)*turbine%TSR
     
     ! PRINT ON SCREEN

@@ -126,11 +126,11 @@ contains
         integer :: TipCorr, RootCorr, RandomWalkForcingFlag
         real(mytype) :: toweroffset,tower_drag,tower_lift,tower_strouhal, uref, tsr, ShenC1, ShenC2 
         real(mytype) :: BladeInertia, GeneratorInertia, GBRatio, GBEfficiency, RatedRotSpeed 
-        real(mytype) :: RateLimitGenTorque, CutInGenSpeed  
+        real(mytype) :: RatedLimitGenTorque, CutInGenSpeed  
         NAMELIST/TurbineSpecs/name,origin,numblades,blade_geom,numfoil,afname,towerFlag,towerOffset, &
             tower_geom,tower_drag,tower_lift,tower_strouhal,TypeFlag, OperFlag, tsr, uref,RotFlag, AddedMassFlag, &
             RandomWalkForcingFlag, DynStallFlag,dynstall_param_file,EndEffectsFlag,TipCorr, RootCorr,ShenC1, ShenC2, &
-            BladeInertia, GeneratorInertia, GBRatio, GBEfficiency, RatedRotSpeed, RateLimitGenTorque, CutInGenSpeed
+            BladeInertia, GeneratorInertia, GBRatio, GBEfficiency, RatedRotSpeed, RatedLimitGenTorque, CutInGenSpeed
 
         if (nrank==0) then
             write(6,*) 'Loading the turbine options ...'
@@ -247,7 +247,7 @@ contains
             enddo
             ! Initialize Contoller
             call init_controller(Turbine(i)%Controller,GeneratorInertia,GBRatio,GBEfficiency,& 
-                                                RatedRotSpeed,RateLimitGenTorque,CutInGenSpeed)
+                                                RatedRotSpeed,RatedLimitGenTorque,CutInGenSpeed)
 
             Turbine(i)%Controller%IStatus=0
         else
@@ -418,7 +418,7 @@ contains
             else if(Turbine(i)%Is_control_based) then
             if(nrank==0) write(*,*) 'Entering the control-based operation for turbine', Turbine(i)%name 
             ! First do control	
-            call operate_controller(Turbine(i)%Controller,ctime,Turbine(i)%NBlades)
+            call operate_controller(Turbine(i)%Controller,ctime,Turbine(i)%NBlades,Turbine(i)%angularVel) 
             Turbine(i)%deltaOmega=(Turbine(i)%Torque-Turbine(i)%Controller%GearBoxRatio*Turbine(i)%Controller%GenTrq)/(Turbine(i)%IRotor+Turbine(i)%Controller%GearBoxRatio**2.*Turbine(i)%Controller%IGenerator)*DeltaT
             Turbine(i)%angularVel=Turbine(i)%angularVel+Turbine(i)%deltaOmega
             ! Then Calculate the angular velocity and compute the DeltaTheta  and AzimAngle              
