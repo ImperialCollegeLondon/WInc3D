@@ -25,7 +25,7 @@ type TurbineType
     integer :: No_rev=0.0
     logical :: Is_constant_rotation_operated = .false. ! For a constant rotational velocity (in Revolutions Per Minute)
     logical :: Is_control_based = .false. ! For a active control-based rotational velocity computed at run time
-    type(ControllerType) :: controller
+    type(ControllerType) :: controller    ! Contoller
     logical :: IsClockwise = .false.
     logical :: IsCounterClockwise = .false. 
     logical :: Has_Tower=.false.
@@ -121,12 +121,12 @@ contains
     
     ! Initialise Dynamic stall model
     do ielem=1,turbine%blade(iblade)%Nelem
-    	if(turbine%blade(iblade)%do_Sheng_stall) then
-    	call dystl_init(turbine%blade(iblade)%EDynstall(ielem),turbine%blade(iblade)%DynStallFile)
-    	endif
-    	if(turbine%blade(iblade)%do_lb_stall) then
-	call dystl_init_lb(turbine%blade(iblade)%ELBstall(ielem),turbine%blade(iblade)%DynStallFile)
-	endif
+    if(turbine%blade(iblade)%do_Sheng_stall) then
+    call dystl_init(turbine%blade(iblade)%EDynstall(ielem),turbine%blade(iblade)%DynStallFile)
+    endif
+    if(turbine%blade(iblade)%do_lb_stall) then
+    call dystl_init_lb(turbine%blade(iblade)%ELBstall(ielem),turbine%blade(iblade)%DynStallFile)
+    endif
     end do 
     
     ! Apply Initial Yaw and Tilt for the turbine

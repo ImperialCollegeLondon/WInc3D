@@ -651,7 +651,6 @@ end type ActuatorLineType
 
     ! Calculates element geometry from element end geometry
     nbe=blade%NElem
-    blade%Inertia=0. ! zero the blade inertia before computing it
 
     do j=1,nbe
     nej=1+j
@@ -721,9 +720,8 @@ end type ActuatorLineType
     blade%ETtoC(nej-1)=0.5*(blade%thick(nej)+blade%thick(nej-1))
     blade%Epitch(nej-1)=0.5*(blade%pitch(nej)+blade%pitch(nej-1))
    
-    blade%Inertia=blade%Inertia+blade%EArea(nej-1)*blade%ETtoC(nej-1)*blade%EC(nej-1)*blade%ERdist(nej-1)**2.  
     end do
-	
+
     return
     end subroutine make_actuatorline_geometry 
     

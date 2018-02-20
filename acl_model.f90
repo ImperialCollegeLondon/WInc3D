@@ -125,9 +125,12 @@ contains
         integer :: numblades,numfoil,towerFlag, TypeFlag, OperFlag, RotFlag, AddedMassFlag, DynStallFlag, EndEffectsFlag
         integer :: TipCorr, RootCorr, RandomWalkForcingFlag
         real(mytype) :: toweroffset,tower_drag,tower_lift,tower_strouhal, uref, tsr, ShenC1, ShenC2 
+        real(mytype) :: BladeInertia, GeneratorInertia, GBRatio, GBEfficiency, RatedRotSpeed 
+        real(mytype) :: RateLimitGenTorque, CutInGenSpeed  
         NAMELIST/TurbineSpecs/name,origin,numblades,blade_geom,numfoil,afname,towerFlag,towerOffset, &
             tower_geom,tower_drag,tower_lift,tower_strouhal,TypeFlag, OperFlag, tsr, uref,RotFlag, AddedMassFlag, &
-            RandomWalkForcingFlag, DynStallFlag,dynstall_param_file,EndEffectsFlag,TipCorr, RootCorr,ShenC1, ShenC2
+            RandomWalkForcingFlag, DynStallFlag,dynstall_param_file,EndEffectsFlag,TipCorr, RootCorr,ShenC1, ShenC2, &
+            BladeInertia, GeneratorInertia, GBRatio, GBEfficiency, RatedRotSpeed, RateLimitGenTorque, CutInGenSpeed
 
         if (nrank==0) then
             write(6,*) 'Loading the turbine options ...'
@@ -161,7 +164,7 @@ contains
         Turbine(i)%origin=origin
         Turbine(i)%NBlades=numblades
         Turbine(i)%blade_geom_file=blade_geom
-
+        
         ! Allocate Blades
         Allocate(Turbine(i)%Blade(Turbine(i)%NBlades))
 
@@ -180,9 +183,14 @@ contains
             endif
         end if
         
-        ! Allocate the memory of the Airfoils
-        
+
+        ! Assign variables on the blade level 
         do j=1,Turbine(i)%NBlades
+       
+        ! Assign the blade inertia
+        Turbine(i)%Blade(j)%Inertia=BladeInertia
+        
+        ! Allocate the memory of the Airfoils
         Turbine(i)%Blade(j)%NAirfoilData=nfoils
         Allocate(Turbine(i)%Blade(j)%AirfoilData(nfoils))
 
@@ -231,10 +239,19 @@ contains
             ! Assign the Uref and TSR to compute the optimum tip-speed ratio (This applies only to the first time step)
             Turbine(i)%Uref=uref
             Turbine(i)%TSR=tsr
-            call init_controller(Turbine(i)%Controller) 
+            ! Controller Variables
+            !--------------------------
+            do j=1,Turbine(i)%NBlades
+            ! Assign the blade inertia
+            Turbine(i)%Blade(j)%Inertia=BladeInertia
+            enddo
+            ! Initialize Contoller
+            call init_controller(Turbine(i)%Controller,GeneratorInertia,GBRatio,GBEfficiency,& 
+                                                RatedRotSpeed,RateLimitGenTorque,CutInGenSpeed)
+
             Turbine(i)%Controller%IStatus=0
         else
-            write(*,*) "Only contant_rotation and control_based is used"
+            write(*,*) "Only constant_rotation (1) and control_based (2) is used"
             stop
         endif
             
@@ -262,18 +279,18 @@ contains
         endif
 
         if(DynStallFlag>0) then
-		if(DynStallFlag==1) then ! Do Sheng et al. modelling
-            		do j=1,Turbine(i)%NBlades
-            		Turbine(i)%Blade(j)%do_Sheng_stall=.true.  
-            		Turbine(i)%Blade(j)%DynStallFile=dynstall_param_file
-            		end do
-		endif
-		if(DynStallFlag==2) then ! Do the legacy LB model
-            		do j=1,Turbine(i)%NBlades
-            		Turbine(i)%Blade(j)%do_LB_stall=.true.  
-            		Turbine(i)%Blade(j)%DynStallFile=dynstall_param_file
-            		end do	
-		endif
+        if(DynStallFlag==1) then ! Do Sheng et al. modelling
+            do j=1,Turbine(i)%NBlades
+            Turbine(i)%Blade(j)%do_Sheng_stall=.true.  
+            Turbine(i)%Blade(j)%DynStallFile=dynstall_param_file
+            end do
+        endif
+        if(DynStallFlag==2) then ! Do the legacy LB model
+            do j=1,Turbine(i)%NBlades
+            Turbine(i)%Blade(j)%do_LB_stall=.true.  
+            Turbine(i)%Blade(j)%DynStallFile=dynstall_param_file
+            end do
+        endif
         endif
         
         if (EndEffectsFlag>0) then
@@ -290,6 +307,8 @@ contains
             if (RootCorr==1) Turbine(i)%do_root_correction=.true.
         endif
         endif
+        
+
         end do
 
     end subroutine get_turbine_options 
@@ -349,14 +368,14 @@ contains
         endif
 
         if(DynStallFlag>0) then
-		if(DynStallFlag==1) then
-            		Actuatorline%do_Sheng_stall=.true.
-            		Actuatorline%DynStallFile=dynstall_param_file
-		endif
-		if(DynstallFlag==2) then
-            		Actuatorline%do_LB_stall=.true.
-            		Actuatorline%DynStallFile=dynstall_param_file	
-		endif
+        if(DynStallFlag==1) then
+            Actuatorline%do_Sheng_stall=.true.
+            Actuatorline%DynStallFile=dynstall_param_file
+        endif
+        if(DynstallFlag==2) then
+            Actuatorline%do_LB_stall=.true.
+            Actuatorline%DynStallFile=dynstall_param_file
+        endif
         endif
     
     !    !##################4 Get Pitching Opions ##################

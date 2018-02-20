@@ -1,4 +1,4 @@
-length :90.
+length : 90
 Spanwise:0 -1 0
 NStations:12
 0.0000	0.0667	0.0	1.0
