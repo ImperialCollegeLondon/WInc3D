@@ -1043,7 +1043,7 @@ do i=1,ysize(1)
       if (istret.ne.0) ut=ut+(yp(j+1)-yp(j))*(ux(i,j+1,k)-0.5*(ux(i,j+1,k)-ux(i,j,k)))
       if (istret.eq.0) ut=ut+(yly/(ny-1))*(ux(i,j+1,k)-0.5*(ux(i,j+1,k)-ux(i,j,k)))
    enddo
-   ut=ut/yly
+   !ut=ut/yly
    ut3=ut3+ut
 enddo
 enddo
@@ -1052,12 +1052,8 @@ ut3=ut3/ysize(1)/ysize(3)
 call MPI_ALLREDUCE(ut3,ut4,1,real_type,MPI_SUM,MPI_COMM_WORLD,code)
 ut4=ut4/nproc
 
-!can=-2.*xnu*gdt(itr) ! Poisseuille    
-if (istret.ne.0) delta=(yp(2)-yp(1))/2.0
-if (istret.eq.0) delta=dy/2.0 
-
 !can=-(ustar/k_roughness*((1+delta)*(log((1+delta)/z_zero)-1)-delta*(log(delta/z_zero)-1))-ut4) ! constant flow rate for a logarithmic profile
-can=-(ustar/k_roughness*(log(yly/z_zero)-1)-ut4) ! constant flow rate for a logarithmic profile
+can=-(ustar/k_roughness*yly*(log(yly/z_zero)-1)-ut4) ! constant flow rate for a logarithmic profile
 !can=can*yly*2./(yp(ny)+yp(ny-1)-yp(2)-yp(1))
 
 if (nrank==0) print *,nrank,'UT',ut4,can
@@ -1065,7 +1061,7 @@ if (nrank==0) print *,nrank,'UT',ut4,can
 do k=1,ysize(3)
 do i=1,ysize(1)
 do j=1,ny
-   ux(i,j,k)=-can+ux(i,j,k) ! Force the periodic boundary conditions
+   ux(i,j,k)=-can/yly+ux(i,j,k) ! Force the periodic boundary conditions by assigning the velocity equally ?
 enddo
 enddo
 enddo

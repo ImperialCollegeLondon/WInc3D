@@ -201,6 +201,12 @@ if (itype==2) then !channel flow
    call transpose_y_to_x(gx,ux)
 endif
 
+if (itype==8) then !channel flow
+   call transpose_x_to_y(ux,gx)
+   call abl(gx)
+   call transpose_y_to_x(gx,ux)
+endif
+
 return
 end subroutine corgp
 
