@@ -20,8 +20,9 @@ integer :: i,j,k,code
 real(mytype) :: ut,ut1,utt,ut11, abl_vel, ABLtaux, ABLtauz, delta
 real(mytype) :: ux_HAve_local, uz_HAve_local,S_HAve_local
 real(mytype) :: ux_HAve, uz_HAve,S_HAve,ux12,uz12,S12
-
-
+real(mytype) :: sxy_HAve_local, szy_HAve_local, nut_HAve_local, nutsxy_HAve_local, nutszy_HAve_local
+real(mytype) :: sxy_HAve, szy_HAve, nut_HAve, nutsxy_HAve, nutszy_HAve
+real(mytype) :: zi, nuLESBar, scriptR, xi1, nuLES, TS1, TR1
 
 call filter()
 
@@ -37,49 +38,86 @@ fiz1x,fiz2x,xsize(1),xsize(2),xsize(3),0)
     ux_HAve_local=0.
     uz_HAve_local=0.
     S_HAve_local=0.
-    
-    if (xstart(2)==1) then
-    
+    sxy_HAve_local=0.
+    szy_HAve_local=0.
+    nutsxy_HAve_local=0.  
+    nutszy_HAve_local=0.
+
+    if (xstart(2)==1) then 
     do k=1,xsize(3)
     do i=1,xsize(1)
         ux_HAve_local=ux_HAve_local+0.5*(uxf(i,1,k)+uxf(i,2,k))
         uz_HAve_local=uz_HAve_local+0.5*(uzf(i,1,k)+uzf(i,2,k))
         S_HAve_local=S_HAve_local+sqrt((0.5*(uxf(i,1,k)+uxf(i,2,k)))**2.+(0.5*(uzf(i,1,k)+uzf(i,2,k)))**2.)
+        sxy_HAve_local=sxy_HAve_local+sxy1(i,2,k)
+        szy_HAve_local=szy_HAve_local+syz1(i,2,k)
+        nut_HAve_local=nut_HAve_local+nut1(i,2,k)
+        nutsxy_HAve_local=nutsxy_HAve_local+nut1(i,2,k)*sxy1(i,2,k)
+        nutszy_HAve_local=nutszy_HAve_local+nut1(i,2,k)*syz1(i,2,k)
     enddo
     enddo
-    
-    ux_HAve_local=ux_HAve_local/xsize(3)/xsize(1)
-    uz_HAve_local=uz_HAve_local/xsize(3)/xsize(1)
-    S_HAve_local=S_HAve_local/xsize(3)/xsize(1) 
+        ux_HAve_local=ux_HAve_local/xsize(3)/xsize(1)
+        uz_HAve_local=uz_HAve_local/xsize(3)/xsize(1)
+        S_HAve_local=S_HAve_local/xsize(3)/xsize(1) 
+        sxy_HAve_local=sxy_HAve_local/xsize(3)/xsize(1)  
+        szy_HAve_local=szy_HAve_local/xsize(3)/xsize(1)
+        nut_HAve_local=nut_HAve_local/xsize(3)/xsize(1)
+        nutsxy_HAve_local=nutsxy_HAve_local/xsize(3)/xsize(1)  
+        nutszy_HAve_local=nutszy_HAve_local/xsize(3)/xsize(1)
     else 
-    
     ux_HAve_local=0.  
     uz_HAve_local=0.
     S_HAve_local =0.
-   
+    sxy_HAve_local=0.  
+    szy_HAve_local=0.
+    nut_HAve_local=0.
+    nutsxy_HAve_local=0.
+    nutszy_HAve_local=0.
     endif
     
     call MPI_ALLREDUCE(ux_HAve_local,ux_HAve,1,real_type,MPI_SUM,MPI_COMM_WORLD,code)
     call MPI_ALLREDUCE(uz_HAve_local,uz_HAve,1,real_type,MPI_SUM,MPI_COMM_WORLD,code)
     call MPI_ALLREDUCE(S_HAve_local,S_HAve,1,real_type,MPI_SUM,MPI_COMM_WORLD,code)
+    call MPI_ALLREDUCE(sxy_HAve_local,sxy_HAve,1,real_type,MPI_SUM,MPI_COMM_WORLD,code)
+    call MPI_ALLREDUCE(szy_HAve_local,szy_HAve,1,real_type,MPI_SUM,MPI_COMM_WORLD,code)
+    call MPI_ALLREDUCE(nut_HAve_local,nut_HAve,1,real_type,MPI_SUM,MPI_COMM_WORLD,code)
+    call MPI_ALLREDUCE(nutszy_HAve_local,nutsxy_HAve,1,real_type,MPI_SUM,MPI_COMM_WORLD,code)
+    call MPI_ALLREDUCE(nutsxy_HAve_local,nutsxy_HAve,1,real_type,MPI_SUM,MPI_COMM_WORLD,code)
     
     ux_HAve=ux_HAve/p_col
     uz_HAve=uz_HAve/p_col
     S_HAve= S_HAve/p_col
+    sxy_HAve=sxy_HAve/p_col 
+    szy_HAve=szy_HAve/p_col
+    nut_HAve=nut_HAve/p_col
+    nutsxy_HAve=nutsxy_HAve/p_col
+    nutszy_HAve=nutszy_HAve/p_col
    
     if (istret.ne.0) delta=(yp(2)-yp(1))/2.0
     if (istret.eq.0) delta=dy/2.0   
     
     ! Compute the friction velocity u_shear
     u_shear=k_roughness*sqrt(ux_HAve**2.+uz_HAve**2.)/log(delta/z_zero)
-    if (nrank==0) write(*,*) "Horizontally-averaged velocity at y=1/2... ", ux_HAve,uz_Have
-    if (nrank==0) write(*,*) "Friction velocity ... ", u_shear 
+    xi1=(nutsxy_HAve+nut_HAve*sxy_HAve)/(nut_HAve*sxy_HAve)
+    nuLES=xi1*nut_HAve
+    TS1=2*xi1*nut_HAve*sxy_HAve
+    scriptR=u_shear**2./TS1-1
+
+    if (nrank==0) then 
+        print *, ' '
+        print *, ' ABL:'
+        print *, ' Horizontally-averaged velocity at y=1/2... ', ux_HAve,uz_Have
+        print *, ' Friction velocity : ', u_shear 
+        print *, ' xi1 : ', xi1
+        print *, ' scriptR ', scriptR
+    endif
     !Compute the shear stresses -- only on the wall
     !u_shear=ustar
     wallfluxx = 0. 
     wallfluxy = 0.
     wallfluxz = 0.
-    
+   
+    ! Apply BCs locally
     if (xstart(2)==1) then
     do k=1,xsize(3)
     do i=1,xsize(1)                       
@@ -129,13 +167,13 @@ real(mytype) :: x,y,z
 integer :: i,j,k
 
 do k=1,xsize(3)
-	z=(k+xstart(3)-1-1)*dz
+    z=(k+xstart(3)-1-1)*dz
 do j=1,xsize(2)
    if (istret.eq.0) y=(j+xstart(2)-1-1)*dy
    if (istret.ne.0) y=yp(j)
 do i=1,xsize(1)
-	x=(i+xstart(1)-1-1)*dx
-	Ftrip=exp(((x-x0)/lx)**2.-(y/ly)**2.)
+    x=(i+xstart(1)-1-1)*dx
+    Ftrip=exp(((x-x0)/lx)**2.-(y/ly)**2.)
 enddo
 enddo
 enddo
