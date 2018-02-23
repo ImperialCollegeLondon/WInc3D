@@ -64,7 +64,7 @@ real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: nut1
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: sgsx1,sgsy1,sgsz1
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: gxx1,gyx1,gzx1,&
 gxy1,gyy1,gzy1,gxz1,gyz1,gzz1
-real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: srt_smag
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: srt_smag, shrt2, shrt_coeff
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: dsmagcst
 
 !STATISTICS Arrays
@@ -125,6 +125,11 @@ if (iskew==0) then !UROTU!
    enddo
 else !SKEW!
 !############################## STARTING LES MODELLING HERE #######################
+
+if (jLES==1.and.dynhypvisc==1) then
+call shear_rate_coeff(ux1,uy1,uz1,gxx1,gyx1,gzx1,gxy1,gyy1,gzy1,gxz1,gyz1,gzz1,&
+sxx1,syy1,szz1,sxy1,sxz1,syz1,shrt2,shrt_coeff,ta2,ta3,di1,di2,di3)
+endif
 
 !CLASSIC SMAGORINSKY (plus required rates)
 if (jLES==2) then
@@ -408,10 +413,20 @@ if (iabl==1) then
 endif
 
 !FINAL SUM: DIFF TERMS + CONV TERMS
-if(jLES==0.or.jLES==1) then ! DNS or implicit LES
+if(jLES==0) then ! DNS 
     ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)
     tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)
     tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)
+elseif (jLES==1) then ! implicit LES 
+    if(dynhypvisc==1) then ! use the dynamic definition of nu0/nu 
+    ta1(:,:,:)=xnu*shrt_coeff(:,:,:)*ta1(:,:,:)-tg1(:,:,:)
+    tb1(:,:,:)=xnu*shrt_coeff(:,:,:)*tb1(:,:,:)-th1(:,:,:)
+    tc1(:,:,:)=xnu*shrt_coeff(:,:,:)*tc1(:,:,:)-ti1(:,:,:)
+    else
+    ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)
+    tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)
+    tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)
+    endif
 elseif (jLES==2) then ! Classic Smagorisnky Model
     ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)+sgsx1(:,:,:)
     tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)+sgsy1(:,:,:)

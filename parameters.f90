@@ -50,7 +50,7 @@ character :: a*80
 ! Have you heard of NAMELISTs ?
 NAMELIST/FlowParam/itype,iin,xlx,yly,zlz,re,sc,u1,u2,noise,noise1,ibuoyancy,icoriolis,Pr,TempRef,CoriolisFreq 
 NAMELIST/NumConfig/nx,ny,nz,p_row,p_col,nclx,ncly,nclz,TurbRadius,ifirst,ilast,nscheme,dt,istret, &
-    beta,iskew,iscalar,jles,FSGS,jadv,smagcst,SmagWallDamp,nSmag,walecst,rxxnu,cnu 
+    beta,iskew,iscalar,jles,FSGS,jadv,smagcst,SmagWallDamp,nSmag,walecst,rxxnu,cnu, dynhypvisc  
 NAMELIST/FileParam/ilit,isave,imodulo,ioutflow,iinflow,OutflowOnsetIndex, NTimeSteps
 NAMELIST/IBMParam/ivirt,ibmshape,cex,cey,cez,ra
 NAMELIST/ALMParam/ialm,NTurbines,TurbinesPath,NActuatorlines,ActuatorlinesPath,eps_factor
@@ -99,8 +99,9 @@ imodulo=100
 ivirt=0
 ialm=0
 eps_factor=2.0
-rxxnu=3.0
+rxxnu=1.0
 cnu=0.44
+dynhypvisc=0
 nSmag=1.0
 SmagWallDamp=0
 IPressureGradient=0
