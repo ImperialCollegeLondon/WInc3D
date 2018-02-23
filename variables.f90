@@ -43,7 +43,7 @@ real(mytype), save, allocatable, dimension(:,:,:) :: phi1, phi2, phi3
 real(mytype), save, allocatable, dimension(:,:,:) :: gx1, gy1, gz1, hx1, hy1, hz1, phis1,phiss1
 real(mytype), save, allocatable, dimension(:,:,:) :: px1, py1, pz1
 real(mytype), save, allocatable, dimension(:,:,:) :: ep1
-real(mytype), save, allocatable, dimension(:,:,:) :: nut1
+real(mytype), save, allocatable, dimension(:,:,:) :: nut1, shrt_coeff
 real(mytype), save, allocatable, dimension(:,:,:,:) :: uxt,uyt,uzt
 
 ! Define inflow/outflow file
@@ -125,7 +125,8 @@ contains
     call alloc_x(td1);call alloc_x(te1);call alloc_x(tf1)
     call alloc_x(tg1);call alloc_x(th1);call alloc_x(ti1)
     call alloc_x(tj1);call alloc_x(di1);call alloc_x(ep1)
-call alloc_x(nut1);call alloc_x(ucx1);call alloc_x(ucy1);call alloc_x(ucz1);
+    call alloc_x(nut1);call alloc_x(ucx1);call alloc_x(ucy1);call alloc_x(ucz1);
+    call alloc_x(shrt_coeff);
     allocate(sx(xsize(2),xsize(3)),vx(xsize(2),xsize(3)))
     !inflow/ouflow 2d arrays
     allocate(bxx1(xsize(2),xsize(3)),bxy1(xsize(2),xsize(3)))

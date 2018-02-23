@@ -168,9 +168,9 @@ shrt2(:,:,:) = sxx1(:,:,:)*sxx1(:,:,:)+syy1(:,:,:)*syy1(:,:,:) &
 
 !================= Find the max |S|oo ================ !
 
-shearAve=maxval(sqrt(shrt2))
+shearAve_loc=maxval(sqrt(shrt2))
 
-!call MPI_ALLREDUCE(shearAve_loc,shearAve,1,real_type,MPI_SUM,MPI_COMM_WORLD,code)
+call MPI_ALLREDUCE(shearAve_loc,shearAve,1,real_type,MPI_MAX,MPI_COMM_WORLD,code)
 
 shrt_coeff=sqrt(shrt2)/shearAve
 
