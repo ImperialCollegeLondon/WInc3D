@@ -223,6 +223,7 @@ USE decomp_2d_io
 USE actuator_line_model_utils
 USE MPI
 USE var, only: ux_inflow, uy_inflow, uz_inflow
+USE sem_module
 
 implicit none
 
@@ -238,7 +239,7 @@ call random_number(bxo)
 call random_number(byo)
 call random_number(bzo)
 
-! Random Walk
+! Uniform random walk noise with grid-size eddies (real crap)
 if (iin.eq.1) then  
    do k=1,xsize(3)
     z=(k+xstart(3)-1-1)*dz
@@ -263,7 +264,7 @@ if (iin.eq.1) then
    endif
 endif
 
-! Some sort of simplified SEM
+! Random noise near the bottom (needed to intrigue instabilities in ABL)
 if (iin.eq.2) then  
    do k=1,xsize(3)
     z=(k+xstart(3)-1-1)*dz
@@ -288,7 +289,7 @@ if (iin.eq.2) then
    endif
 endif
 
-! READING FROM FILES
+! READING FROM FILES (when precursor simulations exist)
 if (iin.eq.3) then   
     if (nrank==0) print *,'READ inflow from a file'
     itime_input=mod(itime,NTimeSteps)
@@ -306,6 +307,12 @@ if (iin.eq.3) then
     enddo
 endif
 
+
+if (iin.eq.4) then
+if (nrank==0) print *, 'Running with Synthetic Eddy Method for inlet simulations'
+if (nrank==0) print *, 'Number of Eddies : ', Neddies
+call add_synthetic_turbulence()
+endif
 
 return
 
