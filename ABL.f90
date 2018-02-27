@@ -108,8 +108,8 @@ fiz1x,fiz2x,xsize(1),xsize(2),xsize(3),0)
         print *, ' ABL:'
         print *, ' Horizontally-averaged velocity at y=1/2... ', ux_HAve,uz_Have
         print *, ' Friction velocity : ', u_shear 
-        print *, ' xi1 : ', xi1
-        print *, ' scriptR ', scriptR
+        !print *, ' xi1 : ', xi1
+        !print *, ' scriptR ', scriptR
     endif
     !Compute the shear stresses -- only on the wall
     !u_shear=ustar
@@ -137,9 +137,9 @@ fiz1x,fiz2x,xsize(1),xsize(2),xsize(3),0)
     wallfluxz(i,1,k) = -(-1./2.*(-2.*nut1(i,3,k)*syz1(i,3,k))+&
         2.*(-2.*nut1(i,2,k)*syz1(i,2,k))-3./2.*tauwallzy(i,k))/(2.*delta)
     else
-    wallfluxx(i,1,k) = 0.
+    wallfluxx(i,1,k) = -(u_shear*ux12/S12)**2. 
     wallfluxy(i,1,k) = 0.
-    wallfluxz(i,1,k) = 0.
+    wallfluxz(i,1,k) = -(u_shear*uz12/S12)**2.
     endif
     
     enddo

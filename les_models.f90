@@ -167,7 +167,6 @@ shrt2(:,:,:) = sxx1(:,:,:)*sxx1(:,:,:)+syy1(:,:,:)*syy1(:,:,:) &
 +2.*sxz1(:,:,:)*sxz1(:,:,:)+2.*syz1(:,:,:)*syz1(:,:,:)
 
 !================= Find the max |S|oo ================ !
-
 shearAve_loc=maxval(sqrt(shrt2))
 
 call MPI_ALLREDUCE(shearAve_loc,shearAve,1,real_type,MPI_MAX,MPI_COMM_WORLD,code)
