@@ -293,10 +293,6 @@ endif
 if (iin.eq.3) then   
     if (nrank==0) print *,'READ inflow from a file'
     itime_input=mod(itime,NTimeSteps)
-    if (itime>NTimeSteps.and.NTimeSteps<xsize(1).and.nrank==0) then 
-       write(*,*) "Ntimesteps should be at least equal to nx and the time steps of the simulations less than NTimesteps-nx"
-       stop
-    endif
     if (nrank==0) print *, 'Reading time step', itime_input 
     do k=1,xsize(3)
     do j=1,xsize(2)

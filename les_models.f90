@@ -173,6 +173,14 @@ call MPI_ALLREDUCE(shearAve_loc,shearAve,1,real_type,MPI_MAX,MPI_COMM_WORLD,code
 
 shrt_coeff=sqrt(shrt2)/shearAve
 
+do k=1,xsize(3)
+do j=1,xsize(2)
+do i=1,xsize(1)
+if (shrt_coeff(i,j,k)*rxxnu<10) shrt_coeff(i,j,k)=10./rxxnu ! Limits the value to 10 (just to be consistent)
+enddo
+enddo
+enddo
+
 if (nrank==0) print*, "Dynamic Hyper eddy viscosity with max and min of shrt_coeff=", maxval(shrt_coeff), minval(shrt_coeff)
 
 return

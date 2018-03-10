@@ -22,7 +22,7 @@ sigma_diff=[2.0, 2.5, 2.9]
 if(jles==0) then
 visc=xnu
 elseif (jles==1) then
-visc=20*rxxnu*xnu
+visc=rxxnu*xnu
 endif
 
 ! This is considering 1D peridic boundaries
