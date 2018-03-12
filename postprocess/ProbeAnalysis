@@ -43,7 +43,11 @@ for i in range(M):
         W[i,j]=A[j,6];
         K[i,j]=0.5*(U[i,j]**2+V[i,j]**2+W[i,j]**2)
 
-PSD_ave=np.zeros((513,1))
+NumbModes=1024
+Nhalf=NumbModes/2+1
+PSD_avex=np.zeros((Nhalf,1))
+PSD_avey=np.zeros((Nhalf,1))
+PSD_avez=np.zeros((Nhalf,1))
 
 # Compute Power from signal
 for i in range(N):
@@ -52,21 +56,45 @@ for i in range(N):
     f, psd =welch(S,
         fs=1./Time, # sample rate
         window='hanning',
-        nperseg=1024,
+        nperseg=NumbModes,
         scaling='spectrum')
-    for k in range(513):
-        PSD_ave[k]=PSD_ave[k]+psd[k]
+    for k in range(Nhalf):
+        PSD_avex[k]=PSD_avex[k]+psd[k]
 
-PSD_ave=PSD_ave/N
-print np.size(PSD_ave)
-print np.size(f)
+for i in range(N):    
+    Vav=np.average(V[:,i])
+    S=V[:,i]-Vav
+    f, psd =welch(S,
+        fs=1./Time, # sample rate
+        window='hanning',
+        nperseg=NumbModes,
+        scaling='spectrum')
+    for k in range(Nhalf):
+        PSD_avey[k]=PSD_avey[k]+psd[k]
+
+for i in range(N):        
+    Wav=np.average(W[:,i])
+    S=W[:,i]-Wav
+    f, psd =welch(S,
+        fs=1./Time, # sample rate
+        window='hanning',
+        nperseg=NumbModes,
+        scaling='spectrum')
+    for k in range(Nhalf):
+        PSD_avez[k]=PSD_avez[k]+psd[k]
+
+PSD_avex=PSD_avex/N
+PSD_avey=PSD_avey/N
+PSD_avez=PSD_avez/N
 
 f_inertial=np.arange(1,1e2)
 psd_inertial=0.003*f_inertial**(-5/3)
 
 if args.plot:    
-    plt.loglog(f,PSD_ave,f_inertial,psd_inertial)
-    plt.ylim([1e-7,1e-2])
+    plt.loglog(f,PSD_avex,f_inertial,psd_inertial)
+    plt.loglog(f,PSD_avey)
+    plt.loglog(f,PSD_avez)
+    plt.ylim([1e-15,1e-2])
     plt.xlim([1e-1,1e3])
     plt.show()
 
@@ -74,6 +102,6 @@ if args.write:
     with open(output+'Spectrum.dat','w') as fout:
         fout.write('# f PSD \n')
         for i in range(len(f)):
-            fout.write(str(f[i])+' '+str(psd[i])+'\n')
+            fout.write(str(f[i])+' '+str(float(PSD_avex[i]))+' '+str(float(PSD_avey[i]))+' '+str(float(PSD_avez[i]))+'\n')
 
 
