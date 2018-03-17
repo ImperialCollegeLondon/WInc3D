@@ -478,16 +478,22 @@ real(mytype), dimension(xsize(1),xsize(2),xsize(3)) :: ux,uy,uz
 integer, intent(in) :: timestep
 integer :: i,j,k
 
-if (nrank==0) print *, itime 
+if (nrank==0) print *, 'Writing outflow', timestep 
 ! Record planes in the middle
+if (timestep<1.or.timestep>NTimeSteps) then 
+print*, 'timesteps should be between 1 and NTimesteps -- I exit without writing'
+return
+endif
+
 do k=1,xsize(3)
 do j=1,xsize(2)
-ux_recOutflow(itime,j,k)=ux(xend(1),j,k)
-uy_recOutflow(itime,j,k)=uy(xend(1),j,k)
-uz_recOutflow(itime,j,k)=uz(xend(1),j,k)
+ux_recOutflow(timestep,j,k)=ux(xend(1),j,k)
+uy_recOutflow(timestep,j,k)=uy(xend(1),j,k)
+uz_recOutflow(timestep,j,k)=uz(xend(1),j,k)
 enddo
 enddo
 
+return
 end subroutine append_outflow
 
 ! ***********************************************************************

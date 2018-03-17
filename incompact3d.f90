@@ -51,7 +51,7 @@ implicit none
 integer :: code,nlock,i,j,k,ii,bcx,bcy,bcz,fh,ierror
 real(mytype) :: x,y,z,tmp1
 double precision :: t1,t2
-integer :: ErrFlag, nargin, FNLength, status, DecInd
+integer :: ErrFlag, nargin, FNLength, status, DecInd, output_counter
 logical :: back
 character(len=80) :: InputFN, FNBase
 character(len=20) :: filename
@@ -227,6 +227,11 @@ if (iin==3) then
     call read_inflow(ux_inflow,uy_inflow,uz_inflow)
 endif
 
+! Initialise outflow file
+if (ioutflow==1) then
+output_counter=0
+endif
+
 do itime=ifirst,ilast
    t=(itime-1)*dt
 
@@ -306,13 +311,14 @@ do itime=ifirst,ilast
 
       enddo
        
-        if(ioutflow==1) then
-        call append_outflow(ux1,uy1,uz1,itime) 
-        endif
-
         if (t>=spinup_time) then
         call STATISTIC(ux1,uy1,uz1,phi1,ta1,umean,vmean,wmean,phimean,uumean,vvmean,wwmean,&
            uvmean,uwmean,vwmean,phiphimean,tmean)
+        
+	if(ioutflow==1) then
+	output_counter=output_counter+1
+        call append_outflow(ux1,uy1,uz1,output_counter) 
+        endif
 
         if(ialm==1) call actuator_line_statistics()
 
