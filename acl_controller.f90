@@ -214,7 +214,7 @@ subroutine operate_controller(control,time,NumBl,rotSpeed)
     type(ControllerType), intent(inout) :: control
    	real(mytype), intent(in) :: Time, rotSpeed
     integer,intent(in) :: NumBl
-
+    integer :: k
     ! This Bladed-style DLL controller is used to implement a variable-speed
     ! generator-torque controller and PI collective blade pitch controller for
     ! the NREL Offshore 5MW baseline wind turbine.  This routine was written by
@@ -283,72 +283,71 @@ subroutine operate_controller(control,time,NumBl,rotSpeed)
         control%LastGenTrq = control%GenTrq
     ENDIF
 !!=======================================================================
+
+
+   ! Pitch control:
+
+   ! Compute the elapsed time since the last call to the controller:
+
+   control%ElapTime = time - control%LastTimePC
+
+
+   ! Only perform the control calculations if the elapsed time is greater than
+   !   or equal to the communication interval of the pitch controller:
+   ! NOTE: Time is scaled by OnePlusEps to ensure that the contoller is called
+   !       at every time step when PC_DT = DT, even in the presence of
+   !       numerical precision errors.
+
+   IF ( ( Time*OnePlusEps - control%LastTimePC ) >= control%PC_DT )  THEN
 !
 !
-!   ! Pitch control:
+   ! Compute the gain scheduling correction factor based on the previously
+   !   commanded pitch angle for blade 1:
+
+      control%GK = 1.0/( 1.0 + control%PitCom(1)/control%PC_KK )
+
 !
-!   ! Compute the elapsed time since the last call to the controller:
-!
-!   ElapTime = Time - LastTimePC
-!
-!
-!   ! Only perform the control calculations if the elapsed time is greater than
-!   !   or equal to the communication interval of the pitch controller:
-!   ! NOTE: Time is scaled by OnePlusEps to ensure that the contoller is called
-!   !       at every time step when PC_DT = DT, even in the presence of
-!   !       numerical precision errors.
-!
-!   IF ( ( Time*OnePlusEps - LastTimePC ) >= PC_DT )  THEN
-!
-!
-!   ! Compute the gain scheduling correction factor based on the previously
-!   !   commanded pitch angle for blade 1:
-!
-!      GK = 1.0/( 1.0 + PitCom(1)/PC_KK )
-!
-!
-!   ! Compute the current speed error and its integral w.r.t. time; saturate the
-!   !   integral term using the pitch angle limits:
-!
-!      SpdErr    = GenSpeedF - PC_RefSpd                                 ! Current speed error
-!      IntSpdErr = IntSpdErr + SpdErr*ElapTime                           ! Current integral of speed error w.r.t. time
-!      IntSpdErr = MIN( MAX( IntSpdErr, PC_MinPit/( GK*PC_KI ) ), &
-!                                       PC_MaxPit/( GK*PC_KI )      )    ! Saturate the integral term using the pitch angle limits, converted to integral speed error limits
-!
-!
-!   ! Compute the pitch commands associated with the proportional and integral
-!   !   gains:
-!
-!      PitComP   = GK*PC_KP*   SpdErr                                    ! Proportional term
-!      PitComI   = GK*PC_KI*IntSpdErr                                    ! Integral term (saturated)
-!
-!
-!   ! Superimpose the individual commands to get the total pitch command;
-!   !   saturate the overall command using the pitch angle limits:
-!
-!      PitComT   = PitComP + PitComI                                     ! Overall command (unsaturated)
-!      PitComT   = MIN( MAX( PitComT, PC_MinPit ), PC_MaxPit )           ! Saturate the overall command using the pitch angle limits
-!
-!
-!   ! Saturate the overall commanded pitch using the pitch rate limit:
-!   ! NOTE: Since the current pitch angle may be different for each blade
-!   !       (depending on the type of actuator implemented in the structural
-!   !       dynamics model), this pitch rate limit calculation and the
-!   !       resulting overall pitch angle command may be different for each
-!   !       blade.
-!
-!      DO K = 1,NumBl ! Loop through all blades
-!
-!         PitRate(K) = ( PitComT - BlPitch(K) )/ElapTime                 ! Pitch rate of blade K (unsaturated)
-!         PitRate(K) = MIN( MAX( PitRate(K), -PC_MaxRat ), PC_MaxRat )   ! Saturate the pitch rate of blade K using its maximum absolute value
-!         PitCom (K) = BlPitch(K) + PitRate(K)*ElapTime                  ! Saturate the overall command of blade K using the pitch rate limit
-!
-!      ENDDO          ! K - all blades
-!
-!
-!   ! Reset the value of LastTimePC to the current value:
-!
-!      LastTimePC = Time
+   ! Compute the current speed error and its integral w.r.t. time; saturate the
+   !   integral term using the pitch angle limits:
+
+      control%SpdErr    = control%GenSpeedF - control%PC_RefSpd                                 ! Current speed error
+      control%IntSpdErr = control%IntSpdErr + control%SpdErr*control%ElapTime                           ! Current integral of speed error w.r.t. time
+      control%IntSpdErr = MIN( MAX( control%IntSpdErr, control%PC_MinPit/( control%GK*control%PC_KI ) ), &
+                                       control%PC_MaxPit/( control%GK*control%PC_KI )      )    ! Saturate the integral term using the pitch angle limits, converted to integral speed error limits
+
+
+   ! Compute the pitch commands associated with the proportional and integral
+   !   gains:
+
+      control%PitComP   = control%GK*control%PC_KP*control%SpdErr               ! Proportional term
+      control%PitComI   = control%GK*control%PC_KI*control%IntSpdErr            ! Integral term (saturated)
+
+
+   ! Superimpose the individual commands to get the total pitch command;
+   !   saturate the overall command using the pitch angle limits:
+
+      control%PitComT   = control%PitComP + control%PitComI                     ! Overall command (unsaturated)
+      control%PitComT   = MIN( MAX( control%PitComT, control%PC_MinPit ), control%PC_MaxPit )           ! Saturate the overall command using the pitch angle limits
+
+
+   ! Saturate the overall commanded pitch using the pitch rate limit:
+   ! NOTE: Since the current pitch angle may be different for each blade
+   !       (depending on the type of actuator implemented in the structural
+   !       dynamics model), this pitch rate limit calculation and the
+   !       resulting overall pitch angle command may be different for each
+   !       blade.
+
+      DO K = 1,NumBl ! Loop through all blades
+
+         control%PitRate(K) = ( control%PitComT - control%BlPitch(K) )/control%ElapTime                 ! Pitch rate of blade K (unsaturated)
+         control%PitRate(K) = MIN( MAX( control%PitRate(K), -control%PC_MaxRat ), control%PC_MaxRat )   ! Saturate the pitch rate of blade K using its maximum absolute value
+         control%PitCom (K) = control%BlPitch(K) + control%PitRate(K)*control%ElapTime                  ! Saturate the overall command of blade K using the pitch rate limit
+
+      ENDDO          ! K - all blades
+
+   ! Reset the value of LastTimePC to the current value:
+
+      control%LastTimePC = Time
 !
 !
 !   ! Output debugging information if requested:
@@ -358,7 +357,7 @@ subroutine operate_controller(control,time,NumBl,rotSpeed)
 !                                             PitComT*R2D, PitRate(1)*R2D, PitCom(1)*R2D
 !
 !
-!   ENDIF
+   ENDIF
 !
 !
 !   ! Set the pitch override to yes and command the pitch demanded from the last
