@@ -116,12 +116,9 @@ for k in range(0,nz):
     z[:,:,k]=k*dz
 
 
-Href=nml['PostProcess']['Href']
-Uref=nml['PostProcess']['Uref']
 ustar=nml['PostProcess']['ustar']
 xProfile=nml['PostProcess']['xProfile']
 OutputName=nml['PostProcess']['OutputName']
-
 
      
 ixloc=np.where(abs(x[:,0,0]-xProfile[0])==abs(x[:,0,0]-xProfile[0]).min())[0]
@@ -136,9 +133,10 @@ if args.write:
     with open(output+'profile.dat','w') as fout:
         fout.write('# y U/Uref U/u* Phi up/Uref vp/Uref wp/Uref upvp/Uref \n')
         for jprofile in range(1,ny):
-            yH=float(y[ixloc[0],jprofile,kxloc[0]]/Href)
-            UUref=float(uav[ixloc[0],jprofile,kxloc[0]]/Uref)
+            Y=float(y[ixloc[0],jprofile,kxloc[0]])
+            U=float(uav[ixloc[0],jprofile,kxloc[0]])
             Uustar=float(uav[ixloc[0],jprofile,kxloc[0]]/ustar)
             Phi=float(dudy[jprofile]*y[ixloc[0],jprofile,kxloc[0]]*0.41/ustar)
-            upvpUref2=float(upvp[ixloc[0],jprofile,kxloc[0]]/Uref**2.)
-            fout.write(str(yH) + ' '+ str(UUref)+' '+str(Uustar)+' '+str(Phi)+' '+str(-upvpUref2)+'\n')
+            UpVp=float(-upvp[ixloc[0],jprofile,kxloc[0]])
+            I=float(sqrt(upup[ixloc[0],jprofile,kxloc[0]])/sqrt(uav[ixloc[0],jprofile,kxloc[0]]**2.+uav[ixloc[0],jprofile,kxloc[0]]**2.))
+            fout.write(str(Y) + ' '+ str(U)+' '+str(Uustar)+' '+str(Phi)+' '+str(UpVp)+' '+str(I)+'\n')

@@ -472,31 +472,39 @@ end type ActuatorLineType
 
     end subroutine compute_Tower_Forces
 
-    subroutine pitch_actuator_line(act_line)
+    subroutine pitch_actuator_line(act_line,pitch_angle)
 
     implicit none
     type(ActuatorLineType),intent(INOUT) :: act_line
-    real(mytype) :: pitch_angle !Pitch in degrees
-    real(mytype) :: R(3,3), t(3,1)
+    real(mytype), intent(in) :: pitch_angle !Pitch in degrees
+    real(mytype) :: S, sx, sy, sz, tx,ty,tz, new_tx, new_ty, new_tz
     integer :: istation, Nstation
     
     !> Change the pitch angle by changing n,t and s unit vectors
     Nstation=act_line%Nelem+1
+    
+    !> Compute the blade--wise unit vector 
+    S=sqrt((act_line%QCX(NStation)-act_line%COR(1))**2. + &
+           (act_line%QCY(NStation)-act_line%COR(2))**2. + &
+           (act_line%QCZ(NStation)-act_line%COR(3))**2.)
+       
+    sx=(act_line%QCX(NStation)-act_line%COR(1))/S
+    sy=(act_line%QCY(NStation)-act_line%COR(2))/S
+    sz=(act_line%QCZ(NStation)-act_line%COR(3))/S
 
     do istation=1,Nstation 
-    pitch_angle=act_line%pitch(istation)
-    !> Define the Pitch Rotation Matrix
-    R=reshape((/cos(pitch_angle*pi/180.0),0.0d0,-sin(pitch_angle*pi/180.0),0.0d0,1.0d0,0.0d0,sin(pitch_angle*pi/180.0),0.0d0,cos(pitch_angle*pi/180.0)/),(/3,3/))
-    t(1,1)=act_line%tx(istation)
-    t(2,1)=act_line%ty(istation)
-    t(3,1)=act_line%tz(istation)     
-    t=matmul(R,t)
-    !>Reassign the tangential vector
+    
+    tx=act_line%tx(istation)
+    ty=act_line%ty(istation)
+    tz=act_line%tz(istation)   
 
-    act_line%tx(istation)=sin(pitch_angle)
-    act_line%ty(istation)=cos(pitch_angle)
-    act_line%tz(istation)=0.0
+    call QuatRot(tx,ty,tz,pitch_angle*pi/180.,sx,sy,sz,0.0d0,0.0d0,0.0d0,new_tx,new_ty,new_tz)
+    
+    act_line%tx(istation)=new_tx
+    act_line%ty(istation)=new_ty
+    act_line%tz(istation)=new_tz
 
+    act_line%pitch(istation)=act_line%pitch(istation)+pitch_angle
     end do
 
     call make_actuatorline_geometry(act_line) 

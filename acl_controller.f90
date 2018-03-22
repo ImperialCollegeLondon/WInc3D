@@ -348,15 +348,12 @@ subroutine operate_controller(control,time,NumBl,rotSpeed)
    ! Reset the value of LastTimePC to the current value:
 
       control%LastTimePC = Time
-!
-!
+
 !   ! Output debugging information if requested:
 !
 !      IF ( PC_DbgOut )  WRITE (UnDb,FmtDat)  Time, ElapTime, HorWindV, GenSpeed*RPS2RPM, GenSpeedF*RPS2RPM,           &
 !                                             100.0*SpdErr/PC_RefSpd, SpdErr, IntSpdErr, GK, PitComP*R2D, PitComI*R2D, &
 !                                             PitComT*R2D, PitRate(1)*R2D, PitCom(1)*R2D
-!
-!
    ENDIF
 !
 !
@@ -371,14 +368,12 @@ subroutine operate_controller(control,time,NumBl,rotSpeed)
 !
 !   avrSWAP(45) = PitCom(1) ! Use the command angle of blade 1 if using collective pitch
 
+ ! Reset the value of LastTime to the current value:
+    control%LastTime = Time
 
- 	! Reset the value of LastTime to the current value:
+    endif 
 
-   	control%LastTime = Time	
-
-	endif 
-
-	return
+    return
 
 end subroutine operate_controller
 

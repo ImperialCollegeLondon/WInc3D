@@ -495,7 +495,14 @@ if (itype.eq.8) then
       bxy1(j,k)=0.
       bxz1(j,k)=0.
       if (ibuoyancy==1) then
-      phi1(i,j,k)=TempRef+y*0.01
+      ! Add a cap inversion (THis is hard coded but oh boy it helps MASSIVELY !!!)
+      if (y>700..and.y<800) then
+      phi1(i,j,k)=TempRef+(y-700)*8./100.
+      elseif (y>=800) then
+      phi1(i,j,k)=TempRef+8+0.003*(y-800.)
+      else
+      phi1(i,j,k)=TempRef
+      endif
       endif
    enddo
    enddo

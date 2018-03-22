@@ -119,7 +119,7 @@ contains
         !-------------------------------------
         ! Dummy variables
         !-------------------------------------
-        character(len=100) :: name, blade_geom, tower_geom, dynstall_param_file
+        character(len=100) :: name, blade_geom, tower_geom, dynstall_param_file, list_controller_file
         character(len=100),dimension(10) :: afname
         real(mytype), dimension(3) :: origin
         integer :: numblades,numfoil,towerFlag, TypeFlag, OperFlag, RotFlag, AddedMassFlag, DynStallFlag, EndEffectsFlag
@@ -130,7 +130,8 @@ contains
         NAMELIST/TurbineSpecs/name,origin,numblades,blade_geom,numfoil,afname,towerFlag,towerOffset, &
             tower_geom,tower_drag,tower_lift,tower_strouhal,TypeFlag, OperFlag, tsr, uref,RotFlag, AddedMassFlag, &
             RandomWalkForcingFlag, DynStallFlag,dynstall_param_file,EndEffectsFlag,TipCorr, RootCorr,ShenC1, ShenC2, &
-            BladeInertia, GeneratorInertia, GBRatio, GBEfficiency, RatedRotSpeed, RatedLimitGenTorque, CutInGenSpeed
+            BladeInertia, GeneratorInertia, GBRatio, GBEfficiency, RatedRotSpeed, RatedLimitGenTorque, CutInGenSpeed, &
+            list_controller_file
 
         if (nrank==0) then
             write(6,*) 'Loading the turbine options ...'
@@ -235,7 +236,7 @@ contains
             Turbine(i)%Uref=uref
             Turbine(i)%TSR=tsr
         else if(OperFlag==2) then
-            Turbine(i)%Is_control_based = .true. 
+            Turbine(i)%Is_NRELController = .true. 
             ! Assign the Uref and TSR to compute the optimum tip-speed ratio (This applies only to the first time step)
             Turbine(i)%Uref=uref
             Turbine(i)%TSR=tsr
@@ -250,6 +251,10 @@ contains
                                                 RatedRotSpeed,RatedLimitGenTorque,CutInGenSpeed)
 
             Turbine(i)%Controller%IStatus=0
+        else if(OperFlag==3) then
+            Turbine(i)%Is_ListController= .true.
+            !> Read the list_controller file
+            call read_list_controller_file(list_controller_file,turbine(i)) 
         else
             write(*,*) "Only constant_rotation (1) and control_based (2) is used"
             stop
@@ -401,8 +406,9 @@ contains
 
         implicit none
         real(mytype),intent(inout) :: current_time, dt
-        integer :: i,j, Nstation
-        real(mytype) :: theta
+        integer :: i,j,k, Nstation
+        real(mytype) :: theta, pitch_angle, deltapitch, pitch_angle_old
+        real(mytype) :: WSRotorAve,Omega
         ! This routine updates the location of the actuator lines
 
         ctime=current_time
@@ -415,7 +421,7 @@ contains
                 Turbine(i)%AzimAngle=Turbine(i)%AzimAngle+theta
                 call rotate_turbine(Turbine(i),Turbine(i)%RotN,theta)
                 call Compute_Turbine_RotVel(Turbine(i))  
-            else if(Turbine(i)%Is_control_based) then
+            else if(Turbine(i)%Is_NRELController) then
             if(nrank==0) write(*,*) 'Entering the control-based operation for turbine', Turbine(i)%name 
             ! First do control	
             call operate_controller(Turbine(i)%Controller,ctime,Turbine(i)%NBlades,Turbine(i)%angularVel) 
@@ -426,8 +432,38 @@ contains
             Turbine(i)%AzimAngle=Turbine(i)%AzimAngle+theta
             call rotate_turbine(Turbine(i),Turbine(i)%RotN,theta)
             call Compute_Turbine_RotVel(Turbine(i))  
+            
+            ! Then do picth control (if not zero)
+            do j=1,Turbine(i)%NBlades
+            call pitch_actuator_line(Turbine(i)%Blade(j),Turbine(i)%Controller%PitCom(j))
+            enddo
+            
+            ! After you do both variable speed and pitch control update the status of the controller
             Turbine(i)%Controller%IStatus=Turbine(i)%Controller%IStatus+1
+            
+            else if(Turbine(i)%Is_ListController) then
+            
+                if(nrank==0) write(*,*) 'Entering the List-controlled operation for the turbine', Turbine(i)%name 
+                !> Compute the rotor averaged wind speed
+                call compute_rotor_averaged_vel(Turbine(i),WSRotorAve)
+
+                !> Compute Omega and pitch by interpolating from the list
+                call from_list_controller(Omega,pitch_angle,turbine(i),WSRotorAve)
+                Turbine(i)%angularVel=Omega
+                theta=Turbine(i)%angularVel*DeltaT
+                Turbine(i)%AzimAngle=Turbine(i)%AzimAngle+theta
+                call rotate_turbine(Turbine(i),Turbine(i)%RotN,theta)
+                call Compute_Turbine_RotVel(Turbine(i))  
+            
+                !> Do pitch control
+                ! Then do picth control (if not zero)
+                deltapitch=pitch_angle-pitch_angle_old
+                do j=1,Turbine(i)%NBlades
+                    call pitch_actuator_line(Turbine(i)%Blade(j),deltapitch)
+                enddo
+                pitch_angle_old=pitch_angle
             endif
+             
             enddo
         endif
 
@@ -437,15 +473,16 @@ contains
                 !> Do harmonic pitch control for all elements of the actuator line
                 Nstation=ActuatorLine(i)%NElem+1
                 do j=1,Nstation
-                ActuatorLine(i)%pitch(j)=ActuatorLine(i)%pitch_angle_init*conrad+pi/2.+conrad*actuatorline(i)%pitchAmp*sin(actuatorline(i)%angular_pitch_freq*(ctime-ActuatorLine(i)%pitch_start_time))
+                ActuatorLine(i)%pitch(j)=actuatorline(i)%pitchAmp*sin(actuatorline(i)%angular_pitch_freq*(ctime-ActuatorLine(i)%pitch_start_time))
                 end do
                 if(nrank==0) then
                 print *, '-----------------------'
                 print *, ' Harmonic pitch :'
                 print *, '-----------------------'
-                print *, 'Current pitch angle : ', condeg*sum(ActuatorLine(i)%pitch)/ActuatorLine%Nelem-90
+                print *, 'Current pitch angle : ', sum(ActuatorLine(i)%pitch)/(ActuatorLine%Nelem+1)
                 endif
-                call pitch_actuator_line(actuatorline(i))
+                
+                call pitch_actuator_line(actuatorline(i),ActuatorLine(i)%pitch(j))
             endif
             enddo
         endif

@@ -269,8 +269,8 @@ do itime=ifirst,ilast
       ! Potential Temperature -- to be computed after the convdiff
       if (ibuoyancy==1) then
           ! Transport equation for potential temperature
-          call PotentialTemperature(ux1,uy1,uz1,phi1,phis1,phiss1,di1,tg1,th1,ti1,td1,&
-              uy2,uz2,phi2,di2,ta2,tb2,tc2,td2,uz3,phi3,di3,ta3,tb3,ep1)  
+          !call PotentialTemperature(ux1,uy1,uz1,phi1,phis1,phiss1,di1,tg1,th1,ti1,td1,&
+          !    uy2,uz2,phi2,di2,ta2,tb2,tc2,td2,uz3,phi3,di3,ta3,tb3,ep1)  
       endif
       
       !X PENCILS

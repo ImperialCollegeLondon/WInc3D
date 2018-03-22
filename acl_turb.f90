@@ -24,8 +24,13 @@ type TurbineType
     real(mytype) :: dist_from_axis=0.0
     integer :: No_rev=0.0
     logical :: Is_constant_rotation_operated = .false. ! For a constant rotational velocity (in Revolutions Per Minute)
-    logical :: Is_control_based = .false. ! For a active control-based rotational velocity computed at run time
-    type(ControllerType) :: controller    ! Contoller
+    logical :: Is_NRELController = .false. ! Active control-based rotational velocity using the NREL controller
+    logical :: Is_ListController = .false. ! Active control-based rotational velocity using the rotor averaged velocity and
+                                           ! interpolation lists
+    integer :: ContEntries
+    real(mytype), allocatable :: ContWindSpeed(:), ContOmega(:), ContPitch(:)
+
+    type(ControllerType) :: controller     ! Contoller
     logical :: IsClockwise = .false.
     logical :: IsCounterClockwise = .false. 
     logical :: Has_Tower=.false.
@@ -445,4 +450,110 @@ contains
     
     end subroutine rotate_turbine  
     
+    subroutine read_list_controller_file(FN,turbine) 
+    
+    implicit none
+    character(len=100),intent(in)  :: FN ! FileName of the geometry file
+    type(TurbineType),intent(inout) :: turbine
+    integer :: i
+    character(1000) :: ReadLine
+    
+    open(22,file=FN)
+
+    ! Read the Number of List Controller Entries 
+    read(22,'(A)') ReadLine
+    read(ReadLine(index(ReadLine,':')+1:),*) turbine%ContEntries
+
+    allocate(turbine%ContWindSpeed(turbine%ContEntries),turbine%ContOmega(turbine%ContEntries), turbine%ContPitch(turbine%ContEntries))
+    ! Read the stations specs
+    do i=1,turbine%ContEntries
+    
+    read(22,'(A)') ReadLine ! Blade ....
+
+    read(ReadLine,*) turbine%ContWindSpeed(i), turbine%ContOmega(i), turbine%ContPitch(i)
+
+    end do
+    
+    close(22)
+
+
+    end subroutine read_list_controller_file 
+
+    subroutine from_list_controller(Omega,pitch,turbine,WindSpeed)
+
+        implicit none
+        type(TurbineType),intent(inout) :: turbine
+        real(mytype),intent(in) :: WindSpeed
+        real(mytype),intent(out) :: Omega,pitch
+        real(mytype) :: mindiff, inter
+        integer :: i,j,inear
+        integer :: ilower,iupper
+
+        
+        if(WindSpeed<=turbine%ContWindSpeed(1)) then
+            Omega=turbine%ContOmega(1) ! First entry
+            Pitch=turbine%ContPitch(1) ! First entry
+        else if(WindSpeed>=turbine%ContWindSpeed(turbine%ContEntries)) then
+            Omega=turbine%ContOmega(turbine%ContEntries) ! Last entry
+            Pitch=turbine%ContPitch(turbine%ContEntries) ! Last entry
+        
+        else !> Find the nearest list value
+        mindiff=1e6
+        do i=1,turbine%ContEntries
+            if(abs(WindSpeed-turbine%ContWindSpeed(i))<mindiff) then
+               mindiff=abs(WindSpeed-turbine%ContWindSpeed(i)) 
+               inear=i
+            endif 
+        enddo
+        
+        !> Find the upper and lower indices
+        if(turbine%ContWindSpeed(inear)<WindSpeed) then
+            ilower=inear
+            iupper=inear+1
+        else
+            ilower=inear-1
+            iupper=inear
+        endif
+
+        !> Interpolate
+        inter=(WindSpeed-turbine%ContWindSpeed(ilower))/(turbine%ContWindSpeed(iupper)-turbine%ContWindSpeed(ilower))
+        Omega=turbine%ContOmega(ilower)+inter*(turbine%ContOmega(iupper)-turbine%ContOmega(ilower))
+        Pitch=turbine%ContPitch(ilower)+inter*(turbine%ContPitch(iupper)-turbine%ContPitch(ilower))
+
+        endif
+        
+        return
+
+    end subroutine from_list_controller
+
+    subroutine compute_rotor_averaged_vel(turbine,WSRotorAve)
+
+        implicit none
+        type(TurbineType),intent(in) ::turbine
+        real(mytype),intent(out) :: WSRotorAve
+        integer :: iblade, ielem,Nelem
+        real(mytype) :: Ux,Uy,Uz,phi,sigma
+        Ux=0.
+        Uy=0.
+        Uz=0.
+        Nelem=0
+        do iblade=1,turbine%NBlades
+            Nelem=Nelem+turbine%Blade(iblade)%Nelem
+            do ielem=1,turbine%Blade(iblade)%Nelem
+                 Ux=Ux+turbine%Blade(iblade)%EVx(ielem)
+                 Uy=Uy+turbine%Blade(iblade)%EVy(ielem)
+                 Uz=Uz+turbine%Blade(iblade)%EVz(ielem)
+            enddo
+        enddo
+        
+        ! Average for the rotor
+        Ux=Ux/Nelem
+        Uy=Uy/Nelem
+        Uz=Uz/Nelem
+        WSRotorAve=sqrt(Ux**2.0+Uy**2.0+Uz**2.0)
+
+        return
+    
+    end subroutine Compute_Rotor_Averaged_Vel
+
 end module actuator_line_turbine 

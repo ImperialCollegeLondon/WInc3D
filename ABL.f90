@@ -22,6 +22,7 @@ real(mytype) :: ux_HAve_local, uz_HAve_local,S_HAve_local
 real(mytype) :: ux_HAve, uz_HAve,S_HAve,ux12,uz12,S12
 real(mytype) :: sxy_HAve_local, szy_HAve_local, nut_HAve_local, nutsxy_HAve_local, nutszy_HAve_local
 real(mytype) :: sxy_HAve, szy_HAve, nut_HAve, nutsxy_HAve, nutszy_HAve
+real(mytype) :: nutprimes
 real(mytype) :: zi, nuLESBar, scriptR, xi1, nuLES, TS1, TR1
 real(mytype) :: CD ! drag coefficient
 
@@ -99,6 +100,19 @@ fiz1x,fiz2x,xsize(1),xsize(2),xsize(3),0)
     
     ! Compute the friction velocity u_shear
     u_shear=k_roughness*sqrt(ux_HAve**2.+uz_HAve**2.)/log(delta/z_zero)
+    
+    ! Some usefull statistics for SGS models
+    if (xstart(2)==1) then 
+    do k=1,xsize(3)
+    do i=1,xsize(1)
+
+
+
+    enddo
+    enddo
+
+    endif
+
     xi1=(nutsxy_HAve+nut_HAve*sxy_HAve)/(nut_HAve*sxy_HAve)
     nuLES=xi1*nut_HAve
     TS1=2*xi1*nut_HAve*sxy_HAve

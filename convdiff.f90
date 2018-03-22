@@ -466,23 +466,24 @@ if (ibuoyancy==1) then
     ! Average quantities over the x-z plane 
     tmpphi=0. ! First zero the tmp variable
     
-    call transpose_x_to_y(phi1,phi2) 
-    do j=1,ysize(2)
-    do k=1,ysize(3)
-    do i=1,ysize(1)
-    tmpphi(j)=tmpphi(j)+phi2(i,j,k)
-    enddo
-    enddo
-    ! Do the averaging
-    tmpphi(j)=tmpphi(j)/ysize(1)/ysize(3)
-    enddo
-
-    call MPI_ALLREDUCE(tmpphi,phiPlaneAve,ysize(2),MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,code)
-
-    phiPlaneAve(:)=phiPlaneAve(:)/(p_col*p_row)
+    call transpose_x_to_y(phi1,phi2)
     
+    !do j=1,ysize(2)
+
+    !do k=1,ysize(3)
+    !do i=1,ysize(1)
+    !tmpphi(j)=tmpphi(j)+phi2(i,j,k)
+    !enddo
+    !enddo
+    !! Do the averaging
+    !tmpphi(j)=tmpphi(j)/ysize(1)/ysize(3)
+    !enddo
+
+    !call MPI_ALLREDUCE(tmpphi,phiPlaneAve,ysize(2),MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,code)
+    !phiPlaneAve(:)=phiPlaneAve(:)/(p_col*p_row)
+     
     do j=1,ysize(2)
-    deltaphi2(:,j,:)=(phi2(:,j,:)-phiPlaneAve(j))/phiPlaneAve(j)
+    deltaphi2(:,j,:)=(phi2(:,j,:)-TempRef)/TempRef
     enddo    
     call transpose_y_to_x(deltaphi2,deltaphi1) 
     ! Buoyancy added in the y direction not the z 
