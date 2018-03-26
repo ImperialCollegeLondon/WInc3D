@@ -189,6 +189,7 @@ contains
     !Compute a number of global parameters for the turbine
     !========================================================
     turbine%angularVel=turbine%Uref*turbine%TSR/turbine%Rmax
+    
     turbine%A=pi*turbine%Rmax**2
     
     turbine%IRotor=0. 

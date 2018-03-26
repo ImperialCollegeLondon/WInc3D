@@ -47,7 +47,7 @@ write(2018,Format)ielem,',',act_line%ERdist(ielem)/act_line%L,',',act_line%Epitc
         character(LEN=22) :: Format
         
         open(2016,File=trim(dir)//'/'//trim(turbine%name)//'.perf')
-        write(2016,*) 'Number of Revs, Rotor Inertia, AngVel, DAngVel, CTR , CP, Thrust, Torque, Power'
+        write(2016,*) 'Number of Revs, Rotor Inertia, AngVel, DAngVel, CT , CTR, CP, Thrust, Torque, Power'
         Format="(10(E14.7,A))" 
         write(2016,Format) turbine%AzimAngle/(2*pi),',',turbine%IRotor,',',turbine%angularVel,',',turbine%deltaOmega,',',turbine%CT,',',turbine%CTR,',',turbine%CP,',',turbine%Thrust,',',turbine%Torque,',',turbine%Power
         close(2016)

@@ -252,6 +252,9 @@ contains
 
             Turbine(i)%Controller%IStatus=0
         else if(OperFlag==3) then
+            ! Assign the Uref and TSR to compute the optimum tip-speed ratio (This applies only to the first time step)
+            Turbine(i)%Uref=uref
+            Turbine(i)%TSR=tsr
             Turbine(i)%Is_ListController= .true.
             !> Read the list_controller file
             call read_list_controller_file(list_controller_file,turbine(i)) 
@@ -446,24 +449,25 @@ contains
                 if(nrank==0) write(*,*) 'Entering the List-controlled operation for the turbine', Turbine(i)%name 
                 !> Compute the rotor averaged wind speed
                 call compute_rotor_averaged_vel(Turbine(i),WSRotorAve)
-
+                Turbine(i)%Uref=WSRotorAve
                 !> Compute Omega and pitch by interpolating from the list
                 call from_list_controller(Omega,pitch_angle,turbine(i),WSRotorAve)
-                Turbine(i)%angularVel=Omega
+                Turbine(i)%angularVel=Omega/(60./(2*pi))  !Translate in Rad/sec
                 theta=Turbine(i)%angularVel*DeltaT
                 Turbine(i)%AzimAngle=Turbine(i)%AzimAngle+theta
                 call rotate_turbine(Turbine(i),Turbine(i)%RotN,theta)
                 call Compute_Turbine_RotVel(Turbine(i))  
-            
+           
                 !> Do pitch control
                 ! Then do picth control (if not zero)
-                deltapitch=pitch_angle-pitch_angle_old
-                do j=1,Turbine(i)%NBlades
-                    call pitch_actuator_line(Turbine(i)%Blade(j),deltapitch)
-                enddo
-                pitch_angle_old=pitch_angle
+                !deltapitch=pitch_angle-pitch_angle_old
+                !do j=1,Turbine(i)%NBlades
+                !    call pitch_actuator_line(Turbine(i)%Blade(j),deltapitch)
+                !enddo
+                !pitch_angle_old=pitch_angle
+            
             endif
-             
+            
             enddo
         endif
 
