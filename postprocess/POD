@@ -53,10 +53,12 @@ nz=nml['PostProcess']['nz']
 xlx=nml['PostProcess']['xlx']
 yly=nml['PostProcess']['yly']
 zlz=nml['PostProcess']['zlz']
-Snap1=nml['PostProcess']['file1']
-SnapN=nml['PostProcess']['filen']
+file1=nml['PostProcess']['file1']
+filen=nml['PostProcess']['filen']
+xloc1=nml['PostProcess']['xloc1']
+xlocn=nml['PostProcess']['xlocn']
+NTimeSteps=nml['PostProcess']['NTimeSteps']
 
-Snaps=SnapN+1-Snap1
 # This is not valid for always
 nxd=nx-1
 nyd=ny-1
@@ -66,11 +68,58 @@ dx=xlx/nxd
 dy=yly/nyd
 dz=zlz/nzd
 
-DOFs=nx*ny*nz #Number of degrees of freedom
+# Specify the region which you want to take the snapshot
 
-U=[];
-V=[];
-W=[];
+x=np.zeros((nx,ny,nz))
+
+for i in range(0,nx):
+    x[i,:,:]=i*dx
+
+ixloc=np.where(abs(x[:,0,0]-xloc1)==abs(x[:,0,0]-xloc1).min())[0]
+
+# Specify the file that we need to read
+file1=nml['PostProcess']['file1']
+filen=nml['PostProcess']['filen']
+#umeanfile=open(path+"umean.dat","rb")
+#vmeanfile=open(path+"vmean.dat","rb")
+#wmeanfile=open(path+"wmean.dat","rb")
+#umeanvec=np.fromfile(umeanfile,dtype=np.float64)
+#vmeanvec=np.fromfile(vmeanfile,dtype=np.float64)
+#wmeanvec=np.fromfile(wmeanfile,dtype=np.float64)
+#uave=umeanvec.reshape((nx,ny*nz),order='F')/NTimeSteps 
+#vave=vmeanvec.reshape((nx,ny*nz),order='F')/NTimeSteps
+#wave=wmeanvec.reshape((nx,ny*nz),order='F')/NTimeSteps
+
+# Find the region
+DOFs=ny*nz #Number of degrees of freedom
+Snaps=filen-file1
+U=np.zeros((Snaps,ny*nz))
+V=np.zeros((Snaps,ny*nz))
+W=np.zeros((Snaps,ny*nz))
+
+print " --------------------------------------------"
+print " Py4Incompact3d POD routine initiated   "
+print " The number of degrees of freedom are:", DOFs
+print " Number of snapshots available:       ", Snaps 
+print " "
+print "Reading the files ..."
+
+for filei in range(file1,filen):
+    print "reading file ... ", filei 
+    ufile=open(path+"ux"+str(filei).zfill(4),"rb")
+    vfile=open(path+"uy"+str(filei).zfill(4),"rb")
+    wfile=open(path+"uz"+str(filei).zfill(4),"rb")
+    uvec=np.fromfile(ufile,dtype=np.float64)
+    vvec=np.fromfile(vfile,dtype=np.float64)
+    wvec=np.fromfile(wfile,dtype=np.float64)
+    u=uvec.reshape((nx,ny*nz),order='F')
+    v=vvec.reshape((nx,ny*nz),order='F')
+    w=wvec.reshape((nx,ny*nz),order='F')
+    U[filei-4,:]=u[ixloc,:]#-uave[ixloc,:]
+    V[filei-4,:]=v[ixloc,:]#-vave[ixloc,:]
+    W[filei-4,:]=w[ixloc,:]#-wave[ixloc,:]
+
+print "Reading file completed"
 
 print " --------------------------------------------"
 print " Py4Incompact3d POD routine initiated   "
@@ -78,24 +127,16 @@ print " The number of degrees of freedom are:", DOFs
 print " Number of snapshots available:       ", Snaps
 print " "
 print "Reading the files ..."
-for i in range(Snap1,SnapN+1):
-    ufile=open(path+"ux"+str(i).zfill(4),"rb")
-    u=np.fromfile(ufile,dtype=np.float64)
-    U.append(u[:])
-    vfile=open(path+"uy"+str(i).zfill(4),"rb")
-    v=np.fromfile(ufile,dtype=np.float64)
-    V.append(u[:])
-    wfile=open(path+"uz"+str(i).zfill(4),"rb")
-    w=np.fromfile(ufile,dtype=np.float64)
-    W.append(u[:])
-    print "Reading snapshot ... ", i , "completed"
 
 print "Forming the POD matrix"
+
+print np.shape(U)
+
 U=np.transpose(U)
 V=np.transpose(V)
 W=np.transpose(W)
 
-#UPOD=np.concatenate((U,V,W))
+UPOD=np.concatenate((U,V,W))
 
 print 'Calculating the correlation matrix ...'
 C=np.zeros((Snaps,Snaps))
@@ -127,6 +168,11 @@ energy_trunc_inv = np.diag(np.ones(num_modes_trunc)/energy[0:num_modes_trunc].re
 spatial_modes_trunc = np.array(np.zeros((DOFs,num_modes_trunc), dtype=np.float64))
 spatial_modes_trunc = np.dot( np.dot(U[:,0:Snaps], temporal_modes[:,0:num_modes_trunc].real), energy_trunc_inv) / Snaps
 
+print np.shape(energy_trunc_inv)
+plt.plot(spatial_modes_trunc[:,0])
+plt.show()
+
+exit()
 print 'Testing the orthogonality of the modes ...'
 
 volume=dx*dy*dz
@@ -142,4 +188,3 @@ if (num_ortho_modes<num_modes_trunc):
     spatial_modes_trunc = np.dot( np.dot(U[:,0:Snaps], temporal_modes[:,0:num_modes_trunc].real),				   energy_trunc_inv) / Snaps
 
 print ' Number of POD modes used to truncate the DMD eigenvalue problem = ', num_modes_trunc 
-
