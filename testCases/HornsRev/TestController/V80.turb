@@ -1,0 +1,24 @@
+&TurbineSpecs
+name='V80' 
+origin=1040,70,834
+numblades=3
+blade_geom='V80Blade_N100.al'
+numfoil=1
+afname='NACA63415.air'
+towerFlag=0
+towerOffset=10.
+tower_geom='V80Tower.al'
+tower_drag=1.0
+tower_lift=0.3
+tower_strouhal=0.21
+TypeFlag=1
+OperFlag=3                  ! 1: Prescribed, 2: Jonkman, 3: Predefined Torque/Picth angular relationship
+uref=7.0
+tsr=8
+RotFlag=2
+AddedMassFlag=0
+
+! Controller
+list_controller_file='V80Controller.cont'
+
+/End
