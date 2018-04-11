@@ -23,7 +23,7 @@ real(mytype) :: ux_HAve, uz_HAve,S_HAve,ux12,uz12,S12
 real(mytype) :: sxy_HAve_local, szy_HAve_local, nut_HAve_local, nutsxy_HAve_local, nutszy_HAve_local
 real(mytype) :: sxy_HAve, szy_HAve, nut_HAve, nutsxy_HAve, nutszy_HAve
 real(mytype) :: nutprimes
-real(mytype) :: zi, nuLESBar, scriptR, xi1, nuLES, TS1, TR1
+real(mytype) :: nuLESBar, scriptR, xi1, nuLES, TS1, TR1
 real(mytype) :: CD ! drag coefficient
 
 call filter()
@@ -155,9 +155,9 @@ fiz1x,fiz2x,xsize(1),xsize(2),xsize(3),0)
     wallfluxz(i,1,k) = -(-1./2.*(-2.*nut1(i,3,k)*syz1(i,3,k))+&
         2.*(-2.*nut1(i,2,k)*syz1(i,2,k))-3./2.*tauwallzy(i,k))/(2.*delta)
     else
-    wallfluxx(i,1,k) = CD*ux12*abs(S12)  
-    wallfluxy(i,1,k) = 0.
-    wallfluxz(i,1,k) = CD*uz12*abs(S12)
+    wallfluxx(i,1,k) = 0.!k_roughness*z_zero*u_shear*  
+    wallfluxy(i,1,k) = 0.!
+    wallfluxz(i,1,k) = 0.! 
     endif
     
     enddo

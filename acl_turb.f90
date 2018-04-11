@@ -551,7 +551,7 @@ contains
         Ux=Ux/Nelem
         Uy=Uy/Nelem
         Uz=Uz/Nelem
-        WSRotorAve=sqrt(Ux**2.0+Uy**2.0+Uz**2.0)
+        WSRotorAve=1.15*sqrt(Ux**2.0+Uy**2.0+Uz**2.0)
 
         return
     

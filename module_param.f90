@@ -70,7 +70,7 @@ real(mytype) :: dt,xnu,noise,noise1,pi,twopi,u1,u2,re,sc,Pr,TempRef,CoriolisFreq
 real(mytype) :: t,xxk1,xxk2, spinup_time
 real(mytype) :: smagcst, walecst,dys, FSGS, rxxnu, cnu, dynhypvisc
 real(mytype) :: eps_factor ! Smoothing factor 
-real(mytype) :: TurbRadius,z_zero,k_roughness,PsiM,ustar,u_shear,IPressureGradient,epsilon_pert
+real(mytype) :: TurbRadius,z_zero,k_roughness,PsiM,ustar,u_shear,IPressureGradient,epsilon_pert,zi
 real(mytype),dimension(3) :: Ug
 integer :: itr,itime
 character :: dirname*80
