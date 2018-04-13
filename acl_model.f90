@@ -460,7 +460,7 @@ contains
            
                 !> Do pitch control
                 ! Then do picth control (if not zero)
-                !deltapitch=pitch_angle-pitch_angle_old
+                !deltapitch=(pitch_angle-pitch_angle_old)+90.
                 !do j=1,Turbine(i)%NBlades
                 !    call pitch_actuator_line(Turbine(i)%Blade(j),deltapitch)
                 !enddo
