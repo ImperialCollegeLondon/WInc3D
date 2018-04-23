@@ -460,12 +460,16 @@ contains
            
                 !> Do pitch control
                 ! Then do picth control (if not zero)
-                !deltapitch=(pitch_angle-pitch_angle_old)+90.
-                !do j=1,Turbine(i)%NBlades
-                !    call pitch_actuator_line(Turbine(i)%Blade(j),deltapitch)
-                !enddo
-                !pitch_angle_old=pitch_angle
-            
+                if (Turbine(i)%IsClockwise) then
+                deltapitch=-pitch_angle 
+                else
+                deltapitch=pitch_angle 
+                endif
+
+                do j=1,Turbine(i)%NBlades
+                call pitch_actuator_line(Turbine(i)%Blade(j),deltapitch)
+                !if (nrank==0) print *, deltapitch, turbine(i)%blade(j)%nEx(40),turbine(i)%blade(j)%nEz(40)     
+                enddo 
             endif
             
             enddo

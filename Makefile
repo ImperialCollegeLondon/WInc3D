@@ -24,7 +24,7 @@ FC = mpif90
 OPTFC = -O3 -funroll-loops -ftree-vectorize -fcray-pointer -cpp -ffree-line-length-0 #-ffpe-trap=invalid,zero
 CC = mpicc
 CFLAGS = -O3 
-LIBS = #-llapack -lblas 
+LIBS = -fopenmp #-llapack -lblas 
 DEGUG = #-g -static 
 
 # include PATH 

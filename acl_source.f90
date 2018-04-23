@@ -266,7 +266,8 @@ contains
         !write(*,*) 'Rank=', nrank, 'X index Limits=', xstart(1), xend(1), 'X lims=', (xstart(1)-1)*dx, (xend(1)-1)*dx
         !write(*,*) 'Rank=', nrank, 'Y index Limits=', xstart(2), xend(2), 'Y lims=', ymin, ymax 
         !write(*,*) 'Rank=', nrank, 'Z index Limits=', xstart(3), xend(3), 'Z lims=', zmin, zmax
-       
+      
+        !$OMP PARALLEL DO
         do isource=1,NSource
         
         min_dist=1e6
@@ -430,7 +431,8 @@ contains
             !write(*,*) 'Warning: I do not own this node' 
         endif
         enddo
-           
+        !$OMP END PARALLEL DO
+
         call MPI_ALLREDUCE(Su_part,Su,Nsource,MPI_REAL8,MPI_SUM, &
             MPI_COMM_WORLD,ierr)
         call MPI_ALLREDUCE(Sv_part,Sv,Nsource,MPI_REAL8,MPI_SUM, &

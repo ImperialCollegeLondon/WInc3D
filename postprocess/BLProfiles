@@ -131,8 +131,8 @@ dudy=np.gradient(uav[ixloc[0],:,kxloc[0]],dy)
 print 'found indices ', ixloc[0], jxloc[0], kxloc[0]
 if args.write:      
     with open(output+'profile.dat','w') as fout:
-        fout.write('# y U/Uref U/u* Phi up/Uref vp/Uref wp/Uref upvp/Uref \n')
-        for jprofile in range(1,ny):
+        fout.write('# y U/Uref U/u* Phi upvp/Uref I \n')
+        for jprofile in range(ny):
             Y=float(y[ixloc[0],jprofile,kxloc[0]])
             U=float(uav[ixloc[0],jprofile,kxloc[0]])
             Uustar=float(uav[ixloc[0],jprofile,kxloc[0]]/ustar)
