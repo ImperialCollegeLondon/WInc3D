@@ -125,13 +125,14 @@ contains
         integer :: numblades,numfoil,towerFlag, TypeFlag, OperFlag, RotFlag, AddedMassFlag, DynStallFlag, EndEffectsFlag
         integer :: TipCorr, RootCorr, RandomWalkForcingFlag
         real(mytype) :: toweroffset,tower_drag,tower_lift,tower_strouhal, uref, tsr, ShenC1, ShenC2 
-        real(mytype) :: BladeInertia, GeneratorInertia, GBRatio, GBEfficiency, RatedRotSpeed 
-        real(mytype) :: RatedLimitGenTorque, CutInGenSpeed  
+        real(mytype) :: BladeInertia, GeneratorInertia, GBRatio, GBEfficiency, RatedGenSpeed 
+        real(mytype) :: RatedLimitGenTorque, CutInGenSpeed, Region2StartGenSpeed, Region2EndGenSpeed,Kgen  
+        real(mytype) :: RatedPower, MaximumTorque
         NAMELIST/TurbineSpecs/name,origin,numblades,blade_geom,numfoil,afname,towerFlag,towerOffset, &
             tower_geom,tower_drag,tower_lift,tower_strouhal,TypeFlag, OperFlag, tsr, uref,RotFlag, AddedMassFlag, &
             RandomWalkForcingFlag, DynStallFlag,dynstall_param_file,EndEffectsFlag,TipCorr, RootCorr,ShenC1, ShenC2, &
-            BladeInertia, GeneratorInertia, GBRatio, GBEfficiency, RatedRotSpeed, RatedLimitGenTorque, CutInGenSpeed, &
-            list_controller_file
+            BladeInertia, GeneratorInertia, GBRatio, GBEfficiency, RatedGenSpeed, RatedLimitGenTorque, CutInGenSpeed, &
+            Region2StartGenSpeed,Region2EndGenSpeed,Kgen,RatedPower,MaximumTorque,list_controller_file
 
         if (nrank==0) then
             write(6,*) 'Loading the turbine options ...'
@@ -248,7 +249,9 @@ contains
             enddo
             ! Initialize Contoller
             call init_controller(Turbine(i)%Controller,GeneratorInertia,GBRatio,GBEfficiency,& 
-                                                RatedRotSpeed,RatedLimitGenTorque,CutInGenSpeed)
+                                                RatedGenSpeed,RatedLimitGenTorque,CutInGenSpeed,&
+                                                Region2StartGenSpeed,Region2EndGenSpeed,Kgen,RatedPower,&
+                                                MaximumTorque)
 
             Turbine(i)%Controller%IStatus=0
         else if(OperFlag==3) then
@@ -409,7 +412,7 @@ contains
 
         implicit none
         real(mytype),intent(inout) :: current_time, dt
-        integer :: i,j,k, Nstation
+        integer :: i,j,k, Nstation 
         real(mytype) :: theta, pitch_angle, deltapitch, pitch_angle_old
         real(mytype) :: WSRotorAve,Omega
         ! This routine updates the location of the actuator lines
@@ -426,7 +429,7 @@ contains
                 call Compute_Turbine_RotVel(Turbine(i))  
             else if(Turbine(i)%Is_NRELController) then
             if(nrank==0) write(*,*) 'Entering the control-based operation for turbine', Turbine(i)%name 
-            ! First do control	
+            ! First do control	 
             call operate_controller(Turbine(i)%Controller,ctime,Turbine(i)%NBlades,Turbine(i)%angularVel) 
             Turbine(i)%deltaOmega=(Turbine(i)%Torque-Turbine(i)%Controller%GearBoxRatio*Turbine(i)%Controller%GenTrq)/(Turbine(i)%IRotor+Turbine(i)%Controller%GearBoxRatio**2.*Turbine(i)%Controller%IGenerator)*DeltaT
             Turbine(i)%angularVel=Turbine(i)%angularVel+Turbine(i)%deltaOmega
@@ -437,9 +440,9 @@ contains
             call Compute_Turbine_RotVel(Turbine(i))  
             
             ! Then do picth control (if not zero)
-            do j=1,Turbine(i)%NBlades
-            call pitch_actuator_line(Turbine(i)%Blade(j),Turbine(i)%Controller%PitCom(j))
-            enddo
+            !do j=1,Turbine(i)%NBlades
+            !call pitch_actuator_line(Turbine(i)%Blade(j),Turbine(i)%Controller%PitCom(j))
+            !enddo
             
             ! After you do both variable speed and pitch control update the status of the controller
             Turbine(i)%Controller%IStatus=Turbine(i)%Controller%IStatus+1
@@ -461,15 +464,15 @@ contains
                 !> Do pitch control
                 ! Then do picth control (if not zero)
                 if (Turbine(i)%IsClockwise) then
-                deltapitch=-pitch_angle 
+                deltapitch=pitch_angle
                 else
                 deltapitch=pitch_angle 
                 endif
-
-                do j=1,Turbine(i)%NBlades
-                call pitch_actuator_line(Turbine(i)%Blade(j),deltapitch)
+                
+                !do j=1,Turbine(i)%NBlades
+                !call pitch_actuator_line(Turbine(i)%Blade(j),deltapitch)
                 !if (nrank==0) print *, deltapitch, turbine(i)%blade(j)%nEx(40),turbine(i)%blade(j)%nEz(40)     
-                enddo 
+                !enddo 
             endif
             
             enddo

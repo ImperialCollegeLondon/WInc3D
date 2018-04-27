@@ -1,0 +1,31 @@
+&TurbineSpecs
+name='C01' 
+origin=1200,90,200
+numblades=3
+blade_geom='/scratch/gd1414/NRELResources/NRELBlade_N19.al'
+numfoil=7
+afname='/scratch/gd1414/NRELResources/Airfoils/cylinder.air','/scratch/gd1414/NRELResources/Airfoils/DU21_A17.air','/scratch/gd1414/NRELResources/Airfoils/DU25_A17.air','/scratch/gd1414/NRELResources/Airfoils/DU30_A17.air','/scratch/gd1414/NRELResources/Airfoils/DU35_A17.air','/scratch/gd1414/NRELResources/Airfoils/DU40_A17.air','/scratch/gd1414/NRELResources/Airfoils/NACA64_A17.air'
+towerFlag=1
+towerOffset=10.
+tower_geom='/scratch/gd1414/NRELResources/NRELTower.al'
+tower_drag=1.0
+tower_lift=0.3
+tower_strouhal=0.21
+TypeFlag=1
+OperFlag=1
+uref=9.0
+tsr=7.55
+RotFlag=2
+AddedMassFlag=0
+
+! Controller
+BladeInertia=11.776047E+06  ! Blade inertia
+GeneratorInertia=534.116    ! Generator Inertia
+GBRatio=97.0                ! Gear Box Ratio
+GBEfficiency=1.0            ! Gear Box Efficiency
+RatedRotSpeed=121.68        ! Rated  Generator Speed in [rad/s]
+CutInGenSpeed=70.0          ! Cut-in Generator speed in [rad/s]
+RatedLimitGenTorque=15000   ! Rated Limited Generator Torque
+
+
+/End

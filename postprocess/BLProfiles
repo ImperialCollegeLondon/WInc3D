@@ -47,10 +47,9 @@ nxd=nx
 nyd=ny-1
 nzd=nz
 
-dx=xlx/nxd
-dy=yly/nyd
-dz=zlz/nzd
-
+dx=float(xlx)/float(nxd)
+dy=float(yly)/float(nyd)
+dz=float(zlz)/float(nzd)
 
 # UMEAN - Average velocities for u, v and w
 ufile=open(path+"umean.dat","rb")
@@ -108,11 +107,11 @@ upwp=uwmean.reshape((nx,ny,nz),order='F')/Nsteps-uav*wav
 vpwp=vwmean.reshape((nx,ny,nz),order='F')/Nsteps-vav*wav
 TKE=0.5*(upup+vpvp+wpwp)
 
-for i in range(0,nx):
+for i in range(nx):
     x[i,:,:]=i*dx
-for j in range(0,ny):
+for j in range(ny):
     y[:,j,:]=j*dy
-for k in range(0,nz):
+for k in range(nz):
     z[:,:,k]=k*dz
 
 
@@ -139,4 +138,4 @@ if args.write:
             Phi=float(dudy[jprofile]*y[ixloc[0],jprofile,kxloc[0]]*0.41/ustar)
             UpVp=float(-upvp[ixloc[0],jprofile,kxloc[0]])
             I=float(sqrt(upup[ixloc[0],jprofile,kxloc[0]])/sqrt(uav[ixloc[0],jprofile,kxloc[0]]**2.+uav[ixloc[0],jprofile,kxloc[0]]**2.))
-            fout.write(str(Y) + ' '+ str(U)+' '+str(Uustar)+' '+str(Phi)+' '+str(UpVp)+' '+str(I)+'\n')
+            fout.write(str(Y)+' '+ str(U)+' '+str(Uustar)+' '+str(Phi)+' '+str(UpVp)+' '+str(I)+'\n')

@@ -27,7 +27,7 @@ real(mytype) :: VS_Rgn2K      ! Generator torque constant in Region 2 (HSS side)
 real(mytype) :: VS_Rgn2Sp     ! Transitional generator speed (HSS side) between regions 1 1/2 and 2, rad/s.
 real(mytype) :: VS_Rgn3MP     ! Minimum pitch angle at which the torque is computed as if we are in region 3 regardless of the generator speed, rad. -- chosen to be 1.0 degree above PC_MinPit
 real(mytype) :: VS_RtGnSp     ! Rated generator speed (HSS side), rad/s. -- chosen to be 99% of PC_RefSpd
-real(mytype) :: VS_RtPwr      ! Rated generator generator power in Region 3, Watts. 
+real(mytype) :: VS_RtPwr      ! Rated generator power in Region 3, Watts. 
 real(mytype) :: VS_SlPc       ! Rated generator slip percentage in Region 2 1/2, %.
 real(mytype) :: GearBoxRatio  ! Gear Box ratio (usually taken 97:1)
 real(mytype) :: IGenerator    ! Moment of inertia for the generator
@@ -63,22 +63,30 @@ end type ControllerType
 
 contains
 
-subroutine init_controller(control,GeneratorInertia,GBRatio,GBEfficiency,RatedRotSpeed,RatedLimitGenTorque,CutInGenSpeed)
+subroutine init_controller(control,GeneratorInertia,GBRatio,GBEfficiency,&
+                           RatedGenSpeed,RatedLimitGenTorque,CutInGenSpeed,&
+                           Region2StartGenSpeed,Region2EndGenSpeed,Kgen,RatedPower,&
+                           MaximumTorque)
 
     implicit none
     ! Read control parameters
     type(ControllerType), intent(inout) :: control
-    real(mytype), intent(in) :: GeneratorInertia,GBRatio,GBEfficiency,RatedRotSpeed,RatedLimitGenTorque,CutInGenSpeed
-
+    real(mytype), intent(in) :: GeneratorInertia,GBRatio,GBEfficiency,RatedGenSpeed,RatedLimitGenTorque,CutInGenSpeed
+    real(mytype), intent(in) :: Region2StartGenSpeed,Region2EndGenSpeed,Kgen,RatedPower,MaximumTorque 
     integer :: AviFail
     
-    control%GearBoxRatio=GBRatio             ! Gear box ratio
-    control%IGenerator=GeneratorInertia      ! Moment of Inertia for the Generator
-    control%VS_CtInSp=CutInGenSpeed 
-    control%VS_RtGnSp=RatedRotSpeed          ! In rad/s
-    control%VS_MaxRat=RatedLimitGenTorque
+    control%GearBoxRatio=GBRatio                    ! Gear box ratio
+    control%IGenerator=GeneratorInertia             ! Moment of Inertia for the Generator
+    control%VS_CtInSp=CutInGenSpeed         ! Cut-in speed   
+    control%VS_RtGnSp=RatedGenSpeed         ! In rad/s
+    control%VS_MaxRat=RatedLimitGenTorque   ! Rated limit to Generation Torque
+    control%VS_Rgn2K=Kgen                   ! Optimal Curve Coefficient
+    control%VS_Rgn2Sp=Region2StartGenSpeed  ! In rad/s
+    control%VS_SySp=Region2EndGenSpeed      ! In rad/s
+    control%VS_RtPwr=RatedPower             ! Rated generator generator power in Region 3, Watts. 
+    control%VS_MaxTq=MaximumTorque 
 
-    control%CornerFreq = 1.570796 ! Corner frequency (-3dB point) in the recursive, single-pole, 
+    control%CornerFreq=1.570796   ! Corner frequency (-3dB point) in the recursive, single-pole, 
     control%PC_DT=0.0025          ! 
     control%PC_KI=0.008068634     ! Integral gain for pitch controller at rated pitch (zero), (-).
     control%PC_KK=0.1099965       ! Pitch angle were the derivative of the aerodynamic power 
@@ -88,24 +96,17 @@ subroutine init_controller(control,GeneratorInertia,GBRatio,GBEfficiency,RatedRo
     control%PC_MinPit = 0.0       ! Minimum pitch setting in pitch controller, rad.
     control%PC_RefSpd = 122.9096  ! Desired (reference) HSS speed for pitch controller, rad/s. 
     control%VS_DT = 0.00125       ! JASON:THIS CHANGED FOR ITI BARGE:0.0001 !Communication interval for torque controller, sec.
-    control%VS_MaxTq = 47402.91   ! Maximum generator torque in Region 3 (HSS side), N-m. -- chosen to be 10% above VS_RtTq = 43.09355kNm
-    control%VS_Rgn2K = 2.332287   ! Generator torque constant in Region 2 (HSS side), N-m/(rad/s)^2.
-    control%VS_Rgn2Sp= 91.21091   ! Transitional generator speed (HSS side) between regions 1 1/2 and 2, rad/s.
     control%VS_Rgn3MP= 0.01745329 ! Minimum pitch angle at which the torque is computed as if we are in region 3 regardless of the generator speed, rad. -- chosen to be 1.0 degree above PC_MinPit
-    control%VS_RtPwr= 5296610.0   ! Rated generator generator power in Region 3, Watts. 
     control%VS_SlPc=10.0          ! Rated generator slip percentage in Region 2 1/2, %. -- chosen to be 5MW divided by the electrical generator efficiency of 94.4%
-
-    
+ 
     ! Read input parameters
-    
-    
     ! Determine some torque control parameters not specified directly:
     control%VS_SySp=control%VS_RtGnSp/(1.0+0.01*control%VS_SlPc)
     control%VS_Slope15=(control%VS_Rgn2K*control%VS_Rgn2Sp*control%VS_Rgn2Sp)/(control%VS_Rgn2Sp - control%VS_CtInSp)
     control%VS_Slope25=(control%VS_RtPwr/control%VS_RtGnSp)/(control%VS_RtGnSp-control%VS_SySp)
-    if (control%VS_Rgn2K == 0.0)  then  ! .TRUE. if the Region 2 torque is flat, and thus, the denominator in the ELSE condition is zero
+    if (control%VS_Rgn2K==0.0) then !.TRUE. if the Region 2 torque is flat, and thus, the denominator in the ELSE condition is zero
       control%VS_TrGnSp = control%VS_SySp
-    else                          ! .TRUE. if the Region 2 torque is quadratic with speed
+    else  ! .TRUE. if the Region 2 torque is quadratic with speed
       control%VS_TrGnSp=(control%VS_Slope25-SQRT(control%VS_Slope25*(control%VS_Slope25-4.0*control%VS_Rgn2K*control%VS_SySp)))/(2.0*control%VS_Rgn2K)
     endif
 
@@ -255,20 +256,27 @@ subroutine operate_controller(control,time,NumBl,rotSpeed)
     ! NOTE: Time is scaled by OnePlusEps to ensure that the contoller is called
     !       at every time step when VS_DT = DT, even in the presence of
     !       numerical precision errors.
-    
+   
+
     IF((Time*OnePlusEps-control%LastTimeVS)>=control%VS_DT)  THEN
     ! Compute the generator torque, which depends on which region we are in:
-    IF((control%GenSpeedF>=control%VS_RtGnSp).OR.(control%PitCom(1)>=control%VS_Rgn3MP)) THEN ! We are in region 3 - power is constant
-         control%GenTrq = control%VS_RtPwr/control%GenSpeedF
-      ELSEIF(control%GenSpeedF<=control%VS_CtInSp)  THEN ! We are in region 1 - torque is zero
-       control%GenTrq = control%VS_CtInSp ! use the cut-in speed for the turbine
-      ELSEIF(control%GenSpeedF<control%VS_Rgn2Sp)  THEN  ! We are in region 1 1/2 - linear ramp in torque from zero to optimal
-       control%GenTrq =control%VS_Slope15*(control%GenSpeedF-control%VS_CtInSp)
-      ELSEIF(control%GenSpeedF<control%VS_TrGnSp)  THEN  ! We are in region 2 - optimal torque is proportional to the square of the generator speed
-       control%GenTrq =control%VS_Rgn2K*control%GenSpeedF*control%GenSpeedF
-      ELSE   ! We are in region 2 1/2 - simple induction generator transition region
-       control%GenTrq =control%VS_Slope25*(control%GenSpeedF-control%VS_SySp)
-      ENDIF
+    ! We are in region 3 - power is constant
+    IF((control%GenSpeedF>=control%VS_RtGnSp).OR.(control%PitCom(1)>=control%VS_Rgn3MP)) THEN 
+      control%GenTrq = control%VS_RtPwr/control%GenSpeedF
+      if (nrank==0) print *, 'Turbine operates in region 3'
+   ELSEIF(control%GenSpeedF<=control%VS_CtInSp)  THEN ! We are in region 1 - torque is zero
+      if (nrank==0) print *, 'Turbine operates in region 1'
+    control%GenTrq = 0. 
+    ELSEIF((control%GenSpeedF>control%VS_CtInSp).and.(control%GenSpeedF<control%VS_Rgn2Sp))  THEN  ! We are in region 1 1/2 - linear ramp in torque from zero to optimal
+      if (nrank==0) print *, 'Turbine operates in region 1 1/2'
+    control%GenTrq = control%VS_Slope15*(control%GenSpeedF-control%VS_CtInSp)
+   ELSEIF(control%GenSpeedF<control%VS_TrGnSp)  THEN  ! We are in region 2 - optimal torque is proportional to the square of the generator speed
+      if (nrank==0) print *, 'Turbine operates in region 2'
+    control%GenTrq=control%VS_Rgn2K*control%GenSpeedF*control%GenSpeedF
+   ELSE   ! We are in region 2 1/2 - simple induction generator transition region
+      if (nrank==0) print *, 'Turbine operates in region 2 1/2 '
+    control%GenTrq=control%VS_Slope25*(control%GenSpeedF-control%VS_SySp)
+   ENDIF
 
    ! Saturate the commanded torque using the maximum torque limit:
     control%GenTrq = MIN(control%GenTrq,control%VS_MaxTq)   ! Saturate the command using the maximum torque limit

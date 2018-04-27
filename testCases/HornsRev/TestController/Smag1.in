@@ -4,9 +4,9 @@
     iin = 0               ! Inflow conditions (1: classic, 2: turbinit)
     
     ! Domain and scaling
-    xlx = 5040            ! Lx (Size of the box in x-direction)
-    yly = 1000            ! Ly (Size of the box in y-direction) 
-    zlz = 1668            ! Lz (Size of the box in z-direction) 
+    xlx = 500            ! Lx (Size of the box in x-direction)
+    yly = 500            ! Ly (Size of the box in y-direction) 
+    zlz = 500            ! Lz (Size of the box in z-direction) 
     re  = 66667           ! nu=1/re (Kinematic Viscosity)
     sc  = 1.              ! Schmidt number (if passive scalar)
     u1  = 8.              ! u1 (max velocity) (for inflow condition)
@@ -25,11 +25,11 @@
 ! Numerical Configuration
 &NumConfig
     ! Simulation size and parallelisation
-    nx=241                 ! X-direction nodes
+    nx=65                 ! X-direction nodes
     ny=65                  ! Y-direction nodes
-    nz=73                 ! Z-direction nodes
+    nz=65                 ! Z-direction nodes
     p_row=2                ! Row partition
-    p_col=2                ! Column partition
+    p_col=4                ! Column partition
 
     ! Boundary conditions and mesh 
     nclx = 2              ! nclx (BC)
@@ -40,9 +40,9 @@
 
     ! Time and time-marching schemes
     ifirst = 1	          ! First iteration   
-    ilast = 1000        ! Last iteration 
+    ilast = 10000        ! Last iteration 
     nscheme = 2           ! Temporal scheme (1: ?, 2: RK3, 3:RK4, 4:AB2)
-    dt = 0.015             ! Time step
+    dt = 0.05             ! Time step
     
     ! Governing equations formulations
     iskew = 1             ! (0:urotu, 1:skew, for the convective terms)
@@ -70,7 +70,7 @@
 &FileParam
     ilit=0                ! Read initial flow field ?
     isave=5000     	  ! Frequency for writing backup file  
-    imodulo=10         ! Frequency for visualization 
+    imodulo=1000         ! Frequency for visualization 
     ioutflow=1		  ! Outflow flag
     NTimeSteps=2000
 /End
