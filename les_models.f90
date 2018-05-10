@@ -87,13 +87,13 @@ real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: ta2,di2
 real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: ta3,di3
 
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: sxx1,syy1,szz1,&
-sxy1,sxz1,syz1
+sxy1,sxz1,syz1,nut1
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: gxx1,gyx1,gzx1,&
 gxy1,gyy1,gzy1,gxz1,gyz1,gzz1
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: shrt2, shrt_coeff
 
 real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: syy2,szz2,&
-sxy2,syz2,srt_smag2,nut2
+sxy2,syz2,srt_smag2,nut2, shrt_coeff2
 real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: gxy2,gyy2,gzy2,&
 gxz2,gyz2,gzz2
 
