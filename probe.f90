@@ -1,6 +1,5 @@
 !==================================================
-! Subroutine for sampling the velocity from a point
-! 
+! Subroutine for sampling the velocity from a point 
 !==================================================
 
 ! Routine that initializes the probe locations

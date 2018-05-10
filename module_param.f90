@@ -62,13 +62,13 @@ integer :: iscalar,ilag,npif,izap
 character :: inflow_file*80, sem_file*80
 integer :: iprobe, Nprobes, Nsampling, ioutflow, iinflow, OutflowOnsetIndex, NTimeSteps
 integer :: NEddies  !For syntetic eddy method
-integer :: iabl, ibmshape, SmagWallDamp, nSmag
+integer :: iabl, ibmshape, SmagWallDamp, iwallmodel
 character :: Probelistfile*80, inflowdir*80
 integer :: nxboite, istat,iread,iadvance_time, ibuoyancy, icoriolis
 real(mytype) :: xlx,yly,zlz,dx,dy,dz,dx2,dy2,dz2
 real(mytype) :: dt,xnu,noise,noise1,pi,twopi,u1,u2,re,sc,Pr,TempRef,CoriolisFreq
 real(mytype) :: t,xxk1,xxk2, spinup_time
-real(mytype) :: smagcst, walecst,dys, FSGS, rxxnu, cnu, dynhypvisc
+real(mytype) :: smagcst, nSmag, walecst,dys, FSGS, rxxnu, cnu, dynhypvisc
 real(mytype) :: eps_factor ! Smoothing factor 
 real(mytype) :: TurbRadius,z_zero,k_roughness,PsiM,ustar,u_shear,IPressureGradient,epsilon_pert,zi
 real(mytype),dimension(3) :: Ug

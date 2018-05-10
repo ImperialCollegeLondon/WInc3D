@@ -223,7 +223,6 @@ USE decomp_2d_io
 USE actuator_line_model_utils
 USE MPI
 USE var, only: ux_inflow, uy_inflow, uz_inflow
-USE sem_module
 
 implicit none
 
@@ -304,11 +303,11 @@ if (iin.eq.3) then
 endif
 
 
-if (iin.eq.4) then
-if (nrank==0) print *, 'Running with Synthetic Eddy Method for inlet simulations'
-if (nrank==0) print *, 'Number of Eddies : ', Neddies
-call add_synthetic_turbulence()
-endif
+!if (iin.eq.4) then
+!if (nrank==0) print *, 'Running with Synthetic Eddy Method for inlet simulations'
+!if (nrank==0) print *, 'Number of Eddies : ', Neddies
+!call add_synthetic_turbulence()
+!endif
 
 return
 
