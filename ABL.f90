@@ -35,6 +35,7 @@ fiz1x,fiz2x,xsize(1),xsize(2),xsize(3),0)
 call filx(uzf,uz,di1,sx,vx,fiffx,fifx,ficx,fibx,fibbx,filax,&
 fiz1x,fiz2x,xsize(1),xsize(2),xsize(3),0)
 
+if (nrank==0) print *, 'Max of the filtered velocity', maxval(uxf), 'Max of the unfiltered velocity', maxval(ux) 
 ! Determine the shear stress using Moeng's formulation
 !*****************************************************************************************
     ux_HAve_local=0.
@@ -96,7 +97,7 @@ fiz1x,fiz2x,xsize(1),xsize(2),xsize(3),0)
     nutszy_HAve=nutszy_HAve/p_col
    
     if (istret.ne.0) delta=(yp(2)-yp(1))/2.0
-    if (istret.eq.0) delta=dy/2.0   
+    if (istret.eq.0) delta=dy/2. 
     
     ! Compute the friction velocity u_shear
     u_shear=k_roughness*sqrt(ux_HAve**2.+uz_HAve**2.)/log(delta/z_zero)

@@ -435,9 +435,9 @@ if (itype.eq.3) then
    do k=1,xsize(3)
    do j=1,xsize(2)
    do i=1,xsize(1)
-      ux1(i,j,k)=ux_inflow(xsize(1)-i+1,j,k)
-      uy1(i,j,k)=uy_inflow(xsize(1)-i+1,j,k)
-      uz1(i,j,k)=uz_inflow(xsize(1)-i+1,j,k)
+      ux1(i,j,k)=ux_inflow(NTimeSteps-i+1,j,k)
+      uy1(i,j,k)=uy_inflow(NTimeSteps-i+1,j,k)
+      uz1(i,j,k)=uz_inflow(NTimeSteps-i+1,j,k)
       bxx1(j,k)=0.
       bxy1(j,k)=0.
       bxz1(j,k)=0.
@@ -493,16 +493,16 @@ if (itype.eq.8) then
       bxx1(j,k)=ustar/k_roughness*log((y+z_zero)/z_zero)
       bxy1(j,k)=0.
       bxz1(j,k)=0.
-      if (ibuoyancy==1) then
-      ! Add a cap inversion (THis is hard coded but oh boy it helps MASSIVELY !!!)
-      if (y>700..and.y<800) then
-      phi1(i,j,k)=TempRef+(y-700)*8./100.
-      elseif (y>=800) then
-      phi1(i,j,k)=TempRef+8+0.003*(y-800.)
-      else
-      phi1(i,j,k)=TempRef
-      endif
-      endif
+      !if (ibuoyancy==1) then
+      !! Add a cap inversion (THis is hard coded but oh boy it helps MASSIVELY !!!)
+      !if (y>700..and.y<800) then
+      !phi1(i,j,k)=TempRef+(y-700)*8./100.
+      !elseif (y>=800) then
+      !phi1(i,j,k)=TempRef+8+0.003*(y-800.)
+      !else
+      !phi1(i,j,k)=TempRef
+      !endif
+      !endif
    enddo
    enddo
    enddo

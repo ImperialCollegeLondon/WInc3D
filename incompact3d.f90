@@ -189,6 +189,11 @@ call decomp_info_init(nxm,nym,nzm,phG)
 ! ======================================================
 ! Initialise flow in the domain -- init or restart 
 ! ======================================================
+! Initialise inflow file
+if (iin==3) then
+    call read_inflow(ux_inflow,uy_inflow,uz_inflow)
+endif
+
 if (ilit==0) call init(ux1,uy1,uz1,ep1,phi1,gx1,gy1,gz1,phis1,hx1,hy1,hz1,phiss1)  
 if (ilit==1) call restart(ux1,uy1,uz1,ep1,pp3,phi1,gx1,gy1,gz1,&
         px1,py1,pz1,phis1,hx1,hy1,hz1,phiss1,phG,0)
@@ -220,11 +225,6 @@ endif
 ! Initialise the Probe inside the domain
 if (iprobe==1) then
     call init_probe
-endif
-
-! Initialise inflow file
-if (iin==3) then
-    call read_inflow(ux_inflow,uy_inflow,uz_inflow)
 endif
 
 ! Initialise outflow file

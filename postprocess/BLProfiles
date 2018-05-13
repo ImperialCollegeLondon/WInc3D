@@ -41,6 +41,7 @@ nz=nml['PostProcess']['nz']
 xlx=nml['PostProcess']['xlx']
 yly=nml['PostProcess']['yly']
 zlz=nml['PostProcess']['zlz']
+H=nml['PostProcess']['yly']
 
 # This is not valid for always
 nxd=nx
@@ -117,7 +118,6 @@ for k in range(nz):
 
 ustar=nml['PostProcess']['ustar']
 xProfile=nml['PostProcess']['xProfile']
-OutputName=nml['PostProcess']['OutputName']
 
      
 ixloc=np.where(abs(x[:,0,0]-xProfile[0])==abs(x[:,0,0]-xProfile[0]).min())[0]
@@ -130,12 +130,15 @@ dudy=np.gradient(uav[ixloc[0],:,kxloc[0]],dy)
 print 'found indices ', ixloc[0], jxloc[0], kxloc[0]
 if args.write:      
     with open(output+'profile.dat','w') as fout:
-        fout.write('# y U/Uref U/u* Phi upvp/Uref I \n')
+        fout.write('# y/H U/Uref U/u* Phi upup/u*^2 vpvp/u*^2 wpwp/u*^2 -upvp/u*^2 I \n')
         for jprofile in range(ny):
-            Y=float(y[ixloc[0],jprofile,kxloc[0]])
+            Y=float(y[ixloc[0],jprofile,kxloc[0]]/H)
             U=float(uav[ixloc[0],jprofile,kxloc[0]])
-            Uustar=float(uav[ixloc[0],jprofile,kxloc[0]]/ustar)
-            Phi=float(dudy[jprofile]*y[ixloc[0],jprofile,kxloc[0]]*0.41/ustar)
-            UpVp=float(-upvp[ixloc[0],jprofile,kxloc[0]])
-            I=float(sqrt(upup[ixloc[0],jprofile,kxloc[0]])/sqrt(uav[ixloc[0],jprofile,kxloc[0]]**2.+uav[ixloc[0],jprofile,kxloc[0]]**2.))
-            fout.write(str(Y)+' '+ str(U)+' '+str(Uustar)+' '+str(Phi)+' '+str(UpVp)+' '+str(I)+'\n')
+            Uustar=float(np.average(uav[:,jprofile,:])/ustar)
+            Phi=float(dudy[jprofile]*y[ixloc[0],jprofile,kxloc[0]]*0.4/ustar)
+            UpUp=float(np.average(upup[:,jprofile,:])/ustar**2.)
+            VpVp=float(np.average(vpvp[:,jprofile,:])/ustar**2.)
+            WpWp=float(np.average(wpwp[:,jprofile,:])/ustar**2.)
+            UpVp=float(-upvp[ixloc[0],jprofile,kxloc[0]]/ustar**2.)
+            I=float(sqrt(np.average(upup[:,jprofile,:]))/sqrt(np.average(uav[:,jprofile,:])**2.+np.average(wav[:,jprofile,:])**2.))
+            fout.write(str(Y)+' '+ str(U)+' '+str(Uustar)+' '+str(Phi)+' '+str(UpUp)+' '+str(VpVp)+' '+str(WpWp)+' '+str(UpVp)+' '+str(I)+'\n')

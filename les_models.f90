@@ -296,6 +296,7 @@ if(SmagWallDamp.eq.1) then
     if (istret.eq.0) y=(j+ystart(2)-1-1)*dy
     if (istret.ne.0) y=yp(j+ystart(2)-1)
     smag_constant=(smagcst**(-nSmag)+(k_roughness*(y/del(j)+z_zero/del(j)))**(-nSmag))**(-1./nSmag)
+    !print *, smag_constant
     length=smag_constant*del(j)
 else if(SmagWallDamp.eq.2) then
     ! van Driest damping coefficient 

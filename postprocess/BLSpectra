@@ -1,0 +1,114 @@
+#!/usr/bin/env python
+"""
+Script that extracts the mean velocity from Incompact3D
+Author : Georgios (Yorgos) Deskos 2017
+"""
+import math
+import argparse
+import csv
+import f90nml
+import matplotlib
+#matplotlib.use('Agg')
+import numpy as np
+from scipy import interpolate, fft
+from scipy.signal import welch
+from pylab import *
+import matplotlib.pyplot as plt
+# ====================================
+# Parser Arguments
+# ====================================
+parser = argparse.ArgumentParser(description="Script to extract Boundary Layer Flow statistics from *.dat files")
+parser.add_argument("-v","--verbose",action="store_true",help="Print location")
+parser.add_argument("-p","--plot",action="store_true",help="Plots the wake profiles")
+parser.add_argument("-w","--write",action="store_true",help="Write results in a .csv file")
+parser.add_argument("PATH", type=str, help="path to where the umean, vmean etc. files are (should end with a / )")
+parser.add_argument("FILENAME", type=str, help="Filename, should end with .pprc")
+parser.add_argument("OUTPUT", type=str, help="OUTPUT FOLDER")
+
+args = parser.parse_args()
+path = args.PATH
+name = args.FILENAME
+output = args.OUTPUT
+
+# Read the fortran nml (NAMELIST)
+nml=f90nml.read(name)
+
+with open(name) as nml_file:
+    nml = f90nml.read(nml_file)
+
+nx=nml['PostProcess']['nx']
+ny=nml['PostProcess']['ny']
+nz=nml['PostProcess']['nz']
+xlx=nml['PostProcess']['xlx']
+yly=nml['PostProcess']['yly']
+zlz=nml['PostProcess']['zlz']
+H=nml['PostProcess']['yly']
+Nsteps=nml['PostProcess']['NSteps']
+xProfile=nml['PostProcess']['xProfile']
+ustar=nml['PostProcess']['ustar']
+
+# This is not valid for always
+nxd=nx
+nyd=ny-1
+nzd=nz
+
+dx=float(xlx)/float(nxd)
+dy=float(yly)/float(nyd)
+dz=float(zlz)/float(nzd)
+
+# UMEAN - Average velocities for u, v and w
+ufile=open(path+"ux0001","rb")
+vfile=open(path+"uy0001","rb")
+wfile=open(path+"uz0001","rb")
+ufilemean=open(path+"umean.dat","rb")
+vfilemean=open(path+"vmean.dat","rb")
+wfilemean=open(path+"wmean.dat","rb")
+
+# Reading the binary files into numpy vectors
+uread=np.fromfile(ufile,dtype=np.float64)
+vread=np.fromfile(vfile,dtype=np.float64)
+wread=np.fromfile(wfile,dtype=np.float64)
+umean=np.fromfile(ufilemean,dtype=np.float64)
+vmean=np.fromfile(vfilemean,dtype=np.float64)
+wmean=np.fromfile(wfilemean,dtype=np.float64)
+
+
+# Initialising the 3D arrays to map the velocities etc.
+x=np.zeros((nx,ny,nz))
+y=np.zeros((nx,ny,nz))
+z=np.zeros((nx,ny,nz))
+u=np.zeros((nx,ny,nz))
+v=np.zeros((nx,ny,nz))
+w=np.zeros((nx,ny,nz))
+
+u=uread.reshape((nx,ny,nz),order='F')
+v=vread.reshape((nx,ny,nz),order='F')
+w=wread.reshape((nx,ny,nz),order='F')
+uav=umean.reshape((nx,ny,nz),order='F')/Nsteps
+vav=vmean.reshape((nx,ny,nz),order='F')/Nsteps
+wav=wmean.reshape((nx,ny,nz),order='F')/Nsteps
+
+for i in range(nx):
+    x[i,:,:]=i*dx
+for j in range(ny):
+    y[:,j,:]=j*dy
+for k in range(nz):
+    z[:,:,k]=k*dz
+
+# Compute Euu (stream-wise)
+j=8
+nxx=nx-1
+dft=np.zeros((nxx+1,1))
+cu=np.zeros((nxx,nz))
+
+for i in range(nxx+1):
+	dft[i]=u[i,8,32]
+	# Discrete transformation of the Fourier coefficients
+	uhat=np.fft.fft(dft,nxx)
+ 
+k=2*pi*range(nx)/xlx
+E=uhat*cong(uhat)
+	
+
+plt.plot(k,E)
+plt.show()

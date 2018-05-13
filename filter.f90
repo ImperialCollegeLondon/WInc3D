@@ -1546,7 +1546,7 @@ USE parfiZ
 
 implicit none
 
-fialx=0.45 
+fialx=0. !0.45 
 fibex=(3. - 2.*fialx)/10. 
 fiaix=(2. + 3.*fialx)/4. 
 fibix=(6. + 7.*fialx)/8. 
