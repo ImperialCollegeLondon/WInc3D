@@ -232,7 +232,12 @@ integer :: k,j,i,fh,ierror,ii
 integer :: code, itime_input
 integer (kind=MPI_OFFSET_KIND) :: disp
 
+if (iin.eq.3) then
+! Do not call ecoule
+!call ecoule(ux,uy,uz,phi)
+else
 call ecoule(ux,uy,uz,phi)
+endif
 
 call random_number(bxo)
 call random_number(byo)
