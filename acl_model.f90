@@ -128,9 +128,11 @@ contains
         real(mytype) :: BladeInertia, GeneratorInertia, GBRatio, GBEfficiency, RatedGenSpeed 
         real(mytype) :: RatedLimitGenTorque, CutInGenSpeed, Region2StartGenSpeed, Region2EndGenSpeed,Kgen  
         real(mytype) :: RatedPower, MaximumTorque
+	real(mytype) :: yaw_angle, hub_tilt_angle
         NAMELIST/TurbineSpecs/name,origin,numblades,blade_geom,numfoil,afname,towerFlag,towerOffset, &
             tower_geom,tower_drag,tower_lift,tower_strouhal,TypeFlag, OperFlag, tsr, uref,RotFlag, AddedMassFlag, &
             RandomWalkForcingFlag, DynStallFlag,dynstall_param_file,EndEffectsFlag,TipCorr, RootCorr,ShenC1, ShenC2, &
+	    yaw_angle, hub_tilt_angle, &
             BladeInertia, GeneratorInertia, GBRatio, GBEfficiency, RatedGenSpeed, RatedLimitGenTorque, CutInGenSpeed, &
             Region2StartGenSpeed,Region2EndGenSpeed,Kgen,RatedPower,MaximumTorque,list_controller_file
 
@@ -158,6 +160,8 @@ contains
         RootCorr=0
         ShenC1=0.125
         ShenC2=21
+	yaw_angle=0.
+	hub_tilt_angle=0.
         !+++++++++++++++++++++++++++++++++
         open(100,File=turbines_path(i))
         read(100,nml=TurbineSpecs)
@@ -218,9 +222,8 @@ contains
         if(TypeFlag==1) then
             Turbine(i)%Type='Horizontal_Axis'
             Turbine(i)%RotN=[1.0d0,0.0d0,0.0d0]   
-            !        call get_option(trim(turbine_path(i))//"/type/Horizontal_Axis/hub_tilt_angle",Turbine(i)%hub_tilt_angle) 
-            !        call get_option(trim(turbine_path(i))//"/type/Horizontal_Axis/blade_cone_angle",Turbine(i)%blade_cone_angle)
-            !        call get_option(trim(turbine_path(i))//"/type/Horizontal_Axis/yaw_angle",Turbine(i)%yaw_angle)
+            Turbine(i)%hub_tilt_angle=hub_tilt_angle
+	    Turbine(i)%yaw_angle=yaw_angle
         elseif(TypeFlag==2) then
             !        call get_option(trim(turbine_path(i))//"/type/Vertical_Axis/axis_of_rotation",Turbine(i)%RotN) 
             !        call get_option(trim(turbine_path(i))//"/type/Vertical_Axis/distance_from_axis",Turbine(i)%dist_from_axis)

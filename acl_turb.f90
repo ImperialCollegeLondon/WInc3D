@@ -19,7 +19,7 @@ type TurbineType
     real(mytype) :: Rmax ! Reference radius, velocity, viscosity
     real(mytype) :: IRotor ! Inertia of the Rotor
     real(mytype) :: A ! Rotor area
-    real(mytype) :: Torque, angularVel,deltaOmega,TSR,Uref ! Torque and rotation for the shaft
+    real(mytype) :: Torque, angularVel,deltaOmega,TSR,Uref ! Torque and rotation for the shaft  
     real(mytype) :: AzimAngle=0.0
     real(mytype) :: dist_from_axis=0.0
     integer :: No_rev=0.0
@@ -139,9 +139,9 @@ contains
 
     ! Rotate the turbine according to the tilt and yaw angle
     ! Yaw
-    !call rotate_turbine(turbine,(/0.0d0,0.0d0,-1.0d0/),turbine%yaw_angle*pi/180.0d0)
+    call rotate_turbine(turbine,(/0.0d0,1.0d0,0.0d0/),turbine%yaw_angle*pi/180.0d0)
     ! Tilt
-    !call rotate_turbine(turbine,(/0.0d0,-1.0d0,0.0d0/),turbine%hub_tilt_angle*pi/180.0d0)
+    call rotate_turbine(turbine,(/0.0d0,0.0d0,1.0d0/),turbine%hub_tilt_angle*pi/180.0d0)
 
     end do
 
