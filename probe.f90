@@ -32,6 +32,104 @@ use var
 
 end subroutine init_probe
 
+subroutine init_probe_pencil
+    
+    USE param 
+    USE decomp_2d
+    use var
+    implicit none
+    
+    NProbes=nx*4 ! or xsize(1) it should be the same
+    ! Allocate the probe locations
+    allocate(xprobe(Nprobes),yprobe(Nprobes),zprobe(Nprobes),uprobe(Nprobes),vprobe(Nprobes),wprobe(Nprobes))
+    allocate(uprobe_part(Nprobes),vprobe_part(Nprobes),wprobe_part(Nprobes))
+
+
+end subroutine init_probe_pencil 
+
+subroutine probe_pencil(ux,uy,uz,phi)
+
+    USE param 
+    USE decomp_2d
+    use var
+    use MPI
+
+    implicit none
+
+    real(mytype), dimension(xsize(1),xsize(2),xsize(3)) :: ux,uy,uz,phi
+    real(mytype) :: xmesh, ymesh, zmesh, dist, min_dist
+    integer :: ipr, iy, ix, i, j, k, min_i, min_j, min_k, ierr
+    real(mytype) :: ymin, ymax, zmin,zmax
+
+    if (istret.eq.0) then 
+    ymin=(xstart(2)-1)*dy-dy/2.0 ! Add -dy/2.0 overlap
+    ymax=(xend(2)-1)*dy+dy/2.0   ! Add +dy/2.0 overlap
+    else
+    ymin=yp(xstart(2))
+    ymax=yp(xend(2))
+    endif
+    
+    zmin=(xstart(3)-1)*dz-dz/2.0 ! Add a -dz/2.0 overlap
+    zmax=(xend(3)-1)*dz+dz/2.0   ! Add a +dz/2.0 overlap
+
+    do ipr=1,NProbes
+         
+        ix=mod(ipr,xsize(1))
+        if (ix==0) ix=xsize(1)
+        xprobe(ipr)=(ix-1)*dx
+        
+        iy=ipr/xsize(1)+1
+        if (mod(ipr,xsize(1))==0) iy=ipr/xsize(1)
+        yprobe(ipr)=y_loc_pencil(iy)*dy
+        zprobe(ipr)=z_loc_pencil(iy)*dz
+
+    if((yprobe(ipr)>=ymin).and.(yprobe(ipr)<=ymax).and.(zprobe(ipr)>=zmin).and.(zprobe(ipr)<=zmax)) then     
+        min_dist=1e6
+        do k=1,xsize(3)
+        zmesh=(k-1)*dz 
+        do j=1,xsize(2)
+        
+
+        if (istret.eq.0) ymesh=(j-1)*dy
+        if (istret.ne.0) ymesh=yp(j) 
+        
+        do i=1,xsize(1)
+        xmesh=(i-1)*dx
+        dist = sqrt((xprobe(ipr)-xmesh)**2.+(yprobe(ipr)-ymesh)**2.+(zprobe(ipr)-zmesh)**2.) 
+        
+        if (dist<min_dist) then
+            min_dist=dist
+            min_i=i
+            min_j=j
+            min_k=k
+        endif
+        
+        enddo
+        enddo
+        enddo
+        uprobe_part(ipr)=ux(min_i,min_j,min_k)
+        vprobe_part(ipr)=uy(min_i,min_j,min_k)
+        wprobe_part(ipr)=uz(min_i,min_j,min_k) 
+    else
+        uprobe_part(ipr)=0.0
+        vprobe_part(ipr)=0.0
+        wprobe_part(ipr)=0.0
+        !write(*,*) 'Warning: I do not own this node' 
+    endif
+
+    enddo
+           
+        call MPI_ALLREDUCE(uprobe_part,uprobe,Nprobes,MPI_REAL8,MPI_SUM, &
+            MPI_COMM_WORLD,ierr)
+        call MPI_ALLREDUCE(vprobe_part,vprobe,Nprobes,MPI_REAL8,MPI_SUM, &
+            MPI_COMM_WORLD,ierr)
+        call MPI_ALLREDUCE(wprobe_part,wprobe,Nprobes,MPI_REAL8,MPI_SUM, &
+            MPI_COMM_WORLD,ierr)
+
+    return
+    
+end subroutine probe_pencil
+
 subroutine probe(ux,uy,uz,phi) 
     
 use actuator_line_model_utils ! used only for the trilinear interpolation
@@ -75,7 +173,7 @@ integer :: i_lower, j_lower, k_lower, i_upper, j_upper, k_upper
             if (istret.ne.0) ymesh=yp(j)
             do i=xstart(1),xend(1)
             xmesh=(i-1)*dx
-            dist = sqrt((xprobe(ipr)-xmesh)**2+(yprobe(ipr)-ymesh)**2+(zprobe(ipr)-zmesh)**2) 
+            dist = sqrt((xprobe(ipr)-xmesh)**2.+(yprobe(ipr)-ymesh)**2.+(zprobe(ipr)-zmesh)**2.) 
             
             if (dist<min_dist) then
                 min_dist=dist

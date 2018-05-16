@@ -61,6 +61,7 @@ integer :: isave,ilit,srestart,idebmod, imodulo, idemarre, icommence, irecord
 integer :: iscalar,ilag,npif,izap
 character :: inflow_file*80, sem_file*80
 integer :: iprobe, Nprobes, Nsampling, ioutflow, iinflow, OutflowOnsetIndex, NTimeSteps
+integer :: y_loc_pencil(4), z_loc_pencil(4)
 integer :: NEddies  !For syntetic eddy method
 integer :: iabl, ibmshape, SmagWallDamp, iwallmodel
 character :: Probelistfile*80, inflowdir*80

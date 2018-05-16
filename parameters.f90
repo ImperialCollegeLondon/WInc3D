@@ -54,7 +54,7 @@ NAMELIST/NumConfig/nx,ny,nz,p_row,p_col,nclx,ncly,nclz,TurbRadius,ifirst,ilast,n
 NAMELIST/FileParam/ilit,isave,imodulo,ioutflow,iinflow,OutflowOnsetIndex, NTimeSteps
 NAMELIST/IBMParam/ivirt,ibmshape,cex,cey,cez,ra
 NAMELIST/ALMParam/ialm,NTurbines,TurbinesPath,NActuatorlines,ActuatorlinesPath,eps_factor
-NAMELIST/StatParam/spinup_time,nstat,nvisu,iprobe,Probelistfile,nsampling 
+NAMELIST/StatParam/spinup_time,nstat,nvisu,iprobe,Probelistfile,nsampling, y_loc_pencil, z_loc_pencil 
 NAMELIST/ABLParam/iabl,z_zero,k_roughness,PsiM,ustar,IPressureGradient,Ug,zi,epsilon_pert 
 #ifdef DOUBLE_PREC 
 pi=dacos(-1.d0) 

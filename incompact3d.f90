@@ -225,6 +225,8 @@ endif
 ! Initialise the Probe inside the domain
 if (iprobe==1) then
     call init_probe
+elseif(iprobe==2) then
+    call init_probe_pencil
 endif
 
 ! Initialise outflow file
@@ -315,8 +317,8 @@ do itime=ifirst,ilast
         call STATISTIC(ux1,uy1,uz1,phi1,ta1,umean,vmean,wmean,phimean,uumean,vvmean,wwmean,&
            uvmean,uwmean,vwmean,phiphimean,tmean)
         
-	if(ioutflow==1) then
-	output_counter=output_counter+1
+        if(ioutflow==1) then
+        output_counter=output_counter+1
         call append_outflow(ux1,uy1,uz1,output_counter) 
         endif
 
@@ -327,8 +329,14 @@ do itime=ifirst,ilast
                call probe(ux1,uy1,uz1,phi1)
                call write_probe(itime/nsampling) 
            endif
-       endif
-   endif
+        elseif(iprobe==2) then
+           if (mod(itime,nsampling)==0) then
+               call probe_pencil(ux1,uy1,uz1,phi1)
+               call write_probe(itime/nsampling) 
+           endif
+        endif
+   
+        endif
 
    if (mod(itime,isave)==0) call restart(ux1,uy1,uz1,ep1,pp3,phi1,gx1,gy1,gz1,&
         px1,py1,pz1,phis1,hx1,hy1,hz1,phiss1,phG,1)
