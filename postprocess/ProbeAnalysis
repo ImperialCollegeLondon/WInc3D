@@ -94,8 +94,8 @@ if args.plot:
     plt.loglog(f,PSD_avex,f_inertial,psd_inertial)
     plt.loglog(f,PSD_avey)
     plt.loglog(f,PSD_avez)
-    plt.ylim([1e-15,1e-2])
-    plt.xlim([1e-1,1e3])
+    #plt.ylim([1e-15,1e-2])
+    #plt.xlim([1e-1,1e3])
     plt.show()
 
 if args.write:     
