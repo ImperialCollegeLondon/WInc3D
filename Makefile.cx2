@@ -9,7 +9,7 @@ FFTW3_INCLUDE = -I/apps/fftw/3.3.4/include
 FFTW3_LIB = -L/apps/fftw/3.3.4/lib -lfftw3 -lfftw3f
 
 FC = mpif90
-OPTFC = -O3 -xAVX -cpp #-xHost-fp-model fast=2
+OPTFC = -O3 -xAVX -cpp -heap-arrays -g -traceback #-xHost-fp-model fast=2
 CC=cc
 CFLAGS= -O3 -xAVX
 

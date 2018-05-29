@@ -35,7 +35,6 @@ fiz1x,fiz2x,xsize(1),xsize(2),xsize(3),0)
 call filx(uzf,uz,di1,sx,vx,fiffx,fifx,ficx,fibx,fibbx,filax,&
 fiz1x,fiz2x,xsize(1),xsize(2),xsize(3),0)
 
-if (nrank==0) print *, 'Max of the filtered velocity', maxval(uxf), 'Max of the unfiltered velocity', maxval(ux) 
 ! Determine the shear stress using Moeng's formulation
 !*****************************************************************************************
     ux_HAve_local=0.
@@ -47,11 +46,12 @@ if (nrank==0) print *, 'Max of the filtered velocity', maxval(uxf), 'Max of the 
     nutszy_HAve_local=0.
 
     if (xstart(2)==1) then 
+    if (nrank==0) print *, 'Max of the filtered velocity', maxval(uxf), 'Max of the unfiltered velocity', maxval(ux) 
     do k=1,xsize(3)
     do i=1,xsize(1)
-        ux_HAve_local=ux_HAve_local+0.5*(ux(i,1,k)+ux(i,2,k))
-        uz_HAve_local=uz_HAve_local+0.5*(uz(i,1,k)+uz(i,2,k))
-        S_HAve_local=S_HAve_local+sqrt((0.5*(ux(i,1,k)+ux(i,2,k)))**2.+(0.5*(uz(i,1,k)+uz(i,2,k)))**2.)
+        ux_HAve_local=ux_HAve_local+0.5*(uxf(i,1,k)+uxf(i,2,k))
+        uz_HAve_local=uz_HAve_local+0.5*(uzf(i,1,k)+uzf(i,2,k))
+        S_HAve_local=S_HAve_local+sqrt((0.5*(uxf(i,1,k)+uxf(i,2,k)))**2.+(0.5*(uzf(i,1,k)+uzf(i,2,k)))**2.)
         sxy_HAve_local=sxy_HAve_local+sxy1(i,2,k)
         szy_HAve_local=szy_HAve_local+syz1(i,2,k)
         nut_HAve_local=nut_HAve_local+nut1(i,2,k)
@@ -97,7 +97,7 @@ if (nrank==0) print *, 'Max of the filtered velocity', maxval(uxf), 'Max of the 
     nutszy_HAve=nutszy_HAve/p_col
    
     if (istret.ne.0) delta=(yp(2)-yp(1))/2.0
-    if (istret.eq.0) delta=dy/2. 
+    if (istret.eq.0) delta=dy/2.
     
     ! Compute the friction velocity u_shear
     u_shear=k_roughness*sqrt(ux_HAve**2.+uz_HAve**2.)/log(delta/z_zero)
@@ -140,16 +140,16 @@ if (nrank==0) print *, 'Max of the filtered velocity', maxval(uxf), 'Max of the 
     if (xstart(2)==1) then
     do k=1,xsize(3)
     do i=1,xsize(1)                       
-    ux12=0.5*(ux(i,1,k)+ux(i,2,k)) 
-    uz12=0.5*(uz(i,1,k)+uz(i,2,k))
+    ux12=0.5*(uxf(i,1,k)+uxf(i,2,k)) 
+    uz12=0.5*(uzf(i,1,k)+uzf(i,2,k))
     S12=sqrt(ux12**2.+uz12**2.)
 
     if(iwallmodel==1) then ! MOENG    
     tauwallxy(i,k)=-u_shear**2.0*(S12*ux_HAve+S_HAve*(ux12-ux_HAve))/(S_HAve*sqrt(ux_HAve**2.+uz_HAve**2.))
     tauwallzy(i,k)=-u_shear**2.0*(S12*uz_HAve+S_HAve*(uz12-uz_HAve))/(S_HAve*sqrt(ux_HAve**2.+uz_Have**2.))
     else !Parlage model 
-    tauwallxy(i,k)=-u_shear**2.0*ux12/sqrt(ux_HAve**2.+uz_HAve**2.)
-    tauwallzy(i,k)=-u_shear**2.0*uz12/sqrt(ux_HAve**2.+uz_Have**2.)
+    tauwallxy(i,k)=-u_shear**2.0*ux12/S12!sqrt(ux_HAve**2.+uz_HAve**2.)
+    tauwallzy(i,k)=-u_shear**2.0*uz12/S12!sqrt(ux_HAve**2.+uz_Have**2.)
     endif
 
     if(jLES.ge.2) then ! Apply third order one-sided finite difference 
