@@ -6,6 +6,7 @@ import numpy as np
 from scipy.signal import welch
 import matplotlib.pyplot as plt
 import argparse
+import math
 
 # ====================================
 # Parser Arguments
@@ -49,7 +50,7 @@ for i in range(M):
         		V[i,j,k]=A[k*N+j,5];
         		W[i,j,k]=A[k*N+j,6];
 
-NumbModes=1024
+NumbModes=512
 Nhalf=NumbModes/2+1
 PSD_ave0=np.zeros((Nhalf,1))
 PSD_ave1=np.zeros((Nhalf,1))
@@ -128,8 +129,8 @@ if args.plot:
     plt.loglog(f3,PSD_ave3,'r',label='y/H='+str(Y[0,0,3]/1000.))
     plt.loglog(f_inertial,psd_inertial,'m',label='-5/3')
     plt.loglog(f_taylor,psd_taylor,'y',label='-1')
-    plt.ylim([1e-4,10])
-    plt.xlim([1e-2,10])
+    #plt.ylim([1e-4,10])
+    #plt.xlim([1e-2,10])
     plt.legend(fontsize=12, loc='lower left' )
     plt.show()
 

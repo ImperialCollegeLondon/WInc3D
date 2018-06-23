@@ -21,11 +21,11 @@ FFTW3_LIB = -L$(FFTW3_PATH)/lib -lfftw3 -lfftw3f
 
 # GNU
 FC = mpif90
-OPTFC = -O3 -funroll-loops -ftree-vectorize -fcray-pointer -cpp -ffree-line-length-0 #-ffpe-trap=invalid,zero
+OPTFC = -O3 -funroll-loops -ftree-vectorize -fcray-pointer -cpp -ffree-line-length-0 -g -fbounds-check -fcheck-array-temporaries -ffpe-trap=invalid,zero
 CC = mpicc
 CFLAGS = -O3 
 LIBS = -fopenmp #-llapack -lblas 
-DEGUG = #-g -static 
+DEGUG = -g -backtrace  
 
 # include PATH 
 ifeq ($(FFT),generic)
