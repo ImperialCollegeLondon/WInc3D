@@ -302,7 +302,7 @@ else if(SmagWallDamp.eq.2) then
     ! van Driest damping coefficient 
     if (istret.eq.0) y=(j+ystart(2)-1-1)*dy
     if (istret.ne.0) y=yp(j+ystart(2)-1)
-    if(y<=5) then
+    if(y<=5*del(j)) then
     smag_constant=-0.002*(y/del(j))**3.+0.0135*(y/del(j))**2.+0.012*(y/del(j))+0.04
     else
     smag_constant=0.2
