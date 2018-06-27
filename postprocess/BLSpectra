@@ -6,7 +6,7 @@ import numpy as np
 from scipy.signal import welch
 import matplotlib.pyplot as plt
 import argparse
-import math
+from math import pi
 
 # ====================================
 # Parser Arguments
@@ -50,7 +50,7 @@ for i in range(M):
         		V[i,j,k]=A[k*N+j,5];
         		W[i,j,k]=A[k*N+j,6];
 
-NumbModes=512
+NumbModes=32
 Nhalf=NumbModes/2+1
 PSD_ave0=np.zeros((Nhalf,1))
 PSD_ave1=np.zeros((Nhalf,1))
@@ -58,12 +58,14 @@ PSD_ave2=np.zeros((Nhalf,1))
 PSD_ave3=np.zeros((Nhalf,1))
 ustar=0.45
 
+dx=2*pi*1000/N
+
 # Compute Power for location 0
-for i in range(N):
-    Uav=np.average(U[:,i,0])
-    S=U[:,i,0]
+for i in range(M):
+    Uav=np.average(U[i,:,0])
+    S=U[i,:,0]
     f, psd =welch(S,
-        fs=1./Time, # sample rate
+        fs=2*pi/dx, # sample rate
         window='hanning',
         nperseg=NumbModes,
         scaling='spectrum')
@@ -71,14 +73,14 @@ for i in range(N):
         PSD_ave0[k]=PSD_ave0[k]+psd[k]
 
 f0=f*Y[0,0,0]
-PSD_ave0=PSD_ave0/(ustar**2.*Y[0,0,0])
+PSD_ave0=PSD_ave0/(ustar**2.*Y[0,0,0])/(Time*M)
 
 # Compute Power for location 1
-for i in range(N):
-    Uav=np.average(U[:,i,1])
-    S=U[:,i,1]
+for i in range(M):
+    Uav=np.average(U[i,:,1])
+    S=U[i,:,1]
     f, psd =welch(S,
-        fs=1./Time, # sample rate
+        fs=2*pi/dx, # sample rate
         window='hanning',
         nperseg=NumbModes,
         scaling='spectrum')
@@ -86,58 +88,76 @@ for i in range(N):
         PSD_ave1[k]=PSD_ave1[k]+psd[k]
 
 f1=f*Y[0,0,1]
-PSD_ave1=PSD_ave1/(ustar*2.*Y[0,0,1])
+PSD_ave1=PSD_ave1/(ustar**2.*Y[0,0,1])/(Time*M)
 
 # Compute Power for location 1
-for i in range(N):
-    Uav=np.average(U[:,i,2])
-    S=U[:,i,2]
+for i in range(M):
+    Uav=np.average(U[i,:,2])
+    S=U[i,:,2]
     f, psd =welch(S,
-        fs=1./Time, # sample rate
+        fs=2*pi/dx, # sample rate
         window='hanning',
         nperseg=NumbModes,
         scaling='spectrum')
     for k in range(Nhalf):
         PSD_ave2[k]=PSD_ave2[k]+psd[k]
+
 f2=f*Y[0,0,2]
-PSD_ave2=PSD_ave2/(ustar**2.*Y[0,0,2])
+PSD_ave2=PSD_ave2/(ustar**2.*Y[0,0,2])/(Time*M)
 
 # Compute Power for location 1
-for i in range(N):
-    Uav=np.average(U[:,i,3])
-    S=U[:,i,3]
+for i in range(M):
+    Uav=np.average(U[i,:,3])
+    S=U[i,:,3]
     f, psd =welch(S,
-        fs=1./Time, # sample rate
+        fs=2*pi/dx, # sample rate
         window='hanning',
         nperseg=NumbModes,
         scaling='spectrum')
     for k in range(Nhalf):
         PSD_ave3[k]=PSD_ave3[k]+psd[k]
+
 f3=f*Y[0,0,3]
-PSD_ave3=PSD_ave3/(ustar**2.*Y[0,0,3])
+PSD_ave3=PSD_ave3/(ustar**2.*Y[0,0,3])/(Time*M)
 
-f_inertial=np.linspace(1,10,100)
-psd_inertial=0.01*f_inertial**(-5./3.)
+f_inertial=np.linspace(1,100,100)
+psd_inertial=0.005*f_inertial**(-5./3.)
 f_taylor=np.linspace(0.01,1,100)
-psd_taylor=0.01*f_taylor**(-1)
+psd_taylor=0.005*f_taylor**(-1)
 
+plt.rc('text',usetex=True)
+plt.rc('font',family='serif')
 
-if args.plot:    
-    plt.loglog(f0,PSD_ave0,'k',label='y/H='+str(Y[0,0,0]/1000.))
-    plt.loglog(f1,PSD_ave1,'b',label='y/H='+str(Y[0,0,1]/1000.))
-    plt.loglog(f2,PSD_ave2,'g',label='y/H='+str(Y[0,0,2]/1000.))
+if args.plot:   
+    plt.figure(1,figsize=(4,6))
+    plt.loglog(f0,PSD_ave0,'r',label='y/H='+str(Y[0,0,0]/1000.))
+    plt.loglog(f1,PSD_ave1,'r',label='y/H='+str(Y[0,0,1]/1000.))
+    plt.loglog(f2,PSD_ave2,'r',label='y/H='+str(Y[0,0,2]/1000.))
     plt.loglog(f3,PSD_ave3,'r',label='y/H='+str(Y[0,0,3]/1000.))
-    plt.loglog(f_inertial,psd_inertial,'m',label='-5/3')
-    plt.loglog(f_taylor,psd_taylor,'y',label='-1')
-    #plt.ylim([1e-4,10])
-    #plt.xlim([1e-2,10])
-    plt.legend(fontsize=12, loc='lower left' )
+    plt.loglog(f_inertial,psd_inertial,'--k',label='-5/3')
+    plt.loglog(f_taylor,psd_taylor,'--k',label='-1')
+    plt.ylabel(r"E_{uu}(y)/u_*^{-2}y^{-1}")
+    plt.xlabel(r"\kappa_x y")
+    plt.ylim([1e-7,1e-1])
+    plt.xlim([5e-2,50])
+    #plt.legend(fontsize=12, loc='lower left' )
     plt.show()
 
 if args.write:     
-    with open(output+'Spectrum.dat','w') as fout:
+    with open(output+'Spectrum0.dat','w') as fout:
         fout.write('# f PSD \n')
-        for i in range(len(f)):
-            fout.write(str(f1[i])+' '+str(float(PSD_ave0[i]))+' '+str(float(PSD_ave1[i]))+' '+str(float(PSD_ave2[i]))+'\n')
-
+        for i in range(len(f0)):
+            fout.write(str(f0[i])+' '+str(float(PSD_ave0[i]))+'\n')
+    with open(output+'Spectrum1.dat','w') as fout:
+        fout.write('# f PSD \n')
+        for i in range(len(f1)):
+            fout.write(str(f1[i])+' '+str(float(PSD_ave1[i]))+'\n')
+    with open(output+'Spectrum2.dat','w') as fout:
+        fout.write('# f PSD \n')
+        for i in range(len(f2)):
+            fout.write(str(f2[i])+' '+str(float(PSD_ave2[i]))+'\n')
+    with open(output+'Spectrum3.dat','w') as fout:
+        fout.write('# f PSD \n')
+        for i in range(len(f3)):
+            fout.write(str(f3[i])+' '+str(float(PSD_ave3[i]))+'\n')
 

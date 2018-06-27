@@ -300,11 +300,14 @@ if(SmagWallDamp.eq.1) then
     length=smag_constant*del(j)
 else if(SmagWallDamp.eq.2) then
     ! van Driest damping coefficient 
-    if (istret.eq.0) y=(j+ystart(2)-1-1)*dy-yly/2.
-    if (istret.ne.0) y=yp(j+ystart(2)-1)-yly/2.
-    delta=u_shear/xnu
-    yplus=y/delta
-    length=smagcst*del(j)*sqrt((1.-exp(yplus/25.))**3.)
+    if (istret.eq.0) y=(j+ystart(2)-1-1)*dy
+    if (istret.ne.0) y=yp(j+ystart(2)-1)
+    if(y<=5) then
+    smag_constant=-0.002*(y/del(j))**3.+0.0135*(y/del(j))**2.+0.012*(y/del(j))+0.04
+    else
+    smag_constant=0.2
+    endif
+    length=smag_constant*del(j)
 else
     length=smagcst*del(j)
 endif
