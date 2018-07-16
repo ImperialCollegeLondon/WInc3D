@@ -148,14 +148,14 @@ fiz1x,fiz2x,xsize(1),xsize(2),xsize(3),0)
     tauwallxy(i,k)=-u_shear**2.0*(S12*ux_HAve+S_HAve*(ux12-ux_HAve))/(S_HAve*sqrt(ux_HAve**2.+uz_HAve**2.))
     tauwallzy(i,k)=-u_shear**2.0*(S12*uz_HAve+S_HAve*(uz12-uz_HAve))/(S_HAve*sqrt(ux_HAve**2.+uz_Have**2.))
     else !Parlage model 
-    tauwallxy(i,k)=-u_shear**2.0*ux12/S12!sqrt(ux_HAve**2.+uz_HAve**2.)
-    tauwallzy(i,k)=-u_shear**2.0*uz12/S12!sqrt(ux_HAve**2.+uz_Have**2.)
+    tauwallxy(i,k)=-(k_roughness/log(delta/z_zero))**2.0*ux12*S12
+    tauwallzy(i,k)=-(k_roughness/log(delta/z_zero))**2.0*uz12*S12
     endif
 
     if(jLES.ge.2) then ! Apply third order one-sided finite difference 
     wallfluxx(i,1,k) = -(-1./2.*(-2.*nut1(i,3,k)*sxy1(i,3,k))+&
         2.*(-2.*nut1(i,2,k)*sxy1(i,2,k))-3./2.*tauwallxy(i,k))/(2.*delta)
-    wallfluxy(i,1,k) = 0.!-(tauwallxy(i,k)-tauwallxy(i-1,k))/dx-(tauwallzy(i,k)-tauwallzy(i,k-1))/dz
+    wallfluxy(i,1,k) = 0.
     wallfluxz(i,1,k) = -(-1./2.*(-2.*nut1(i,3,k)*syz1(i,3,k))+&
         2.*(-2.*nut1(i,2,k)*syz1(i,2,k))-3./2.*tauwallzy(i,k))/(2.*delta)
     else
