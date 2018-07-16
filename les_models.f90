@@ -219,7 +219,7 @@ gxz2,gyz2,gzz2
 real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: szz3,syz3
 real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: gxz3,gyz3,gzz3
 
-real(mytype) :: smag_constant, y, yplus, delta, length
+real(mytype) :: smag_constant, y, yplus, delta, length, AR
 
 integer :: i,j,k
 
@@ -300,11 +300,13 @@ if(SmagWallDamp.eq.1) then
     length=smag_constant*del(j)
 else if(SmagWallDamp.eq.2) then
     ! van Driest damping coefficient 
-    if (istret.eq.0) y=(j+ystart(2)-1-1)*dy-yly/2.
-    if (istret.ne.0) y=yp(j+ystart(2)-1)-yly/2.
-    delta=u_shear/xnu
-    yplus=y/delta
-    length=smagcst*del(j)*sqrt((1.-exp(yplus/25.))**3.)
+    if (istret.eq.0) y=(j+ystart(2)-1-1)*dy
+    if (istret.ne.0) y=yp(j+ystart(2)-1)
+    AR=min(dx/dy,dz/dy)
+    smag_constant=(smagcst**(-nSmag)+(k_roughness*(y+z_zero)/(del(j)*sqrt(2.)*AR**(2./3.)))**(-nSmag))**(-1./nSmag)
+    !print *, smag_constant
+    length=smag_constant*del(j) 
+    length=smag_constant*del(j)
 else
     length=smagcst*del(j)
 endif
