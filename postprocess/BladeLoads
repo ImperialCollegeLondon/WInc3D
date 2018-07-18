@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # 
 # Georgios (Yorgos) Deskos
 # This script reads the .load files and plots the loads

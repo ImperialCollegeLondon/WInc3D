@@ -133,7 +133,7 @@ for i in range(len(xD)):
     jxloc=np.where(abs(y[0,:,0]-xTurb[1])==abs(y[0,:,0]-xTurb[1]).min())[0]
     kxloc=np.where(abs(z[0,0,:]-xTurb[2])==abs(z[0,0,:]-xTurb[2]).min())[0]
   
-    print 'found indices ', ixloc[0], jxloc[0], kxloc[0]
+    print('found indices ', ixloc[0], jxloc[0], kxloc[0])
     if args.write:     
         with open(output+OutputName+'_XD_'+str(round(xD[i],1))+'_Horizontal.dat','w') as fout:
             fout.write('# y/R 1-u/Uref u/U k/Uref^2 up^2/Uref^2 upvp/Uref^2 upwp/Uref^2 vwpUref^2\n')

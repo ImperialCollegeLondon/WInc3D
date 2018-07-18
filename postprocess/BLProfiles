@@ -127,18 +127,18 @@ kxloc=np.where(abs(z[0,0,:]-xProfile[2])==abs(z[0,0,:]-xProfile[2]).min())[0]
 # Calculate the u gradient
 dudy=np.gradient(uav[ixloc[0],:,kxloc[0]],dy,edge_order=2)
 
-print 'found indices ', ixloc[0], jxloc[0], kxloc[0]
+print ('found indices ', ixloc[0], jxloc[0], kxloc[0])
 if args.write:      
     with open(output+'profile.dat','w') as fout:
         fout.write('# y/H U/Uref U/u* Phi upup/u*^2 vpvp/u*^2 wpwp/u*^2 -upvp/u*^2 I \n')
         for jprofile in range(ny):
             Y=float(y[ixloc[0],jprofile,kxloc[0]]/H)
             U=float(uav[ixloc[0],jprofile,kxloc[0]])
-            Uustar=float(np.average(uav[:,jprofile,:])/ustar)
+            Uustar=float(uav[ixloc[0],jprofile,kxloc[0]]/ustar)
             Phi=float(dudy[jprofile]*y[ixloc[0],jprofile,kxloc[0]]*0.4/ustar)
-            UpUp=float(np.average(upup[:,jprofile,:])/ustar**2.)
-            VpVp=float(np.average(vpvp[:,jprofile,:])/ustar**2.)
-            WpWp=float(np.average(wpwp[:,jprofile,:])/ustar**2.)
+            UpUp=float(upup[ixloc[0],jprofile,kxloc[0]]/ustar**2.)
+            VpVp=float(vpvp[ixloc[0],jprofile,kxloc[0]]/ustar**2.)
+            WpWp=float(wpwp[ixloc[0],jprofile,kxloc[0]]/ustar**2.)
             UpVp=float(-upvp[ixloc[0],jprofile,kxloc[0]]/ustar**2.)
-            I=float(sqrt(np.average(upup[:,jprofile,:]))/sqrt(np.average(uav[:,jprofile,:])**2.+np.average(wav[:,jprofile,:])**2.))
+            I=float(sqrt(upup[ixloc[0],jprofile,kxloc[0]])/sqrt(uav[ixloc[0],jprofile,kxloc[0]]**2.+wav[ixloc[0],jprofile,kxloc[0]]**2.))
             fout.write(str(Y)+' '+ str(U)+' '+str(Uustar)+' '+str(Phi)+' '+str(UpUp)+' '+str(VpVp)+' '+str(WpWp)+' '+str(UpVp)+' '+str(I)+'\n')
