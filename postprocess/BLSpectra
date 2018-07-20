@@ -39,19 +39,19 @@ V=np.zeros((M,N,4));
 W=np.zeros((M,N,4));
 
 for i in range(M):
-	probeNumber=T+i+1
-	A=np.genfromtxt(path+'probe'+str(probeNumber).zfill(6),skip_header=1,delimiter=',')
-    	for j in range(N):
-	 	for k in range(4):	
-        		X[i,j,k]=A[k*N+j,1];
-        		Y[i,j,k]=A[k*N+j,2];
-        		Z[i,j,k]=A[k*N+j,3];
-        		U[i,j,k]=A[k*N+j,4];
-        		V[i,j,k]=A[k*N+j,5];
-        		W[i,j,k]=A[k*N+j,6];
+    probeNumber=T+i+1
+    A=np.genfromtxt(path+'probe'+str(probeNumber).zfill(6),skip_header=1,delimiter=',')
+    for j in range(N):
+        for k in range(4):	
+            X[i,j,k]=A[k*N+j,1];
+            Y[i,j,k]=A[k*N+j,2];
+            Z[i,j,k]=A[k*N+j,3];
+            U[i,j,k]=A[k*N+j,4];
+            V[i,j,k]=A[k*N+j,5];
+            W[i,j,k]=A[k*N+j,6];
 
 NumbModes=32
-Nhalf=NumbModes/2+1
+Nhalf=16+1
 PSD_ave0=np.zeros((Nhalf,1))
 PSD_ave1=np.zeros((Nhalf,1))
 PSD_ave2=np.zeros((Nhalf,1))
