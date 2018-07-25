@@ -135,15 +135,16 @@ contains
     endif
     end do 
     
+
+    end do
+    
     ! Apply Initial Yaw and Tilt for the turbine
 
     ! Rotate the turbine according to the tilt and yaw angle
     ! Yaw
-    !call rotate_turbine(turbine,(/0.0d0,1.0d0,0.0d0/),turbine%yaw_angle*pi/180.0d0)
+    call rotate_turbine(turbine,(/0.0d0,1.0d0,0.0d0/),turbine%yaw_angle*pi/180.0d0)
     ! Tilt
-    !call rotate_turbine(turbine,(/0.0d0,0.0d0,1.0d0/),turbine%hub_tilt_angle*pi/180.0d0)
-
-    end do
+    call rotate_turbine(turbine,(/0.0d0,0.0d0,1.0d0/),turbine%hub_tilt_angle*pi/180.0d0)
 
     !=========================================================
     ! Create a Tower

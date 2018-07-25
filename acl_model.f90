@@ -119,11 +119,11 @@ contains
         !-------------------------------------
         ! Dummy variables
         !-------------------------------------
-        character(len=100) :: name, blade_geom, tower_geom, dynstall_param_file, list_controller_file
+        character(len=100) :: name, blade_geom, tower_geom, dynstall_param_file, aeroelasticity_file, list_controller_file
         character(len=100),dimension(10) :: afname
         real(mytype), dimension(3) :: origin
         integer :: numblades,numfoil,towerFlag, TypeFlag, OperFlag, RotFlag, AddedMassFlag, DynStallFlag, EndEffectsFlag
-        integer :: TipCorr, RootCorr, RandomWalkForcingFlag
+        integer :: TipCorr, RootCorr, RandomWalkForcingFlag, aeroelasticityFlag
         real(mytype) :: toweroffset,tower_drag,tower_lift,tower_strouhal, uref, tsr, ShenC1, ShenC2 
         real(mytype) :: BladeInertia, GeneratorInertia, GBRatio, GBEfficiency, RatedGenSpeed 
         real(mytype) :: RatedLimitGenTorque, CutInGenSpeed, Region2StartGenSpeed, Region2EndGenSpeed,Kgen  
@@ -132,7 +132,7 @@ contains
         NAMELIST/TurbineSpecs/name,origin,numblades,blade_geom,numfoil,afname,towerFlag,towerOffset, &
             tower_geom,tower_drag,tower_lift,tower_strouhal,TypeFlag, OperFlag, tsr, uref,RotFlag, AddedMassFlag, &
             RandomWalkForcingFlag, DynStallFlag,dynstall_param_file,EndEffectsFlag,TipCorr, RootCorr,ShenC1, ShenC2, &
-	    yaw_angle, hub_tilt_angle, &
+            yaw_angle, hub_tilt_angle, aeroelasticityFlag, aeroelasticity_file, &
             BladeInertia, GeneratorInertia, GBRatio, GBEfficiency, RatedGenSpeed, RatedLimitGenTorque, CutInGenSpeed, &
             Region2StartGenSpeed,Region2EndGenSpeed,Kgen,RatedPower,MaximumTorque,list_controller_file
 
