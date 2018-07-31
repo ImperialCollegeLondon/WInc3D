@@ -50,6 +50,10 @@ for i in range(M):
             V[i,j,k]=A[k*N+j,5];
             W[i,j,k]=A[k*N+j,6];
 
+
+
+
+
 NumbModes=32
 Nhalf=16+1
 PSD_ave0=np.zeros((Nhalf,1))

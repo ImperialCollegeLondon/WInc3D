@@ -1,0 +1,98 @@
+#!/usr/bin/env python
+"""
+Python script that reads from the probe file
+"""
+import numpy as np
+from scipy.signal import welch
+import matplotlib.pyplot as plt
+import argparse
+from math import pi
+
+# ====================================
+# Parser Arguments
+# ====================================
+parser = argparse.ArgumentParser(description="Script to read from the velocity probes probe******.dat files")
+parser.add_argument("-v","--verbose",action="store_true",help="Print location")
+parser.add_argument("-p","--plot",action="store_true",help="Plots the wake profiles")
+parser.add_argument("-w","--write",action="store_true",help="Write results in a .csv file")
+parser.add_argument("PATH", type=str, help="path to where the umean, vmean etc. files are (should end with a / )")
+parser.add_argument("SPINUPSTEPS", type=int, help="Number of time step until spinup time")
+parser.add_argument("SAMPLINGSTEPS", type=int, help="Number of sampling steps after spinup time")
+parser.add_argument("SAMPLINGPERIOD", type=float, help="Period of sampling")
+parser.add_argument("PROBES", type=int, help="Number of probe points")
+parser.add_argument("OUTPUT", type=str, help="OUTPUT FOLDER")
+
+args = parser.parse_args()
+path = args.PATH
+T=args.SPINUPSTEPS
+M=args.SAMPLINGSTEPS
+Time=args.SAMPLINGPERIOD
+N = args.PROBES
+output = args.OUTPUT
+
+X=np.zeros((M,N,4));
+Y=np.zeros((M,N,4));
+Z=np.zeros((M,N,4));
+
+U=np.zeros((M,N,4));
+V=np.zeros((M,N,4));
+W=np.zeros((M,N,4));
+
+Nhalf=int(N/2)
+print(Nhalf)
+
+for i in range(M):
+    probeNumber=T+i+1
+    A=np.genfromtxt(path+'probe'+str(probeNumber).zfill(6),skip_header=1,delimiter=',')
+    for j in range(N):
+        for k in range(4):	
+            X[i,j,k]=A[k*N+j,1];
+            Y[i,j,k]=A[k*N+j,2];
+            Z[i,j,k]=A[k*N+j,3];
+            U[i,j,k]=A[k*N+j,4];
+            V[i,j,k]=A[k*N+j,5];
+            W[i,j,k]=A[k*N+j,6];
+
+Uave1=np.average(U[:,Nhalf,0])
+Uave2=np.average(U[:,Nhalf,1])
+Uave3=np.average(U[:,Nhalf,2])
+Uave4=np.average(U[:,Nhalf,3])
+
+print(Uave1,Uave2,Uave3,Uave4)
+#Compute integral time scales
+print("hi there")
+R1=0;R2=0;R3=0;R4=0
+
+sigma1sq=np.sum((U[:,Nhalf,0]-Uave1)**2.)/(M-1)
+sigma2sq=np.sum((U[:,Nhalf,1]-Uave2)**2.)/(M-1)
+sigma3sq=np.sum((U[:,Nhalf,2]-Uave3)**2.)/(M-1)
+sigma4sq=np.sum((U[:,Nhalf,3]-Uave4)**2.)/(M-1)
+
+
+for i in range(0,M):
+    for m in range(0,M-i):
+        r1=(U[i,Nhalf,0]-Uave1)*(U[i+m,Nhalf,0]-Uave1)/sigma1sq
+        if(r1<0.05):
+            r1=0.
+        r2=(U[i,Nhalf,1]-Uave2)*(U[i+m,Nhalf,1]-Uave2)/sigma2sq
+        if(r2<0.05):
+            r2=0.
+        r3=(U[i,Nhalf,2]-Uave3)*(U[i+m,Nhalf,2]-Uave3)/sigma3sq
+        if(r3<0.05):
+            r3=0.
+        r4=(U[i,Nhalf,3]-Uave4)*(U[i+m,Nhalf,3]-Uave4)/sigma4sq
+        if(r4<0.05):
+            r4=0.
+
+        R1=R1+r1*m*Time
+        R2=R2+r2*m*Time 
+        R3=R3+r3*m*Time
+        R4=R4+r4*m*Time
+
+T1=(R1/M)/(1000./0.45)
+T2=(R2/M)/(1000./0.45) 
+T3=(R3/M)/(1000./0.45)
+T4=(R4/M)/(1000./0.45)
+
+print(T1,T2,T3,T4)
+
