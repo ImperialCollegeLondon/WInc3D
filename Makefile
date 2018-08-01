@@ -9,10 +9,10 @@ OPTIONS = -DDOUBLE_PREC
 #   generic    - A general FFT algorithm (no 3rd-party library needed)
 FFT= generic
 
-# Paths to OpenFast
-OPENFAST_PATH=/home/gdeskos/openfast
-OPENFAST_INCLUDE=-I$(OPENFAST_PATH)/build/ftnmods
-OPENFAST_LIB=-L$(OPENFAST_PATH)/install/lib/libopenfastlib.a
+# Paths to xbeam 
+xbeam_PATH=/Users/georgiosdeskos/xbeam
+xbeam_INCLUDE=-I$(xbeam_PATH)/src
+xbeam_LIB=-L$(xbeam_PATH)/lib/libxbeam.dylib
 
 # Paths to FFTW 3
 FFTW3_PATH=   # full path of FFTW installation if using fftw3 engine above
@@ -24,7 +24,7 @@ FC = mpif90
 OPTFC = -O3 -funroll-loops -ftree-vectorize -fcray-pointer -cpp -ffree-line-length-0 -g #-ffpe-trap=invalid,zero
 CC = mpicc
 CFLAGS = -O3 
-LIBS = -fopenmp #-llapack -lblas 
+LIBS = -fopenmp -llapack -lblas 
 DEGUG = -g -backtrace  
 
 # include PATH 
@@ -54,7 +54,7 @@ FreeIPC_c.o: FreeIPC_c.c
 	$(CC) $(CFLAGS) -c $<
 
 incompact3d : $(OBJ)
-	$(FC) -O3 -o $@ $(OBJ) $(LIBFFT) $(LIBS) $(DEBUG)
+	$(FC) -O3 -o $@ $(OBJ) $(LIBFFT) $(LIBS) $(DEBUG) $()
 
 %.o : %.f90
 	$(FC) $(OPTFC) $(OPTIONS) $(INC) $(DEBUG) -c $<
