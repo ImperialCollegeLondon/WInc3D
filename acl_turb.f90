@@ -4,6 +4,7 @@ module actuator_line_turbine
     use actuator_line_model_utils
     use Airfoils
     use actuator_line_element
+    use actuator_line_beam_model
     use actuator_line_controller
 
     implicit none
@@ -27,6 +28,11 @@ type TurbineType
     logical :: Is_NRELController = .false. ! Active control-based rotational velocity using the NREL controller
     logical :: Is_ListController = .false. ! Active control-based rotational velocity using the rotor averaged velocity and
                                            ! interpolation lists
+
+    logical :: do_aeroelasticity=.true.    ! Flag
+    type(BeamType) :: TurbineBeams         ! Elastic structural beam model for the blades
+    
+
     integer :: ContEntries
     real(mytype), allocatable :: ContWindSpeed(:), ContOmega(:), ContPitch(:)
 
@@ -137,7 +143,11 @@ contains
     
 
     end do
-    
+   
+    if(turbine%do_aeroelasticity) then
+    call actuator_line_beam_model_init()
+    endif
+
     ! Apply Initial Yaw and Tilt for the turbine
 
     ! Rotate the turbine according to the tilt and yaw angle

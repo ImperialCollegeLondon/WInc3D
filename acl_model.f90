@@ -119,11 +119,11 @@ contains
         !-------------------------------------
         ! Dummy variables
         !-------------------------------------
-        character(len=100) :: name, blade_geom, tower_geom, dynstall_param_file, aeroelasticity_file, list_controller_file
+        character(len=100) :: name, blade_geom, tower_geom, dynstall_param_file, AeroElastInputFile, AeroElastSolverFile, list_controller_file
         character(len=100),dimension(10) :: afname
         real(mytype), dimension(3) :: origin
         integer :: numblades,numfoil,towerFlag, TypeFlag, OperFlag, RotFlag, AddedMassFlag, DynStallFlag, EndEffectsFlag
-        integer :: TipCorr, RootCorr, RandomWalkForcingFlag, aeroelasticityFlag
+        integer :: TipCorr, RootCorr, RandomWalkForcingFlag, AeroElastFlag, AeroElastModel
         real(mytype) :: toweroffset,tower_drag,tower_lift,tower_strouhal, uref, tsr, ShenC1, ShenC2 
         real(mytype) :: BladeInertia, GeneratorInertia, GBRatio, GBEfficiency, RatedGenSpeed 
         real(mytype) :: RatedLimitGenTorque, CutInGenSpeed, Region2StartGenSpeed, Region2EndGenSpeed,Kgen  
@@ -132,7 +132,7 @@ contains
         NAMELIST/TurbineSpecs/name,origin,numblades,blade_geom,numfoil,afname,towerFlag,towerOffset, &
             tower_geom,tower_drag,tower_lift,tower_strouhal,TypeFlag, OperFlag, tsr, uref,RotFlag, AddedMassFlag, &
             RandomWalkForcingFlag, DynStallFlag,dynstall_param_file,EndEffectsFlag,TipCorr, RootCorr,ShenC1, ShenC2, &
-            yaw_angle, hub_tilt_angle, aeroelasticityFlag, aeroelasticity_file, &
+            yaw_angle, hub_tilt_angle, AeroElastFlag, AeroElastModel, AeroElastInputFile, AeroElastSolverFile, &
             BladeInertia, GeneratorInertia, GBRatio, GBEfficiency, RatedGenSpeed, RatedLimitGenTorque, CutInGenSpeed, &
             Region2StartGenSpeed,Region2EndGenSpeed,Kgen,RatedPower,MaximumTorque,list_controller_file
 
@@ -160,8 +160,8 @@ contains
         RootCorr=0
         ShenC1=0.125
         ShenC2=21
-	yaw_angle=0.
-	hub_tilt_angle=0.
+        yaw_angle=0.
+        hub_tilt_angle=0.
         !+++++++++++++++++++++++++++++++++
         open(100,File=turbines_path(i))
         read(100,nml=TurbineSpecs)
@@ -321,7 +321,10 @@ contains
             if (RootCorr==1) Turbine(i)%do_root_correction=.true.
         endif
         endif
-        
+       
+        if (AeroElastFlag==1) then
+            Turbine(i)%do_aeroelasticity=.true.
+        endif
 
         end do
 
