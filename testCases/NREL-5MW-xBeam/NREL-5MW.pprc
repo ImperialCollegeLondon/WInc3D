@@ -8,12 +8,12 @@
     nclx=2
     ncly=1
     nclz=1
-    nfiles=5
+    nfiles=31
     file1=1
-    filen=5
+    filen=31
     istret=0
     ialm=0
     jles=2
-    ibuoyancy=0
+    ibuoyancy=1
 /End
 

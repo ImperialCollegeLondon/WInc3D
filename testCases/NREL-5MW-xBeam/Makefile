@@ -5,4 +5,4 @@ vis:
 	~/incompact3d/visualize NREL-5MW.pprc
 
 clean:
-	rm -rf *.dat ux* uy* uz* pp* vort* qcrit* Temp* Ftx* Fty* Ftz* nuSGS* probe* ALM *.xdmf
+	rm -rf *.dat ux* uy* uz* pp* vort* qcrit* temp* Ftx* Fty* Ftz* nuSGS* probe* ALM *.xdmf

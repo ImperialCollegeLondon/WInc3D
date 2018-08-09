@@ -1,7 +1,7 @@
 &FlowParam
     ! Flow type
-    itype = 1             ! Type of Flow  
-    iin = 0               ! Inflow conditions (1: classic, 2: turbinit)
+    itype = 8             ! Type of Flow  
+    iin = 2               ! Inflow conditions (1: classic, 2: turbinit)
     
     ! Domain and scaling
     xlx = 1512            ! Lx (Size of the box in x-direction)
@@ -92,10 +92,10 @@ TurbinesPath='NREL-5MW.turb'
 /End
 
 &ABLParam
-iabl=0                    ! iabl (1: atmospheric boundary layer modelling by applying a shear stress)
+iabl=1                    ! iabl (1: atmospheric boundary layer modelling by applying a shear stress)
 z_zero=0.05	              ! Roughness length
 k_roughness=0.4          ! von Karman constant (usually taken to be equal to 0.41)
 ustar=0.442              ! friction velocity
 PsiM=0                    ! stability correction for momentum (taken equal to 0 for neutral stability)
-IPressureGradient=0	      ! if 1 then apply a pressure gradient
+IPressureGradient=1	      ! if 1 then apply a pressure gradient
 /End

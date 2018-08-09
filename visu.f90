@@ -158,7 +158,7 @@ call decomp_2d_write_one(1,uvisu,filename,2)
 if (ibuoyancy==1) then
 uvisu=0.
 call fine_to_coarseV(1,phi1,uvisu)
-996 format('Temp',I4.4)
+996 format('temp',I4.4)
    write(filename, 996) itime/imodulo
    call decomp_2d_write_one(1,uvisu,filename,2)
 !   call decomp_2d_write_one(nx_global,ny_global,nz_global,&

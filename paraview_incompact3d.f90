@@ -206,11 +206,11 @@ program visu_paraview
      endif
      
      if(ibuoyancy==1) then
-     write(nfil,*)'            <Attribute Name="Temp" Center="Node">'
+     write(nfil,*)'            <Attribute Name="temp" Center="Node">'
      write(nfil,*)'               <DataItem Format="Binary" '
      write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
      write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
-     write(nfil,*)'                  Temp'//chits
+     write(nfil,*)'                  temp'//chits
      write(nfil,*)'               </DataItem>'
      write(nfil,*)'            </Attribute>'
      endif
