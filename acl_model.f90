@@ -431,27 +431,35 @@ contains
             if(Turbine(i)%Is_constant_rotation_operated) then
                 theta=Turbine(i)%angularVel*DeltaT
                 Turbine(i)%AzimAngle=Turbine(i)%AzimAngle+theta
-                call rotate_turbine(Turbine(i),Turbine(i)%RotN,theta)
+                ! Computes the rigid-body velocity
+		call rotate_turbine(Turbine(i),Turbine(i)%RotN,theta)
+		! Computes the displacement on the turbine  
+	        if(turbine(i)%do_aeroelasticity) then
+    		call actuator_line_beam_solve(turbine(i)%beam,DeltaT)
+		endif	
+		! Computes the new velocity 
                 call Compute_Turbine_RotVel(Turbine(i))  
             else if(Turbine(i)%Is_NRELController) then
-            if(nrank==0) write(*,*) 'Entering the control-based operation for turbine', Turbine(i)%name 
-            ! First do control	 
-            call operate_controller(Turbine(i)%Controller,ctime,Turbine(i)%NBlades,Turbine(i)%angularVel) 
-            Turbine(i)%deltaOmega=(Turbine(i)%Torque-Turbine(i)%Controller%GearBoxRatio*Turbine(i)%Controller%GenTrq)/(Turbine(i)%IRotor+Turbine(i)%Controller%GearBoxRatio**2.*Turbine(i)%Controller%IGenerator)*DeltaT
-            Turbine(i)%angularVel=Turbine(i)%angularVel+Turbine(i)%deltaOmega
-            ! Then Calculate the angular velocity and compute the DeltaTheta  and AzimAngle              
-            theta=Turbine(i)%angularVel*DeltaT
-            Turbine(i)%AzimAngle=Turbine(i)%AzimAngle+theta
-            call rotate_turbine(Turbine(i),Turbine(i)%RotN,theta)
-            call Compute_Turbine_RotVel(Turbine(i))  
+            	!if(nrank==0) write(*,*) 'Entering the control-based operation for turbine', Turbine(i)%name 
+            	! First do control	 
+            	call operate_controller(Turbine(i)%Controller,ctime,Turbine(i)%NBlades,Turbine(i)%angularVel) 
+            	Turbine(i)%deltaOmega=(Turbine(i)%Torque-Turbine(i)%Controller%GearBoxRatio*Turbine(i)%Controller%GenTrq)/(Turbine(i)%IRotor+Turbine(i)%Controller%GearBoxRatio**2.*Turbine(i)%Controller%IGenerator)*DeltaT
             
-            ! Then do picth control (if not zero)
-            !do j=1,Turbine(i)%NBlades
-            !call pitch_actuator_line(Turbine(i)%Blade(j),Turbine(i)%Controller%PitCom(j))
-            !enddo
+		Turbine(i)%angularVel=Turbine(i)%angularVel+Turbine(i)%deltaOmega
+            	! Then Calculate the angular velocity and compute the DeltaTheta  and AzimAngle              
+            	theta=Turbine(i)%angularVel*DeltaT
+            	Turbine(i)%AzimAngle=Turbine(i)%AzimAngle+theta
             
-            ! After you do both variable speed and pitch control update the status of the controller
-            Turbine(i)%Controller%IStatus=Turbine(i)%Controller%IStatus+1
+		call rotate_turbine(Turbine(i),Turbine(i)%RotN,theta)
+            	call Compute_Turbine_RotVel(Turbine(i))  
+            
+            	! Then do picth control (if not zero)
+            	!do j=1,Turbine(i)%NBlades
+            	!call pitch_actuator_line(Turbine(i)%Blade(j),Turbine(i)%Controller%PitCom(j))
+            	!enddo
+            
+            	! After you do both variable speed and pitch control update the status of the controller
+            	Turbine(i)%Controller%IStatus=Turbine(i)%Controller%IStatus+1
             
             else if(Turbine(i)%Is_ListController) then
             

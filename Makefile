@@ -12,7 +12,7 @@ FFT= generic
 # Paths to xbeam 
 xbeam_PATH=/Users/georgiosdeskos/xbeam
 xbeam_INCLUDE=-I$(xbeam_PATH)/src
-xbeam_LIB=-L$(xbeam_PATH)/lib/libxbeam.so
+xbeam_LIB=-L$(xbeam_PATH)/lib 
 
 # Paths to FFTW 3
 FFTW3_PATH=   # full path of FFTW installation if using fftw3 engine above
@@ -24,7 +24,7 @@ FC = mpif90
 OPTFC = -O3 -funroll-loops -ftree-vectorize -fcray-pointer -cpp -ffree-line-length-0 -g #-ffpe-trap=invalid,zero
 CC = mpicc
 CFLAGS = -O3 
-LIBS = -fopenmp -llapack -lblas 
+LIBS = -fopenmp -llapack -lblas -lxbeam 
 DEGUG = -g -backtrace  
 
 # include PATH 
@@ -54,10 +54,10 @@ FreeIPC_c.o: FreeIPC_c.c
 	$(CC) $(CFLAGS) -c $<
 
 incompact3d : $(OBJ)
-	$(FC) -O3 -o $@ $(OBJ) $(LIBFFT) $(LIBS) $(DEBUG) $()
+	$(FC) -O3 -o $@ $(OBJ) $(LIBFFT) $(LIBS) $(DEBUG) $(xbeam_LIB)
 
 %.o : %.f90
-	$(FC) $(OPTFC) $(OPTIONS) $(INC) $(DEBUG) -c $<
+	$(FC) $(OPTFC) $(OPTIONS) $(INC) $(xbeam_INCLUDE) $(DEBUG) -c $<
 	
 visualize :
 	mpif90 paraview_incompact3d.f90 -o visualize 
