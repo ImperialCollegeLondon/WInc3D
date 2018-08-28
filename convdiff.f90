@@ -354,20 +354,20 @@ endif
 
 
 ! Apply boundary conditions of the wall model
-if(jLES==1.and.iabl==1) then 
-     call wall_shear_stress(ux1,uy1,uz1,nut1,sxy1,syz1,tauwallxy1,tauwallzy1,wallfluxx1,wallfluxy1,wallfluxz1)
-    ! Calculate the derxx_iles
-    
-    !call derzz (ta3_abl,ux3,di3,sz,sfzp,sszp,swzp,zsize(1),zsize(2),zsize(3),1)
-    !call transpose_z_to_y(ta3_abl,ta2_abl) 
-    !
-    !call derxx(tf1_abl,uz1,di1,sx,sfxp,ssxp,swxp,xsize(1),xsize(2),xsize(3),1)
-    !call transpose_x_to_y(tf1_abl,tf2_abl) 
-    if(ystart(2)==1) then
-    td2(:,1,:)=-z_zero*k_roughness*ustar*td2(:,1,:)/(rxxnu*xnu)!-u_shear/(k_roughness*(dy/2.)**2.)+ta2_abl(:,1,:) 
-    tf2(:,1,:)=-z_zero*k_roughness*ustar*tf2(:,1,:)/(rxxnu*xnu)!tf2_abl(:,1,:)
-    endif
-endif
+!if(jLES==1.and.iabl==1) then 
+!     call wall_shear_stress(ux1,uy1,uz1,nut1,sxy1,syz1,tauwallxy1,tauwallzy1,wallfluxx1,wallfluxy1,wallfluxz1)
+!    ! Calculate the derxx_iles
+!    
+!    !call derzz (ta3_abl,ux3,di3,sz,sfzp,sszp,swzp,zsize(1),zsize(2),zsize(3),1)
+!    !call transpose_z_to_y(ta3_abl,ta2_abl) 
+!    !
+!    !call derxx(tf1_abl,uz1,di1,sx,sfxp,ssxp,swxp,xsize(1),xsize(2),xsize(3),1)
+!    !call transpose_x_to_y(tf1_abl,tf2_abl) 
+!    if(ystart(2)==1) then
+!    td2(:,1,:)=-z_zero*k_roughness*ustar*td2(:,1,:)/(rxxnu*xnu)!-u_shear/(k_roughness*(dy/2.)**2.)+ta2_abl(:,1,:) 
+!    tf2(:,1,:)=-z_zero*k_roughness*ustar*tf2(:,1,:)/(rxxnu*xnu)!tf2_abl(:,1,:)
+!    endif
+!endif
 
 ta2(:,:,:)=ta2(:,:,:)+td2(:,:,:)
 tb2(:,:,:)=tb2(:,:,:)+te2(:,:,:)
@@ -404,6 +404,7 @@ tc1(:,:,:)=tc1(:,:,:)+tf1(:,:,:)
 if (iabl==1) then
     ! In case of ABL set to zero the SGS model at level 1 (This will be computed later by the 
     ! SGS wall stress model
+    
     if (xstart(2)==1) then
     sgsx1(:,1,:)=0.
     sgsy1(:,1,:)=0.

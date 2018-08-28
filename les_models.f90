@@ -1050,25 +1050,30 @@ call transpose_y_to_x(duzdy2,duzdy1)
 !           S_ij  = 1./2.*( du_i/dx_j + du_j/dx_j)
 ! ======================================================
 
-tauxx1(:,:,:)=0.!-2.*nut1(:,:,:)*(duxdx1(:,:,:))
+tauxx1(:,:,:)=-2.*nut1(:,:,:)*(duxdx1(:,:,:))
 tauxy1(:,:,:)=-nut1(:,:,:)*(duxdy1(:,:,:)+duydx1(:,:,:))
 tauxz1(:,:,:)=-nut1(:,:,:)*(duxdz1(:,:,:)+duzdx1(:,:,:))
 tauyx1(:,:,:)=-nut1(:,:,:)*(duydx1(:,:,:)+duxdy1(:,:,:))
-tauyy1(:,:,:)=0.!-2.*nut1(:,:,:)*(duydy1(:,:,:))
+tauyy1(:,:,:)=-2.*nut1(:,:,:)*(duydy1(:,:,:))
 tauyz1(:,:,:)=-nut1(:,:,:)*(duydz1(:,:,:)+duzdy1(:,:,:))
 tauzx1(:,:,:)=-nut1(:,:,:)*(duzdx1(:,:,:)+duxdz1(:,:,:))
 tauzy1(:,:,:)=-nut1(:,:,:)*(duzdy1(:,:,:)+duydz1(:,:,:))
-tauzz1(:,:,:)=0.!-2.*nut1(:,:,:)*(duzdz1(:,:,:))
+tauzz1(:,:,:)=-2.*nut1(:,:,:)*(duzdz1(:,:,:))
 
 ! Apply the wall boundary conditions 
 call wall_shear_stress(ux1,uy1,uz1,tauwallxy1,tauwallzy1,wallfluxx1,wallfluxy1,wallfluxz1)
 if (xstart(2)==1) then
     do k=1,xsize(3)
     do i=1,xsize(1)
+    tauxx1(i,1,k)=0.
     tauxy1(i,1,k)=tauwallxy1(i,k)
+    tauxz1(i,1,k)=0.
     tauyx1(i,1,k)=tauwallxy1(i,k)
-    tauzy1(i,1,k)=tauwallzy1(i,k)
+    tauyy1(i,1,k)=0.
     tauyz1(i,1,k)=tauwallzy1(i,k)
+    tauzx1(i,1,k)=0.
+    tauzy1(i,1,k)=tauwallzy1(i,k)
+    tauzz1(i,1,k)=0.
     enddo
     enddo
 endif
@@ -1166,6 +1171,7 @@ call derxx (tf1,uz1,di1,sx,sfxp,ssxp,swxp,xsize(1),xsize(2),xsize(3),1)
 sgsx1(:,:,:)=td1(:,:,:)*nut1(:,:,:)+gxx1(:,:,:)*ta1(:,:,:)
 sgsy1(:,:,:)=te1(:,:,:)*nut1(:,:,:)+gyx1(:,:,:)*ta1(:,:,:)
 sgsz1(:,:,:)=tf1(:,:,:)*nut1(:,:,:)+gzx1(:,:,:)*ta1(:,:,:)
+
 
 !WORK Y-PENCILS
 call transpose_x_to_y(sgsx1,sgsx2)
