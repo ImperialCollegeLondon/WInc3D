@@ -30,7 +30,7 @@ type TurbineType
                                            ! interpolation lists
 
     logical :: do_aeroelasticity=.true.    ! Flag
-    type(BeamType) :: TurbineBeams         ! Elastic structural beam model for the blades
+    type(BeamType) :: beam         ! Elastic structural beam model for the blades
     
 
     integer :: ContEntries
@@ -145,7 +145,7 @@ contains
     end do
    
     if(turbine%do_aeroelasticity) then
-    call actuator_line_beam_model_init()
+    call actuator_line_beam_model_init(turbine%beam,turbine%blade,turbine%NBlades)
     endif
 
     ! Apply Initial Yaw and Tilt for the turbine
