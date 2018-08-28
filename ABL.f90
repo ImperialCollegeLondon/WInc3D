@@ -113,9 +113,9 @@ fiz1x,fiz2x,xsize(1),xsize(2),xsize(3),0)
     wallfluxz(i,1,k) = -(-1./2.*(-2.*nut1(i,3,k)*syz1(i,3,k))+&
         2.*(-2.*nut1(i,2,k)*syz1(i,2,k))-3./2.*tauwallzy(i,k))/(2.*delta)
     else
-    wallfluxx(i,1,k) = 0.!k_roughness*z_zero*u_shear*  
+    wallfluxx(i,1,k) = -4*CD*ux12*u_shear/delta 
     wallfluxy(i,1,k) = 0.!
-    wallfluxz(i,1,k) = 0.! 
+    wallfluxz(i,1,k) = -4*CD*uz12*u_shear/delta
     endif
     
     enddo
