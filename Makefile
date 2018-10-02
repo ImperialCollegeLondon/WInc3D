@@ -10,7 +10,7 @@ OPTIONS = -DDOUBLE_PREC
 FFT= generic
 
 # Paths to xbeam 
-xbeam_PATH=/Users/georgiosdeskos/xbeam
+xbeam_PATH=/home/yorgos/xbeam
 xbeam_INCLUDE=-I$(xbeam_PATH)/src
 xbeam_LIB=-L$(xbeam_PATH)/lib 
 
