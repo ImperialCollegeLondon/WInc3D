@@ -11,6 +11,7 @@ implicit none
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux,uy,uz,nut1
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: uxf,uyf,uzf
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: wallfluxx,wallfluxy,wallfluxz
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: wallfluxxf,wallfluxyf,wallfluxzf
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: sxy1, syz1 
 real(mytype),dimension(xsize(1),xsize(3)) :: tauwallxy, tauwallzy 
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: gxy1,gyx1,gyz1,gzy1,di1
@@ -123,6 +124,18 @@ fiz1x,fiz2x,xsize(1),xsize(2),xsize(3),0)
      
     endif
 !*********************************************************************************************************
+! Filter wallfluxes
+call filx(wallfluxxf,wallfluxx,di1,sx,vx,fiffx,fifx,ficx,fibx,fibbx,filax,&
+fiz1x,fiz2x,xsize(1),xsize(2),xsize(3),0)
+call filx(wallfluxyf,wallfluxy,di1,sx,vx,fiffx,fifx,ficx,fibx,fibbx,filax,&
+fiz1x,fiz2x,xsize(1),xsize(2),xsize(3),0)
+call filx(wallfluxzf,wallfluxz,di1,sx,vx,fiffx,fifx,ficx,fibx,fibbx,filax,&
+fiz1x,fiz2x,xsize(1),xsize(2),xsize(3),0)
+wallfluxx(:,:,:) = wallfluxxf(:,:,:)
+wallfluxy(:,:,:) = wallfluxyf(:,:,:)
+wallfluxz(:,:,:) = wallfluxzf(:,:,:)
+
+
 
 if (nrank==0) write(*,*)  'Maximum wall shear stress for x and z', maxval(tauwallxy), maxval(tauwallzy)
 if (nrank==0) write(*,*)  'Minimum wall shear stress for x and z', minval(tauwallxy), minval(tauwallzy)
