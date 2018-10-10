@@ -33,6 +33,7 @@ type TurbineType
     type(ControllerType) :: controller     ! Contoller
     logical :: IsClockwise = .false.
     logical :: IsCounterClockwise = .false. 
+    logical :: Is_upstreamvel_controlled=.false. 
     logical :: Has_Tower=.false.
     real(mytype) :: Towerheight, TowerOffset, TowerDrag, TowerLift, TowerStrouhal
     logical :: Has_BladeEndEffectModelling=.false.
@@ -527,34 +528,98 @@ contains
 
     end subroutine from_list_controller
 
-    subroutine compute_rotor_averaged_vel(turbine,WSRotorAve)
+    subroutine compute_rotor_upstream_velocity(turbine,WSRotorAve)
+
+use actuator_line_model_utils ! used only for the trilinear interpolation
+USE param 
+USE decomp_2d
+use var
+use MPI
 
         implicit none
         type(TurbineType),intent(in) ::turbine
         real(mytype),intent(out) :: WSRotorAve
         integer :: iblade, ielem,Nelem
-        real(mytype) :: Ux,Uy,Uz,phi,sigma
-        Ux=0.
+        real(mytype) :: Rupstream(3)
+        real(mytype) :: Ux,Uy,Uz,Phixy,Phixz
+        real(mytype) :: Ux_part, Uy_part, Uz_part, Phixy_part, Phixz_part
+	real(mytype) :: ymin,ymax,zmin,zmax
+	real(mytype) :: xmesh,ymesh,zmesh
+	real(mytype) :: dist, min_dist 
+	integer :: min_i,min_j,min_k
+	integer :: i,j,k,ierr
+	
+	Ux=0.
         Uy=0.
         Uz=0.
-        Nelem=0
-        do iblade=1,turbine%NBlades
-            Nelem=Nelem+turbine%Blade(iblade)%Nelem
-            do ielem=1,turbine%Blade(iblade)%Nelem
-                 Ux=Ux+turbine%Blade(iblade)%EVx(ielem)
-                 Uy=Uy+turbine%Blade(iblade)%EVy(ielem)
-                 Uz=Uz+turbine%Blade(iblade)%EVz(ielem)
-            enddo
-        enddo
+       
+        ! Velocity is calculated at a probe point (closest) at one D upstream the turbine
+
+	Rupstream(:)=turbine%origin(:)-abs(turbine%rotN(:))*2.*turbine%Rmax       
+        if (istret.eq.0) then 
+        ymin=(xstart(2)-1)*dy-dy/2.0 ! Add -dy/2.0 overlap
+        ymax=(xend(2)-1)*dy+dy/2.0   ! Add +dy/2.0 overlap
+        else
+        ymin=yp(xstart(2))
+        ymax=yp(xend(2))
+        endif
         
-        ! Average for the rotor
-        Ux=Ux/Nelem
-        Uy=Uy/Nelem
-        Uz=Uz/Nelem
+        zmin=(xstart(3)-1)*dz-dz/2.0 ! Add a -dz/2.0 overlap
+        zmax=(xend(3)-1)*dz+dz/2.0   ! Add a +dz/2.0 overlap
+         
+        
+        min_dist=1e6
+        if((Rupstream(2)>=ymin).and.(Rupstream(2)<=ymax).and.(Rupstream(3)>=zmin).and.(Rupstream(3)<=zmax)) then
+            !write(*,*) 'Warning: I own this node'
+            do k=xstart(3),xend(3)
+            zmesh=(k-1)*dz 
+            do j=xstart(2),xend(2)
+            if (istret.eq.0) ymesh=(j-1)*dy
+            if (istret.ne.0) ymesh=yp(j)
+            do i=xstart(1),xend(1)
+            xmesh=(i-1)*dx
+            dist = sqrt((Rupstream(1)-xmesh)**2.+(Rupstream(2)-ymesh)**2.+(Rupstream(3)-zmesh)**2.) 
+            
+            if (dist<min_dist) then
+                min_dist=dist
+                min_i=i
+                min_j=j
+                min_k=k
+            endif
+
+            enddo
+            enddo
+            enddo
+            
+            Ux_part=ux1(min_i,min_j,min_k)
+            Uy_part=uy1(min_i,min_j,min_k)
+            Uz_part=uz1(min_i,min_j,min_k)
+            Phixy_part=0.0
+            Phixz_part=0.0
+	    
+ 
+        else
+            Ux_part=0.0
+            Uy_part=0.0
+            Uz_part=0.0
+            Phixy_part=0.0
+            Phixz_part=0.0
+            !write(*,*) 'Warning: I do not own this node' 
+        endif
+           
+        call MPI_ALLREDUCE(Ux_part,Ux,1,MPI_REAL8,MPI_SUM, &
+            MPI_COMM_WORLD,ierr)
+        call MPI_ALLREDUCE(Uy_part,Uy,1,MPI_REAL8,MPI_SUM, &
+            MPI_COMM_WORLD,ierr)
+        call MPI_ALLREDUCE(Uz_part,Uz,1,MPI_REAL8,MPI_SUM, &
+            MPI_COMM_WORLD,ierr)
+
+	
+         
         WSRotorAve=sqrt(Ux**2.0+Uy**2.0+Uz**2.0)
 
         return
     
-    end subroutine Compute_Rotor_Averaged_Vel
+    end subroutine Compute_Rotor_upstream_Velocity
 
 end module actuator_line_turbine 

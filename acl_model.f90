@@ -264,7 +264,11 @@ contains
             Turbine(i)%Is_ListController= .true.
             !> Read the list_controller file
             call read_list_controller_file(list_controller_file,turbine(i)) 
-        else
+        else if(OperFlag==4) then
+            Turbine(i)%TSR=tsr
+	    Turbine(i)%Is_upstreamvel_controlled=.true.
+            Turbine(i)%Uref=uref 
+	else
             write(*,*) "Only constant_rotation (1) and control_based (2) is used"
             stop
         endif
@@ -454,7 +458,7 @@ contains
             
                 if(nrank==0) write(*,*) 'Entering the List-controlled operation for the turbine', Turbine(i)%name 
                 !> Compute the rotor averaged wind speed
-                call compute_rotor_averaged_vel(Turbine(i),WSRotorAve)
+                call compute_rotor_upstream_velocity(Turbine(i),WSRotorAve)
                 Turbine(i)%Uref=WSRotorAve
                 !> Compute Omega and pitch by interpolating from the list
                 call from_list_controller(Omega,pitch_angle,turbine(i),WSRotorAve)
@@ -476,7 +480,14 @@ contains
                 !call pitch_actuator_line(Turbine(i)%Blade(j),deltapitch)
                 !if (nrank==0) print *, deltapitch, turbine(i)%blade(j)%nEx(40),turbine(i)%blade(j)%nEz(40)     
                 !enddo 
-            endif
+           else if (Turbine(i)%Is_upstreamvel_controlled) then
+                call compute_rotor_upstream_velocity(Turbine(i),WSRotorAve)
+                Turbine(i)%Uref=WSRotorAve
+                theta=Turbine(i)%angularVel*DeltaT
+                Turbine(i)%AzimAngle=Turbine(i)%AzimAngle+theta
+                call rotate_turbine(Turbine(i),Turbine(i)%RotN,theta)
+                call Compute_Turbine_RotVel(Turbine(i))  
+	   endif
             
             enddo
         endif
