@@ -128,11 +128,11 @@ contains
         real(mytype) :: BladeInertia, GeneratorInertia, GBRatio, GBEfficiency, RatedGenSpeed 
         real(mytype) :: RatedLimitGenTorque, CutInGenSpeed, Region2StartGenSpeed, Region2EndGenSpeed,Kgen  
         real(mytype) :: RatedPower, MaximumTorque
-	real(mytype) :: yaw_angle, hub_tilt_angle
+	real(mytype) :: yaw_angle, shaft_tilt_angle, blade_cone_angle
         NAMELIST/TurbineSpecs/name,origin,numblades,blade_geom,numfoil,afname,towerFlag,towerOffset, &
             tower_geom,tower_drag,tower_lift,tower_strouhal,TypeFlag, OperFlag, tsr, uref,RotFlag, AddedMassFlag, &
             RandomWalkForcingFlag, DynStallFlag,dynstall_param_file,EndEffectsFlag,TipCorr, RootCorr,ShenC1, ShenC2, &
-            yaw_angle, hub_tilt_angle, AeroElastFlag, AeroElastModel, AeroElastInputFile, AeroElastSolverFile, &
+            yaw_angle, shaft_tilt_angle, blade_cone_angle,AeroElastFlag, AeroElastModel, AeroElastInputFile, AeroElastSolverFile, &
             BladeInertia, GeneratorInertia, GBRatio, GBEfficiency, RatedGenSpeed, RatedLimitGenTorque, CutInGenSpeed, &
             Region2StartGenSpeed,Region2EndGenSpeed,Kgen,RatedPower,MaximumTorque,list_controller_file
 
@@ -161,7 +161,8 @@ contains
         ShenC1=0.125
         ShenC2=21
         yaw_angle=0.
-        hub_tilt_angle=0.
+        shaft_tilt_angle=0.
+        blade_cone_angle=0.
         !+++++++++++++++++++++++++++++++++
         open(100,File=turbines_path(i))
         read(100,nml=TurbineSpecs)
@@ -222,8 +223,9 @@ contains
         if(TypeFlag==1) then
             Turbine(i)%Type='Horizontal_Axis'
             Turbine(i)%RotN=[1.0d0,0.0d0,0.0d0]   
-            Turbine(i)%hub_tilt_angle=hub_tilt_angle
-	    Turbine(i)%yaw_angle=yaw_angle
+            Turbine(i)%shaft_tilt_angle=shaft_tilt_angle
+            Turbine(i)%yaw_angle=yaw_angle
+            Turbine(i)%blade_cone_angle=blade_cone_angle
         elseif(TypeFlag==2) then
             !        call get_option(trim(turbine_path(i))//"/type/Vertical_Axis/axis_of_rotation",Turbine(i)%RotN) 
             !        call get_option(trim(turbine_path(i))//"/type/Vertical_Axis/distance_from_axis",Turbine(i)%dist_from_axis)
@@ -432,34 +434,34 @@ contains
                 theta=Turbine(i)%angularVel*DeltaT
                 Turbine(i)%AzimAngle=Turbine(i)%AzimAngle+theta
                 ! Computes the rigid-body velocity
-		call rotate_turbine(Turbine(i),Turbine(i)%RotN,theta)
-		! Computes the displacement on the turbine  
-	        if(turbine(i)%do_aeroelasticity) then
-    		call actuator_line_beam_solve(turbine(i)%beam,DeltaT)
-		endif	
-		! Computes the new velocity 
+                call rotate_turbine(Turbine(i),Turbine(i)%RotN,theta)
+                ! Computes the displacement on the turbine  
+                if(turbine(i)%do_aeroelasticity) then
+                    call actuator_line_beam_solve(turbine(i)%beam,DeltaT)
+                endif
+                ! Computes the new velocity 
                 call Compute_Turbine_RotVel(Turbine(i))  
             else if(Turbine(i)%Is_NRELController) then
-            	!if(nrank==0) write(*,*) 'Entering the control-based operation for turbine', Turbine(i)%name 
-            	! First do control	 
-            	call operate_controller(Turbine(i)%Controller,ctime,Turbine(i)%NBlades,Turbine(i)%angularVel) 
-            	Turbine(i)%deltaOmega=(Turbine(i)%Torque-Turbine(i)%Controller%GearBoxRatio*Turbine(i)%Controller%GenTrq)/(Turbine(i)%IRotor+Turbine(i)%Controller%GearBoxRatio**2.*Turbine(i)%Controller%IGenerator)*DeltaT
+                !if(nrank==0) write(*,*) 'Entering the control-based operation for turbine', Turbine(i)%name 
+                ! First do control	 
+                call operate_controller(Turbine(i)%Controller,ctime,Turbine(i)%NBlades,Turbine(i)%angularVel) 
+                Turbine(i)%deltaOmega=(Turbine(i)%Torque-Turbine(i)%Controller%GearBoxRatio*Turbine(i)%Controller%GenTrq)/(Turbine(i)%IRotor+Turbine(i)%Controller%GearBoxRatio**2.*Turbine(i)%Controller%IGenerator)*DeltaT
             
-		Turbine(i)%angularVel=Turbine(i)%angularVel+Turbine(i)%deltaOmega
-            	! Then Calculate the angular velocity and compute the DeltaTheta  and AzimAngle              
-            	theta=Turbine(i)%angularVel*DeltaT
-            	Turbine(i)%AzimAngle=Turbine(i)%AzimAngle+theta
+                Turbine(i)%angularVel=Turbine(i)%angularVel+Turbine(i)%deltaOmega
+                ! Then Calculate the angular velocity and compute the DeltaTheta  and AzimAngle              
+                theta=Turbine(i)%angularVel*DeltaT
+                Turbine(i)%AzimAngle=Turbine(i)%AzimAngle+theta
             
-		call rotate_turbine(Turbine(i),Turbine(i)%RotN,theta)
-            	call Compute_Turbine_RotVel(Turbine(i))  
+                call rotate_turbine(Turbine(i),Turbine(i)%RotN,theta)
+                call Compute_Turbine_RotVel(Turbine(i))  
             
-            	! Then do picth control (if not zero)
-            	!do j=1,Turbine(i)%NBlades
-            	!call pitch_actuator_line(Turbine(i)%Blade(j),Turbine(i)%Controller%PitCom(j))
-            	!enddo
+                ! Then do picth control (if not zero)
+                !do j=1,Turbine(i)%NBlades
+                !call pitch_actuator_line(Turbine(i)%Blade(j),Turbine(i)%Controller%PitCom(j))
+                !enddo
             
-            	! After you do both variable speed and pitch control update the status of the controller
-            	Turbine(i)%Controller%IStatus=Turbine(i)%Controller%IStatus+1
+                ! After you do both variable speed and pitch control update the status of the controller
+                Turbine(i)%Controller%IStatus=Turbine(i)%Controller%IStatus+1
             
             else if(Turbine(i)%Is_ListController) then
             

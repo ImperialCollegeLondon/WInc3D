@@ -16,7 +16,7 @@ type TurbineType
     integer :: ID
     integer :: NBlades
     real(mytype), dimension(3) :: RotN, origin ! Rotational vectors in the normal and perpendicular directions
-    real(mytype) :: hub_tilt_angle, blade_cone_angle, yaw_angle 
+    real(mytype) :: shaft_tilt_angle, blade_cone_angle, yaw_angle 
     real(mytype) :: Rmax ! Reference radius, velocity, viscosity
     real(mytype) :: IRotor ! Inertia of the Rotor
     real(mytype) :: A ! Rotor area
@@ -85,7 +85,7 @@ contains
 
     call read_actuatorline_geometry(turbine%blade_geom_file,turbine%Rmax,SVec,rR,ctoR,pitch,thick,Nstations)
     ! Make sure that the spanwise is [0 0 1]
-    Svec = [0.0,0.0,1.0]
+    Svec = [sin(turbine%blade_cone_angle/180.0*pi),0.0d0,cos(turbine%blade_cone_angle/180.0*pi)]
     ! Make sure that origin is [0,0,0] : we set everything to origin 0 and then translate the
     ! turbine to the actual origin(this is for simplicity)
     theta=2*pi/turbine%Nblades
@@ -154,7 +154,7 @@ contains
     ! Yaw
     call rotate_turbine(turbine,(/0.0d0,1.0d0,0.0d0/),turbine%yaw_angle*pi/180.0d0)
     ! Tilt
-    call rotate_turbine(turbine,(/0.0d0,0.0d0,1.0d0/),turbine%hub_tilt_angle*pi/180.0d0)
+    call rotate_turbine(turbine,(/0.0d0,0.0d0,1.0d0/),-turbine%shaft_tilt_angle*pi/180.0d0)
 
     !=========================================================
     ! Create a Tower

@@ -1,10 +1,9 @@
 &TurbineSpecs
-
 !=========================================
 ! Aerodynamic parameters                 |
 !=========================================
 name='NREL-5MW'                              ! Name of the turbine
-origin=200,93,250                            ! Actual location of the turbine 
+origin=252,93,252                            ! Actual location of the turbine 
 numblades=3                                  ! number of blades
 blade_geom='NRELResources/NRELBlade_N19.al'  ! Blade geometry
 numfoil=8                                    ! Number of airfoil from which the interpolation is done
@@ -19,14 +18,14 @@ TypeFlag=1                                   ! Type of the turbine (1: Horizonta
 AddedMassFlag=0                              ! Enable the added mass model (for the blades only)       
 DynStallFlag=0                               ! Enable the dynamic stall model (for the blade only)
 dynstall_param_file=' '                      ! .dyn file with all the dynamic stall parameters
-EndEffectsFlag=1                             ! EndEffects Flag (0: no end effects, 1: Glauer, 2: Shen et. al 2005)
+EndEffectsFlag=2                             ! EndEffects Flag (0: no end effects, 1: Glauer, 2: Shen et. al 2005)
 TipCorr=1                                    ! Tip correction model (0: no, 1: yes)
 RootCorr=0                                   ! Root correction model (0: no, 1: yes)
 ShenC1=0.125                                 ! Shen et. al 2005 moedl coefficient (c1)   
 ShenC2=21                                    ! Shen et. al 2005 model coefficient (c2)
 yaw_angle=0.                                 ! Rotor Yaw angle (in degrees)
-hub_tilt_angle=0.                            ! Hub tilt angle (in degrees)
-
+shaft_tilt_angle=5.                            ! Hub tilt angle (in degrees)
+blade_cone_angle=2.5                         ! Blade cone angle (in degrees)
 !=========================================
 ! Aeroelasticity parameters              |
 !=========================================
@@ -34,7 +33,6 @@ AeroElastFlag=1                              ! 0: off, 1: on
 AeroElastModel=1                             ! 0: Static, 1: Dynamic
 AeroElastInputFile='example.fem.h5'          ! .fem.h5 file with all the beam parameters 
 AeroElastSolverFile='example.txt'            ! .txt file with all the solver parameters
-
 !=========================================
 ! Operation/Controller parameters        |
 !=========================================
@@ -55,5 +53,4 @@ Kgen=0.05576                                 ! Region 2 genrator ceofficient
 RatedPower=5000000. ! Rated Power in Watts   ! Rated power
 MaximumTorque=29863                          ! Maximum Torque in N*m 
 list_controller_file='V80Controller.cont'    ! In case of OperFlag=3 then read from list_controller file
-
 /End
