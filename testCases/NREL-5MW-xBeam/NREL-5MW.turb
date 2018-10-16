@@ -3,12 +3,12 @@
 ! Aerodynamic parameters                 |
 !=========================================
 name='NREL-5MW'                              ! Name of the turbine
-origin=252,93,252                            ! Actual location of the turbine 
+origin=252,91.5,252                            ! Actual location of the turbine 
 numblades=3                                  ! number of blades
-blade_geom='NRELResources/NRELBlade_N19.al'  ! Blade geometry
+blade_geom='NRELResources/NRELBlade_N71.al'  ! Blade geometry
 numfoil=8                                    ! Number of airfoil from which the interpolation is done
 afname='NRELResources/Airfoils/cylinder1.air','NRELResources/Airfoils/cylinder2.air','NRELResources/Airfoils/DU21_A17.air','NRELResources/Airfoils/DU25_A17.air','NRELResources/Airfoils/DU30_A17.air','NRELResources/Airfoils/DU35_A17.air','NRELResources/Airfoils/DU40_A17.air','NRELResources/Airfoils/NACA64_A17.air'
-towerFlag=1                                  ! Tower model ? (0: no, 1: yes)
+towerFlag=0                                  ! Tower model ? (0: no, 1: yes)
 towerOffset=10.                              ! Offset of the tower from the axis of rotation
 tower_geom='NRELResources/NRELTower.al'      ! Tower geometry file
 tower_drag=1.0                               ! Tower induced drag
@@ -37,7 +37,7 @@ AeroElastSolverFile='example.txt'            ! .txt file with all the solver par
 ! Operation/Controller parameters        |
 !=========================================
 OperFlag=1                                   ! Operation flag (1: Prescribed velocity, 2: five region active controller, 3: reading from a list)  
-uref=8.0                                     ! Reference velocity
+uref=11.4                                     ! Reference velocity
 tsr=7.55                                     ! Tip speed ratio (for prescribed velocity)       
 RotFlag=2                                    ! 1: Clockwise, 2: Counterclockwise
 BladeInertia=7.45e6                          ! Blade inertia

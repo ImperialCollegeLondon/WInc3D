@@ -156,6 +156,12 @@ contains
     ! Tilt
     call rotate_turbine(turbine,(/0.0d0,0.0d0,1.0d0/),-turbine%shaft_tilt_angle*pi/180.0d0)
 
+    ! Set the rotational axis
+    call QuatRot(turbine%RotN(1),turbine%RotN(2),turbine%RotN(3),turbine%yaw_angle*pi/180.0d0,0.0d0,1.0d0,0.0d0,0.0d0,0.0d0,0.d0,&
+            turbine%RotN(1),turbine%RotN(2),turbine%RotN(3))
+    call QuatRot(turbine%RotN(1),turbine%RotN(2),turbine%RotN(3),turbine%shaft_tilt_angle*pi/180.0d0,0.0d0,0.0d0,1.0d0,0.0d0,0.0d0,0.d0,&
+            turbine%RotN(1),turbine%RotN(2),turbine%RotN(3))
+     
     !=========================================================
     ! Create a Tower
     !=========================================================
