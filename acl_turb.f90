@@ -74,15 +74,6 @@ contains
     real(mytype) :: SVec(3), theta
     integer :: Nstations, iblade, Istation,ielem
 
-    if (nrank==0) then        
-    write(6,*) 'Turbine Name : ', adjustl(turbine%name)
-    write(6,*) '-------------------------------------------------------------------'
-    write(6,*) 'Number of Blades : ', turbine%Nblades
-    write(6,*) 'Origin           : ', turbine%origin
-    write(6,*) 'Axis of Rotation : ', turbine%RotN
-    write(6,*) '-------------------------------------------------------------------'
-    end if
-
     call read_actuatorline_geometry(turbine%blade_geom_file,turbine%Rmax,SVec,rR,ctoR,pitch,thick,Nstations)
     ! Make sure that the spanwise is [0 0 1]
     Svec = [sin(turbine%blade_cone_angle/180.0*pi),0.0d0,cos(turbine%blade_cone_angle/180.0*pi)]
@@ -123,7 +114,7 @@ contains
     call rotate_actuatorline(turbine%blade(iblade),turbine%blade(iblade)%COR,turbine%RotN,(iblade-1)*theta)   
  
     call make_actuatorline_geometry(turbine%blade(iblade))
-
+    
     ! Populate element Airfoils 
     call populate_blade_airfoils(turbine%blade(iblade)%NElem,turbine%Blade(iblade)%NAirfoilData,turbine%Blade(iblade)%EAirfoil,turbine%Blade(iblade)%AirfoilData,turbine%Blade(iblade)%ETtoC)
     
@@ -140,27 +131,32 @@ contains
     call dystl_init_lb(turbine%blade(iblade)%ELBstall(ielem),turbine%blade(iblade)%DynStallFile)
     endif
     end do 
-    
-
     end do
    
-    if(turbine%do_aeroelasticity) then
-    call actuator_line_beam_model_init(turbine%beam,turbine%blade,turbine%NBlades)
-    endif
-
-    ! Apply Initial Yaw and Tilt for the turbine
-
     ! Rotate the turbine according to the tilt and yaw angle
     ! Yaw
     call rotate_turbine(turbine,(/0.0d0,1.0d0,0.0d0/),turbine%yaw_angle*pi/180.0d0)
     ! Tilt
     call rotate_turbine(turbine,(/0.0d0,0.0d0,1.0d0/),-turbine%shaft_tilt_angle*pi/180.0d0)
-
+    
     ! Set the rotational axis
     call QuatRot(turbine%RotN(1),turbine%RotN(2),turbine%RotN(3),turbine%yaw_angle*pi/180.0d0,0.0d0,1.0d0,0.0d0,0.0d0,0.0d0,0.d0,&
             turbine%RotN(1),turbine%RotN(2),turbine%RotN(3))
     call QuatRot(turbine%RotN(1),turbine%RotN(2),turbine%RotN(3),turbine%shaft_tilt_angle*pi/180.0d0,0.0d0,0.0d0,1.0d0,0.0d0,0.0d0,0.d0,&
             turbine%RotN(1),turbine%RotN(2),turbine%RotN(3))
+    
+    if(turbine%do_aeroelasticity) then
+    call actuator_line_beam_model_init(turbine%beam,turbine%blade,turbine%NBlades)
+    endif
+    
+    if (nrank==0) then        
+    write(6,*) 'Turbine Name : ', adjustl(turbine%name)
+    write(6,*) '-------------------------------------------------------------------'
+    write(6,*) 'Number of Blades : ', turbine%Nblades
+    write(6,*) 'Origin           : ', turbine%origin
+    write(6,*) 'Axis of Rotation : ', turbine%RotN
+    write(6,*) '-------------------------------------------------------------------'
+    end if
      
     !=========================================================
     ! Create a Tower

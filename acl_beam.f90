@@ -55,12 +55,8 @@ contains
         enddo
     enddo 
     beam%StructuralTwist=0.
-    !if(nrank==0) then 
-    !do k=1,beam%Nnodes
-    !print *, beam%pos(k,2)
-    !enddo
-    !endif
-    
+   
+     
     return
     end subroutine actuator_line_beam_model_init
 

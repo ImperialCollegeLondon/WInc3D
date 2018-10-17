@@ -30,9 +30,21 @@ blade2=al('Blade2')
 blade2.read('ALM/'+str(itime)+'/NREL-5MW_blade_2.load')
 blade3=al('Blade3')
 blade3.read('ALM/'+str(itime)+'/NREL-5MW_blade_3.load')
-assert(blade1.Nelem==blade2.Nelem)
-assert(blade2.Nelem==blade3.Nelem)
+assert(blade1.NElem==blade2.NElem)
+assert(blade2.NElem==blade3.NElem)
 
+
+A=np.genfromtxt('beam_pos.dat')
+X=A[:,0]
+Y=A[:,1]
+Z=A[:,2]
+fig=plt.figure(1)
+ax=fig.gca(projection='3d')
+ax.plot(X,Y,Z,'ok')
+plt.axis('equal')
+plt.show()
+
+exit()
 
 CP=[]
 Power=[]
