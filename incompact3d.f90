@@ -300,7 +300,7 @@ do itime=ifirst,ilast
            ta3,tc3,di3,pp3,nxmsize,nymsize,nzmsize,ph2,ph3)
 
       !X PENCILS
-      call corgp(ux1,ux2,uy1,uz1,px1,py1,pz1) 
+      call corgp(ux1,ux2,uy1,uy2,uz1,uz2,px1,py1,pz1) 
       
      !does not matter -->output=DIV U=0 (in dv3)
       call divergence (ux1,uy1,uz1,ep1,ta1,tb1,tc1,di1,td1,te1,tf1,&

@@ -1025,7 +1025,7 @@ end subroutine channel
 
 !*******************************************************************************
 !
-subroutine abl (ux) ! Routine to force the abl in periodic boundary conditions
+subroutine damping_zone(ux,uy,uz) ! Damping zone for ABL 
 !
 !*******************************************************************************
 
@@ -1037,17 +1037,22 @@ USE MPI
 
 implicit none
 
-real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: ux
+real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: ux,uy,uz
 integer :: j,i,k,code
-real(mytype) :: can,ut3,ut,ut4, delta
+real(mytype) :: lidveldiff,ut3,ut,ut4, delta
 
 ut3=0.
 do k=1,ysize(3)
 do i=1,ysize(1)
    ut=0.
    do j=1,ny-1
-      if (istret.ne.0) ut=ut+(yp(j+1)-yp(j))*(ux(i,j+1,k)-0.5*(ux(i,j+1,k)-ux(i,j,k)))
-      if (istret.eq.0) ut=ut+(yly/(ny-1))*(ux(i,j+1,k)-0.5*(ux(i,j+1,k)-ux(i,j,k)))
+        if (istret.eq.0.and.(j-1)*dy.ge.zi) then
+        ut=ut+(yly/(ny-1))*(ux(i,j+1,k)-0.5*(ux(i,j+1,k)-ux(i,j,k)))
+        elseif (istret.ne.0.and.yp(j).ge.zi) then
+        ut=ut+(yp(j+1)-yp(j))*(ux(i,j+1,k)-0.5*(ux(i,j+1,k)-ux(i,j,k)))
+        else
+        ut=ut
+        endif
    enddo
    !ut=ut/yly
    ut3=ut3+ut
@@ -1059,21 +1064,30 @@ call MPI_ALLREDUCE(ut3,ut4,1,real_type,MPI_SUM,MPI_COMM_WORLD,code)
 ut4=ut4/nproc
 
 !can=-(ustar/k_roughness*((1+delta)*(log((1+delta)/z_zero)-1)-delta*(log(delta/z_zero)-1))-ut4) ! constant flow rate for a logarithmic profile
-can=-(ustar/k_roughness*yly*(log(yly/z_zero)-1)-ut4) ! constant flow rate for a logarithmic profile
+!can=-(ustar/k_roughness*yly*(log(yly/z_zero)-1)-ut4) ! constant flow rate for a logarithmic profile
+lidveldiff=ut4-ustar/k_roughness*(log(yly/z_zero)) ! constant flow rate for a logarithmic profile
 !can=can*yly*2./(yp(ny)+yp(ny-1)-yp(2)-yp(1))
 
-if (nrank==0) print *,nrank,'UT',ut4,can
+if (nrank==0) print *,nrank,'UT',ut4, lidveldiff
 
 do k=1,ysize(3)
 do i=1,ysize(1)
 do j=1,ny
-   ux(i,j,k)=-can/yly+ux(i,j,k) ! Force the periodic boundary conditions by assigning the velocity equally ?
+    if (istret.eq.0.and.(j-1)*dy.ge.zi) then
+        ux(i,j,k)=ux(i,j,k)+lidveldiff !
+        uy(i,j,k)=0.
+        uz(i,j,k)=0.
+    elseif (istret.ne.0.and.yp(j).ge.zi) then
+        ux(i,j,k)=ux(i,j,k)+lidveldiff ! 
+        uy(i,j,k)=0.
+        uz(i,j,k)=0.
+    endif
 enddo
 enddo
 enddo
 
 return
-end subroutine abl
+end subroutine damping_zone
 
 
 !*****************************************************************

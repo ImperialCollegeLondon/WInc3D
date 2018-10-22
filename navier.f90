@@ -171,7 +171,7 @@ end subroutine intt
 
 !********************************************************************
 !
-subroutine corgp (ux,gx,uy,uz,px,py,pz)
+subroutine corgp (ux,gx,uy,gy,uz,gz,px,py,pz)
 ! 
 !********************************************************************
 
@@ -185,7 +185,7 @@ implicit none
 
 integer :: ijk,nxyz
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux,uy,uz,px,py,pz
-real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: gx
+real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: gx,gy,gz
 
 nxyz=xsize(1)*xsize(2)*xsize(3)
 
@@ -201,10 +201,14 @@ if (itype==2) then !channel flow
    call transpose_y_to_x(gx,ux)
 endif
 
-if (itype==8) then !channel flow
+if (itype==8) then ! atmospheric boundary layer with a damping zone flow
    call transpose_x_to_y(ux,gx)
-   call abl(gx)
+   call transpose_x_to_y(uy,gy)
+   call transpose_x_to_y(uz,gz)
+   call damping_zone(gx,gy,gz)
    call transpose_y_to_x(gx,ux)
+   call transpose_y_to_x(gy,uy)
+   call transpose_y_to_x(gz,uz)
 endif
 
 return
