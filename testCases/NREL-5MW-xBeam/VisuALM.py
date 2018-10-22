@@ -34,25 +34,14 @@ assert(blade1.NElem==blade2.NElem)
 assert(blade2.NElem==blade3.NElem)
 
 
-A=np.genfromtxt('beam_pos.dat')
-X=A[:,0]
-Y=A[:,1]
-Z=A[:,2]
-fig=plt.figure(1)
-ax=fig.gca(projection='3d')
-ax.plot(X,Y,Z,'ok')
-plt.axis('equal')
-plt.show()
-
-exit()
 
 CP=[]
 Power=[]
 CT=[]
 Thrust=[]
-FN_ave=np.zeros((blade1.Nelem))
-FT_ave=np.zeros((blade1.Nelem))
-for itime in range(14):
+FN_ave=np.zeros((blade1.NElem))
+FT_ave=np.zeros((blade1.NElem))
+for itime in range(22):
     A=np.genfromtxt('ALM/'+str(itime)+'/NREL-5MW.perf',skip_header=1,delimiter=',')
     Power.append(A[-1])
     CP.append(A[6])

@@ -55,7 +55,8 @@ contains
         enddo
     enddo 
     beam%StructuralTwist=0.
-   
+    ! Positions are correct !
+     
      
     return
     end subroutine actuator_line_beam_model_init
