@@ -55,7 +55,7 @@ NAMELIST/FileParam/ilit,isave,imodulo,ioutflow,iinflow,OutflowOnsetIndex, NTimeS
 NAMELIST/IBMParam/ivirt,ibmshape,cex,cey,cez,ra
 NAMELIST/ALMParam/ialm,NTurbines,TurbinesPath,NActuatorlines,ActuatorlinesPath,eps_factor
 NAMELIST/StatParam/spinup_time,nstat,nvisu,iprobe,Probelistfile,nsampling, y_loc_pencil, z_loc_pencil 
-NAMELIST/ABLParam/iabl,z_zero,k_roughness,PsiM,ustar,IPressureGradient,Ug,zi,epsilon_pert 
+NAMELIST/ABLParam/iabl,z_zero,k_roughness,PsiM,ustar,IPressureGradient,Ug,dBL,epsilon_pert 
 #ifdef DOUBLE_PREC 
 pi=dacos(-1.d0) 
 #else
@@ -104,7 +104,8 @@ cnu=0.44
 dynhypvisc=0
 nSmag=1.0
 SmagWallDamp=0
-zi=500
+dBL=500 !delta of the boundary layer
+UG=[10.0d0,0.0d0,0.0d0]
 IPressureGradient=0
 ioutflow=0
 

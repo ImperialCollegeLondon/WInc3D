@@ -492,7 +492,7 @@ if (ibuoyancy==1) then
 endif
 
 if (IPressureGradient==1) then
-    ta1(:,:,:)=ta1(:,:,:)+ustar**2./zi ! Apply a pressure gradient in the stream-wise direction
+    ta1(:,:,:)=ta1(:,:,:)+ustar**2./dBL ! Apply a pressure gradient in the stream-wise direction
 endif
 
 ! Coriolis Effects

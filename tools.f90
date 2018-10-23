@@ -1030,58 +1030,30 @@ subroutine damping_zone(ux,uy,uz) ! Damping zone for ABL
 !*******************************************************************************
 
 USE decomp_2d
-USE decomp_2d_poisson
 USE param
 USE var
-USE MPI
 
 implicit none
 
 real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: ux,uy,uz
 integer :: j,i,k,code
-real(mytype) :: lidveldiff,ut3,ut,ut4, delta
-
-ut3=0.
-do k=1,ysize(3)
-do i=1,ysize(1)
-   ut=0.
-   do j=1,ny-1
-        if (istret.eq.0.and.(j-1)*dy.ge.zi) then
-        ut=ut+(yly/(ny-1))*(ux(i,j+1,k)-0.5*(ux(i,j+1,k)-ux(i,j,k)))
-        elseif (istret.ne.0.and.yp(j).ge.zi) then
-        ut=ut+(yp(j+1)-yp(j))*(ux(i,j+1,k)-0.5*(ux(i,j+1,k)-ux(i,j,k)))
-        else
-        ut=ut
-        endif
-   enddo
-   !ut=ut/yly
-   ut3=ut3+ut
-enddo
-enddo
-ut3=ut3/ysize(1)/ysize(3)
-
-call MPI_ALLREDUCE(ut3,ut4,1,real_type,MPI_SUM,MPI_COMM_WORLD,code)
-ut4=ut4/nproc
-
-!can=-(ustar/k_roughness*((1+delta)*(log((1+delta)/z_zero)-1)-delta*(log(delta/z_zero)-1))-ut4) ! constant flow rate for a logarithmic profile
-!can=-(ustar/k_roughness*yly*(log(yly/z_zero)-1)-ut4) ! constant flow rate for a logarithmic profile
-lidveldiff=ut4-ustar/k_roughness*(log(yly/z_zero)) ! constant flow rate for a logarithmic profile
-!can=can*yly*2./(yp(ny)+yp(ny-1)-yp(2)-yp(1))
-
-if (nrank==0) print *,nrank,'UT',ut4, lidveldiff
+real(mytype) :: y, lambda
 
 do k=1,ysize(3)
 do i=1,ysize(1)
 do j=1,ny
-    if (istret.eq.0.and.(j-1)*dy.ge.zi) then
-        ux(i,j,k)=ux(i,j,k)+lidveldiff !
-        uy(i,j,k)=0.
-        uz(i,j,k)=0.
-    elseif (istret.ne.0.and.yp(j).ge.zi) then
-        ux(i,j,k)=ux(i,j,k)+lidveldiff ! 
-        uy(i,j,k)=0.
-        uz(i,j,k)=0.
-    endif
+if (istret.eq.0) y=(j-1)*dy
+if (istret.ne.0) y=yp(j)
+if (y>1.1*dBL) then
+    lambda=1.0
+elseif (y>0.9*dBL.and.y<1.1*dBL) then
+    lambda=0.5*(1-cos(pi*(y-0.9*dBL)/(0.2*dBL)))
+else 
+    lambda=0.
+endif
+ux(i,j,k)=lambda*UG(1)+(1-lambda)*ux(i,j,k)
+uy(i,j,k)=lambda*UG(2)+(1-lambda)*uy(i,j,k)
+uz(i,j,k)=lambda*UG(3)+(1-lambda)*uz(i,j,k)
 enddo
 enddo
 enddo
