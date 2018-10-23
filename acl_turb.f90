@@ -4,6 +4,7 @@ module actuator_line_turbine
     use actuator_line_model_utils
     use Airfoils
     use actuator_line_element
+    use actuator_line_beam_model
     use actuator_line_controller
 
     implicit none
@@ -15,7 +16,7 @@ type TurbineType
     integer :: ID
     integer :: NBlades
     real(mytype), dimension(3) :: RotN, origin ! Rotational vectors in the normal and perpendicular directions
-    real(mytype) :: hub_tilt_angle, blade_cone_angle, yaw_angle 
+    real(mytype) :: shaft_tilt_angle, blade_cone_angle, yaw_angle 
     real(mytype) :: Rmax ! Reference radius, velocity, viscosity
     real(mytype) :: IRotor ! Inertia of the Rotor
     real(mytype) :: A ! Rotor area
@@ -27,6 +28,11 @@ type TurbineType
     logical :: Is_NRELController = .false. ! Active control-based rotational velocity using the NREL controller
     logical :: Is_ListController = .false. ! Active control-based rotational velocity using the rotor averaged velocity and
                                            ! interpolation lists
+
+    logical :: do_aeroelasticity=.true.    ! Flag
+    type(BeamType) :: beam         ! Elastic structural beam model for the blades
+    
+
     integer :: ContEntries
     real(mytype), allocatable :: ContWindSpeed(:), ContOmega(:), ContPitch(:)
 
@@ -69,18 +75,9 @@ contains
     real(mytype) :: SVec(3), theta
     integer :: Nstations, iblade, Istation,ielem
 
-    if (nrank==0) then        
-    write(6,*) 'Turbine Name : ', adjustl(turbine%name)
-    write(6,*) '-------------------------------------------------------------------'
-    write(6,*) 'Number of Blades : ', turbine%Nblades
-    write(6,*) 'Origin           : ', turbine%origin
-    write(6,*) 'Axis of Rotation : ', turbine%RotN
-    write(6,*) '-------------------------------------------------------------------'
-    end if
-
     call read_actuatorline_geometry(turbine%blade_geom_file,turbine%Rmax,SVec,rR,ctoR,pitch,thick,Nstations)
     ! Make sure that the spanwise is [0 0 1]
-    Svec = [0.0,0.0,1.0]
+    Svec = [sin(turbine%blade_cone_angle/180.0*pi),0.0d0,cos(turbine%blade_cone_angle/180.0*pi)]
     ! Make sure that origin is [0,0,0] : we set everything to origin 0 and then translate the
     ! turbine to the actual origin(this is for simplicity)
     theta=2*pi/turbine%Nblades
@@ -118,7 +115,7 @@ contains
     call rotate_actuatorline(turbine%blade(iblade),turbine%blade(iblade)%COR,turbine%RotN,(iblade-1)*theta)   
  
     call make_actuatorline_geometry(turbine%blade(iblade))
-
+    
     ! Populate element Airfoils 
     call populate_blade_airfoils(turbine%blade(iblade)%NElem,turbine%Blade(iblade)%NAirfoilData,turbine%Blade(iblade)%EAirfoil,turbine%Blade(iblade)%AirfoilData,turbine%Blade(iblade)%ETtoC)
     
@@ -135,18 +132,33 @@ contains
     call dystl_init_lb(turbine%blade(iblade)%ELBstall(ielem),turbine%blade(iblade)%DynStallFile)
     endif
     end do 
-    
-
     end do
-    
-    ! Apply Initial Yaw and Tilt for the turbine
-
+   
     ! Rotate the turbine according to the tilt and yaw angle
     ! Yaw
     call rotate_turbine(turbine,(/0.0d0,1.0d0,0.0d0/),turbine%yaw_angle*pi/180.0d0)
     ! Tilt
-    call rotate_turbine(turbine,(/0.0d0,0.0d0,1.0d0/),turbine%hub_tilt_angle*pi/180.0d0)
-
+    call rotate_turbine(turbine,(/0.0d0,0.0d0,1.0d0/),-turbine%shaft_tilt_angle*pi/180.0d0)
+    
+    ! Set the rotational axis
+    call QuatRot(turbine%RotN(1),turbine%RotN(2),turbine%RotN(3),turbine%yaw_angle*pi/180.0d0,0.0d0,1.0d0,0.0d0,0.0d0,0.0d0,0.d0,&
+            turbine%RotN(1),turbine%RotN(2),turbine%RotN(3))
+    call QuatRot(turbine%RotN(1),turbine%RotN(2),turbine%RotN(3),turbine%shaft_tilt_angle*pi/180.0d0,0.0d0,0.0d0,1.0d0,0.0d0,0.0d0,0.d0,&
+            turbine%RotN(1),turbine%RotN(2),turbine%RotN(3))
+    
+    if(turbine%do_aeroelasticity) then
+    call actuator_line_beam_model_init(turbine%beam,turbine%blade,turbine%NBlades)
+    endif
+    
+    if (nrank==0) then        
+    write(6,*) 'Turbine Name : ', adjustl(turbine%name)
+    write(6,*) '-------------------------------------------------------------------'
+    write(6,*) 'Number of Blades : ', turbine%Nblades
+    write(6,*) 'Origin           : ', turbine%origin
+    write(6,*) 'Axis of Rotation : ', turbine%RotN
+    write(6,*) '-------------------------------------------------------------------'
+    end if
+     
     !=========================================================
     ! Create a Tower
     !=========================================================

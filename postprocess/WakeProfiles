@@ -10,7 +10,8 @@ import f90nml
 import matplotlib
 matplotlib.use('Agg')
 import numpy as np
-from scipy import interpolate
+from scipy import interpolate, integrate
+import scipy as scp
 from pylab import *
 import matplotlib.pyplot as plt
 # ====================================
@@ -160,7 +161,32 @@ for i in range(len(xD)):
                 upwpU2=float(upwp[ixloc[0],iwake,kxloc[0]]/Uinf**2)
                 vpwpU2=float(vpwp[ixloc[0],iwake,kxloc[0]]/Uinf**2)
                 fout.write(str(rR)+' '+str(uUDef)+' '+str(uU) +' '+str(TKEU2)+' '+str(upupU2)+' '+str(upvpU2)+' '+str(upwpU2)+' '+str(vpwpU2)+'\n')
-            
+
+
+print('Computing wake deficit')
+ud=np.zeros((nx))
+Int=np.zeros((nz))
+zInt=np.zeros((nz))
+#Integrand 
+
+for i in range(nx):
+    for k in range(nz):
+        if(np.abs(zlz/2.-z[ixloc,jxloc,k])<R):
+            Int[k]=uav[i,jxloc,k]*np.abs(zlz/2.-z[i,jxloc,k])
+        else:
+            Int[k]=0.
+        zInt[k]=z[i,jxloc,k]
+    ud[i]=integrate.simps(Int,zInt)/(R**2.*Uinf)
+
+with open(output+OutputName+'_deficit.dat','w') as fout:
+    fout.write('# x/D 1-u/Uref \n')
+    for iwake in range(nx):
+        xD=float(-xTurb[0]/D+x[iwake,jxloc[0],kxloc[0]]/D)
+        uUDef=float(1.-ud[iwake]/Uinf)
+        fout.write(str(xD)+' '+str(uUDef)+'\n')
+
+
+
 if args.plot:   
 
     plt.rc('text',usetex=True)

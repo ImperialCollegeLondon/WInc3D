@@ -502,16 +502,14 @@ if (itype.eq.8) then
       bxx1(j,k)=UG(1)!ustar/k_roughness*log((y+z_zero)/z_zero)
       bxy1(j,k)=UG(2)!0.
       bxz1(j,k)=UG(3)!0.
-      !if (ibuoyancy==1) then
-      !! Add a cap inversion (THis is hard coded but oh boy it helps MASSIVELY !!!)
-      !if (y>700..and.y<800) then
-      !phi1(i,j,k)=TempRef+(y-700)*8./100.
-      !elseif (y>=800) then
-      !phi1(i,j,k)=TempRef+8+0.003*(y-800.)
-      !else
-      !phi1(i,j,k)=TempRef
-      !endif
-      !endif
+      if (ibuoyancy==1) then
+      ! Add a capping inversion
+      if (y>dBL) then
+      phi1(i,j,k)=TempRef+(y-zi)*8./100.
+      else
+      phi1(i,j,k)=TempRef
+      endif
+      endif
    enddo
    enddo
    enddo

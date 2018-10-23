@@ -46,8 +46,11 @@ W=np.zeros((M,N,4));
 Nhalf=int(N/2)
 print(Nhalf)
 H=1000;
+<<<<<<< HEAD
 ustar=0.45;
 Uinf=ustar/0.4*np.log(1000/0.1)
+=======
+>>>>>>> aeroelasticity
 for i in range(M):
     probeNumber=T+i+1
     A=np.genfromtxt(path+'probe'+str(probeNumber).zfill(6),skip_header=1,delimiter=',')
@@ -73,6 +76,12 @@ Uave4=np.average(U[:,Nhalf,3])
 #plt.legend()
 #plt.show()
 
+<<<<<<< HEAD
+=======
+print(Uave1,Uave2,Uave3,Uave4)
+#Compute integral time scales
+print("hi there")
+>>>>>>> aeroelasticity
 R1=0;R2=0;R3=0;R4=0
 
 sigma1sq=np.sum((U[:,Nhalf,0]-Uave1)**2.)/(M-1)
