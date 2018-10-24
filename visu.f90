@@ -202,13 +202,13 @@ write(filename, 1000) itime/imodulo
 call decomp_2d_write_one(1,uvisu,filename,2)    
 endif
 
-if (jles.gt.1)  then
-uvisu=0.
-call fine_to_coarseV(1,nut1,uvisu)
-1001 format('nuSGS',I4.4)
-write(filename, 1001) itime/imodulo
-call decomp_2d_write_one(1,uvisu,filename,2)    
-endif
+!if (jles.gt.1)  then
+!uvisu=0.
+!call fine_to_coarseV(1,nut1,uvisu)
+!1001 format('nuSGS',I4.4)
+!write(filename, 1001) itime/imodulo
+!call decomp_2d_write_one(1,uvisu,filename,2)    
+!endif
 
 if(jles.eq.1.and.dynhypvisc.eq.1) then
 uvisu=0.
