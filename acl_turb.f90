@@ -627,8 +627,6 @@ use MPI
             MPI_COMM_WORLD,ierr)
  
         WSRotorAve=sqrt(Ux**2.0+Uy**2.0+Uz**2.0)
-        if(nrank==0) print *, WSRotorAve
-        turbine%Uref=WSRotorAve
         return
     
     end subroutine Compute_Rotor_upstream_Velocity

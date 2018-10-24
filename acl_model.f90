@@ -496,6 +496,7 @@ contains
            else if (Turbine(i)%Is_upstreamvel_controlled) then
                 call compute_rotor_upstream_velocity(Turbine(i),WSRotorAve)
                 Turbine(i)%Uref=WSRotorAve
+                Turbine(i)%angularVel=Turbine(i)%Uref*Turbine(i)%TSR/Turbine(i)%Rmax
                 theta=Turbine(i)%angularVel*DeltaT
                 Turbine(i)%AzimAngle=Turbine(i)%AzimAngle+theta
                 call rotate_turbine(Turbine(i),Turbine(i)%RotN,theta)
