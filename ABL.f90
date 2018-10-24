@@ -102,8 +102,8 @@ real(mytype) :: CD ! drag coefficient
     tauwallxy(i,k)=-(k_roughness/log(delta/z_zero))**2.0*ux_HAve*S_HAve
     tauwallzy(i,k)=-(k_roughness/log(delta/z_zero))**2.0*uz_HAve*S_HAve
     else !Parlage model 
-    tauwallxy(i,k)=-(k_roughness/log(delta/z_zero))**2.0*ux12*S12
-    tauwallzy(i,k)=-(k_roughness/log(delta/z_zero))**2.0*uz12*S12
+    tauwallxy(i,k)=-(k_roughness/log(delta/z_zero))**2.0*ux12*S_HAve
+    tauwallzy(i,k)=-(k_roughness/log(delta/z_zero))**2.0*uz12*S_HAve
     endif
     if(jLES.ge.2) then ! Apply third order one-sided finite difference 
     wallfluxx(i,1,k) = -(-1./2.*(-2.*nut1(i,3,k)*sxy1(i,3,k))+&

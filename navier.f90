@@ -499,9 +499,9 @@ if (itype.eq.8) then
       if (istret.eq.0) y=(j+xstart(2)-1-1)*dy
       if (istret.ne.0) y=yp(j)
    do i=1,xsize(1)
-      bxx1(j,k)=UG(1)!ustar/k_roughness*log((y+z_zero)/z_zero)
-      bxy1(j,k)=UG(2)!0.
-      bxz1(j,k)=UG(3)!0.
+      bxx1(j,k)=ustar/k_roughness*log((y+z_zero)/z_zero)
+      bxy1(j,k)=0.
+      bxz1(j,k)=0.
       if (ibuoyancy==1) then
       ! Add a capping inversion
       if (y>dBL) then
