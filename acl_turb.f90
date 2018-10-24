@@ -549,25 +549,25 @@ use var
 use MPI
 
         implicit none
-        type(TurbineType),intent(in) ::turbine
+        type(TurbineType),intent(inout) ::turbine
         real(mytype),intent(out) :: WSRotorAve
         integer :: iblade, ielem,Nelem
         real(mytype) :: Rupstream(3)
         real(mytype) :: Ux,Uy,Uz,Phixy,Phixz
         real(mytype) :: Ux_part, Uy_part, Uz_part, Phixy_part, Phixz_part
-	real(mytype) :: ymin,ymax,zmin,zmax
-	real(mytype) :: xmesh,ymesh,zmesh
-	real(mytype) :: dist, min_dist 
-	integer :: min_i,min_j,min_k
-	integer :: i,j,k,ierr
+	    real(mytype) :: ymin,ymax,zmin,zmax
+	    real(mytype) :: xmesh,ymesh,zmesh
+	    real(mytype) :: dist, min_dist 
+        integer :: min_i,min_j,min_k
+        integer :: i,j,k,ierr
 	
-	Ux=0.
+        Ux=0.
         Uy=0.
         Uz=0.
        
         ! Velocity is calculated at a probe point (closest) at one D upstream the turbine
 
-	Rupstream(:)=turbine%origin(:)-abs(turbine%rotN(:))*2.*turbine%Rmax       
+        Rupstream(:)=turbine%origin(:)-abs(turbine%rotN(:))*2.*turbine%Rmax       
         if (istret.eq.0) then 
         ymin=(xstart(2)-1)*dy-dy/2.0 ! Add -dy/2.0 overlap
         ymax=(xend(2)-1)*dy+dy/2.0   ! Add +dy/2.0 overlap
@@ -625,11 +625,10 @@ use MPI
             MPI_COMM_WORLD,ierr)
         call MPI_ALLREDUCE(Uz_part,Uz,1,MPI_REAL8,MPI_SUM, &
             MPI_COMM_WORLD,ierr)
-
-	
-         
+ 
         WSRotorAve=sqrt(Ux**2.0+Uy**2.0+Uz**2.0)
-
+        if(nrank==0) print *, WSRotorAve
+        turbine%Uref=WSRotorAve
         return
     
     end subroutine Compute_Rotor_upstream_Velocity
