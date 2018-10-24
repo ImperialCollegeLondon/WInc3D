@@ -483,8 +483,8 @@ do k=1,xsize(3)
 do j=1,xsize(2)
 do i=1,xsize(1)
 
-if (istret.eq.0) y=(j-1)*dy
-if (istret.ne.0) y=yp(j)
+if (istret.eq.0) y=(j+xstart(2)-1-1)*dy
+if (istret.ne.0) y=yp(j+xstart(2)-1)
 
 if (y>1.1*dBL) then
     lambda=1.0
@@ -493,9 +493,9 @@ elseif (y>0.9*dBL.and.y<1.1*dBL) then
 else 
     lambda=0.
 endif
-ta1(i,j,k)=ta1(i,j,k)-5*ustar/yly*lambda*(ux1(i,j,k)-UG(1))
-tb1(i,j,k)=tb1(i,j,k)-5*ustar/yly*lambda*(uy1(i,j,k)-UG(2))
-tc1(i,j,k)=tc1(i,j,k)-5*ustar/yly*lambda*(uz1(i,j,k)-UG(3))
+ta1(i,j,k)=ta1(i,j,k)-5.*ustar/yly*lambda*(ux1(i,j,k)-UG(1))
+tb1(i,j,k)=tb1(i,j,k)-5.*ustar/yly*lambda*(uy1(i,j,k)-UG(2))
+tc1(i,j,k)=tc1(i,j,k)-5.*ustar/yly*lambda*(uz1(i,j,k)-UG(3))
 enddo
 enddo
 enddo
