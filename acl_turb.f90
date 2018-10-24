@@ -4,7 +4,7 @@ module actuator_line_turbine
     use actuator_line_model_utils
     use Airfoils
     use actuator_line_element
-    use actuator_line_beam_model
+    !use actuator_line_beam_model
     use actuator_line_controller
 
     implicit none
@@ -30,7 +30,7 @@ type TurbineType
                                            ! interpolation lists
 
     logical :: do_aeroelasticity=.true.    ! Flag
-    type(BeamType) :: beam         ! Elastic structural beam model for the blades
+    !type(BeamType) :: beam         ! Elastic structural beam model for the blades
     
 
     integer :: ContEntries
@@ -146,9 +146,9 @@ contains
     call QuatRot(turbine%RotN(1),turbine%RotN(2),turbine%RotN(3),turbine%shaft_tilt_angle*pi/180.0d0,0.0d0,0.0d0,1.0d0,0.0d0,0.0d0,0.d0,&
             turbine%RotN(1),turbine%RotN(2),turbine%RotN(3))
     
-    if(turbine%do_aeroelasticity) then
-    call actuator_line_beam_model_init(turbine%beam,turbine%blade,turbine%NBlades)
-    endif
+    !if(turbine%do_aeroelasticity) then
+    !call actuator_line_beam_model_init(turbine%beam,turbine%blade,turbine%NBlades)
+    !endif
     
     if (nrank==0) then        
     write(6,*) 'Turbine Name : ', adjustl(turbine%name)

@@ -201,15 +201,15 @@ if (itype==2) then !channel flow
    call transpose_y_to_x(gx,ux)
 endif
 
-if (itype==8) then ! atmospheric boundary layer with a damping zone flow
-   call transpose_x_to_y(ux,gx)
-   call transpose_x_to_y(uy,gy)
-   call transpose_x_to_y(uz,gz)
-   call damping_zone(gx,gy,gz)
-   call transpose_y_to_x(gx,ux)
-   call transpose_y_to_x(gy,uy)
-   call transpose_y_to_x(gz,uz)
-endif
+!if (itype==8) then ! atmospheric boundary layer with a damping zone flow
+!   call transpose_x_to_y(ux,gx)
+!   call transpose_x_to_y(uy,gy)
+!   call transpose_x_to_y(uz,gz)
+!   call damping_zone(gx,gy,gz)
+!   call transpose_y_to_x(gx,ux)
+!   call transpose_y_to_x(gy,uy)
+!   call transpose_y_to_x(gz,uz)
+!endif
 
 return
 end subroutine corgp
@@ -505,7 +505,7 @@ if (itype.eq.8) then
       if (ibuoyancy==1) then
       ! Add a capping inversion
       if (y>dBL) then
-      phi1(i,j,k)=TempRef+(y-zi)*8./100.
+      phi1(i,j,k)=TempRef+(y-dBL)*8./100.
       else
       phi1(i,j,k)=TempRef
       endif

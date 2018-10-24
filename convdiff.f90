@@ -85,7 +85,7 @@ logical, dimension(2) :: dummy_periods
 
 integer :: ijk,nvect1,nvect2,nvect3,i,j,k,code
 character(len=20) :: filename
-real(mytype) :: x,y,z
+real(mytype) :: x,y,z, lambda
 
 ta1=0.;tb1=0.;tc1=0.
 
@@ -478,12 +478,36 @@ if (icoriolis==1) then
     tc1(:,:,:)=tc1(:,:,:)-CoriolisFreq*ux1(:,:,:) ! This is not the vertical direction but the lateral horizontal
 endif
 
+if (idampingzone==1) then
+do k=1,xsize(3)
+do j=1,xsize(2)
+do i=1,xsize(1)
+
+if (istret.eq.0) y=(j-1)*dy
+if (istret.ne.0) y=yp(j)
+
+if (y>1.1*dBL) then
+    lambda=1.0
+elseif (y>0.9*dBL.and.y<1.1*dBL) then
+    lambda=0.5*(1-cos(pi*(y-0.9*dBL)/(0.2*dBL)))
+else 
+    lambda=0.
+endif
+ta1(i,j,k)=ta1(i,j,k)-5*ustar/yly*lambda*(ux1(i,j,k)-UG(1))
+tb1(i,j,k)=tb1(i,j,k)-5*ustar/yly*lambda*(uy1(i,j,k)-UG(2))
+tc1(i,j,k)=tc1(i,j,k)-5*ustar/yly*lambda*(uz1(i,j,k)-UG(3))
+enddo
+enddo
+enddo
+endif
+
 ! Turbine forcing through an Actuator Line Model
 if (ialm==1) then
     ta1(:,:,:)=ta1(:,:,:)+FTx(:,:,:)
     tb1(:,:,:)=tb1(:,:,:)+FTy(:,:,:)
     tc1(:,:,:)=tc1(:,:,:)+FTz(:,:,:)
 endif
+
 
 end subroutine convdiff
 

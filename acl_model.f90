@@ -440,9 +440,9 @@ contains
                 ! Computes the rigid-body velocity
                 call rotate_turbine(Turbine(i),Turbine(i)%RotN,theta)
                 ! Computes the displacement on the turbine  
-                if(turbine(i)%do_aeroelasticity) then
-                    call actuator_line_beam_solve(turbine(i)%beam,DeltaT)
-                endif
+                !if(turbine(i)%do_aeroelasticity) then
+                !    call actuator_line_beam_solve(turbine(i)%beam,DeltaT)
+                !endif
                 ! Computes the new velocity 
                 call Compute_Turbine_RotVel(Turbine(i))  
             else if(Turbine(i)%Is_NRELController) then
