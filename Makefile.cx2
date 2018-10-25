@@ -4,7 +4,7 @@
 #SET COMPILER AND VERSION BASED ON WHETHER a HPC or local PC is used
 OPTIONS = -DDOUBLE_PREC
 
-FFT = fftw3
+FFT =generic
 FFTW3_INCLUDE = -I/apps/fftw/3.3.4/include 
 FFTW3_LIB = -L/apps/fftw/3.3.4/lib -lfftw3 -lfftw3f
 
