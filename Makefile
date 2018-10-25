@@ -57,7 +57,7 @@ incompact3d : $(OBJ)
 	$(FC) -O3 -o $@ $(OBJ) $(LIBFFT) $(LIBS) $(DEBUG) 
 
 %.o : %.f90
-	$(FC) $(OPTFC) $(OPTIONS) $(INC) $(xbeam_INCLUDE) $(DEBUG) -c $<
+	$(FC) $(OPTFC) $(OPTIONS) $(INC) $(DEBUG) -c $<
 	
 visualize :
 	mpif90 paraview_incompact3d.f90 -o visualize 

@@ -227,12 +227,13 @@ contains
     
     subroutine Compute_Momentum_Source_Term_pointwise
 
-        use decomp_2d, only: mytype, nproc, xstart, xend, xsize
+        use decomp_2d, only: mytype, nproc, xstart, xend, xsize, update_halo
         use MPI
         use param, only: dx,dy,dz,eps_factor, xnu,yp,istret
         use var, only: ux1, uy1, uz1, FTx, FTy, FTz
         
         implicit none
+        real(mytype), allocatable, dimension(:,:,:) :: ux1_halo, uy1_halo, uz1_halo       
         real(mytype) :: xmesh, ymesh,zmesh
         real(mytype) :: dist, epsilon, Kernel
         real(mytype) :: min_dist, ymax,ymin,zmin,zmax 
@@ -244,7 +245,7 @@ contains
 
         ! First we need to compute the locations
         call get_locations 
-        
+       
         ! Zero the velocities
         Su(:)=0.0
         Sv(:)=0.0
@@ -266,8 +267,11 @@ contains
         !write(*,*) 'Rank=', nrank, 'X index Limits=', xstart(1), xend(1), 'X lims=', (xstart(1)-1)*dx, (xend(1)-1)*dx
         !write(*,*) 'Rank=', nrank, 'Y index Limits=', xstart(2), xend(2), 'Y lims=', ymin, ymax 
         !write(*,*) 'Rank=', nrank, 'Z index Limits=', xstart(3), xend(3), 'Z lims=', zmin, zmax
-      
-        !$OMP PARALLEL DO
+        !call update_halo(ux1,ux1_halo,1)
+        !call update_halo(uy1,uy1_halo,1)
+        !call update_halo(uz1,uz1_halo,1)
+        
+	!$OMP PARALLEL DO
         do isource=1,NSource
         
         min_dist=1e6
@@ -321,12 +325,12 @@ contains
                 j_upper=min_j+1
             else if(Sy(isource)>(min_j-1)*dy.and.Sy(isource)>(xend(2)-1)*dy) then
                 j_lower=min_j
-                j_upper=min_j 
+                j_upper=min_j!+1 ! THis is in the Halo domain 
             else if(Sy(isource)<(min_j-1)*dy.and.Sy(isource)>(xstart(2)-1)*dy) then
                 j_lower=min_j-1
                 j_upper=min_j
             else if(Sy(isource)<(min_j-1)*dy.and.Sy(isource)<(xstart(2)-1)*dy) then
-                j_lower=min_j
+                j_lower=min_j!-1 ! THis is in the halo domain
                 j_upper=min_j 
             else if (Sy(isource)==(min_j-1)*dy) then
                 j_lower=min_j
@@ -351,12 +355,12 @@ contains
                 k_upper=min_k+1
             elseif(Sz(isource)>(min_k-1)*dz.and.Sz(isource)>(xend(3)-1)*dz) then
                 k_lower=min_k
-                k_upper=min_k
+                k_upper=min_k!+1 ! This in the halo doamin
             else if(Sz(isource)<(min_k-1)*dz.and.Sz(isource)>(xstart(3)-1)*dz) then
                 k_lower=min_k-1
                 k_upper=min_k
             else if(Sz(isource)<(min_k-1)*dz.and.Sz(isource)<(xstart(3)-1)*dz) then
-                k_lower=min_k
+                k_lower=min_k!-1 ! This is in the halo domain
                 k_upper=min_k
             else if (Sz(isource)==(min_k-1)*dz) then
                 k_lower=min_k
@@ -387,7 +391,9 @@ contains
             !    write(*,*) 'Problem with the trilinear interpolation'; 
             !    stop
             !endif
-            ! Apply interpolation kernels from 8 neighboring nodes    
+            ! Apply interpolation kernels from 8 neighboring nodes 
+
+		 
             Su_part(isource)= trilinear_interpolation(x0,y0,z0, &
                                                   x1,y1,z1, &
                                                   x,y,z, &
