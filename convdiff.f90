@@ -517,6 +517,12 @@ call filter(0.48)
 call filx(td1,ta1,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0) 
 call filx(te1,tb1,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0) 
 call filx(tf1,tc1,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0) 
+if(nrank==0) then 
+    do=i=1,xsize(1)
+    print*, td1(i), ta1(i)
+    enddo
+endif
+stop
 call transpose_x_to_y(td1,ta2)
 call transpose_x_to_y(te1,tb2)
 call transpose_x_to_y(tf1,tc2)

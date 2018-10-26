@@ -248,28 +248,120 @@ return
 
 end subroutine wall_shear_stress
 
+subroutine tripping(tb,ta) !TRIPPING SUBROUTINE FOR ATMOSPHERIC BOUNDARY LAYERS
 
-subroutine numerical_tripping(Ftrip,x0,lx,ly,time,ts)
-    
-   USE decomp_2d
-   USE param
+USE param
+USE var
+USE decomp_2d
+USE MPI
 
 implicit none
-real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: Ftrip 
-real(mytype),intent(in) :: x0, lx,ly,time,ts
-real(mytype) :: x,y,z
+
 integer :: i,j,k
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: tb, ta
+integer :: seed0, ii, code
+real(mytype) :: z_pos, randx, p_tr, b_tr, x_pos, y_pos, A_tr
 
-do k=1,xsize(3)
-    z=(k+xstart(3)-1-1)*dz
-do j=1,xsize(2)
-   if (istret.eq.0) y=(j+xstart(2)-1-1)*dy
-   if (istret.ne.0) y=yp(j)
-do i=1,xsize(1)
-    x=(i+xstart(1)-1-1)*dx
-    Ftrip=exp(((x-x0)/lx)**2.-(y/ly)**2.)
-enddo
-enddo
-enddo
+!Done in X-Pencils
+seed0=randomseed !Seed for random number
+!A_tr=A_trip*min(1.0,0.8+real(itime)/200.0)
+!xs_tr=4.0/2.853
+!ys_tr=2.0/2.853
+!ts_tr=4.0/2.853
+!x0_tr=40.0/2.853
+A_tr = 0.1*dt
 
-end subroutine numerical_tripping
+if ((itime.eq.ifirst).and.(nrank.eq.0)) then
+call random_seed(SIZE=ii)
+call random_seed(PUT=seed0*(/ (1, i = 1, ii) /))
+
+!DEBUG:
+!call random_number(randx)
+!call MPI_BCAST(randx,1,real_type,0,MPI_COMM_WORLD,code)
+!write(*,*) 'RANDOM:', nrank, randx, ii
+!First random generation of h_nxt
+
+
+  do j=1,z_modes
+
+    call random_number(randx)
+    h_coeff(j)=1.0*(randx-0.5)
+  enddo
+    h_coeff=h_coeff/sqrt(DBLE(z_modes)) 
+endif
+
+!Initialization h_nxt  (always bounded by xsize(3)^2 operations)
+if (itime.eq.ifirst) then
+  call MPI_BCAST(h_coeff,z_modes,real_type,0,MPI_COMM_WORLD,code)
+  nxt_itr=0
+  do k=1,xsize(3)
+     h_nxt(k)=0.0
+     z_pos=-zlz/2.0+(xstart(3)+(k-1)-1)*dz
+   do j=1,z_modes
+      h_nxt(k)= h_nxt(k)+h_coeff(j)*sin(2.0*pi*j*z_pos/zlz)
+   enddo
+  enddo
+end if
+
+
+
+!Time-loop
+ i=int(t/ts_tr)
+    if (i.ge.nxt_itr) then  !Nxt_itr is a global variable
+        nxt_itr=i+1
+        
+        !First random generation of h
+        h_i(:)=h_nxt(:)
+        if (nrank .eq. 0) then
+         do j=1,z_modes
+            call random_number(randx)
+            h_coeff(j)=1.0*(randx-0.5)
+         enddo
+        h_coeff=h_coeff/sqrt(DBLE(z_modes)) !Non-dimensionalization
+        end if
+        
+        call MPI_BCAST(h_coeff,z_modes,real_type,0,MPI_COMM_WORLD,code)
+          
+        
+        !Initialization h_nxt  (always bounded by z_steps^2 operations)
+       do k=1,xsize(3)
+          h_nxt(k)=0.0
+          z_pos=-zlz/2.0+(xstart(3)+(k-1)-1)*dz
+          do j=1,z_modes
+            h_nxt(k)= h_nxt(k)+h_coeff(j)*sin(2.0*pi*j*z_pos/zlz)
+          enddo
+        enddo
+     endif
+
+
+ !Time coefficient
+  p_tr=t/ts_tr-i
+  b_tr=3.0*p_tr**2-2.0*p_tr**3
+  
+  !Creation of tripping velocity
+  do i=1,xsize(1)
+    x_pos=(xstart(1)+(i-1)-1)*dx
+    do j=1,xsize(2) 
+      !y_pos=(xstart(2)+(j-1)-1)*dy   
+      y_pos=yp(xstart(2)+(j-1))
+      do k=1,xsize(3)
+       !g(z)*EXP_F(X,Y)
+       ta(i,j,k)=((1.0-b_tr)*h_i(k)+b_tr*h_nxt(k))
+       !ta(i,j,k)=A_tr*exp(-((x_pos-x0_tr)/xs_tr)**2-(y_pos/ys_tr)**2)*ta(i,j,k)
+       ta(i,j,k)=A_tr*exp(-((x_pos-x0_tr)/xs_tr)**2-((y_pos-0.5)/ys_tr)**2)*ta(i,j,k)  
+       tb(i,j,k)=tb(i,j,k)+ta(i,j,k)
+       
+       z_pos=-zlz/2.0+(xstart(3)+(k-1)-1)*dz
+      ! if ((((x_pos-x0_tr)**2).le.9.0e-3).and.(y_pos.le.0.0001).and.((z_pos).le.0.03))then
+      !       open(442,file='tripping.dat',form='formatted',position='APPEND')
+      !  write(442,*) t,ta(i,j,k)
+      !  close(442)   
+      ! end if
+
+      enddo
+    enddo
+  enddo
+    
+return   
+end subroutine tripping
+

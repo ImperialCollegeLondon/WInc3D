@@ -1074,9 +1074,9 @@ subroutine compute_sgs(ux1, uy1, uz1, ep1, sxx1, syy1, szz1, sxy1, sxz1, syz1, n
   call transpose_y_to_z(te2, te3)
   call transpose_y_to_z(tf2, tf3)
    
-  call derz(gxz3,tc3,di3,sz,ffz,fsz,fwz,zsize(1),zsize(2),zsize(3),1)
-  call derz(gyz3,te3,di3,sz,ffz,fsz,fwz,zsize(1),zsize(2),zsize(3),1)
-  call derz(gzz3,tf3,di3,sz,ffz,fsz,fwz,zsize(1),zsize(2),zsize(3),1)
+  call derz(gxz3,tc3,di3,sz,ffz,fsz,fwz,zsize(1),zsize(2),zsize(3),0)
+  call derz(gyz3,te3,di3,sz,ffz,fsz,fwz,zsize(1),zsize(2),zsize(3),0)
+  call derz(gzz3,tf3,di3,sz,ffz,fsz,fwz,zsize(1),zsize(2),zsize(3),0)
    
   sgsx3(:,:,:)=sgsx3(:,:,:)-gxz3(:,:,:)
   sgsy3(:,:,:)=sgsy3(:,:,:)-gyz3(:,:,:)
@@ -1089,12 +1089,6 @@ subroutine compute_sgs(ux1, uy1, uz1, ep1, sxx1, syy1, szz1, sxy1, sxz1, syz1, n
   call transpose_y_to_x(sgsy2, sgsy1)
   call transpose_y_to_x(sgsz2, sgsz1)
       
-  !call filter(0.48)
-  !call filx(ta1,sgsx1,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0) 
-  !call filx(tb1,sgsy1,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0) 
-  !call filx(tc1,sgsz1,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0) 
-  sgsx1=ta1;sgsy1=tb1;sgsz1=tc1
-
   return 
 end subroutine compute_sgs
 

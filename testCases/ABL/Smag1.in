@@ -54,8 +54,8 @@
     FSGS=1.0              ! Filter Size/ Grid Size for explicit LES only
     smagcst=0.14           ! Smagorinsky constant
     SmagWallDamp=1        ! Smagorinsky damping function for ABL if 1
-    iwallmodel=1
-    nSmag=1               ! Smagorinksy damping coefficient 
+    iwallmodel=2
+    nSmag=3               ! Smagorinksy damping coefficient 
     walecst=0.5           ! WALES Model Coefficient
     rxxnu=3          	  ! Implicit LES factor 
     cnu=0.44              !
@@ -74,7 +74,7 @@
     ilit=0                ! Read initial flow field ?
     isave=500     	  ! Frequency for writing backup file  
     imodulo=10         ! Frequency for visualization 
-    ioutflow=1		  ! Outflow flag
+    ioutflow=0		  ! Outflow flag
     NTimeSteps=2000
 /End
 
@@ -91,7 +91,7 @@
 ialm=0                    ! ialm (0: turbine model off, 1: turbine model on)
 eps_factor=2.2            ! Smoothing parameter factor
 Nturbines=1               ! Number of Turbines
-TurbinesPath='V80.turb'
+TurbinesPath='NREL-5MW.turb'
 /End
 
 &ABLParam
@@ -101,6 +101,7 @@ k_roughness=0.4          ! von Karman constant (usually taken to be equal to 0.4
 ustar=0.45              ! friction velocity
 PsiM=0                    ! stability correction for momentum (taken equal to 0 for neutral stability)
 IPressureGradient=1	      ! if 1 then apply a pressure gradient
+idampingzone=0
 dBL=770.
 UG=16,0,0
 /End

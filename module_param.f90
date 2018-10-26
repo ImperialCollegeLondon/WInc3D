@@ -124,6 +124,11 @@ integer :: nxfin,nyfin,nzfin
 real(mytype), save, allocatable, dimension(:,:) :: bxx1,bxy1,bxz1,bxxn,bxyn,bxzn,bxo,byo,bzo
 real(mytype), save, allocatable, dimension(:,:) :: byx1,byy1,byz1,byxn,byyn,byzn
 real(mytype), save, allocatable, dimension(:,:) :: bzx1,bzy1,bzz1,bzxn,bzyn,bzzn
+  
+!module tripping
+integer ::  z_modes, nxt_itr, itrip
+real(mytype) :: x0_tr, xs_tr, ys_tr, ts_tr, zs_param, zs_tr, randomseed, A_trip
+real(mytype), allocatable, dimension(:) :: h_coeff, h_nxt,h_i
 
 !module enspec
 real(mytype), dimension(3,7000) :: uensp,vensp,wensp
