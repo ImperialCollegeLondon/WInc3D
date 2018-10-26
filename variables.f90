@@ -128,6 +128,7 @@ contains
     call alloc_x(nut1);call alloc_x(ucx1);call alloc_x(ucy1);call alloc_x(ucz1);
     call alloc_x(shrt_coeff);
     allocate(sx(xsize(2),xsize(3)),vx(xsize(2),xsize(3)))
+    allocate(fisx(xsize(2),xsize(3)),fivx(xsize(2),xsize(3)))
     !inflow/ouflow 2d arrays
     allocate(bxx1(xsize(2),xsize(3)),bxy1(xsize(2),xsize(3)))
     allocate(bxz1(xsize(2),xsize(3)),bxxn(xsize(2),xsize(3)))
@@ -231,6 +232,7 @@ contains
     call alloc_y(tg2);call alloc_y(th2);call alloc_y(ti2)
     call alloc_y(tj2);call alloc_y(di2);call alloc_y(phi2)
     allocate(sy(ysize(1),ysize(3)),vy(ysize(1),ysize(3)))
+    allocate(fisy(ysize(1),ysize(3)),fivy(ysize(1),ysize(3)))
 !Z PENCILS
     call alloc_z(ux3);call alloc_z(uy3);call alloc_z(uz3)
     call alloc_z(ta3);call alloc_z(tb3);call alloc_z(tc3)
@@ -238,6 +240,7 @@ contains
     call alloc_z(tg3);call alloc_z(th3);call alloc_z(ti3)
     call alloc_z(di3);call alloc_z(phi3);
     allocate(sz(zsize(1),zsize(2)),vz(zsize(1),zsize(2)))
+    allocate(fisz(zsize(1),zsize(2)),fivz(zsize(1),zsize(2)))
 
  ! if all periodic
  !   allocate (pp3(ph%zst(1):ph%zen(1),ph%zst(2):ph%zen(2),ph%zst(3):ph%zen(3)))

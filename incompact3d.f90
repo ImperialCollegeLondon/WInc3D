@@ -289,7 +289,7 @@ do itime=ifirst,ilast
           !call PotentialTemperature(ux1,uy1,uz1,phi1,phis1,phiss1,di1,tg1,th1,ti1,td1,&
           !    uy2,uz2,phi2,di2,ta2,tb2,tc2,td2,uz3,phi3,di3,ta3,tb3,ep1)  
       endif
-      
+       
       !X PENCILS
       call intt (ux1,uy1,uz1,gx1,gy1,gz1,hx1,hy1,hz1,ta1,tb1,tc1) 
       
