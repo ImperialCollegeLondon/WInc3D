@@ -108,7 +108,7 @@ dBL=500 !delta of the boundary layer
 UG=[10.0d0,0.0d0,0.0d0]
 IPressureGradient=0
 ioutflow=0
-idampingzone=1
+idampingzone=0
 
 ! READ PARAMETERS FROM FILE
 open(10,file=InputFN) 

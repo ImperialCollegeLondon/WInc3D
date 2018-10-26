@@ -81,18 +81,25 @@ character,dimension(100) :: turbinesPath*80, ActuatorlinesPath*80 ! Assign a max
 real(mytype), dimension(5) :: adt,bdt,cdt,gdt
 
 !module filter
-real(mytype), save, allocatable, dimension(:) :: fifx,ficx,fibx,fiffx,fibbx,fiz1x,fiz2x
-real(mytype), save, allocatable, dimension(:,:) ::filax,filaxp
-real(mytype), save, allocatable, dimension(:) :: fifxp,ficxp,fibxp,fiffxp,fibbxp
-real(mytype), save, allocatable, dimension(:) :: fify,ficy,fiby,fiffy,fibby,fiz1y,fiz2y
-real(mytype), save, allocatable, dimension(:,:) ::filay,filayp
-real(mytype), save, allocatable, dimension(:) :: fifyp,ficyp,fibyp,fiffyp,fibbyp
-real(mytype), save, allocatable, dimension(:) :: fifz,ficz,fibz,fiffz,fibbz,fiz1z,fiz2z
-real(mytype), save, allocatable, dimension(:,:) ::filaz,filazp
-real(mytype), save, allocatable, dimension(:) :: fifzp,ficzp,fibzp,fiffzp,fibbzp
-integer, dimension(200) :: idata
-real(mytype), save, allocatable, dimension(:) :: Cs
-
+!real(mytype), save, allocatable, dimension(:) :: fifx,ficx,fibx,fiffx,fibbx,fiz1x,fiz2x
+!real(mytype), save, allocatable, dimension(:,:) ::filax,filaxp
+!real(mytype), save, allocatable, dimension(:) :: fifxp,ficxp,fibxp,fiffxp,fibbxp
+!real(mytype), save, allocatable, dimension(:) :: fify,ficy,fiby,fiffy,fibby,fiz1y,fiz2y
+!real(mytype), save, allocatable, dimension(:,:) ::filay,filayp
+!real(mytype), save, allocatable, dimension(:) :: fifyp,ficyp,fibyp,fiffyp,fibbyp
+!real(mytype), save, allocatable, dimension(:) :: fifz,ficz,fibz,fiffz,fibbz,fiz1z,fiz2z
+!real(mytype), save, allocatable, dimension(:,:) ::filaz,filazp
+!real(mytype), save, allocatable, dimension(:) :: fifzp,ficzp,fibzp,fiffzp,fibbzp
+real(mytype),dimension(200) :: idata
+real(mytype), save, allocatable, dimension(:) :: fiffx, fifcx, fifbx, fisfx, fiscx, fisbx,fifsx,fifwx,fissx,fiswx
+real(mytype), save, allocatable, dimension(:) :: fiffxp,fifsxp,fifwxp,fisfxp,fissxp,fiswxp
+real(mytype), save, allocatable, dimension(:) :: fiffy, fifcy, fifby, fisfy, fiscy, fisby,fifsy,fifwy,fissy,fiswy
+real(mytype), save, allocatable, dimension(:) :: fiffyp,fifsyp,fifwyp,fisfyp,fissyp,fiswyp
+real(mytype), save, allocatable, dimension(:) :: fiffz, fifcz, fifbz, fisfz, fiscz, fisbz,fifsz,fifwz,fissz,fiswz
+real(mytype), save, allocatable, dimension(:) :: fiffzp,fifszp,fifwzp,fisfzp,fisszp,fiswzp
+real(mytype), save, allocatable, dimension(:,:) :: fisx,fivx
+real(mytype), save, allocatable, dimension(:,:) :: fisy,fivy
+real(mytype), save, allocatable, dimension(:,:) :: fisz,fivz
 
 !module derivative
 real(mytype), save, allocatable, dimension(:) :: ffx,fcx,fbx,sfx,scx,sbx,fsx,fwx,ssx,swx
@@ -241,20 +248,25 @@ contains
 
     ! Allocate filter and interpolation parameters 
     ! X-direction
-    allocate(fifx(nx),ficx(nx),fibx(nx),fiffx(nx),fibbx(nx),fiz1x(nx),fiz2x(nx))
-    allocate(filax(nx,2),filaxp(nx,2))
-    allocate(fifxp(nx),ficxp(nx),fibxp(nx),fiffxp(nx),fibbxp(nx))
-    ! Y-direction 
-    allocate(fify(ny),ficy(ny),fiby(ny),fiffy(ny),fibby(ny),fiz1y(ny),fiz2y(ny))
-    allocate(filay(ny,2),filayp(ny,2))
-    allocate(fifyp(ny),ficyp(ny),fibyp(ny),fiffyp(ny),fibbyp(ny))
-    ! Z-direction  
-    allocate(fifz(nz),ficz(nz),fibz(nz),fiffz(nz),fibbz(nz),fiz1z(nz),fiz2z(nz))
-    allocate(filaz(nz,2),filazp(nz,2))
-    allocate(fifzp(nz),ficzp(nz),fibzp(nz),fiffzp(nz),fibbzp(nz))
-    
-    allocate(Cs(p_col*p_row))
+    !allocate(fifx(nx),ficx(nx),fibx(nx),fiffx(nx),fibbx(nx),fiz1x(nx),fiz2x(nx))
+    !allocate(filax(nx,2),filaxp(nx,2))
+    !allocate(fifxp(nx),ficxp(nx),fibxp(nx),fiffxp(nx),fibbxp(nx))
+    !! Y-direction 
+    !allocate(fify(ny),ficy(ny),fiby(ny),fiffy(ny),fibby(ny),fiz1y(ny),fiz2y(ny))
+    !allocate(filay(ny,2),filayp(ny,2))
+    !allocate(fifyp(ny),ficyp(ny),fibyp(ny),fiffyp(ny),fibbyp(ny))
+    !! Z-direction  
+    !allocate(fifz(nz),ficz(nz),fibz(nz),fiffz(nz),fibbz(nz),fiz1z(nz),fiz2z(nz))
+    !allocate(filaz(nz,2),filazp(nz,2))
+    !allocate(fifzp(nz),ficzp(nz),fibzp(nz),fiffzp(nz),fibbzp(nz))
+    allocate(fiffx(nx), fifcx(nx), fifbx(nx), fisfx(nx), fiscx(nx), fisbx(nx),fifsx(nx),fifwx(nx),fissx(nx),fiswx(nx))
+    allocate(fiffxp(nx),fifsxp(nx),fifwxp(nx),fisfxp(nx),fissxp(nx),fiswxp(nx))
+    allocate(fiffy(ny), fifcy(ny), fifby(ny), fisfy(ny), fiscy(ny), fisby(ny),fifsy(ny),fifwy(ny),fissy(ny),fiswy(ny))
+    allocate(fiffyp(ny),fifsyp(ny),fifwyp(ny),fisfyp(ny),fissyp(ny),fiswyp(ny))
+    allocate(fiffz(nz), fifcz(nz), fifbz(nz), fisfz(nz), fiscz(nz), fisbz(nz),fifsz(nz),fifwz(nz),fissz(nz),fiswz(nz))
+    allocate(fiffzp(nz),fifszp(nz),fifwzp(nz),fisfzp(nz),fisszp(nz),fiswzp(nz))
 
+    
     ! Allocate the derivatives coefficients
     allocate(ffx(nx),fcx(nx),fbx(nx),sfx(nx),scx(nx),sbx(nx),fsx(nx),fwx(nx),ssx(nx),swx(nx))
     allocate(ffxp(nx),fsxp(nx),fwxp(nx),sfxp(nx),ssxp(nx),swxp(nx))
@@ -484,21 +496,21 @@ use decomp_2d, only : mytype
   !
 end module derivZ
 
-
+! Describes the parameters for the discrete filters in X-Pencil
 module parfiX
-
 use decomp_2d, only : mytype
-
-  real(mytype) :: fia1x, fib1x, fic1x, fid1x, fie1x, fia2x, fib2x, fic2x, fid2x
-  real(mytype) :: fie2x, fia3x, fib3x, fic3x, fid3x, fie3x, fianx, fibnx, ficnx, fidnx
-  real(mytype) :: fienx, fiamx, fibmx, ficmx, fidmx, fiemx, fiapx, fibpx, ficpx, fidpx
-  real(mytype) :: fiepx, fiaix, fibix, ficix, fidix, fialx, fibex, fih1x, fih2x, fih3x,fih4x 
+  real(mytype) :: fia1x, fib1x, fic1x, fid1x, fie1x, fif1x, fig1x ! Coefficients for filter at boundary point 1  
+  real(mytype) :: fia2x, fib2x, fic2x, fid2x, fie2x, fif2x, fig2x ! Coefficients for filter at boundary point 2
+  real(mytype) :: fia3x, fib3x, fic3x, fid3x, fie3x, fif3x, fig3x ! Coefficients for filter at boundary point 3
+  real(mytype) :: fialx, fiaix, fibix, ficix, fidix 		  ! Coefficient for filter at interior points 
+  real(mytype) :: fianx, fibnx, ficnx, fidnx, fienx, fifnx, fignx ! Coefficient for filter at boundary point n 
+  real(mytype) :: fiamx, fibmx, ficmx, fidmx, fiemx, fifmx, figmx ! Coefficient for filter at boundary point m=n-1 
+  real(mytype) :: fiapx, fibpx, ficpx, fidpx, fiepx, fifpx, figpx ! Coefficient for filter at boundary point p=n-2
 end module parfiX
 !
 module parfiY
 
 use decomp_2d, only : mytype
-
   real(mytype) :: fia1y, fib1y, fic1y, fid1y, fie1y, fia2y, fib2y, fic2y, fid2y
   real(mytype) :: fie2y, fia3y, fib3y, fic3y, fid3y, fie3y, fiany, fibny, ficny, fidny
   real(mytype) :: fieny, fiamy, fibmy, ficmy, fidmy, fiemy, fiapy, fibpy, ficpy, fidpy
