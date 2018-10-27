@@ -270,6 +270,10 @@ do itime=ifirst,ilast
           write(6,*) '' 
       endif
    endif
+   if (jLES.ge.2) then
+   call filter(0.480d0)
+   call apply_spatial_filter(ux1,uy1,uz1)
+   endif         
    
    do itr=1,iadvance_time
 
@@ -277,7 +281,8 @@ do itime=ifirst,ilast
          call inflow (ux1,uy1,uz1,phi1) !X PENCILS
          call outflow(ux1,uy1,uz1,phi1) !X PENCILS 
       endif 
-        
+
+      ! Do filtering here
       call convdiff(ux1,uy1,uz1,phi1,uxt,uyt,uzt,ep1,divdiva,curldiva,ta1,tb1,tc1,&
       td1,te1,tf1,tg1,th1,ti1,di1,ux2,uy2,uz2,phi2,ta2,tb2,tc2,td2,te2,tf2,tg2,th2,&
       ti2,tj2,di2,ux3,uy3,uz3,phi3,ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3,nut1,shrt_coeff, &
@@ -292,7 +297,7 @@ do itime=ifirst,ilast
        
       !X PENCILS
       call intt (ux1,uy1,uz1,gx1,gy1,gz1,hx1,hy1,hz1,ta1,tb1,tc1) 
-     
+ 
       call pre_correc(ux1,uy1,uz1,phi1,ta1)
       
       if (ivirt==1) then !solid body old school

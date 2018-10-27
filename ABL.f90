@@ -27,7 +27,7 @@ real(mytype) :: nutprimes
 real(mytype) :: nuLESBar, scriptR, xi1, nuLES, TS1, TR1
 real(mytype) :: CD ! drag coefficient
 
-call filter(0.)
+call filter(0.0d0)
 ! Filter the velocity with twice the grid scale according to Bou-zeid et al 2005
 call filx(uxf,ux,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0) 
 call filx(uzf,uz,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0) 
