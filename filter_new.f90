@@ -267,6 +267,7 @@ endif
 call prepare (fifbz,fifcz,fiffz,fifsz,fifwz,nz)
 
 return 
+
 end subroutine filter
 
 
@@ -463,7 +464,7 @@ end subroutine fily
 
 subroutine filz(tz,uz,rz,fisz,fiffz,fifsz,fifwz,nx,ny,nz,npaire) 
   
-USE param, only: nclx, ncly, nclz  
+USE param, only: nclz  
 USE parfiZ 
 
 implicit none
@@ -488,13 +489,21 @@ if (nclz==0) then
       tz(i,j,3)=fiakz*uz(i,j,3)+fibkz*(uz(i,j,4)+uz(i,j,2))&
                                +fickz*(uz(j,j,5)+uz(i,j,1))& 
                                +fidkz*(uz(k,j,6)+uz(i,j,nz)) 
-      rz(i,j,3)=0. 
-      do k=4,nz-3
+      rz(i,j,3)=0.
+   enddo
+   enddo 
+   do k=4,nz-3
+   do j=1,ny
+   do i=1,nx
          tz(i,j,k)=fiakz*uz(i,j,k)+fibkz*(uz(i,j,k+1)+uz(i,j,k-1))& 
                                   +fickz*(uz(i,j,k+2)+uz(i,j,k-2))&
                                   +fidkz*(uz(i,j,k+3)+uz(i,j,k-3)) 
          rz(i,j,k)=0. 
-      enddo
+   enddo
+   enddo
+   enddo 
+   do j=1,ny 
+   do i=1,nx 
       tz(i,j,nz-2)=fiakz*uz(i,j,nz-2)+fibkz*(uz(i,j,nz-3)+uz(i,j,nz-1))&
                                      +fickz*(uz(i,j,nz-4)+uz(i,j,nz))& 
                                      +fidkz*(uz(i,j,nz-5)+uz(i,j,1)) 
@@ -507,21 +516,41 @@ if (nclz==0) then
                                  +fickz*(uz(i,j,nz-2)+uz(i,j,2))& 
                                  +fidkz*(uz(i,j,nz-3)+uz(i,j,3)) 
       rz(i,j,nz)=fialz           
-      do k=2, nz
+   enddo
+   enddo
+   do k=2, nz
+   do j=1,ny
+   do i=1,nx
          tz(i,j,k)=tz(i,j,k)-tz(i,j,k-1)*fifsz(k) 
          rz(i,j,k)=rz(i,j,k)-rz(i,j,k-1)*fifsz(k) 
-      enddo
+   enddo
+   enddo
+   enddo
+   do j=1,ny
+   do i=1,nx 
       tz(i,j,nz)=tz(i,j,nz)*fifwz(nz) 
       rz(i,j,nz)=rz(i,j,nz)*fifwz(nz) 
-      do k=nz-1,1,-1
+   enddo
+   enddo
+   do k=nz-1,1,-1
+   do j=1,ny
+   do i=1,nx    
          tz(i,j,k)=(tz(i,j,k)-fiffz(k)*tz(i,j,k+1))*fifwz(k) 
          rz(i,j,k)=(rz(i,j,k)-fiffz(k)*rz(i,j,k+1))*fifwz(k) 
-      enddo
-        fisz(i,j)=(tz(i,j,1)-fialz*tz(i,j,nz))&
+   enddo
+   enddo
+   enddo   
+   do j=1,ny
+   do i=1,nx      
+    fisz(i,j)=(tz(i,j,1)-fialz*tz(i,j,nz))&
            /(1.+rz(i,j,1)-fialz*rz(i,j,nz)) 
-      do k=1,nz 
+   enddo
+   enddo    
+   do k=1,nz 
+   do j=1,ny
+   do i=1,nx      
          tz(i,j,k)=tz(i,j,k)-fisz(i,j)*rz(i,j,k) 
-      enddo
+   enddo
    enddo
    enddo
 endif
