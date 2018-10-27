@@ -1070,13 +1070,31 @@ USE param
 implicit none
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux,uy,uz
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: uxf,uyf,uzf,di1
-integer :: i
+real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: ux2,uy2,uz2
+real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: uxf2,uyf2,uzf2,di2
+real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: ux3,uy3,uz3
+real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: uxf3,uyf3,uzf3,di3
+integer :: i,j,k
 
-uxf=0.;di1=0.;
 call filx(uxf,ux,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0) 
 call filx(uyf,uy,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0) 
 call filx(uzf,uz,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0)
-ux=uxf;uy=uyf;uz=uzf;
+call transpose_x_to_y(uxf,ux2)
+call transpose_x_to_y(uyf,uy2)
+call transpose_x_to_y(uzf,uz2)
+call transpose_y_to_z(ux2,ux3)
+call transpose_y_to_z(uy2,uy3)
+call transpose_y_to_z(uz2,uz3)
+call filz(uxf3,ux3,di3,fisz,fiffz,fifsz,fifwz,zsize(1),zsize(2),zsize(3),0) 
+call filz(uyf3,uy3,di3,fisz,fiffz,fifsz,fifwz,zsize(1),zsize(2),zsize(3),0) 
+call filz(uzf3,uz3,di3,fisz,fiffz,fifsz,fifwz,zsize(1),zsize(2),zsize(3),0) 
+call transpose_z_to_y(ux3,ux2)
+call transpose_z_to_y(uy3,uy2)
+call transpose_z_to_y(uz3,uz2)
+call transpose_y_to_x(ux2,ux)
+call transpose_y_to_x(uy2,uy)
+call transpose_y_to_x(uz2,uz)
+
  
 return
 end subroutine apply_spatial_filter

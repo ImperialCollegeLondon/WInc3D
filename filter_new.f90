@@ -363,7 +363,9 @@ if (ncly==1) then
    if (npaire==1) then 
       do k=1,nz 
       do i=1,nx 
-         ty(i,1,k)=0. 
+         ty(i,1,k)=fiajy*uy(i,1,k)+fibjy*(uy(i,2,k)+uy(i,2,k))& 
+                                  +ficjy*(uy(i,3,k)+uy(i,3,k))&
+                                  +fidjy*(uy(i,5,k)+uy(i,5,k)) 
          ty(i,2,k)=fiajy*uy(i,2,k)+fibjy*(uy(i,3,k)+uy(i,1,k))& 
                                   +ficjy*(uy(i,4,k)+uy(i,2,k))&
                                   +fidjy*(uy(i,5,k)+uy(i,3,k)) 
@@ -383,7 +385,9 @@ if (ncly==1) then
       enddo 
       do k=1,nz 
       do i=1,nx 
-         ty(i,ny,k)=0. 
+         ty(i,ny,k)=fiajy*uy(i,ny,k)+fibjy*(uy(i,ny-1,k)+uy(i,ny-1,k))& 
+                                        +ficjy*(uy(i,ny-2,k)+uy(i,ny-2,k))&
+                                        +fidjy*(uy(i,ny-3,k)+uy(i,ny-3,k)) 
          ty(i,ny-1,k)=fiajy*uy(i,ny-1,k)+fibjy*(uy(i,ny,k)  +uy(i,ny-2,k))& 
                                         +ficjy*(uy(i,ny-1,k)+uy(i,ny-3,k))&
                                         +fidjy*(uy(i,ny-2,k)+uy(i,ny-4,k)) 
@@ -412,51 +416,58 @@ if (ncly==1) then
       enddo 
       enddo 
    endif
-!   if (npaire==0) then 
-!      do k=1,nz 
-!      do i=1,nx 
-!         ty(i,1,k)=afjy*(uy(i,2,k)+uy(i,2,k))&
-!              +bfjy*(uy(i,3,k)+uy(i,3,k)) 
-!         ty(i,2,k)=afjy*(uy(i,3,k)-uy(i,1,k))&
-!              +bfjy*(uy(i,4,k)+uy(i,2,k)) 
-!      enddo
-!      enddo 
-!      do k=1,nz 
-!      do j=3,ny-2 
-!      do i=1,nx 
-!         ty(i,j,k)=afjy*(uy(i,j+1,k)-uy(i,j-1,k))&
-!              +bfjy*(uy(i,j+2,k)-uy(i,j-2,k)) 
-!      enddo
-!      enddo 
-!      enddo 
-!      do k=1,nz 
-!      do i=1,nx 
-!         ty(i,ny-1,k)=afjy*(uy(i,ny,k)-uy(i,ny-2,k))&
-!              +bfjy*((-uy(i,ny-1,k))-uy(i,ny-3,k)) 
-!         ty(i,ny,k)=afjy*((-uy(i,ny-1,k))-uy(i,ny-1,k))&
-!              +bfjy*((-uy(i,ny-2,k))-uy(i,ny-2,k)) 
-!      enddo
-!      enddo 
-!      do k=1,nz 
-!      do j=2,ny 
-!      do i=1,nx 
-!         ty(i,j,k)=ty(i,j,k)-ty(i,j-1,k)*fsy(j) 
-!      enddo 
-!      enddo 
-!      enddo 
-!      do k=1,nz 
-!      do i=1,nx 
-!         ty(i,ny,k)=ty(i,ny,k)*fwy(ny) 
-!      enddo
-!      enddo 
-!      do k=1,nz
-!      do j=ny-1,1,-1  
-!      do i=1,nx 
-!         ty(i,j,k)=(ty(i,j,k)-ffy(j)*ty(i,j+1,k))*fwy(j) 
-!      enddo
-!      enddo 
-!      enddo 
-!   endif
+   if (npaire==0) then 
+      do k=1,nz 
+      do i=1,nx 
+         ty(i,1,k)=0.
+         ty(i,2,k)=fiajy*uy(i,2,k)+fibjy*(uy(i,3,k)+uy(i,1,k))& 
+                                  +ficjy*(uy(i,4,k)+uy(i,2,k))&
+                                  +fidjy*(uy(i,5,k)+uy(i,3,k)) 
+         ty(i,3,k)=fiajy*uy(i,3,k)+fibjy*(uy(i,4,k)+uy(i,2,k))& 
+                                  +ficjy*(uy(i,5,k)+uy(i,3,k))&
+                                  +fidjy*(uy(i,6,k)+uy(i,4,k)) 
+      enddo
+      enddo 
+      do k=1,nz 
+      do j=4,ny-3 
+      do i=1,nx 
+         ty(i,j,k)=fiajy*uy(i,j,k)+fibjy*(uy(i,j+1,k)+uy(i,j-1,k))& 
+                                  +ficjy*(uy(i,j+2,k)+uy(i,j-2,k))&
+                                  +fidjy*(uy(i,j+3,k)+uy(i,j-3,k)) 
+      enddo
+      enddo 
+      enddo 
+      do k=1,nz 
+      do i=1,nx 
+         ty(i,ny,k)=0.
+         ty(i,ny-1,k)=fiajy*uy(i,ny-1,k)+fibjy*(uy(i,ny,k)  +uy(i,ny-2,k))& 
+                                        +ficjy*(uy(i,ny-1,k)+uy(i,ny-3,k))&
+                                        +fidjy*(uy(i,ny-2,k)+uy(i,ny-4,k)) 
+         ty(i,ny-2,k)=fiajy*uy(i,ny-2,k)+fibjy*(uy(i,ny-1,k)+uy(i,ny-3,k))& 
+                                        +ficjy*(uy(i,ny-2,k)+uy(i,ny-4,k))&
+                                        +fidjy*(uy(i,ny-3,k)+uy(i,ny-5,k)) 
+      enddo
+      enddo 
+      do k=1,nz
+      do j=2,ny  
+      do i=1,nx 
+         ty(i,j,k)=ty(i,j,k)-ty(i,j-1,k)*fifsy(j) 
+      enddo
+      enddo
+      enddo 
+      do k=1,nz 
+      do i=1,nx 
+         ty(i,ny,k)=ty(i,ny,k)*fifwy(ny) 
+      enddo 
+      enddo 
+      do k=1,nz
+      do j=ny-1,1,-1  
+      do i=1,nx 
+      ty(i,j,k)=(ty(i,j,k)-fiffy(j)*ty(i,j+1,k))*fifwy(j) 
+      enddo 
+      enddo 
+      enddo 
+   endif
 endif
 
 end subroutine fily
