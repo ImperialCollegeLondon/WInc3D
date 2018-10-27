@@ -1062,6 +1062,25 @@ return
 end subroutine damping_zone
 
 
+subroutine apply_spatial_filter(ux,uy,uz)
+
+USE decomp_2d
+USE param
+
+implicit none
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux,uy,uz
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: uxf,uyf,uzf,di1
+integer :: i
+
+uxf=0.;di1=0.;
+call filx(uxf,ux,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0) 
+call filx(uyf,uy,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0) 
+call filx(uzf,uz,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0)
+ux=uxf;uy=uyf;uz=uzf;
+ 
+return
+end subroutine apply_spatial_filter
+
 !*****************************************************************
 !
 subroutine collect_data()
