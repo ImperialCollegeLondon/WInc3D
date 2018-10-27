@@ -139,12 +139,12 @@ dsmagcst=0.
 call smag(ux1,uy1,uz1,gxx1,gyx1,gzx1,gxy1,gyy1,gzy1,gxz1,gyz1,gzz1,&
 sxx1,syy1,szz1,sxy1,sxz1,syz1,srt_smag,nut1,ta2,ta3,di1,di2,di3)
 
-!call lesdiff(ux1,uy1,uz1,gxx1,gyy1,gzz1,gxy1,gxz1,gyz1,gyx1,gzx1,gzy1,nut1,&
-!    sgsx1,sgsy1,sgsz1,ep1,ta1,td1,te1,tf1,di1,ta2,td2,te2,tf2,tj2,di2,&
-!    ta3,td3,te3,tf3,di3)
-call compute_sgs(ux1, uy1, uz1, ep1, sxx1, syy1, szz1, sxy1, sxz1, syz1, nut1, &
-     sgsx1, sgsy1, sgsz1, ta1, tb1, tc1, td1, te1, tf1, di1, tb2, tc2, td2, te2, tf2, di2, &
-     tc3, te3, tf3, di3)
+call lesdiff(ux1,uy1,uz1,gxx1,gyy1,gzz1,gxy1,gxz1,gyz1,gyx1,gzx1,gzy1,nut1,&
+    sgsx1,sgsy1,sgsz1,ep1,ta1,td1,te1,tf1,di1,ta2,td2,te2,tf2,tj2,di2,&
+    ta3,td3,te3,tf3,di3)
+!call compute_sgs(ux1, uy1, uz1, ep1, sxx1, syy1, szz1, sxy1, sxz1, syz1, nut1, &
+!     sgsx1, sgsy1, sgsz1, ta1, tb1, tc1, td1, te1, tf1, di1, tb2, tc2, td2, te2, tf2, di2, &
+!     tc3, te3, tf3, di3)
 
 elseif (jLES == 3) then !WALE
 sgsx1=0.;sgsy1=0.;sgsz1=0.
@@ -404,16 +404,15 @@ ta1(:,:,:)=ta1(:,:,:)+td1(:,:,:)
 tb1(:,:,:)=tb1(:,:,:)+te1(:,:,:)
 tc1(:,:,:)=tc1(:,:,:)+tf1(:,:,:)
 
-!if (iabl==1) then
-!    ! In case of ABL set to zero the SGS model at level 1 (This will be computed later by the 
-!    ! SGS wall stress model
-!    
-!    if (xstart(2)==1) then
-!    sgsx1(:,1,:)=0.
-!    sgsy1(:,1,:)=0.
-!    sgsz1(:,1,:)=0.
-!    endif
-!endif
+if (iabl==1) then
+    ! In case of ABL set to zero the SGS model at level 1 (This will be computed later by the 
+    ! SGS wall stress model    
+    if (xstart(2)==1) then
+    sgsx1(:,1,:)=0.
+    sgsy1(:,1,:)=0.
+    sgsz1(:,1,:)=0.
+    endif
+endif
 
 !FINAL SUM: DIFF TERMS + CONV TERMS
 if(jLES==0) then ! DNS 
@@ -457,12 +456,12 @@ endif
 ! Compute additional Models
 !***************************************
 ! 
-!if (iabl==1) then
-!    call wall_sgs(ux1,uy1,uz1,nut1,sxy1,syz1,tauwallxy1,tauwallzy1,wallfluxx1,wallfluxy1,wallfluxz1)
-!    ta1(:,:,:)=ta1(:,:,:)+wallfluxx1(:,:,:)
-!    tb1(:,:,:)=tb1(:,:,:)+wallfluxy1(:,:,:)
-!    tc1(:,:,:)=tc1(:,:,:)+wallfluxz1(:,:,:)
-!endif
+if (iabl==1) then
+    call wall_sgs(ux1,uy1,uz1,nut1,sxy1,syz1,tauwallxy1,tauwallzy1,wallfluxx1,wallfluxy1,wallfluxz1)
+    ta1(:,:,:)=ta1(:,:,:)+wallfluxx1(:,:,:)
+    tb1(:,:,:)=tb1(:,:,:)+wallfluxy1(:,:,:)
+    tc1(:,:,:)=tc1(:,:,:)+wallfluxz1(:,:,:)
+endif
 
 ! Buoyancy Effects
 if (ibuoyancy==1) then     
@@ -512,30 +511,30 @@ if (ialm==1) then
 endif
 
 !Filtering (only in x-direction for time being)
-if (jLES.ge.2) then
-call filter(0.48)
-call filx(td1,ta1,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0) 
-call filx(te1,tb1,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0) 
-call filx(tf1,tc1,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0) 
-call transpose_x_to_y(td1,ta2)
-call transpose_x_to_y(te1,tb2)
-call transpose_x_to_y(tf1,tc2)
-call fily(td2,ta2,di2,fisy,fiffy,fifsy,fifwy,ysize(1),ysize(2),ysize(3),1) 
-call fily(te2,tb2,di2,fisy,fiffy,fifsy,fifwy,ysize(1),ysize(2),ysize(3),1) 
-call fily(tf2,tc2,di2,fisy,fiffy,fifsy,fifwy,ysize(1),ysize(2),ysize(3),1) 
-!call transpose_y_to_z(td2,ta3)
-!call transpose_y_to_z(te2,tb3)
-!call transpose_y_to_z(tf2,tc3)
-!call filz(td3,ta3,di3,fisz,fiffz,fifsz,fifwz,zsize(1),zsize(2),zsize(3),0) 
-!call filz(te3,tb3,di3,fisz,fiffz,fifsz,fifwz,zsize(1),zsize(2),zsize(3),0) 
-!call filz(tf3,tc3,di3,fisz,fiffz,fifsz,fifwz,zsize(1),zsize(2),zsize(3),0) 
-!call transpose_z_to_y(td3,ta2)
-!call transpose_z_to_y(te3,tb2)
-!call transpose_z_to_y(tf3,tc2)
-call transpose_y_to_x(td2,ta1)
-call transpose_y_to_x(te2,tb1)
-call transpose_y_to_x(tf2,tc1)
-endif
+!if (jLES.ge.2) then
+!call filter(0.48)
+!call filx(td1,ta1,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0) 
+!call filx(te1,tb1,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0) 
+!call filx(tf1,tc1,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0) 
+!call transpose_x_to_y(td1,ta2)
+!call transpose_x_to_y(te1,tb2)
+!call transpose_x_to_y(tf1,tc2)
+!call fily(td2,ta2,di2,fisy,fiffy,fifsy,fifwy,ysize(1),ysize(2),ysize(3),1) 
+!call fily(te2,tb2,di2,fisy,fiffy,fifsy,fifwy,ysize(1),ysize(2),ysize(3),1) 
+!call fily(tf2,tc2,di2,fisy,fiffy,fifsy,fifwy,ysize(1),ysize(2),ysize(3),1) 
+!!call transpose_y_to_z(td2,ta3)
+!!call transpose_y_to_z(te2,tb3)
+!!call transpose_y_to_z(tf2,tc3)
+!!call filz(td3,ta3,di3,fisz,fiffz,fifsz,fifwz,zsize(1),zsize(2),zsize(3),0) 
+!!call filz(te3,tb3,di3,fisz,fiffz,fifsz,fifwz,zsize(1),zsize(2),zsize(3),0) 
+!!call filz(tf3,tc3,di3,fisz,fiffz,fifsz,fifwz,zsize(1),zsize(2),zsize(3),0) 
+!!call transpose_z_to_y(td3,ta2)
+!!call transpose_z_to_y(te3,tb2)
+!!call transpose_z_to_y(tf3,tc2)
+!call transpose_y_to_x(td2,ta1)
+!call transpose_y_to_x(te2,tb1)
+!call transpose_y_to_x(tf2,tc1)
+!endif
 
 end subroutine convdiff
 
