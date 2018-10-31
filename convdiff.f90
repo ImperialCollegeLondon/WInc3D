@@ -510,31 +510,6 @@ if (ialm==1) then
     tc1(:,:,:)=tc1(:,:,:)+FTz(:,:,:)
 endif
 
-!Filtering (only in x-direction for time being)
-!if (jLES.ge.2) then
-!call filter(0.48)
-!call filx(td1,ta1,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0) 
-!call filx(te1,tb1,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0) 
-!call filx(tf1,tc1,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0) 
-!call transpose_x_to_y(td1,ta2)
-!call transpose_x_to_y(te1,tb2)
-!call transpose_x_to_y(tf1,tc2)
-!call fily(td2,ta2,di2,fisy,fiffy,fifsy,fifwy,ysize(1),ysize(2),ysize(3),1) 
-!call fily(te2,tb2,di2,fisy,fiffy,fifsy,fifwy,ysize(1),ysize(2),ysize(3),1) 
-!call fily(tf2,tc2,di2,fisy,fiffy,fifsy,fifwy,ysize(1),ysize(2),ysize(3),1) 
-!!call transpose_y_to_z(td2,ta3)
-!!call transpose_y_to_z(te2,tb3)
-!!call transpose_y_to_z(tf2,tc3)
-!!call filz(td3,ta3,di3,fisz,fiffz,fifsz,fifwz,zsize(1),zsize(2),zsize(3),0) 
-!!call filz(te3,tb3,di3,fisz,fiffz,fifsz,fifwz,zsize(1),zsize(2),zsize(3),0) 
-!!call filz(tf3,tc3,di3,fisz,fiffz,fifsz,fifwz,zsize(1),zsize(2),zsize(3),0) 
-!!call transpose_z_to_y(td3,ta2)
-!!call transpose_z_to_y(te3,tb2)
-!!call transpose_z_to_y(tf3,tc2)
-!call transpose_y_to_x(td2,ta1)
-!call transpose_y_to_x(te2,tb1)
-!call transpose_y_to_x(tf2,tc1)
-!endif
 
 end subroutine convdiff
 

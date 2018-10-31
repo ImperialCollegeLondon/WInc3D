@@ -1072,7 +1072,7 @@ implicit none
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux1,uy1,uz1
 real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: ux2,uy2,uz2
 real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: ux3,uy3,uz3
-integer :: i,j,k
+integer :: i,j,k,npaire
 
 call filx(uxf1,ux1,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0) 
 call filx(uyf1,uy1,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0) 
@@ -1080,24 +1080,24 @@ call filx(uzf1,uz1,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0)
 call transpose_x_to_y(uxf1,ux2)
 call transpose_x_to_y(uyf1,uy2)
 call transpose_x_to_y(uzf1,uz2)
-call filx(uxf2,ux2,di2,fisy,fiffy,fifsy,fifwy,ysize(1),ysize(2),ysize(3),1) 
-call filx(uyf2,uy2,di2,fisy,fiffy,fifsy,fifwy,ysize(1),ysize(2),ysize(3),0) 
-call filx(uzf2,uz2,di2,fisy,fiffy,fifsy,fifwy,ysize(1),ysize(2),ysize(3),1)
+call fily(uxf2,ux2,di2,fisy,fiffy,fifsy,fifwy,ysize(1),ysize(2),ysize(3),1) 
+call fily(uyf2,uy2,di2,fisy,fiffy,fifsy,fifwy,ysize(1),ysize(2),ysize(3),0) 
+call fily(uzf2,uz2,di2,fisy,fiffy,fifsy,fifwy,ysize(1),ysize(2),ysize(3),1)
 call transpose_y_to_z(ux2,ux3)
-call transpose_y_to_z(uy2,uy3)
+call transpose_y_to_z(uyf2,uy3)
 call transpose_y_to_z(uz2,uz3)
 call filz(uxf3,ux3,di3,fisz,fiffz,fifsz,fifwz,zsize(1),zsize(2),zsize(3),0) 
 call filz(uyf3,uy3,di3,fisz,fiffz,fifsz,fifwz,zsize(1),zsize(2),zsize(3),0) 
 call filz(uzf3,uz3,di3,fisz,fiffz,fifsz,fifwz,zsize(1),zsize(2),zsize(3),0) 
-call transpose_z_to_y(ux3,ux2)
-call transpose_z_to_y(uy3,uy2)
-call transpose_z_to_y(uz3,uz2)
+call transpose_z_to_y(uxf3,ux2)
+call transpose_z_to_y(uyf3,uy2)
+call transpose_z_to_y(uzf3,uz2)
 call transpose_y_to_x(ux2,ux1)
 call transpose_y_to_x(uy2,uy1)
 call transpose_y_to_x(uz2,uz1)
 
- 
 return
+
 end subroutine apply_spatial_filter
 
 !*****************************************************************

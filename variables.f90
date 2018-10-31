@@ -126,7 +126,7 @@ contains
     call alloc_x(tg1);call alloc_x(th1);call alloc_x(ti1)
     call alloc_x(tj1);call alloc_x(di1);call alloc_x(ep1)
     call alloc_x(nut1);call alloc_x(ucx1);call alloc_x(ucy1);call alloc_x(ucz1);
-    call alloc_x(uxf1);call alloc_x(uyf1);call alloc_y(uzf1)
+    call alloc_x(uxf1);call alloc_x(uyf1);call alloc_x(uzf1)
     call alloc_x(shrt_coeff);
     allocate(sx(xsize(2),xsize(3)),vx(xsize(2),xsize(3)))
     allocate(fisx(xsize(2),xsize(3)),fivx(xsize(2),xsize(3)))
