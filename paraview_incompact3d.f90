@@ -69,24 +69,27 @@ program visu_paraview
   nfil=41
   open(nfil,file='visu.xdmf')
 
+  open(nfil,file='visu.xdmf')
+
   write(nfil,'(A22)')'<?xml version="1.0" ?>'
   write(nfil,*)'<!DOCTYPE Xdmf SYSTEM "Xdmf.dtd" []>'
   write(nfil,*)'<Xdmf xmlns:xi="http://www.w3.org/2001/XInclude" Version="2.0">'
   write(nfil,*)'<Domain>'
-  write(nfil,*)'    <Topology name="topo" TopologyType="3DRectMesh"'
+  write(nfil,*)'    <Topology name="topo" TopologyType="3DCoRectMesh"'
+  write(nfil,*)'        Dimensions="',nz,ny,nx,'">'
   write(nfil,*)'        Dimensions="',nz,ny,nx,'">'
   write(nfil,*)'    </Topology>'
-  write(nfil,*)'    <Geometry name="geo" Type="VXVYVZ">'
-  write(nfil,*)'    <DataItem Dimensions="',nx,'" NumberType="Float" Precision="8" Format="XML">'
-  write(nfil,*)'    ',y1(:) 
-  write(nfil,*)'    </DataItem>'
-  write(nfil,*)'    <DataItem Dimensions="',ny,'" NumberType="Float" Precision="8" Format="XML">'
-  write(nfil,*)'    ',yp(:) 
-  write(nfil,*)'    </DataItem>'
-  write(nfil,*)'    <DataItem Dimensions="',nz,'" NumberType="Float" Precision="8" Format="XML">'
-  write(nfil,*)'    ',y3(:) 
-  write(nfil,*)'    </DataItem>'
+  write(nfil,*)'    <Geometry name="geo" Type="ORIGIN_DXDYDZ">'
+  write(nfil,*)'        <!-- Origin -->'
+  write(nfil,*)'        <DataItem Format="XML" Dimensions="3">'
+  write(nfil,*)'        0.0 0.0 0.0'
+  write(nfil,*)'        </DataItem>'
+  write(nfil,*)'        <!-- DxDyDz -->'
+  write(nfil,*)'        <DataItem Format="XML" Dimensions="3">'
+  write(nfil,*)'        ',dz,dy,dx
+  write(nfil,*)'        </DataItem>'
   write(nfil,*)'    </Geometry>'
+
   write(nfil,'(/)')
   write(nfil,*)'    <Grid Name="TimeSeries" GridType="Collection" CollectionType="Temporal">'
   write(nfil,*)'        <Time TimeType="HyperSlab">'
