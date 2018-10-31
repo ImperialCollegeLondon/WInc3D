@@ -36,9 +36,9 @@ use decomp_2d
 USE param
 
 ! define all major arrays here
-real(mytype), save, allocatable, dimension(:,:,:) :: ux1, ux2, ux3,po3,dv3,pp3,ucx1,ucy1,ucz1
-real(mytype), save, allocatable, dimension(:,:,:) :: uy1, uy2, uy3
-real(mytype), save, allocatable, dimension(:,:,:) :: uz1, uz2, uz3
+real(mytype), save, allocatable, dimension(:,:,:) :: ux1, ux2, ux3,po3,dv3,pp3,ucx1,ucy1,ucz1,uxf1,uxf2,uxf3
+real(mytype), save, allocatable, dimension(:,:,:) :: uy1, uy2, uy3,uyf1,uyf2,uyf3
+real(mytype), save, allocatable, dimension(:,:,:) :: uz1, uz2, uz3,uzf1,uzf2,uzf3
 real(mytype), save, allocatable, dimension(:,:,:) :: phi1, phi2, phi3
 real(mytype), save, allocatable, dimension(:,:,:) :: gx1, gy1, gz1, hx1, hy1, hz1, phis1,phiss1
 real(mytype), save, allocatable, dimension(:,:,:) :: px1, py1, pz1
@@ -126,6 +126,7 @@ contains
     call alloc_x(tg1);call alloc_x(th1);call alloc_x(ti1)
     call alloc_x(tj1);call alloc_x(di1);call alloc_x(ep1)
     call alloc_x(nut1);call alloc_x(ucx1);call alloc_x(ucy1);call alloc_x(ucz1);
+    call alloc_x(uxf1);call alloc_x(uyf1);call alloc_y(uzf1)
     call alloc_x(shrt_coeff);
     allocate(sx(xsize(2),xsize(3)),vx(xsize(2),xsize(3)))
     allocate(fisx(xsize(2),xsize(3)),fivx(xsize(2),xsize(3)))
@@ -231,6 +232,7 @@ contains
     call alloc_y(td2);call alloc_y(te2);call alloc_y(tf2)
     call alloc_y(tg2);call alloc_y(th2);call alloc_y(ti2)
     call alloc_y(tj2);call alloc_y(di2);call alloc_y(phi2)
+    call alloc_y(uxf2);call alloc_y(uyf2);call alloc_y(uzf2)
     allocate(sy(ysize(1),ysize(3)),vy(ysize(1),ysize(3)))
     allocate(fisy(ysize(1),ysize(3)),fivy(ysize(1),ysize(3)))
 !Z PENCILS
@@ -239,6 +241,7 @@ contains
     call alloc_z(td3);call alloc_z(te3);call alloc_z(tf3)
     call alloc_z(tg3);call alloc_z(th3);call alloc_z(ti3)
     call alloc_z(di3);call alloc_z(phi3);
+    call alloc_z(uxf3);call alloc_z(uyf3);call alloc_z(uzf3)
     allocate(sz(zsize(1),zsize(2)),vz(zsize(1),zsize(2)))
     allocate(fisz(zsize(1),zsize(2)),fivz(zsize(1),zsize(2)))
 

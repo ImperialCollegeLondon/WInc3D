@@ -272,7 +272,7 @@ do itime=ifirst,ilast
    endif
    if (jLES.ge.2) then
    call filter(0.480d0)
-   call apply_spatial_filter(ux1,uy1,uz1)
+   call apply_spatial_filter(ux1,uy1,uz1,ux2,uy2,uz2,ux3,uy3,uz3)
    endif         
    
    do itr=1,iadvance_time

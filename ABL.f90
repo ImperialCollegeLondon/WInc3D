@@ -5,18 +5,14 @@ subroutine wall_sgs(ux,uy,uz,nut1,sxy1,syz1,tauwallxy,tauwallzy,wallfluxx,wallfl
 
     USE MPI
     USE decomp_2d
-    USE param
-
+    USE param 
+    USE var, only: uxf1,uzf1, di1
 implicit none
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux,uy,uz,nut1
-real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: uxf,uyf,uzf
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: wallfluxx,wallfluxy,wallfluxz
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: wallfluxxf,wallfluxyf,wallfluxzf
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: sxy1, syz1 
 real(mytype),dimension(xsize(1),xsize(3)) :: tauwallxy, tauwallzy 
-real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: gxy1,gyx1,gyz1,gzy1,di1
-real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: gxy2,gzy2,gyz2,di2
-real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: gyz3,di3
 integer :: i,j,k,code
 real(mytype) :: ut,ut1,utt,ut11, abl_vel, ABLtaux, ABLtauz, delta
 real(mytype) :: ux_HAve_local, uz_HAve_local,S_HAve_local
@@ -29,8 +25,8 @@ real(mytype) :: CD ! drag coefficient
 
 call filter(0.0d0)
 ! Filter the velocity with twice the grid scale according to Bou-zeid et al 2005
-call filx(uxf,ux,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0) 
-call filx(uzf,uz,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0) 
+call filx(uxf1,ux,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0) 
+call filx(uzf1,uz,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0) 
 
 !call filx(uzf,uz,di1,sx,vx,fiffx,fifx,ficx,fibx,fibbx,filax,&
 !fiz1x,fiz2x,xsize(1),xsize(2),xsize(3),0)
@@ -45,9 +41,9 @@ call filx(uzf,uz,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0)
     !if (nrank==0) print *, 'Max of the filtered velocity', maxval(ux), 'Max of the unfiltered velocity', maxval(ux) 
     do k=1,xsize(3)
     do i=1,xsize(1)
-        ux_HAve_local=ux_HAve_local+0.5*(uxf(i,1,k)+uxf(i,2,k))
-        uz_HAve_local=uz_HAve_local+0.5*(uzf(i,1,k)+uzf(i,2,k))
-        S_HAve_local=S_HAve_local+sqrt((0.5*(uxf(i,1,k)+uxf(i,2,k)))**2.+(0.5*(uzf(i,1,k)+uzf(i,2,k)))**2.)
+        ux_HAve_local=ux_HAve_local+0.5*(uxf1(i,1,k)+uxf1(i,2,k))
+        uz_HAve_local=uz_HAve_local+0.5*(uzf1(i,1,k)+uzf1(i,2,k))
+        S_HAve_local=S_HAve_local+sqrt((0.5*(uxf1(i,1,k)+uxf1(i,2,k)))**2.+(0.5*(uzf1(i,1,k)+uzf1(i,2,k)))**2.)
     enddo
     enddo
         ux_HAve_local=ux_HAve_local/xsize(3)/xsize(1)
@@ -94,8 +90,8 @@ call filx(uzf,uz,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0)
     if (xstart(2)==1) then
     do k=1,xsize(3)
     do i=1,xsize(1)                       
-    ux12=0.5*(uxf(i,1,k)+uxf(i,2,k)) 
-    uz12=0.5*(uzf(i,1,k)+uzf(i,2,k))
+    ux12=0.5*(uxf1(i,1,k)+uxf1(i,2,k)) 
+    uz12=0.5*(uzf1(i,1,k)+uzf1(i,2,k))
     S12=sqrt(ux12**2.+uz12**2.)
     if(iwallmodel==1) then ! MOENG    
     tauwallxy(i,k)=-(k_roughness/log(delta/z_zero))**2.0*ux_HAve*S_HAve
