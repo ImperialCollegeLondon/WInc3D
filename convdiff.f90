@@ -139,7 +139,7 @@ dsmagcst=0.
 call smag(ux1,uy1,uz1,gxx1,gyx1,gzx1,gxy1,gyy1,gzy1,gxz1,gyz1,gzz1,&
 sxx1,syy1,szz1,sxy1,sxz1,syz1,srt_smag,nut1,ta2,ta3,di1,di2,di3)
 
-call lesdiff(ux1,uy1,uz1,gxx1,gyy1,gzz1,gxy1,gxz1,gyz1,gyx1,gzx1,gzy1,nut1,&
+call lesdiff(ux1,uy1,uz1,phi1,gxx1,gyy1,gzz1,gxy1,gxz1,gyz1,gyx1,gzx1,gzy1,nut1,&
     sgsx1,sgsy1,sgsz1,ep1,ta1,td1,te1,tf1,di1,ta2,td2,te2,tf2,tj2,di2,&
     ta3,td3,te3,tf3,di3)
 !call compute_sgs(ux1, uy1, uz1, ep1, sxx1, syy1, szz1, sxy1, sxz1, syz1, nut1, &
@@ -157,7 +157,7 @@ sxx1,syy1,szz1,sxy1,sxz1,syz1,srt_smag,nut1,ta2,ta3,di1,di2,di3)
 ! Then adapt the smagorinsky coefficient near the boundaries
 call wale(gxx1,gyx1,gzx1,gxy1,gyy1,gzy1,gxz1,gyz1,gzz1,srt_smag,nut1)
 
-call lesdiff(ux1,uy1,uz1,gxx1,gyy1,gzz1,gxy1,gxz1,gyz1,gyx1,gzx1,gzy1,nut1,&
+call lesdiff(ux1,uy1,uz1,phi1,gxx1,gyy1,gzz1,gxy1,gxz1,gyz1,gyx1,gzx1,gzy1,nut1,&
     sgsx1,sgsy1,sgsz1,ep1,ta1,td1,te1,tf1,di1,ta2,td2,te2,tf2,tj2,di2,&
     ta3,td3,te3,tf3,di3)
 
@@ -169,7 +169,7 @@ dsmagcst=0.
 !srt_smag,dsmagcst,nut1,di1,ta1,tb1,tc1,td1,ta2,tb2,tc2,td2,te2,tf2,&
 !tg2,th2,ti2,di2,ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3)
 
-call lesdiff(ux1,uy1,uz1,gxx1,gyy1,gzz1,gxy1,gxz1,gyz1,gyx1,gzx1,gzy1,nut1,&
+call lesdiff(ux1,uy1,uz1,phi1,gxx1,gyy1,gzz1,gxy1,gxz1,gyz1,gyx1,gzx1,gzy1,nut1,&
     sgsx1,sgsy1,sgsz1,ep1,ta1,td1,te1,tf1,di1,ta2,td2,te2,tf2,tj2,di2,&
     ta3,td3,te3,tf3,di3)
 
@@ -352,23 +352,6 @@ else
     endif
 endif
 
-
-! Apply boundary conditions of the wall model
-!if(jLES==1.and.iabl==1) then 
-!     call wall_shear_stress(ux1,uy1,uz1,nut1,sxy1,syz1,tauwallxy1,tauwallzy1,wallfluxx1,wallfluxy1,wallfluxz1)
-!    ! Calculate the derxx_iles
-!    
-!    !call derzz (ta3_abl,ux3,di3,sz,sfzp,sszp,swzp,zsize(1),zsize(2),zsize(3),1)
-!    !call transpose_z_to_y(ta3_abl,ta2_abl) 
-!    !
-!    !call derxx(tf1_abl,uz1,di1,sx,sfxp,ssxp,swxp,xsize(1),xsize(2),xsize(3),1)
-!    !call transpose_x_to_y(tf1_abl,tf2_abl) 
-!    if(ystart(2)==1) then
-!    td2(:,1,:)=-z_zero*k_roughness*ustar*td2(:,1,:)/(rxxnu*xnu)!-u_shear/(k_roughness*(dy/2.)**2.)+ta2_abl(:,1,:) 
-!    tf2(:,1,:)=-z_zero*k_roughness*ustar*tf2(:,1,:)/(rxxnu*xnu)!tf2_abl(:,1,:)
-!    endif
-!endif
-
 ta2(:,:,:)=ta2(:,:,:)+td2(:,:,:)
 tb2(:,:,:)=tb2(:,:,:)+te2(:,:,:)
 tc2(:,:,:)=tc2(:,:,:)+tf2(:,:,:)
@@ -529,10 +512,6 @@ real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: uz3,phi3,di3,ta3,tb3
 
 integer :: ijk,nvect1,nvect2,nvect3,i,j,k,nxyz
 real(mytype) :: x,y,z
-
-nvect1=xsize(1)*xsize(2)*xsize(3)
-nvect2=ysize(1)*ysize(2)*ysize(3)
-nvect3=zsize(1)*zsize(2)*zsize(3)
 
 !X PENCILS
 ta1(:,:,:)=ux1(:,:,:)*phi1(:,:,:)

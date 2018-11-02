@@ -178,7 +178,7 @@ contains
         ! X-DIRECTION
     if (nclx==0) then
         if(mod(nx,2)==0) then 
-            if (nrank==0) write(*,*) 'nx ok !'
+            !if (nrank==0) write(*,*) 'nx ok !'
         else
             if (nrank==0) write(*,*) 'nx should be an even number!'
             stop
@@ -187,7 +187,7 @@ contains
         nxm=nx 
     else if (nclx==1 .or. nclx==2) then 
         if(mod(nx,2)==1) then 
-            if (nrank==0) write(*,*) 'nx ok !'
+            !if (nrank==0) write(*,*) 'nx ok !'
         else
             if (nrank==0) write(*,*) 'nx should be an odd number!'
             stop
@@ -201,7 +201,7 @@ contains
         ! Y-DIRECTION 
     if (ncly==0) then 
         if(mod(ny,2)==0) then 
-            if (nrank==0) write(*,*) 'ny ok !'
+            !if (nrank==0) write(*,*) 'ny ok !'
         else
             if (nrank==0) write(*,*) 'ny should be an even number!'
             stop
@@ -210,7 +210,7 @@ contains
         nym=ny
     else if (ncly==1.or.ncly==2) then 
         if(mod(ny,2)==1) then 
-            if (nrank==0) write(*,*) 'ny ok !'
+            !if (nrank==0) write(*,*) 'ny ok !'
         else
             if (nrank==0) write(*,*) 'ny should be an odd number!'
             stop
@@ -224,7 +224,7 @@ contains
         ! Z-DIRECTION  
     if (nclz==0) then 
         if(mod(nz,2)==0) then 
-            if (nrank==0) write(*,*) 'nz ok !'
+            !if (nrank==0) write(*,*) 'nz ok !'
         else
             if (nrank==0) write(*,*) 'nz should be an even number!'
             stop
@@ -233,7 +233,7 @@ contains
         nzm=nz
     else if (nclz==1.or.nclz==2) then 
         if(mod(nz,2)==1) then 
-            if (nrank==0) write(*,*) 'nz ok !'
+            !if (nrank==0) write(*,*) 'nz ok !'
         else
             if (nrank==0) write(*,*) 'nz should be an odd number!'
             stop

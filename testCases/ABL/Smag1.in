@@ -71,10 +71,10 @@
 /End
 
 &FileParam
-    ilit=0                ! Read initial flow field ?
-    isave=500     	  ! Frequency for writing backup file  
-    imodulo=10         ! Frequency for visualization 
-    ioutflow=0		  ! Outflow flag
+    ilit=0             ! Read initial flow field ?
+    isave=500     	   ! Frequency for writing backup file  
+    imodulo=100        ! Frequency for visualization 
+    ioutflow=0		   ! Outflow flag
     NTimeSteps=2000
 /End
 

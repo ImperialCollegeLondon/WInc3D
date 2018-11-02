@@ -976,7 +976,7 @@ end subroutine compute_sgs
 
 !************************************************************
 !
-subroutine lesdiff(ux1,uy1,uz1,gxx1,gyy1,gzz1,gxy1,gxz1,gyz1,gyx1,gzx1,gzy1,nut1,&
+subroutine lesdiff(ux1,uy1,uz1,phi1,gxx1,gyy1,gzz1,gxy1,gxz1,gyz1,gyx1,gzx1,gzy1,nut1,&
     sgsx1,sgsy1,sgsz1,ep1,ta1,td1,te1,tf1,di1,ta2,td2,te2,tf2,tj2,di2,&
     ta3,td3,te3,tf3,di3)
 !
@@ -987,7 +987,7 @@ USE decomp_2d
 
 implicit none
 
-real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux1,uy1,uz1,nut1,ep1
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux1,uy1,uz1,phi1,nut1,ep1
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ta1,td1,te1,tf1,di1
 real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: ux2,uy2,uz2,nut2
 real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: ta2,td2,te2,tf2,tj2,di2
