@@ -95,11 +95,9 @@ call transpose_y_to_x(tc2,tf1)
 !############################################################################
 !VORTICITY
 di1=0.
-do ijk=1,nvect1
-   di1(ijk,1,1)=sqrt((tf1(ijk,1,1)-th1(ijk,1,1))**2+&
-        (tg1(ijk,1,1)-tc1(ijk,1,1))**2+&
-        (tb1(ijk,1,1)-td1(ijk,1,1))**2)
-enddo
+di1(:,:,:)=sqrt((tf1(:,:,:)-th1(:,:,:))**2+&
+        (tg1(:,:,:)-tc1(:,:,:))**2+&
+        (tb1(:,:,:)-td1(:,:,:))**2)
 uvisu=0.
 call fine_to_coarseV(1,di1,uvisu)
 990 format('vort',I4.4)

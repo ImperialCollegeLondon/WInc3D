@@ -109,6 +109,7 @@ UG=[10.0d0,0.0d0,0.0d0]
 IPressureGradient=0
 ioutflow=0
 idampingzone=0
+zs_tr=0.1
 
 ! READ PARAMETERS FROM FILE
 open(10,file=InputFN) 

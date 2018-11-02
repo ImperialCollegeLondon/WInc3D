@@ -359,8 +359,6 @@ real(mytype), dimension(nx,nz)  :: fisy
 real(mytype), dimension(ny) :: fiffy,fifsy,fifwy,ppy
 
 if (ncly==1) then 
-    print *, npaire
-    stop
     if (npaire==1) then 
     do k=1,nz 
     do i=1,nx 
@@ -420,7 +418,7 @@ if (ncly==1) then
    if (npaire==0) then 
       do k=1,nz 
       do i=1,nx 
-         ty(i,1,k)=0.
+         ty(i,1,k)=fiajy*uy(i,1,k)
          ty(i,2,k)=fiajy*uy(i,2,k)+fibjy*(uy(i,3,k)+uy(i,1,k))& 
                                   +ficjy*(uy(i,4,k)-uy(i,2,k))&
                                   +fidjy*(uy(i,5,k)-uy(i,3,k)) 
@@ -440,7 +438,7 @@ if (ncly==1) then
       enddo 
       do k=1,nz 
       do i=1,nx 
-         ty(i,ny,k)=0.
+         ty(i,ny,k)=fiajy*uy(i,ny,k)
          ty(i,ny-1,k)=fiajy*uy(i,ny-1,k)+fibjy*(uy(i,ny,k)  +uy(i,ny-2,k))& 
                                         +ficjy*(-uy(i,ny-1,k)+uy(i,ny-3,k))&
                                         +fidjy*(-uy(i,ny-2,k)+uy(i,ny-4,k)) 
@@ -499,8 +497,8 @@ if (nclz==0) then
                                +fidkz*(uz(i,j,5)+uz(i,j,nz-1)) 
       rz(i,j,2)=0. 
       tz(i,j,3)=fiakz*uz(i,j,3)+fibkz*(uz(i,j,4)+uz(i,j,2))&
-                               +fickz*(uz(j,j,5)+uz(i,j,1))& 
-                               +fidkz*(uz(k,j,6)+uz(i,j,nz)) 
+                               +fickz*(uz(i,j,5)+uz(i,j,1))& 
+                               +fidkz*(uz(i,j,6)+uz(i,j,nz)) 
       rz(i,j,3)=0.
    enddo
    enddo 

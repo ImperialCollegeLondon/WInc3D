@@ -53,31 +53,25 @@ nxyz=xsize(1)*xsize(2)*xsize(3)
 if ((nscheme.eq.1).or.(nscheme.eq.2)) then
 if ((nscheme.eq.1.and.itime.eq.1.and.ilit.eq.0).or.&
      (nscheme.eq.2.and.itr.eq.1)) then
-   do ijk=1,nxyz
-      ux(ijk,1,1)=gdt(itr)*ta1(ijk,1,1)+ux(ijk,1,1)
-      uy(ijk,1,1)=gdt(itr)*tb1(ijk,1,1)+uy(ijk,1,1) 
-      uz(ijk,1,1)=gdt(itr)*tc1(ijk,1,1)+uz(ijk,1,1)
-      gx(ijk,1,1)=ta1(ijk,1,1)
-      gy(ijk,1,1)=tb1(ijk,1,1)
-      gz(ijk,1,1)=tc1(ijk,1,1)            
-   enddo
+      ux(:,:,:)=gdt(itr)*ta1(:,:,:)+ux(:,:,:)
+      uy(:,:,:)=gdt(itr)*tb1(:,:,:)+uy(:,:,:) 
+      uz(:,:,:)=gdt(itr)*tc1(:,:,:)+uz(:,:,:)
+      gx(:,:,:)=ta1(:,:,:)
+      gy(:,:,:)=tb1(:,:,:)
+      gz(:,:,:)=tc1(:,:,:)            
 else
    if (nz.gt.1) then
-      do ijk=1,nxyz
-         ux(ijk,1,1)=adt(itr)*ta1(ijk,1,1)+bdt(itr)*gx(ijk,1,1)+ux(ijk,1,1)
-         uy(ijk,1,1)=adt(itr)*tb1(ijk,1,1)+bdt(itr)*gy(ijk,1,1)+uy(ijk,1,1)   
-         uz(ijk,1,1)=adt(itr)*tc1(ijk,1,1)+bdt(itr)*gz(ijk,1,1)+uz(ijk,1,1)
-         gx(ijk,1,1)=ta1(ijk,1,1)
-         gy(ijk,1,1)=tb1(ijk,1,1)
-         gz(ijk,1,1)=tc1(ijk,1,1)            
-      enddo
+        ux(:,:,:)=adt(itr)*ta1(:,:,:)+bdt(itr)*gx(:,:,:)+ux(:,:,:)
+        uy(:,:,:)=adt(itr)*tb1(:,:,:)+bdt(itr)*gy(:,:,:)+uy(:,:,:)   
+        uz(:,:,:)=adt(itr)*tc1(:,:,:)+bdt(itr)*gz(:,:,:)+uz(:,:,:)
+        gx(:,:,:)=ta1(:,:,:)
+        gy(:,:,:)=tb1(:,:,:)
+        gz(:,:,:)=tc1(:,:,:)            
    else
-      do ijk=1,nxyz
-         ux(ijk,1,1)=adt(itr)*ta1(ijk,1,1)+bdt(itr)*gx(ijk,1,1)+ux(ijk,1,1)
-         uy(ijk,1,1)=adt(itr)*tb1(ijk,1,1)+bdt(itr)*gy(ijk,1,1)+uy(ijk,1,1)   
-         gx(ijk,1,1)=ta1(ijk,1,1)
-         gy(ijk,1,1)=tb1(ijk,1,1)
-      enddo
+        ux(:,:,:)=adt(itr)*ta1(:,:,:)+bdt(itr)*gx(:,:,:)+ux(:,:,:)
+        uy(:,:,:)=adt(itr)*tb1(:,:,:)+bdt(itr)*gy(:,:,:)+uy(:,:,:)   
+        gx(:,:,:)=ta1(:,:,:)
+        gy(:,:,:)=tb1(:,:,:)
    endif
 endif
 endif
@@ -85,39 +79,27 @@ endif
 if (nscheme.eq.3) then 
    if (nz.gt.1) then
       if (adt(itr)==0.) then
-         do ijk=1,nxyz
-            gx(ijk,1,1)=dt*ta1(ijk,1,1)
-            gy(ijk,1,1)=dt*tb1(ijk,1,1)
-            gz(ijk,1,1)=dt*tc1(ijk,1,1)
-         enddo
+            gx(:,:,:)=dt*ta1(:,:,:)
+            gy(:,:,:)=dt*tb1(:,:,:)
+            gz(:,:,:)=dt*tc1(:,:,:)
       else
-         do ijk=1,nxyz
-            gx(ijk,1,1)=adt(itr)*gx(ijk,1,1)+dt*ta1(ijk,1,1)
-            gy(ijk,1,1)=adt(itr)*gy(ijk,1,1)+dt*tb1(ijk,1,1)
-            gz(ijk,1,1)=adt(itr)*gz(ijk,1,1)+dt*tc1(ijk,1,1)
-         enddo
+            gx(:,:,:)=adt(itr)*gx(:,:,:)+dt*ta1(:,:,:)
+            gy(:,:,:)=adt(itr)*gy(:,:,:)+dt*tb1(:,:,:)
+            gz(:,:,:)=adt(itr)*gz(:,:,:)+dt*tc1(:,:,:)
       endif
-      do ijk=1,nxyz
-         ux(ijk,1,1)=ux(ijk,1,1)+bdt(itr)*gx(ijk,1,1)
-         uy(ijk,1,1)=uy(ijk,1,1)+bdt(itr)*gy(ijk,1,1)
-         uz(ijk,1,1)=uz(ijk,1,1)+bdt(itr)*gz(ijk,1,1)
-      enddo
+            ux(:,:,:)=ux(:,:,:)+bdt(itr)*gx(:,:,:)
+            uy(:,:,:)=uy(:,:,:)+bdt(itr)*gy(:,:,:)
+            uz(:,:,:)=uz(:,:,:)+bdt(itr)*gz(:,:,:)
    else
       if (adt(itr)==0.) then
-         do ijk=1,nxyz
-            gx(ijk,1,1)=dt*ta1(ijk,1,1)
-            gy(ijk,1,1)=dt*tb1(ijk,1,1)
-         enddo
+            gx(:,:,:)=dt*ta1(:,:,:)
+            gy(:,:,:)=dt*tb1(:,:,:)
       else
-         do ijk=1,nxyz
-            gx(ijk,1,1)=adt(itr)*gx(ijk,1,1)+dt*ta1(ijk,1,1)
-            gy(ijk,1,1)=adt(itr)*gy(ijk,1,1)+dt*tb1(ijk,1,1)
-         enddo
+            gx(:,:,:)=adt(itr)*gx(:,:,:)+dt*ta1(:,:,:)
+            gy(:,:,:)=adt(itr)*gy(:,:,:)+dt*tb1(:,:,:)
       endif
-      do ijk=1,nxyz
-         ux(ijk,1,1)=ux(ijk,1,1)+bdt(itr)*gx(ijk,1,1)
-         uy(ijk,1,1)=uy(ijk,1,1)+bdt(itr)*gy(ijk,1,1)
-      enddo
+         ux(:,:,:)=ux(:,:,:)+bdt(itr)*gx(:,:,:)
+         uy(:,:,:)=uy(:,:,:)+bdt(itr)*gy(:,:,:)
    endif
 endif
 
@@ -189,11 +171,9 @@ real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: gx,gy,gz
 
 nxyz=xsize(1)*xsize(2)*xsize(3)
 
-do ijk=1,nxyz
-   ux(ijk,1,1)=-px(ijk,1,1)+ux(ijk,1,1)
-   uy(ijk,1,1)=-py(ijk,1,1)+uy(ijk,1,1) 
-   uz(ijk,1,1)=-pz(ijk,1,1)+uz(ijk,1,1) 
-enddo
+ux(:,:,:)=-px(:,:,:)+ux(:,:,:)
+uy(:,:,:)=-py(:,:,:)+uy(:,:,:) 
+uz(:,:,:)=-pz(:,:,:)+uz(:,:,:) 
 
 if (itype==2) then !channel flow
    call transpose_x_to_y(ux,gx)
@@ -728,11 +708,9 @@ nvect3=(ph1%zen(1)-ph1%zst(1)+1)*(ph1%zen(2)-ph1%zst(2)+1)*nzmsize
 
 if (nlock==1) then
    if (ivirt.eq.0) ep1(:,:,:)=0.
-   do ijk=1,nvect1
-      ta1(ijk,1,1)=(1.-ep1(ijk,1,1))*ux1(ijk,1,1)
-      tb1(ijk,1,1)=(1.-ep1(ijk,1,1))*uy1(ijk,1,1)
-      tc1(ijk,1,1)=(1.-ep1(ijk,1,1))*uz1(ijk,1,1)
-   enddo
+      ta1(:,:,:)=(1.-ep1(:,:,:))*ux1(:,:,:)
+      tb1(:,:,:)=(1.-ep1(:,:,:))*uy1(:,:,:)
+      tc1(:,:,:)=(1.-ep1(:,:,:))*uz1(:,:,:)
 else
    ta1(:,:,:)=ux1(:,:,:)
    tb1(:,:,:)=uy1(:,:,:)

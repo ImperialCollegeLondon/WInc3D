@@ -252,7 +252,7 @@ contains
     call alloc_z(pp3,ph,.true.)
     call alloc_z(dv3,ph,.true.)
     call alloc_z(po3,ph,.true.)
-
+    
     z_modes=int(zlz/zs_tr)
     allocate(h_coeff(z_modes))
     allocate(h_nxt(xsize(3)),h_i(xsize(3)))

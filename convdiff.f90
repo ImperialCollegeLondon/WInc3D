@@ -191,12 +191,11 @@ td3=0.;te3=0.;tf3=0.
 !########################## ENDING LES TERMS ##################################
 !SKEW CONVECTIVE TERMS!
 
-!WORK X-PENCILS
-   do ijk=1,nvect1
-      ta1(ijk,1,1)=ux1(ijk,1,1)*ux1(ijk,1,1)
-      tb1(ijk,1,1)=ux1(ijk,1,1)*uy1(ijk,1,1)
-      tc1(ijk,1,1)=ux1(ijk,1,1)*uz1(ijk,1,1)
-   enddo
+   !WORK X-PENCILS
+   ta1(:,:,:)=ux1(:,:,:)*ux1(:,:,:)
+   tb1(:,:,:)=ux1(:,:,:)*uy1(:,:,:)
+   tc1(:,:,:)=ux1(:,:,:)*uz1(:,:,:)
+   
    call derx (td1,ta1,di1,sx,ffxp,fsxp,fwxp,xsize(1),xsize(2),xsize(3),1)
    call derx (te1,tb1,di1,sx,ffx,fsx,fwx,xsize(1),xsize(2),xsize(3),0)
    call derx (tf1,tc1,di1,sx,ffx,fsx,fwx,xsize(1),xsize(2),xsize(3),0)
@@ -204,11 +203,9 @@ td3=0.;te3=0.;tf3=0.
    call derx (tb1,uy1,di1,sx,ffxp,fsxp,fwxp,xsize(1),xsize(2),xsize(3),1)
    call derx (tc1,uz1,di1,sx,ffxp,fsxp,fwxp,xsize(1),xsize(2),xsize(3),1)
 
-   do ijk=1,nvect1
-      ta1(ijk,1,1)=0.5*td1(ijk,1,1)+0.5*ux1(ijk,1,1)*ta1(ijk,1,1)
-      tb1(ijk,1,1)=0.5*te1(ijk,1,1)+0.5*ux1(ijk,1,1)*tb1(ijk,1,1)
-      tc1(ijk,1,1)=0.5*tf1(ijk,1,1)+0.5*ux1(ijk,1,1)*tc1(ijk,1,1)
-   enddo
+   ta1(:,:,:)=0.5*td1(:,:,:)+0.5*ux1(:,:,:)*ta1(:,:,:)
+   tb1(:,:,:)=0.5*te1(:,:,:)+0.5*ux1(:,:,:)*tb1(:,:,:)
+   tc1(:,:,:)=0.5*tf1(:,:,:)+0.5*ux1(:,:,:)*tc1(:,:,:)
 
    call transpose_x_to_y(ux1,ux2)
    call transpose_x_to_y(uy1,uy2)
@@ -216,23 +213,23 @@ td3=0.;te3=0.;tf3=0.
    call transpose_x_to_y(ta1,ta2)
    call transpose_x_to_y(tb1,tb2)
    call transpose_x_to_y(tc1,tc2)
-!WORK Y-PENCILS
-   do ijk=1,nvect2
-      td2(ijk,1,1)=ux2(ijk,1,1)*uy2(ijk,1,1)
-      te2(ijk,1,1)=uy2(ijk,1,1)*uy2(ijk,1,1)
-      tf2(ijk,1,1)=uz2(ijk,1,1)*uy2(ijk,1,1)
-   enddo
+
+   !WORK Y-PENCILS
+   td2(:,:,:)=ux2(:,:,:)*uy2(:,:,:)
+   te2(:,:,:)=uy2(:,:,:)*uy2(:,:,:)
+   tf2(:,:,:)=uz2(:,:,:)*uy2(:,:,:)
+   
    call dery (tg2,td2,di2,sy,ffy,fsy,fwy,ppy,ysize(1),ysize(2),ysize(3),0)
    call dery (th2,te2,di2,sy,ffyp,fsyp,fwyp,ppy,ysize(1),ysize(2),ysize(3),1)
    call dery (ti2,tf2,di2,sy,ffy,fsy,fwy,ppy,ysize(1),ysize(2),ysize(3),0)
    call dery (td2,ux2,di2,sy,ffyp,fsyp,fwyp,ppy,ysize(1),ysize(2),ysize(3),1)
    call dery (te2,uy2,di2,sy,ffy,fsy,fwy,ppy,ysize(1),ysize(2),ysize(3),0)
    call dery (tf2,uz2,di2,sy,ffyp,fsyp,fwyp,ppy,ysize(1),ysize(2),ysize(3),1)
-   do ijk=1,nvect2
-      ta2(ijk,1,1)=ta2(ijk,1,1)+0.5*tg2(ijk,1,1)+0.5*uy2(ijk,1,1)*td2(ijk,1,1)
-      tb2(ijk,1,1)=tb2(ijk,1,1)+0.5*th2(ijk,1,1)+0.5*uy2(ijk,1,1)*te2(ijk,1,1)
-      tc2(ijk,1,1)=tc2(ijk,1,1)+0.5*ti2(ijk,1,1)+0.5*uy2(ijk,1,1)*tf2(ijk,1,1)
-   enddo
+   
+   ta2(:,:,:)=ta2(:,:,:)+0.5*tg2(:,:,:)+0.5*uy2(:,:,:)*td2(:,:,:)
+   tb2(:,:,:)=tb2(:,:,:)+0.5*th2(:,:,:)+0.5*uy2(:,:,:)*te2(:,:,:)
+   tc2(:,:,:)=tc2(:,:,:)+0.5*ti2(:,:,:)+0.5*uy2(:,:,:)*tf2(:,:,:)
+   
    call transpose_y_to_z(ux2,ux3)
    call transpose_y_to_z(uy2,uy3)
    call transpose_y_to_z(uz2,uz3)
@@ -240,22 +237,22 @@ td3=0.;te3=0.;tf3=0.
    call transpose_y_to_z(tb2,tb3)
    call transpose_y_to_z(tc2,tc3)
 !WORK Z-PENCILS
-   do ijk=1,nvect3
-      td3(ijk,1,1)=ux3(ijk,1,1)*uz3(ijk,1,1)
-      te3(ijk,1,1)=uy3(ijk,1,1)*uz3(ijk,1,1)
-      tf3(ijk,1,1)=uz3(ijk,1,1)*uz3(ijk,1,1)
-   enddo
+   
+   td3(:,:,:)=ux3(:,:,:)*uz3(:,:,:)
+   te3(:,:,:)=uy3(:,:,:)*uz3(:,:,:)
+   tf3(:,:,:)=uz3(:,:,:)*uz3(:,:,:)
+   
    call derz (tg3,td3,di3,sz,ffz,fsz,fwz,zsize(1),zsize(2),zsize(3),0)
    call derz (th3,te3,di3,sz,ffz,fsz,fwz,zsize(1),zsize(2),zsize(3),0)
    call derz (ti3,tf3,di3,sz,ffzp,fszp,fwzp,zsize(1),zsize(2),zsize(3),1)
    call derz (td3,ux3,di3,sz,ffzp,fszp,fwzp,zsize(1),zsize(2),zsize(3),1)
    call derz (te3,uy3,di3,sz,ffzp,fszp,fwzp,zsize(1),zsize(2),zsize(3),1)
    call derz (tf3,uz3,di3,sz,ffz,fsz,fwz,zsize(1),zsize(2),zsize(3),0)
-   do ijk=1,nvect3
-      ta3(ijk,1,1)=ta3(ijk,1,1)+0.5*tg3(ijk,1,1)+0.5*uz3(ijk,1,1)*td3(ijk,1,1)
-      tb3(ijk,1,1)=tb3(ijk,1,1)+0.5*th3(ijk,1,1)+0.5*uz3(ijk,1,1)*te3(ijk,1,1)
-      tc3(ijk,1,1)=tc3(ijk,1,1)+0.5*ti3(ijk,1,1)+0.5*uz3(ijk,1,1)*tf3(ijk,1,1)
-   enddo
+
+   ta3(:,:,:)=ta3(:,:,:)+0.5*tg3(:,:,:)+0.5*uz3(:,:,:)*td3(:,:,:)
+   tb3(:,:,:)=tb3(:,:,:)+0.5*th3(:,:,:)+0.5*uz3(:,:,:)*te3(:,:,:)
+   tc3(:,:,:)=tc3(:,:,:)+0.5*ti3(:,:,:)+0.5*uz3(:,:,:)*tf3(:,:,:)
+
 endif
 !ALL THE CONVECTIVE TERMS ARE IN TA3, TB3 and TC3
 
