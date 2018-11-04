@@ -380,58 +380,57 @@ real(mytype), dimension(nx,ny,nz) :: ry
 real(mytype), dimension(nx,nz)  :: fisy
 real(mytype), dimension(ny) :: fiffy,fifsy,fifwy,ppy
 
-!if (ncly==0) then 
-!   do k=1,nz 
-!   do i=1,nx 
-!      ty(i,1,k)=fiajy*uy(1,j,k)+fibjy*(uy(2,j,k)+uy(nx,j,k))& 
-!                               +ficjy*(uy(3,j,k)+uy(nx-1,j,k))&
-!                               +fidjy*(uy(4,j,k)+uy(nx-2,j,k)) 
-!      ry(i,1,k)=-1.
-!      ty(i,2,k)=fiaiy*ux(2,j,k)+fibix*(ux(3,j,k)+ux(1,j,k))&
-!                               +ficix*(ux(4,j,k)+ux(nx,j,k))& 
-!                               +fidix*(ux(5,j,k)+ux(nx-1,j,k)) 
-!      ry(i,2,k)=0. 
-!      tx(i,3,k)=fiaix*ux(3,j,k)+fibix*(ux(4,j,k)+ux(2,j,k))&
-!          
-!                               +ficix*(ux(5,j,k)+ux(1,j,k))& 
-!                               +fidix*(ux(6,j,k)+ux(nx,j,k)) 
-!      rx(3,j,k)=0. 
-!      do j=4,ny-3
-!         tx(i,j,k)=fiaix*ux(i,j,k)+fibix*(ux(i+1,j,k)+ux(i-1,j,k))& 
-!                                  +ficix*(ux(i+2,j,k)+ux(i-2,j,k))&
-!                                  +fidix*(ux(i+3,j,k)+ux(i-3,j,k)) 
-!         rx(i,j,k)=0. 
-!      enddo
-!      tx(nx-2,j,k)=fiaix*ux(nx-2,j,k)+fibix*(ux(nx-3,j,k)+ux(nx-1,j,k))&
-!                                     +ficix*(ux(nx-4,j,k)+ux(nx,j,k))& 
-!                                     +fidix*(ux(nx-5,j,k)+ux(1,j,k)) 
-!      rx(nx-2,j,k)=0. 
-!      tx(nx-1,j,k)=fiaix*ux(nx-1,j,k)+fibix*(ux(nx-2,j,k)+ux(nx,j,k))&
-!                                     +ficix*(ux(nx-3,j,k)+ux(1,j,k))& 
-!                                     +fidix*(ux(nx-4,j,k)+ux(2,j,k)) 
-!      rx(nx-1,j,k)=0. 
-!      tx(nx,j,k)=fiaix*ux(nx,j,k)+fibix*(ux(nx-1,j,k)+ux(1,j,k))&
-!                                 +ficix*(ux(nx-2,j,k)+ux(2,j,k))& 
-!                                 +fidix*(ux(nx-3,j,k)+ux(3,j,k)) 
-!      rx(nx,j,k)=fialx           
-!      do j=2, ny
-!         tx(i,j,k)=tx(i,j,k)-tx(i-1,j,k)*fifsx(i) 
-!         rx(i,j,k)=rx(i,j,k)-rx(i-1,j,k)*fifsx(i) 
-!      enddo
-!      tx(nx,j,k)=tx(nx,j,k)*fifwx(nx) 
-!      rx(nx,j,k)=rx(nx,j,k)*fifwx(nx) 
-!      do i=nx-1,1,-1
-!         tx(i,j,k)=(tx(i,j,k)-fiffx(i)*tx(i+1,j,k))*fifwx(i) 
-!         rx(i,j,k)=(rx(i,j,k)-fiffx(i)*rx(i+1,j,k))*fifwx(i) 
-!      enddo
-!        fisx(j,k)=(tx(1,j,k)-fialx*tx(nx,j,k))&
-!           /(1.+rx(1,j,k)-fialx*rx(nx,j,k)) 
-!      do i=1,nx 
-!         tx(i,j,k)=tx(i,j,k)-fisx(j,k)*rx(i,j,k) 
-!      enddo
-!   enddo
-!   enddo
-!endif
+if (ncly==0) then 
+   do k=1,nz 
+   do i=1,nx 
+      ty(i,1,k)=fiajy*uy(i,1,k)+fibjy*(uy(i,2,k)+uy(i,nx,k))& 
+                               +ficjy*(uy(i,3,k)+uy(i,nx-1,k))&
+                               +fidjy*(uy(i,4,k)+uy(i,nx-2,k)) 
+      ry(i,1,k)=-1.
+      ty(i,2,k)=fiajy*uy(i,2,k)+fibjy*(uy(i,3,k)+uy(i,1,k))&
+                               +ficjy*(uy(i,4,k)+uy(i,nx,k))& 
+                               +fidjy*(uy(i,5,k)+uy(i,nx-1,k)) 
+      ry(i,2,k)=0. 
+      ty(i,3,k)=fiajy*uy(i,3,k)+fibjy*(uy(i,4,k)+uy(i,2,k))&
+                               +ficjy*(uy(i,5,k)+uy(i,1,k))& 
+                               +fidjy*(uy(i,6,k)+uy(i,nx,k)) 
+      ry(i,3,k)=0. 
+      do j=4,ny-3
+         ty(i,j,k)=fiajy*uy(i,j,k)+fibjy*(uy(i,j+1,k)+uy(i,j-1,k))& 
+                                  +ficjy*(uy(i,j+2,k)+uy(i,j-2,k))&
+                                  +fidjy*(uy(i,j+3,k)+uy(i,j-3,k)) 
+         ry(i,j,k)=0. 
+      enddo
+      ty(i,ny-2,k)=fiajy*uy(i,ny-2,k)+fibjy*(uy(i,ny-3,k)+uy(i,ny-1,k))&
+                                     +ficjy*(uy(i,ny-4,k)+uy(i,ny,k))& 
+                                     +fidjy*(uy(i,ny-5,k)+uy(i,1,k)) 
+      ry(i,ny-2,k)=0. 
+      ty(i,ny-1,k)=fiajy*uy(i,ny-1,k)+fibjy*(uy(i,ny-2,k)+uy(i,ny,k))&
+                                     +ficjy*(uy(i,ny-3,k)+uy(i,1,k))& 
+                                     +fidjy*(uy(i,ny-4,k)+uy(i,2,k)) 
+      ry(i,ny-1,k)=0. 
+      ty(i,ny,k)=fiajy*uy(i,ny,k)+fibjy*(uy(i,ny-1,k)+uy(i,1,k))&
+                                 +ficjy*(uy(i,ny-2,k)+uy(i,2,k))& 
+                                 +fidjy*(uy(i,ny-3,k)+uy(i,3,k)) 
+      ry(i,ny,k)=fialy           
+      do j=2, ny
+         ty(i,j,k)=ty(i,j,k)-ty(i,j-1,k)*fifsy(j) 
+         ry(i,j,k)=ry(i,j,k)-ry(i,j-1,k)*fifsy(j) 
+      enddo
+      ty(i,ny,k)=ty(i,ny,k)*fifwy(ny) 
+      ry(i,ny,k)=ry(i,ny,k)*fifwy(ny) 
+      do j=ny-1,1,-1
+         ty(i,j,k)=(ty(i,j,k)-fiffy(j)*ty(i,j+1,k))*fifwy(j) 
+         ry(i,j,k)=(ry(i,j,k)-fiffy(j)*ry(i,j+1,k))*fifwy(j) 
+      enddo
+        fisy(i,k)=(ty(i,1,k)-fialy*ty(i,ny,k))&
+           /(1.+ry(i,1,k)-fialy*ry(i,ny,k)) 
+      do j=1,ny 
+         ty(i,j,k)=ty(i,j,k)-fisy(i,k)*ry(i,j,k) 
+      enddo
+   enddo
+   enddo
+endif
 
 
 if (ncly==1) then 
