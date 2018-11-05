@@ -232,7 +232,7 @@ subroutine STATISTIC(ux1,uy1,uz1,phi1,ta1,umean,vmean,wmean,phimean,uumean,vvmea
 USE param
 USE decomp_2d
 USE decomp_2d_io
-
+use var, only: di1,di2,ux2,uy2,ta2,tb2,tc2,tauxymean
 implicit none
 
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux1,uy1,uz1,phi1
@@ -295,6 +295,22 @@ if (iscalar==1) then
    phiphimean(:,:,:)=phiphimean(:,:,:)+tmean(:,:,:)
 endif
 
+if (jles.ge.2) then
+!Computing the shear stresses
+!WORK X-PENCILS
+call derx (ta1,uy1,di1,sx,ffxp,fsxp,fwxp,xsize(1),xsize(2),xsize(3),1)
+!WORK Y-PENCILS
+call transpose_x_to_y(ux1,ux2)
+call transpose_x_to_y(ta1,ta2)
+call dery (tb2,ux2,di2,sy,ffyp,fsyp,fwyp,ppy,ysize(1),ysize(2),ysize(3),1)
+
+tc2(:,:,:)=0.5*(tb2(:,:,:)+ta2(:,:,:))
+
+call transpose_y_to_x(tc2,ta1)
+call fine_to_coarseS(1,ta1,tmean)
+tauxymean(:,:,:)=tauxymean(:,:,:)+tmean(:,:,:)
+
+endif
 !for a verification
 !call decomp_2d_write_one(nx_global,ny_global,nz_global,&
 !           1,ta1,'compa.dat')
@@ -314,6 +330,9 @@ if (mod(itime,isave)==0) then
       call decomp_2d_write_one(1,phimean,'phimean.dat',1)
       call decomp_2d_write_one(1,phiphimean,'phiphimean.dat',1)
       if (nrank==0) print *,'write stat arrays scalar done!'
+   endif
+   if (jLES.ge.2) then
+   call decomp_2d_write_one(1,tauxymean,'tauxymean.dat',1)
    endif
 !   call decomp_2d_write_one(nx_global,ny_global,nz_global,1,ux1,'compa.dat')
    

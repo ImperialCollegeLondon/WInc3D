@@ -81,15 +81,6 @@ character,dimension(100) :: turbinesPath*80, ActuatorlinesPath*80 ! Assign a max
 real(mytype), dimension(5) :: adt,bdt,cdt,gdt
 
 !module filter
-!real(mytype), save, allocatable, dimension(:) :: fifx,ficx,fibx,fiffx,fibbx,fiz1x,fiz2x
-!real(mytype), save, allocatable, dimension(:,:) ::filax,filaxp
-!real(mytype), save, allocatable, dimension(:) :: fifxp,ficxp,fibxp,fiffxp,fibbxp
-!real(mytype), save, allocatable, dimension(:) :: fify,ficy,fiby,fiffy,fibby,fiz1y,fiz2y
-!real(mytype), save, allocatable, dimension(:,:) ::filay,filayp
-!real(mytype), save, allocatable, dimension(:) :: fifyp,ficyp,fibyp,fiffyp,fibbyp
-!real(mytype), save, allocatable, dimension(:) :: fifz,ficz,fibz,fiffz,fibbz,fiz1z,fiz2z
-!real(mytype), save, allocatable, dimension(:,:) ::filaz,filazp
-!real(mytype), save, allocatable, dimension(:) :: fifzp,ficzp,fibzp,fiffzp,fibbzp
 real(mytype),dimension(200) :: idata
 real(mytype), save, allocatable, dimension(:) :: fiffx, fifcx, fifbx, fisfx, fiscx, fisbx,fifsx,fifwx,fissx,fiswx
 real(mytype), save, allocatable, dimension(:) :: fiffxp,fifsxp,fifwxp,fisfxp,fissxp,fiswxp

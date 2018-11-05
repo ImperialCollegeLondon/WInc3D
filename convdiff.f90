@@ -77,7 +77,7 @@ real(mytype),dimension(ysize(2)) :: tmpphi, phiPlaneAve !Horizontally-averaged p
 
 !ABL boundary conditions
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: tablx1, tably1, tablz1
-real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: wallfluxx1,wallfluxy1,wallfluxz1
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: wallfluxx1,wallfluxy1,wallfluxz1,wallfluxphi1
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: tauwallxy1, tauwallzy1 
 
 integer, dimension(2) :: dims, dummy_coords
@@ -494,10 +494,8 @@ endif
 end subroutine convdiff
 
 !************************************************************
-!
 subroutine PotentialTemperature(ux1,uy1,uz1,nut1,phi1,phis1,phiss1,di1,ta1,tb1,tc1,td1,&
-     uy2,uz2,phi2,di2,ta2,tb2,tc2,td2,uz3,phi3,di3,ta3,tb3,epsi)
-!
+     uy2,uz2,phi2,di2,ta2,tb2,tc2,td2,uz3,phi3,di3,ta3,tb3,tc3,epsi)
 !************************************************************
 
 USE param
@@ -506,32 +504,40 @@ USE decomp_2d
 implicit none
 
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux1,uy1,uz1,nut1,phi1,phis1,&
-                                              phiss1,di1,ta1,tb1,tc1,td1,epsi
-real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: uy2,uz2,phi2,di2,ta2,tb2,tc2,td2
-real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: uz3,phi3,di3,ta3,tb3
+                                              phiss1,di1,ta1,tb1,tc1,td1,epsi,sgsphi1
+real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: uy2,uz2,phi2,nut2,di2,ta2,tb2,tc2,td2,sgsphi2
+real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: uz3,phi3,nut3,di3,ta3,tb3,tc3,td3,sgsphi3
 
 integer :: ijk,nvect1,nvect2,nvect3,i,j,k,nxyz
-real(mytype) :: x,y,z
+real(mytype) :: x,y,z, PsiH, delta
 
 !X PENCILS
 ta1(:,:,:)=ux1(:,:,:)*phi1(:,:,:)
 
 call derx (tb1,ta1,di1,sx,ffx,fsx,fwx,xsize(1),xsize(2),xsize(3),0)
+call derx (tc1,nut1,di1,sx,ffx,fsx,fwx,xsize(1),xsize(2),xsize(3),0)
+call derx (td1,phi1,di1,sx,ffx,fsx,fwx,xsize(1),xsize(2),xsize(3),0)
 
 if (jles==1) then
 call derxx_iles (ta1,phi1,di1,sx,sfxp,ssxp,swxp,xsize(1),xsize(2),xsize(3),1)
 else
+
 call derxx (ta1,phi1,di1,sx,sfxp,ssxp,swxp,xsize(1),xsize(2),xsize(3),1)
+sgsphi1=tc1/Pr*td1+nut1/Pr*ta1
 endif
 
 call transpose_x_to_y(phi1,phi2)
 call transpose_x_to_y(uy1,uy2)
 call transpose_x_to_y(uz1,uz2)
+!For explicit LES
+call transpose_x_to_y(nut1,nut2)
+call transpose_x_to_y(sgsphi1,sgsphi2)
 
 !Y PENCILS
 ta2(:,:,:)=uy2(:,:,:)*phi2(:,:,:)
 
 call dery(tb2,ta2,di2,sy,ffy,fsy,fwy,ppy,ysize(1),ysize(2),ysize(3),0)
+call dery(td2,nut2,di2,sy,ffy,fsy,fwy,ppy,ysize(1),ysize(2),ysize(3),0)
 
 if (istret.ne.0) then         
     call dery(tc2,phi2,di2,sy,ffy,fsy,fwy,ppy,ysize(1),ysize(2),ysize(3),0)
@@ -548,27 +554,48 @@ if (istret.ne.0) then
    enddo
    enddo
    enddo
+        sgsphi2=sgsphi2+td2/Pr+nut1/Pr*ta2
 else
     if (jles==1) then
         call deryy_iles (ta2,phi2,di2,sy,sfyp,ssyp,swyp,ysize(1),ysize(2),ysize(3),1) 
     else
         call deryy (ta2,phi2,di2,sy,sfyp,ssyp,swyp,ysize(1),ysize(2),ysize(3),1) 
+        sgsphi2=sgsphi2+td2/Pr*tc2+nut2/Pr*ta2
     endif
+endif
+!Before applying the SGS model -- do the correction for ABL
+if(iabl==1.and.jles.ge.2.and.ysize(2).eq.1) then
+if (istret.ne.0) delta=(yp(2)-yp(1))/2.0
+if (istret.eq.0) delta=dy/2.
+do k=1,ysize(3)
+do i=1,ysize(1)
+PsiH=0!-7.8*delta/ObukhovL
+sgsphi2(i,1,k) = -(-1./2.*(-2.*nut2(i,3,k)*tc2(i,3,k))/Pr+&
+        2.*(-2.*nut2(i,2,k)*tc2(i,2,k))/Pr-3./2.*(u_shear*k_roughness*(phi2(i,1,k)-0.5*(phi2(i,1,k)+phi2(i,2,k)))/(log(delta/z_zero)-PsiH)))/(2.*delta)
+    enddo
+    enddo
 endif
 
 call transpose_y_to_z(phi2,phi3)
 call transpose_y_to_z(uz2,uz3)
+!For explicit LES
+call transpose_y_to_z(nut2,nut3)
+call transpose_y_to_z(sgsphi2,sgsphi3)
 
 !Z PENCILS
 ta3(:,:,:)=uz3(:,:,:)*phi3(:,:,:)
 
 call derz(tb3,ta3,di3,sz,ffz,fsz,fwz,zsize(1),zsize(2),zsize(3),0)
+call derz(tc3,nut3,di3,sz,ffz,fsz,fwz,zsize(1),zsize(2),zsize(3),0)
+call derz(td3,phi3,di3,sz,ffz,fsz,fwz,zsize(1),zsize(2),zsize(3),0)
 
 if (jles==1) then
     call derzz_iles (ta3,phi3,di3,sz,sfzp,sszp,swzp,zsize(1),zsize(2),zsize(3),1)
 else
     call derzz (ta3,phi3,di3,sz,sfzp,sszp,swzp,zsize(1),zsize(2),zsize(3),1)
+    sgsphi3=sgsphi3+tc3/Pr*td3+nut3/Pr*ta3
 endif
+
 call transpose_z_to_y(ta3,tc2)
 call transpose_z_to_y(tb3,td2)
 
@@ -579,15 +606,20 @@ td2(:,:,:)=td2(:,:,:)+tb2(:,:,:)
 call transpose_y_to_x(tc2,tc1)
 call transpose_y_to_x(td2,td1)
 
+call transpose_z_to_y(sgsphi3,sgsphi2)
+call transpose_y_to_x(sgsphi2,sgsphi1)
+
 !X PENCILS ADD TERMS
 ta1(:,:,:)=ta1(:,:,:)+tc1(:,:,:) !SECOND DERIVATIVE
 tb1(:,:,:)=tb1(:,:,:)+td1(:,:,:) !FIRST DERIVATIVE
  
-if(jles==1) then
+if(jles.le.1) then
 ta1(:,:,:)=xnu/Pr*ta1(:,:,:)-tb1(:,:,:) 
 else
-ta1(:,:,:)=(xnu+nut1(:,:,:))/Pr*ta1(:,:,:)-tb1(:,:,:) 
+ta1(:,:,:)=xnu/Pr*ta1(:,:,:)-tb1(:,:,:)+sgsphi1(:,:,:) 
 endif
+
+
 
 !TIME ADVANCEMENT (Doing it locally)
 if ((nscheme.eq.1).or.(nscheme.eq.2)) then
@@ -629,6 +661,5 @@ if (nscheme==4) then
       endif
    endif
 endif
-
 end subroutine PotentialTemperature
 

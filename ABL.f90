@@ -8,7 +8,7 @@ subroutine wall_sgs(ux,uy,uz,nut1,sxy1,syz1,tauwallxy,tauwallzy,wallfluxx,wallfl
     USE param 
     USE var, only: uxf1,uzf1, di1
 implicit none
-real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux,uy,uz,nut1
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux,uy,uz, nut1
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: wallfluxx,wallfluxy,wallfluxz
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: wallfluxxf,wallfluxyf,wallfluxzf
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: sxy1, syz1 
@@ -106,7 +106,6 @@ call filx(uzf1,uz,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0)
     wallfluxy(i,1,k) = 0.
     wallfluxz(i,1,k) = -(-1./2.*(-2.*nut1(i,3,k)*syz1(i,3,k))+&
         2.*(-2.*nut1(i,2,k)*syz1(i,2,k))-3./2.*tauwallzy(i,k))/(2.*delta)
-    
     else
     wallfluxx(i,1,k) = -CD*S12*delta 
     wallfluxy(i,1,k) = 0.!

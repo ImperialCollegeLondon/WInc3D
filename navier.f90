@@ -181,15 +181,11 @@ if (itype==2) then !channel flow
    call transpose_y_to_x(gx,ux)
 endif
 
-!if (itype==8) then ! atmospheric boundary layer with a damping zone flow
-!   call transpose_x_to_y(ux,gx)
-!   call transpose_x_to_y(uy,gy)
-!   call transpose_x_to_y(uz,gz)
-!   call damping_zone(gx,gy,gz)
-!   call transpose_y_to_x(gx,ux)
-!   call transpose_y_to_x(gy,uy)
-!   call transpose_y_to_x(gz,uz)
-!endif
+if (itype==8) then ! atmospheric boundary layer with a damping zone flow
+   call transpose_x_to_y(ux,gx)
+   call abl(gx)
+   call transpose_y_to_x(gx,ux)
+endif
 
 return
 end subroutine corgp

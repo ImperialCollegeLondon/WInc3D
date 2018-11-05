@@ -197,17 +197,7 @@ program visu_paraview
      write(nfil,*)'               </DataItem>'
      write(nfil,*)'            </Attribute>'
      endif
-     
-     if(jles.ge.2) then
-     write(nfil,*)'            <Attribute Name="nuSGS" Center="Node">'
-     write(nfil,*)'               <DataItem Format="Binary" '
-     write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
-     write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
-     write(nfil,*)'                  nuSGS'//chits
-     write(nfil,*)'               </DataItem>'
-     write(nfil,*)'            </Attribute>'
-     endif
-     
+      
      if(ibuoyancy==1) then
      write(nfil,*)'            <Attribute Name="temp" Center="Node">'
      write(nfil,*)'               <DataItem Format="Binary" '
@@ -346,9 +336,16 @@ program visu_paraview
   write(meanfil,*)'                  vwmean.dat'
   write(meanfil,*)'               </DataItem>'
   write(meanfil,*)'            </Attribute>'
-   
+  if(jLES.ge.2) then 
+  write(meanfil,*)'            <Attribute Name="tauxymean" Center="Node">'
+  write(meanfil,*)'               <DataItem Format="Binary" '
+  write(meanfil,*)'                DataType="Float" Precision="8" Endian="little"'
+  write(meanfil,*)'                Dimensions="',nz,ny,nx,'">'
+  write(meanfil,*)'                  vwmean.dat'
+  write(meanfil,*)'               </DataItem>'
+  write(meanfil,*)'            </Attribute>'
   write(meanfil,*)'        </Grid>'
-
+  endif
   write(meanfil,'(/)')
   write(meanfil,*)'    </Grid>'
   write(meanfil,*)'</Domain>'

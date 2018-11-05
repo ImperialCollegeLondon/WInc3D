@@ -39,7 +39,7 @@ USE param
 real(mytype), save, allocatable, dimension(:,:,:) :: ux1, ux2, ux3,po3,dv3,pp3,ucx1,ucy1,ucz1,uxf1,uxf2,uxf3
 real(mytype), save, allocatable, dimension(:,:,:) :: uy1, uy2, uy3,uyf1,uyf2,uyf3
 real(mytype), save, allocatable, dimension(:,:,:) :: uz1, uz2, uz3,uzf1,uzf2,uzf3
-real(mytype), save, allocatable, dimension(:,:,:) :: phi1, phi2, phi3
+real(mytype), save, allocatable, dimension(:,:,:) :: phi1, phi2, phi3, phif1,phif2,phif3
 real(mytype), save, allocatable, dimension(:,:,:) :: gx1, gy1, gz1, hx1, hy1, hz1, phis1,phiss1
 real(mytype), save, allocatable, dimension(:,:,:) :: px1, py1, pz1
 real(mytype), save, allocatable, dimension(:,:,:) :: ep1
@@ -48,7 +48,7 @@ real(mytype), save, allocatable, dimension(:,:,:,:) :: uxt,uyt,uzt
 
 ! Define inflow/outflow file
 real(mytype), save, allocatable, dimension(:,:,:) :: ux_recOutflow, uy_recOutflow, uz_recOutflow
-real(mytype), save, allocatable, dimension(:,:,:) :: ux_inflow, uy_inflow, uz_inflow
+real(mytype), save, allocatable, dimension(:,:,:) :: ux_inflow, uy_inflow, uz_inflow, phi_inflow
 
 ! define the Momentum Source arrays for the three directions
 real(mytype), save, allocatable, dimension(:,:,:) :: FTx, FTy, FTz
@@ -64,7 +64,7 @@ real(mytype), save, allocatable, dimension(:,:,:) :: vortxmean,vortymean,vortzme
 real(mytype), save, allocatable, dimension(:,:,:) :: vortmean,qcritmean
 real(mytype), save, allocatable, dimension(:,:,:) :: pmean, upmean,vpmean, wpmean, ppmean, uvisu1
 real(mytype), save, allocatable, dimension(:,:,:) :: sgszmean,sgsxmean,sgsymean,eadvxmean,eadvymean,eadvzmean
-real(mytype), save, allocatable, dimension(:,:,:) :: divdiva,curldiva
+real(mytype), save, allocatable, dimension(:,:,:) :: divdiva,curldiva,tauxymean
 !arrays for visualization
 real(mytype), save, allocatable, dimension(:,:,:) :: uvisu
 
@@ -126,7 +126,7 @@ contains
     call alloc_x(tg1);call alloc_x(th1);call alloc_x(ti1)
     call alloc_x(tj1);call alloc_x(di1);call alloc_x(ep1)
     call alloc_x(nut1);call alloc_x(ucx1);call alloc_x(ucy1);call alloc_x(ucz1);
-    call alloc_x(uxf1);call alloc_x(uyf1);call alloc_x(uzf1)
+    call alloc_x(uxf1);call alloc_x(uyf1);call alloc_x(uzf1);call alloc_x(phif1);
     call alloc_x(shrt_coeff);
     allocate(sx(xsize(2),xsize(3)),vx(xsize(2),xsize(3)))
     allocate(fisx(xsize(2),xsize(3)),fivx(xsize(2),xsize(3)))
@@ -180,7 +180,9 @@ contains
     allocate (uvmean(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))
     allocate (uwmean(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))
     allocate (vwmean(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))
-    allocate (tmean(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))    
+    allocate (tmean(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))  
+    allocate (tauxymean(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))  
+
     if (iscalar==1) then
        allocate (phimean(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))
        allocate (phiphimean(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))
@@ -232,7 +234,7 @@ contains
     call alloc_y(td2);call alloc_y(te2);call alloc_y(tf2)
     call alloc_y(tg2);call alloc_y(th2);call alloc_y(ti2)
     call alloc_y(tj2);call alloc_y(di2);call alloc_y(phi2)
-    call alloc_y(uxf2);call alloc_y(uyf2);call alloc_y(uzf2)
+    call alloc_y(uxf2);call alloc_y(uyf2);call alloc_y(uzf2); call alloc_y(phif2)
     allocate(sy(ysize(1),ysize(3)),vy(ysize(1),ysize(3)))
     allocate(fisy(ysize(1),ysize(3)),fivy(ysize(1),ysize(3)))
 !Z PENCILS
@@ -241,7 +243,7 @@ contains
     call alloc_z(td3);call alloc_z(te3);call alloc_z(tf3)
     call alloc_z(tg3);call alloc_z(th3);call alloc_z(ti3)
     call alloc_z(di3);call alloc_z(phi3);
-    call alloc_z(uxf3);call alloc_z(uyf3);call alloc_z(uzf3)
+    call alloc_z(uxf3);call alloc_z(uyf3);call alloc_z(uzf3); call alloc_z(phif3)
     allocate(sz(zsize(1),zsize(2)),vz(zsize(1),zsize(2)))
     allocate(fisz(zsize(1),zsize(2)),fivz(zsize(1),zsize(2)))
 

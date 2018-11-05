@@ -271,7 +271,7 @@ do itime=ifirst,ilast
       endif
    endif
    if (jLES.ge.2) then
-   call filter(0.490d0)
+   call filter(0.480d0)
    call apply_spatial_filter(ux1,uy1,uz1,ux2,uy2,uz2,ux3,uy3,uz3)
    endif         
    
@@ -290,9 +290,8 @@ do itime=ifirst,ilast
 
       ! Potential Temperature -- to be computed after the convdiff
       if (ibuoyancy==1) then
-          ! Transport equation for potential temperature
           call PotentialTemperature(ux1,uy1,uz1,nut1,phi1,phis1,phiss1,di1,tg1,th1,ti1,td1,&
-              uy2,uz2,phi2,di2,ta2,tb2,tc2,td2,uz3,phi3,di3,ta3,tb3,ep1)  
+              uy2,uz2,phi2,di2,ta2,tb2,tc2,td2,uz3,phi3,di3,ta3,tb3,tc3,td2,ep1)  
       endif
        
       !X PENCILS

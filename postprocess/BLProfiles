@@ -148,7 +148,7 @@ tau_s[0]=ustar**2.
 print ('found indices ', ixloc[0], jxloc[0], kxloc[0])
 if args.write:      
     with open(output+'profile.dat','w') as fout:
-        fout.write('# y/H U/Uref U/u* Phi upup/u*^2 vpvp/u*^2 wpwp/u*^2 -upvp/u*^2 I \n')
+        fout.write('# y/H U/Uref U/u* Phi upup/u*^2 vpvp/u*^2 wpwp/u*^2 tau/u*^2 -upvp/u*^2 I \n')
         for jprofile in range(ny):
             Y=float(y[ixloc[0],jprofile,kxloc[0]]/H)
             U=float(uav[ixloc[0],jprofile,kxloc[0]])
