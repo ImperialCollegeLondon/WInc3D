@@ -55,7 +55,7 @@ NAMELIST/FileParam/ilit,isave,imodulo,ioutflow,iinflow,OutflowOnsetIndex, NTimeS
 NAMELIST/IBMParam/ivirt,ibmshape,cex,cey,cez,ra
 NAMELIST/ALMParam/ialm,NTurbines,TurbinesPath,NActuatorlines,ActuatorlinesPath,eps_factor
 NAMELIST/StatParam/spinup_time,nstat,nvisu,iprobe,Probelistfile,nsampling, y_loc_pencil, z_loc_pencil 
-NAMELIST/ABLParam/iabl,z_zero,k_roughness,PsiM,ustar,IPressureGradient,Ug,dBL,epsilon_pert, idampingzone 
+NAMELIST/ABLParam/iabl,z_zero,k_roughness,PsiM,ustar,IPressureGradient,Ug,dBL,idampingzone, Imassconserve 
 #ifdef DOUBLE_PREC 
 pi=dacos(-1.d0) 
 #else
@@ -109,6 +109,7 @@ UG=[10.0d0,0.0d0,0.0d0]
 IPressureGradient=0
 ioutflow=0
 idampingzone=0
+Imassconserve=0
 zs_tr=0.1
 
 ! READ PARAMETERS FROM FILE

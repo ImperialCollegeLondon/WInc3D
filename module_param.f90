@@ -71,7 +71,8 @@ real(mytype) :: dt,xnu,noise,noise1,pi,twopi,u1,u2,re,sc,Pr,TempRef,CoriolisFreq
 real(mytype) :: t,xxk1,xxk2, spinup_time
 real(mytype) :: smagcst, nSmag, walecst,dys, FSGS, rxxnu, cnu, dynhypvisc
 real(mytype) :: eps_factor ! Smoothing factor 
-real(mytype) :: TurbRadius,z_zero,k_roughness,PsiM,ustar,u_shear,IPressureGradient,epsilon_pert,dBL,idampingzone
+real(mytype) :: TurbRadius,z_zero,k_roughness,PsiM,ustar,u_shear, dBL
+integer :: IPressureGradient,idampingzone, Imassconserve
 real(mytype),dimension(3) :: UG
 integer :: itr,itime
 character :: dirname*80

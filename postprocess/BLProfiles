@@ -66,6 +66,7 @@ wwfile=open(path+"wwmean.dat","rb")
 uvfile=open(path+"uvmean.dat","rb")
 uwfile=open(path+"uwmean.dat","rb")
 vwfile=open(path+"vwmean.dat","rb")
+tauxyfile=open(path+"tauxymean.dat","rb")
 # vu, wu, wv are ommited due to symmetry
 
 # Reading the binary files into numpy vectors
@@ -78,6 +79,7 @@ wwmean=np.fromfile(wwfile,dtype=np.float64)
 uvmean=np.fromfile(uvfile,dtype=np.float64)
 uwmean=np.fromfile(uwfile,dtype=np.float64)
 vwmean=np.fromfile(vwfile,dtype=np.float64)
+tauxymean=np.fromfile(tauxyfile,dtype=np.float64)
 
 
 # Initialising the 3D arrays to map the velocities etc.
@@ -93,6 +95,7 @@ wpwp=np.zeros((nx,ny,nz))
 upvp=np.zeros((nx,ny,nz))
 upwp=np.zeros((nx,ny,nz))
 vpwp=np.zeros((nx,ny,nz))
+tauav=np.zeros((nx,ny,nz))
 
 # Compute average quantities + reshape
 Nsteps=nml['PostProcess']['NSteps']
@@ -106,6 +109,7 @@ wpwp=wwmean.reshape((nx,ny,nz),order='F')/Nsteps-wav**2
 upvp=uvmean.reshape((nx,ny,nz),order='F')/Nsteps-uav*vav
 upwp=uwmean.reshape((nx,ny,nz),order='F')/Nsteps-uav*wav
 vpwp=vwmean.reshape((nx,ny,nz),order='F')/Nsteps-vav*wav
+tauav=tauxymean.reshape((nx,ny,nz),order='F')/Nsteps
 TKE=0.5*(upup+vpvp+wpwp)
 
 for i in range(nx):
@@ -131,33 +135,23 @@ for i in range(ny):
 
 dudy=np.gradient(uav[ixloc[0],:,kxloc[0]],dy,edge_order=2)
 
-C_0=0.16
-n=1
-y0=0.1
-S=0.5*(dudy+dvdx)
-S_mag=np.sqrt(2*S*S)
-Delta=(dx*dy*dz)**(1./3.)
-C_S=C_0#(C_0**n+(0.4*(y[ixloc[0],:,kxloc[0]]/Delta+y0/Delta))**(-n))**(-1/n)
-tau_s=(C_S*Delta)**2.*S*S_mag
-print(np.shape(dudy),np.shape(dvdx),np.shape(S),np.shape(S_mag))
-tau_s[0]=ustar**2.
-
 #print(tau_s/ustar**2.)
 
 
 print ('found indices ', ixloc[0], jxloc[0], kxloc[0])
 if args.write:      
     with open(output+'profile.dat','w') as fout:
-        fout.write('# y/H U/Uref U/u* Phi upup/u*^2 vpvp/u*^2 wpwp/u*^2 tau/u*^2 -upvp/u*^2 I \n')
+        fout.write('# y/H U/Uref U/u* Phi upup/u*^2 vpvp/u*^2 wpwp/u*^2 tau/u*^2 -upvp/u*^2 total_stresses I \n')
         for jprofile in range(ny):
             Y=float(y[ixloc[0],jprofile,kxloc[0]]/H)
             U=float(uav[ixloc[0],jprofile,kxloc[0]])
             Uustar=float(np.average(uav[:,jprofile,:])/ustar)
             Phi=float(dudy[jprofile]*y[ixloc[0],jprofile,kxloc[0]]*0.4/ustar)
-            UpUp=float(upup[ixloc[0],jprofile,kxloc[0]]/ustar**2.)
-            VpVp=float(vpvp[ixloc[0],jprofile,kxloc[0]]/ustar**2.)
-            WpWp=float(wpwp[ixloc[0],jprofile,kxloc[0]]/ustar**2.)
+            UpUp=float(np.average(upup[:,jprofile,:])/ustar**2.)
+            VpVp=float(np.average(vpvp[:,jprofile,:])/ustar**2.)
+            WpWp=float(np.average(wpwp[:,jprofile,:])/ustar**2.)
             UpVp=float(-np.average(upvp[:,jprofile,:])/ustar**2.)
-            TAU=float(tau_s[jprofile]/ustar**2.)
+            TAU=float(np.average(tauav[:,jprofile,:])/ustar**2.)
+            TOTALSTRESSES=TAU+UpVp
             I=float(sqrt(upup[ixloc[0],jprofile,kxloc[0]])/sqrt(uav[ixloc[0],jprofile,kxloc[0]]**2.+wav[ixloc[0],jprofile,kxloc[0]]**2.))
-            fout.write(str(Y)+' '+ str(U)+' '+str(Uustar)+' '+str(Phi)+' '+str(UpUp)+' '+str(VpVp)+' '+str(WpWp)+' '+str(UpVp)+' '+str(TAU)+' '+str(I)+'\n')
+            fout.write(str(Y)+' '+ str(U)+' '+str(Uustar)+' '+str(Phi)+' '+str(UpUp)+' '+str(VpVp)+' '+str(WpWp)+' '+str(UpVp)+' '+str(TAU)+' '+str(TOTALSTRESSES)+' '+str(I)+'\n')

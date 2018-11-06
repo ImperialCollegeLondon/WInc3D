@@ -181,7 +181,7 @@ if (itype==2) then !channel flow
    call transpose_y_to_x(gx,ux)
 endif
 
-if (itype==8) then ! atmospheric boundary layer with a damping zone flow
+if (itype==8.and.Imassconserve==1) then ! atmospheric boundary layer with mass conservation
    call transpose_x_to_y(ux,gx)
    call abl(gx)
    call transpose_y_to_x(gx,ux)
