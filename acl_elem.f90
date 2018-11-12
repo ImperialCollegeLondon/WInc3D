@@ -7,10 +7,12 @@ module actuator_line_element
     use dynstall
 
 type ActuatorLineType
-    integer :: NElem                    ! Number of Elements of the Blade
-    character(len=100):: name           ! Actuator line name
-    character(len=100):: geom_file      ! Actuator line file name (is not used for the turbines)
-    character(len=100):: dynstallfile   ! Dynstallfile to load options
+    integer :: NElem                            ! Number of Elements of the Blade
+    character(len=100):: name                   ! Actuator line name
+    character(len=100):: geom_file              ! Actuator line file name (is not used for the turbines)
+    character(len=100):: dynstallfile           ! Dynstallfile to load options
+
+    logical :: Is_constant_circulation=.false.  ! Is constant circulatio flag for verification purposes
 
     ! Station parameters
     logical :: FlipN =.false.           	! Flip Normal
@@ -215,7 +217,6 @@ end type ActuatorLineType
 
     end subroutine set_actuatorline_geometry
     
-
     subroutine Compute_ActuatorLine_Forces(act_line,visc,dt,time)
        
     implicit none

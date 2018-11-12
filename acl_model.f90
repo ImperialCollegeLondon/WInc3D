@@ -450,7 +450,6 @@ contains
                 ! First do control	 
                 call operate_controller(Turbine(i)%Controller,ctime,Turbine(i)%NBlades,Turbine(i)%angularVel) 
                 Turbine(i)%deltaOmega=(Turbine(i)%Torque-Turbine(i)%Controller%GearBoxRatio*Turbine(i)%Controller%GenTrq)/(Turbine(i)%IRotor+Turbine(i)%Controller%GearBoxRatio**2.*Turbine(i)%Controller%IGenerator)*DeltaT
-            
                 Turbine(i)%angularVel=Turbine(i)%angularVel+Turbine(i)%deltaOmega
                 ! Then Calculate the angular velocity and compute the DeltaTheta  and AzimAngle              
                 theta=Turbine(i)%angularVel*DeltaT
@@ -497,6 +496,7 @@ contains
                 call compute_rotor_upstream_velocity(Turbine(i),WSRotorAve)
                 Turbine(i)%Uref=WSRotorAve
                 Turbine(i)%angularVel=Turbine(i)%Uref*Turbine(i)%TSR/Turbine(i)%Rmax
+            	!Turbine(i)%angularVel=sqrt(abs(Turbine(i)%Torque)/(0.5*0.432*Turbine(i)%A*Turbine(i)%Rmax**3./Turbine(i)%TSR**3.))
                 theta=Turbine(i)%angularVel*DeltaT
                 Turbine(i)%AzimAngle=Turbine(i)%AzimAngle+theta
                 call rotate_turbine(Turbine(i),Turbine(i)%RotN,theta)

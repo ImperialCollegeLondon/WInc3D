@@ -31,7 +31,7 @@ parser.add_argument("FILENAME", type=str, help="Filename, should end with .load"
 args = parser.parse_args()
 input_file = args.FILENAME
 
-Data = genfromtxt(input_file,delimiter=',',skip_header=1)
+Data = genfromtxt(input_file,delimiter=',',skip_header=2)
 N=len(Data)
 X=np.zeros((N,1));
 Y=np.zeros((N,1));

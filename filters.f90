@@ -29,54 +29,43 @@ fiaix=(11. + 10.*af)/16.         ! a
 fibix=0.5*(15. + 34.*af)/32.     ! b/2 
 ficix=0.5*(-3. + 6.*af)/16.      ! c/2
 fidix=0.5*(1. - 2.*af)/32.       ! d/2
+! Explicit third-order filters near the boundaries!
 !Boundary point 1
-fia1x=0.5*(63./64.+af/64.)       ! a1
-fib1x=0.5*(3./32.+29.*af/32.)    ! b1/2
-fic1x=0.5*(-15./64.+ 15.*af/64.) ! c1/2
-fid1x=0.5*(5./16.-5.*af/16.)     ! d1/2
-fie1x=0.5*(-15./16.+15.*af/64.)  ! e1/2
-fif1x=0.5*(3./32.-3.*af/32.)     ! f1/2
-fig1x=0.5*(-1./64.+af/64.)       ! g1/2
+fia1x=15./16.       ! a1/2
+fib1x=4./16.        ! b1/2
+fic1x=-6./16.       ! c1/2
+fid1x=4./16.        ! d1/2
+fie1x=-1./16.       ! e1/2
 !Boundary point 2
-fia2x=0.5*(1./64.+31.*af/32.)    ! a2
-fib2x=0.5*(29./32.+3.*af/16.)    ! b2/2
-fic2x=0.5*(15./64.+ 17.*af/32.)  ! c2/2
-fid2x=0.5*(-5./16.+5.*af/8.)     ! d2/2
-fie2x=0.5*(15./64.-15.*af/32.)   ! e2/2
-fif2x=0.5*(-3./32.+3.*af/16.)    ! f2/2
-fig2x=0.5*(1./64.-af/32.)        ! g2/2
+fia2x=1./16.    ! a2
+fib2x=3./4.     ! b2/2
+fic2x=6./16.    ! c2/2
+fid2x=-4./16.   ! d2/2
+fie2x=1./16.    ! e2/2
 !Boundary point 3
-fia3x=0.5*(-1./64.+af/32.)       ! a3
-fib3x=0.5*(3./32.+13.*af/16.)    ! b3/2
-fic3x=0.5*(49./64.+15.*af/32.)   ! c3/2
-fid3x=0.5*(5./16.+3.*af/8.)      ! d3/2
-fie3x=0.5*(-15./64.+15.*af/32.)  ! e3/2
-fif3x=0.5*(3./32.-3.*af/16.)     ! f3/2
-fig3x=0.5*(-1./64.+af/32.)       ! g3/2
+fia3x=-1./16.     ! a3
+fib3x=4./16.   ! b3/2
+fic3x=5./8.    ! c3/2
+fid3x=4./16.    ! d3/2
+fie3x=-1./16.   ! e3/2
 !Boundary point n
-fianx=0.5*(63./64.+af/64.)       ! an
-fibnx=0.5*(3./32.+29.*af/32.)    ! bn/2
-ficnx=0.5*(-15./64.+ 15.*af/64.) ! cn/2
-fidnx=0.5*(5./16.-5.*af/16.)     ! dn/2
-fienx=0.5*(-15./16.+15.*af/64.)  ! en/2
-fifnx=0.5*(3./32.-3.*af/32.)     ! fn/2
-fignx=0.5*(-1./64.+af/64.)       ! gn/2
+fianx=15./16.       ! an/2
+fibnx=4./16.        ! bn/2
+ficnx=-6./16.       ! cn/2
+fidnx=4./16.        ! dn/2
+fienx=-1./16.       ! en/2
 !Boundary point m=n-1
-fiamx=0.5*(1./64.+31.*af/32.)    ! am 
-fibmx=0.5*(29./32.+3.*af/16.)    ! bm/2
-ficmx=0.5*(15./64.+ 17.*af/32.)  ! cm/2
-fidmx=0.5*(-5./16.+5.*af/8.)     ! dm/2
-fiemx=0.5*(15./64.-15.*af/32.)   ! em/2
-fifmx=0.5*(-3./32.+3.*af/16.)    ! fm/2
-figmx=0.5*(1./64.-af/32.)        ! gm/2
+fiamx=1./16.    ! am 
+fibmx=3./4.     ! bm/2
+ficmx=6./16.    ! cm/2
+fidmx=-4./16.   ! dm/2
+fiemx=1./16.    ! em/2
 !Boundary point p=n-2
-fiapx=0.5*(-1./64.+af/32.)       ! ap 
-fibpx=0.5*(3./32.+13.*af/16.)    ! bp/2
-ficpx=0.5*(49./64.+15.*af/32.)   ! cp/2
-fidpx=0.5*(5./16.+3.*af/8.)      ! dp/2
-fiepx=0.5*(-15./64.+15.*af/32.)  ! ep/2
-fifpx=0.5*(3./32.-3.*af/16.)     ! fp/2
-figpx=0.5*(-1./64.+af/32.)       ! gp/2
+fiapx=-1./16.   ! bp/2
+fibpx=4./16.    ! cp/2
+ficpx=5./8.     ! ap 
+fidpx=4./16.    ! dp/2
+fiepx=-1./16.   ! ep/2
 ! Set the coefficients for the matrix A
 ! Periodic case
 if (nclx.eq.0) then
@@ -100,6 +89,53 @@ if (nclx.eq.0) then
       fifcx(i)=1.
       fifbx(i)=af
    enddo   
+endif
+if (nclx.eq.1) then
+   fiffx(1)   =af+af
+   fiffx(2)   =af
+   fiffx(ny-2)=af
+   fiffx(ny-1)=af
+   fiffy(ny)  =0.
+   fifcx(1)   =1.
+   fifcx(2)   =1.
+   fifcx(nx-2)=1.
+   fifcx(nx-1)=1.
+   fifcx(nx  )=1.
+   fifbx(1)   =af 
+   fifbx(2)   =af
+   fifbx(nx-2)=af
+   fifbx(nx-1)=af+af
+   fifbx(nx  )=0.
+   do i=3,nx-3
+      fiffy(i)=af
+      fifcy(i)=1.
+      fifby(i)=af
+   enddo
+endif
+if (nclx.eq.2) then
+   fiffx(1)   =0. 
+   fiffx(2)   =0.
+   fiffx(3)   =0.
+   fiffx(nx-2)=0.
+   fiffx(nx-1)=0.
+   fiffx(nx)  =0.
+   fifcx(1)   =1.
+   fifcx(2)   =1.
+   fifcx(3)   =1.
+   fifcx(nx-2)=1.
+   fifcx(nx-1)=1.
+   fifcx(nx  )=1.
+   fifbx(1)   =0. 
+   fifbx(2)   =0.
+   fifbx(3)   =0.
+   fifbx(nx-2)=0.
+   fifbx(nx-1)=0.
+   fifbx(nx  )=0.
+   do i=4,nx-3
+      fiffx(i)=af
+      fifcx(i)=1.
+      fifbx(i)=af
+   enddo
 endif
 ! Prepare coefficients to be used in the Thomas Algorithm
 call prepare (fifbx,fifcx,fiffx,fifsx,fifwx,nx)
@@ -358,6 +394,38 @@ if (nclx==0) then
    enddo
    enddo
 endif
+
+if (nclx==2) then 
+   do k=1,nz
+   do j=1,ny 
+      tx(1,j,k)=fia1x*ux(1,j,k)+fib1x*ux(2,j,k)+fic1x*ux(3,j,k)+&
+				fid1x*ux(4,j,k)+fie1x*ux(5,j,k)
+      tx(2,j,k)=fia2x*ux(1,j,k)+fib2x*ux(2,j,k)+fic2x*ux(3,j,k)+&
+				fid2x*ux(4,j,k)+fie2x*ux(5,j,k)
+      tx(3,j,k)=fia3x*ux(1,j,k)+fib3x*ux(2,j,k)+fic3x*ux(3,j,k)+&
+				fid3x*ux(4,j,k)+fie3x*ux(5,j,k)
+      do i=4,nx-3
+         tx(i,j,k)=fiaix*ux(i,j,k)+fibix*(ux(i+1,j,k)+ux(i-1,j,k))& 
+                                  +ficix*(ux(i+2,j,k)+ux(i-2,j,k))&
+                                  +fidix*(ux(i+3,j,k)+ux(i-3,j,k)) 
+      enddo
+      tx(nx,j,k)=fianx*ux(nx,j,k)+fibnx*ux(nx-1,j,k)+ficnx*ux(nx-2,j,k)+&
+				  fidnx*ux(nx-3,j,k)+fienx*ux(nx-4,j,k)
+      tx(nx-1,j,k)=fiamx*ux(nx,j,k)+fibmx*ux(nx-1,j,k)+ficmx*ux(nx-2,j,k)+&
+				    fidmx*ux(nx-3,j,k)+fiemx*ux(nx-4,j,k)
+      tx(nx-2,j,k)=fiapx*ux(nx,j,k)+fibpx*ux(nx-1,j,k)+ficpx*ux(nx-2,j,k)+&
+				    fidpx*ux(nx-3,j,k)+fiepx*ux(nx-4,j,k)
+      do i=2,nx 
+         tx(i,j,k)=tx(i,j,k)-tx(i-1,j,k)*fifsx(i) 
+      enddo
+      tx(nx,j,k)=tx(nx,j,k)*fifwx(nx) 
+      do i=nx-1,1,-1
+         tx(i,j,k)=(tx(i,j,k)-fiffx(i)*tx(i+1,j,k))*fifwx(i) 
+      enddo
+   enddo 
+   enddo 
+endif
+
 
 return  
 end subroutine filx
