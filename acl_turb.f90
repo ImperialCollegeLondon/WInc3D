@@ -203,7 +203,6 @@ contains
     !Compute a number of global parameters for the turbine
     !========================================================
     turbine%angularVel=turbine%Uref*turbine%TSR/turbine%Rmax
-    
     turbine%A=pi*turbine%Rmax**2
     
     turbine%IRotor=0. 
@@ -288,9 +287,11 @@ contains
     
     ! PRINT ON SCREEN
     if(nrank==0) then
-        write(6,*) 'Turbine :', turbine%name
-        write(6,*) "Thrust Coefficient : ",  turbine%CT
-        write(6,*) "Power  Coefficient : ",  turbine%CP
+        write(6,*) "Turbine : ",   turbine%name
+        write(6,*) "======================================="
+        write(6,*) "Thrust  : ",  turbine%Thrust/1000., "kN"
+        write(6,*) "Torque  : ",  turbine%Torque/1000., "kN m"
+        write(6,*) "Power   : ",  turbine%Power/1000000., "MW"
     endif
 
     end subroutine compute_performance
@@ -328,7 +329,7 @@ contains
         wb=turbine%blade(iblade)%EVbz(ielem)
         urdn=nxe*(u-ub)+nye*(v-vb)+nze*(w-wb)! Normal 
         urdc=txe*(u-ub)+tye*(v-vb)+tze*(w-wb)! Tangential
-        ur=sqrt(urdn**2.0+urdc**2.0) 
+        ur=sqrt(urdn**2.0+urdc**2.0)
         ! This is the dynamic angle of attack 
         axis_mag=sqrt(turbine%RotN(1)**2+turbine%RotN(2)**2+turbine%RotN(3)**2)
         phi=pi/2.0

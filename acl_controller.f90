@@ -87,7 +87,7 @@ subroutine init_controller(control,GeneratorInertia,GBRatio,GBEfficiency,&
     control%VS_MaxTq=MaximumTorque 
 
     control%CornerFreq=1.570796   ! Corner frequency (-3dB point) in the recursive, single-pole, 
-    control%PC_DT=0.0025          ! 
+    control%PC_DT=0.00125          ! 
     control%PC_KI=0.008068634     ! Integral gain for pitch controller at rated pitch (zero), (-).
     control%PC_KK=0.1099965       ! Pitch angle were the derivative of the aerodynamic power 
     control%PC_KP= 0.01882681     ! Proportional gain for pitch controller at rated pitch (zero), sec.
@@ -312,7 +312,7 @@ subroutine operate_controller(control,time,NumBl,rotSpeed)
    ! Compute the gain scheduling correction factor based on the previously
    !   commanded pitch angle for blade 1:
 
-      control%GK = 1.0/( 1.0 + control%PitCom(1)/control%PC_KK )
+      control%GK = 1.0/( 1.0 + control%PitCom(1)/control%PC_KK)
 
 !
    ! Compute the current speed error and its integral w.r.t. time; saturate the
@@ -348,7 +348,7 @@ subroutine operate_controller(control,time,NumBl,rotSpeed)
       DO K = 1,NumBl ! Loop through all blades
 
          control%PitRate(K) = ( control%PitComT - control%BlPitch(K) )/control%ElapTime                 ! Pitch rate of blade K (unsaturated)
-         control%PitRate(K) = MIN( MAX( control%PitRate(K), -control%PC_MaxRat ), control%PC_MaxRat )   ! Saturate the pitch rate of blade K using its maximum absolute value
+         control%PitRate(K) = MIN( MAX( control%PitRate(K), -control%PC_MaxRat ), control%PC_MaxRat)   ! Saturate the pitch rate of blade K using its maximum absolute value
          control%PitCom (K) = control%BlPitch(K) + control%PitRate(K)*control%ElapTime                  ! Saturate the overall command of blade K using the pitch rate limit
 
       ENDDO          ! K - all blades
@@ -358,11 +358,12 @@ subroutine operate_controller(control,time,NumBl,rotSpeed)
       control%LastTimePC = Time
 
 !   ! Output debugging information if requested:
-!
-!      IF ( PC_DbgOut )  WRITE (UnDb,FmtDat)  Time, ElapTime, HorWindV, GenSpeed*RPS2RPM, GenSpeedF*RPS2RPM,           &
-!                                             100.0*SpdErr/PC_RefSpd, SpdErr, IntSpdErr, GK, PitComP*R2D, PitComI*R2D, &
-!                                             PitComT*R2D, PitRate(1)*R2D, PitCom(1)*R2D
-   ENDIF
+
+    !if (nrank==0) then
+    !  print *, Time, control%ElapTime, control%GenSpeed/RPM2RPS, control%GenSpeedF/RPM2RPS, control%GenTrq, rotSpeed 
+    !endif
+
+ENDIF
 !
 !
 !   ! Set the pitch override to yes and command the pitch demanded from the last

@@ -308,13 +308,13 @@ end type ActuatorLineType
     end if
    
     if(act_line%do_LB_stall) then
-	CLstat=CL
-	CDstat=CD
-	call LB_DynStall(act_line%EAirfoil(ielem),act_line%ELBStall(ielem),CLstat,CDstat,alpha,alpha,act_line%ERe(ielem),CLdyn,CDdyn) 
-    	CL=CLdyn
-    	CD=CDdyn
-	ds=2.*act_line%EUr(ielem)*dt/ElemChord
-    	call LB_UpdateStates(act_line%ELBStall(ielem),act_line%EAirfoil(ielem),act_line%ERe(ielem),ds)
+    CLstat=CL
+    CDstat=CD
+    call LB_DynStall(act_line%EAirfoil(ielem),act_line%ELBStall(ielem),CLstat,CDstat,alpha,alpha,act_line%ERe(ielem),CLdyn,CDdyn) 
+    CL=CLdyn
+    CD=CDdyn
+    ds=2.*act_line%EUr(ielem)*dt/ElemChord
+    call LB_UpdateStates(act_line%ELBStall(ielem),act_line%EAirfoil(ielem),act_line%ERe(ielem),ds)
     endif 
     
     !===============================================
@@ -336,7 +336,7 @@ end type ActuatorLineType
     ! Apply end effects for actuator line (only to the lift coefficient)
     ! The value is initialized to 1.0 it should not make any difference
     ! when it is not activated
-    ! ========================================================================
+    !==========================================================================
     CL=CL*act_line%EEndeffects_factor(ielem)
     
     ! Apply Random walk on the Lift and drag forces
@@ -345,6 +345,12 @@ end type ActuatorLineType
     freq=Strouhal*ur/max(ElemChord,0.0001)
     CL=CL*(1+0.1*sin(2.0*pi*freq*time)+0.05*(-1.0+2.0*rand(ielem)))
     CD=CD*(1+0.05*(-1.0+2.0*rand(ielem)))
+    endif
+
+    if(act_line%Is_constant_circulation) then
+    CL=act_line%EGamma(ielem)/(0.5*ElemArea*ur)
+    CD=0.
+    CM25=0.
     endif
 
     ! Tangential and normal coeffs

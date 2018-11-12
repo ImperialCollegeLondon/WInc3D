@@ -110,6 +110,7 @@ contains
      
     subroutine get_turbine_options(turbines_path)
 
+    use param, only: u1,u2
         implicit none
 
         character(len=80),dimension(100),intent(in) :: turbines_path 
@@ -123,8 +124,8 @@ contains
         character(len=100),dimension(10) :: afname
         real(mytype), dimension(3) :: origin
         integer :: numblades,numfoil,towerFlag, TypeFlag, OperFlag, RotFlag, AddedMassFlag, DynStallFlag, EndEffectsFlag
-        integer :: TipCorr, RootCorr, RandomWalkForcingFlag, AeroElastFlag, AeroElastModel
-        real(mytype) :: toweroffset,tower_drag,tower_lift,tower_strouhal, uref, tsr, ShenC1, ShenC2 
+        integer :: TipCorr, RootCorr, RandomWalkForcingFlag, AeroElastFlag, AeroElastModel, ConstantCirculationFlag
+        real(mytype) :: toweroffset,tower_drag,tower_lift,tower_strouhal, uref, tsr, ShenC1, ShenC2, GammaCirc 
         real(mytype) :: BladeInertia, GeneratorInertia, GBRatio, GBEfficiency, RatedGenSpeed 
         real(mytype) :: RatedLimitGenTorque, CutInGenSpeed, Region2StartGenSpeed, Region2EndGenSpeed,Kgen  
         real(mytype) :: RatedPower, MaximumTorque
@@ -132,6 +133,7 @@ contains
         NAMELIST/TurbineSpecs/name,origin,numblades,blade_geom,numfoil,afname,towerFlag,towerOffset, &
             tower_geom,tower_drag,tower_lift,tower_strouhal,TypeFlag, OperFlag, tsr, uref,RotFlag, AddedMassFlag, &
             RandomWalkForcingFlag, DynStallFlag,dynstall_param_file,EndEffectsFlag,TipCorr, RootCorr,ShenC1, ShenC2, &
+            ConstantCirculationFlag, GammaCirc, &
             yaw_angle, shaft_tilt_angle, blade_cone_angle,AeroElastFlag, AeroElastModel, AeroElastInputFile, AeroElastSolverFile, &
             BladeInertia, GeneratorInertia, GBRatio, GBEfficiency, RatedGenSpeed, RatedLimitGenTorque, CutInGenSpeed, &
             Region2StartGenSpeed,Region2EndGenSpeed,Kgen,RatedPower,MaximumTorque,list_controller_file
@@ -156,6 +158,7 @@ contains
         RandomWalkForcingFlag=0
         DynStallFlag=0
         EndEffectsFlag=0
+        ConstantCirculationFlag=0
         TipCorr=0
         RootCorr=0
         ShenC1=0.125
@@ -190,7 +193,6 @@ contains
             endif
         end if
         
-
         ! Assign variables on the blade level 
         do j=1,Turbine(i)%NBlades
        
@@ -243,9 +245,9 @@ contains
             Turbine(i)%TSR=tsr
         else if(OperFlag==2) then
             Turbine(i)%Is_NRELController = .true. 
-            ! Assign the Uref and TSR to compute the optimum tip-speed ratio (This applies only to the first time step)
-            Turbine(i)%Uref=uref
+            Turbine(i)%Uref=0.5*(u1+u2)
             Turbine(i)%TSR=tsr
+            ! Assign the Uref and TSR to compute the optimum tip-speed ratio (This applies only to the first time step)
             ! Controller Variables
             !--------------------------
             do j=1,Turbine(i)%NBlades
@@ -268,9 +270,9 @@ contains
             call read_list_controller_file(list_controller_file,turbine(i)) 
         else if(OperFlag==4) then
             Turbine(i)%TSR=tsr
-	    Turbine(i)%Is_upstreamvel_controlled=.true.
+            Turbine(i)%Is_upstreamvel_controlled=.true.
             Turbine(i)%Uref=uref 
-	else
+        else
             write(*,*) "Only constant_rotation (1) and control_based (2) is used"
             stop
         endif
@@ -313,6 +315,13 @@ contains
         endif
         endif
         
+        if (ConstantCirculationFlag==1) then
+            do j=1,Turbine(i)%NBlades
+            Turbine(i)%Blade(j)%Is_constant_circulation=.true.  
+            Turbine(i)%Blade(j)%EGamma(:)=GammaCirc 
+            end do
+        endif
+        
         if (EndEffectsFlag>0) then
         Turbine(i)%Has_BladeEndEffectModelling=.true.
         if(EndEffectsFlag==1) then
@@ -331,6 +340,7 @@ contains
         if (AeroElastFlag==1) then
             Turbine(i)%do_aeroelasticity=.true.
         endif
+
 
         end do
 
@@ -459,9 +469,14 @@ contains
                 call Compute_Turbine_RotVel(Turbine(i))  
             
                 ! Then do picth control (if not zero)
-                !do j=1,Turbine(i)%NBlades
-                !call pitch_actuator_line(Turbine(i)%Blade(j),Turbine(i)%Controller%PitCom(j))
-                !enddo
+                do j=1,Turbine(i)%NBlades
+                if (Turbine(i)%IsClockwise) then
+                deltapitch=-Turbine(i)%Controller%PitCom(j)
+                else
+                deltapitch=Turbine(i)%Controller%PitCom(j)
+                endif
+                call pitch_actuator_line(Turbine(i)%Blade(j),deltapitch)
+                enddo
             
                 ! After you do both variable speed and pitch control update the status of the controller
                 Turbine(i)%Controller%IStatus=Turbine(i)%Controller%IStatus+1
@@ -488,10 +503,9 @@ contains
                 deltapitch=pitch_angle 
                 endif
                 
-                !do j=1,Turbine(i)%NBlades
-                !call pitch_actuator_line(Turbine(i)%Blade(j),deltapitch)
-                !if (nrank==0) print *, deltapitch, turbine(i)%blade(j)%nEx(40),turbine(i)%blade(j)%nEz(40)     
-                !enddo 
+                do j=1,Turbine(i)%NBlades
+                call pitch_actuator_line(Turbine(i)%Blade(j),deltapitch)
+                enddo 
            else if (Turbine(i)%Is_upstreamvel_controlled) then
                 call compute_rotor_upstream_velocity(Turbine(i),WSRotorAve)
                 Turbine(i)%Uref=WSRotorAve
