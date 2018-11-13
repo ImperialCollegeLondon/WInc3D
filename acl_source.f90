@@ -133,7 +133,7 @@ contains
             end do
         end do
     endif
-  
+ 
     end subroutine get_locations
     
     subroutine set_vel
@@ -229,7 +229,7 @@ contains
 
         use decomp_2d, only: mytype, nproc, xstart, xend, xsize, update_halo
         use MPI
-        use param, only: dx,dy,dz,eps_factor, xnu,yp,istret
+        use param, only: dx,dy,dz,eps_factor,xnu,yp,istret,xlx,yly,zlz
         use var, only: ux1, uy1, uz1, FTx, FTy, FTz
         
         implicit none
@@ -252,26 +252,36 @@ contains
         Sw(:)=0.0
         ! This is not optimum but works
         ! Define the domain
-            
+        
         if (istret.eq.0) then 
-        ymin=(xstart(2)-1)*dy-dy/2.0 ! Add -dy/2.0 overlap
-        ymax=(xend(2)-1)*dy+dy/2.0   ! Add +dy/2.0 overlap
+        ymin=(xstart(2)-1)*dy-dy/2. ! Add -dy/2.0 overlap
+        ymax=(xend(2)-1)*dy+dy/2.   ! Add +dy/2.0 overlap
         else
         ymin=yp(xstart(2))
         ymax=yp(xend(2))
         endif
         
-        zmin=(xstart(3)-1)*dz-dz/2.0 ! Add a -dz/2.0 overlap
-        zmax=(xend(3)-1)*dz+dz/2.0   ! Add a +dz/2.0 overlap
-        
+        zmin=(xstart(3)-1)*dz-dz/2. ! Add a -dz/2.0 overlap
+        zmax=(xend(3)-1)*dz+dz/2.   ! Add a +dz/2.0 overlap
+    
+        ! Check if the points lie outside the fluid domain
+        do isource=1,Nsource
+        if((Sx(isource)>xlx).or.(Sx(isource)<0).or.(Sy(isource)>yly).or.(Sy(isource)<0).or.(Sz(isource)>zlz).or.(Sz(isource)<0)) then
+            print *, 'Point outside the fluid domain'
+            stop
+        endif
+        enddo 
         !write(*,*) 'Rank=', nrank, 'X index Limits=', xstart(1), xend(1), 'X lims=', (xstart(1)-1)*dx, (xend(1)-1)*dx
         !write(*,*) 'Rank=', nrank, 'Y index Limits=', xstart(2), xend(2), 'Y lims=', ymin, ymax 
         !write(*,*) 'Rank=', nrank, 'Z index Limits=', xstart(3), xend(3), 'Z lims=', zmin, zmax
-        !call update_halo(ux1,ux1_halo,1)
-        !call update_halo(uy1,uy1_halo,1)
-        !call update_halo(uz1,uz1_halo,1)
-        
-	!$OMP PARALLEL DO
+        call update_halo(ux1,ux1_halo,1,opt_global=.true.)
+        call update_halo(uy1,uy1_halo,1,opt_global=.true.)
+        call update_halo(uz1,uz1_halo,1,opt_global=.true.)
+        !print *,  nrank, shape(ux1), shape(ux1_halo)
+        !do j=xstart(2),xend(2)
+        !print *, nrank, ux1(xstart(1),j,xstart(3)), ux1_halo(xstart(1),j,xstart(3))
+        !enddo
+
         do isource=1,NSource
         
         min_dist=1e6
@@ -325,12 +335,12 @@ contains
                 j_upper=min_j+1
             else if(Sy(isource)>(min_j-1)*dy.and.Sy(isource)>(xend(2)-1)*dy) then
                 j_lower=min_j
-                j_upper=min_j!+1 ! THis is in the Halo domain 
+                j_upper=min_j+1 ! THis is in the Halo domain 
             else if(Sy(isource)<(min_j-1)*dy.and.Sy(isource)>(xstart(2)-1)*dy) then
                 j_lower=min_j-1
                 j_upper=min_j
             else if(Sy(isource)<(min_j-1)*dy.and.Sy(isource)<(xstart(2)-1)*dy) then
-                j_lower=min_j!-1 ! THis is in the halo domain
+                j_lower=min_j-1 ! THis is in the halo domain
                 j_upper=min_j 
             else if (Sy(isource)==(min_j-1)*dy) then
                 j_lower=min_j
@@ -355,12 +365,12 @@ contains
                 k_upper=min_k+1
             elseif(Sz(isource)>(min_k-1)*dz.and.Sz(isource)>(xend(3)-1)*dz) then
                 k_lower=min_k
-                k_upper=min_k!+1 ! This in the halo doamin
+                k_upper=min_k+1 ! This in the halo doamin
             else if(Sz(isource)<(min_k-1)*dz.and.Sz(isource)>(xstart(3)-1)*dz) then
                 k_lower=min_k-1
                 k_upper=min_k
             else if(Sz(isource)<(min_k-1)*dz.and.Sz(isource)<(xstart(3)-1)*dz) then
-                k_lower=min_k!-1 ! This is in the halo domain
+                k_lower=min_k-1 ! This is in the halo domain
                 k_upper=min_k
             else if (Sz(isource)==(min_k-1)*dz) then
                 k_lower=min_k
@@ -392,43 +402,42 @@ contains
             !    stop
             !endif
             ! Apply interpolation kernels from 8 neighboring nodes 
-
-		 
+ 
             Su_part(isource)= trilinear_interpolation(x0,y0,z0, &
                                                   x1,y1,z1, &
                                                   x,y,z, &
-                                                  ux1(i_lower,j_lower,k_lower), &
-                                                  ux1(i_upper,j_lower,k_lower), &
-                                                  ux1(i_lower,j_lower,k_upper), &
-                                                  ux1(i_upper,j_lower,k_upper), &
-                                                  ux1(i_lower,j_upper,k_lower), &
-                                                  ux1(i_upper,j_upper,k_lower), &
-                                                  ux1(i_lower,j_upper,k_upper), &
-                                                  ux1(i_upper,j_upper,k_upper))
+                                                  ux1_halo(i_lower,j_lower,k_lower), &
+                                                  ux1_halo(i_upper,j_lower,k_lower), &
+                                                  ux1_halo(i_lower,j_lower,k_upper), &
+                                                  ux1_halo(i_upper,j_lower,k_upper), &
+                                                  ux1_halo(i_lower,j_upper,k_lower), &
+                                                  ux1_halo(i_upper,j_upper,k_lower), &
+                                                  ux1_halo(i_lower,j_upper,k_upper), &
+                                                  ux1_halo(i_upper,j_upper,k_upper))
             
              Sv_part(isource)= trilinear_interpolation(x0,y0,z0, &
                                                   x1,y1,z1, &
                                                   x,y,z, &
-                                                  uy1(i_lower,j_lower,k_lower), &
-                                                  uy1(i_upper,j_lower,k_lower), &
-                                                  uy1(i_lower,j_lower,k_upper), &
-                                                  uy1(i_upper,j_lower,k_upper), &
-                                                  uy1(i_lower,j_upper,k_lower), &
-                                                  uy1(i_upper,j_upper,k_lower), &
-                                                  uy1(i_lower,j_upper,k_upper), &
-                                                  uy1(i_upper,j_upper,k_upper))
+                                                  uy1_halo(i_lower,j_lower,k_lower), &
+                                                  uy1_halo(i_upper,j_lower,k_lower), &
+                                                  uy1_halo(i_lower,j_lower,k_upper), &
+                                                  uy1_halo(i_upper,j_lower,k_upper), &
+                                                  uy1_halo(i_lower,j_upper,k_lower), &
+                                                  uy1_halo(i_upper,j_upper,k_lower), &
+                                                  uy1_halo(i_lower,j_upper,k_upper), &
+                                                  uy1_halo(i_upper,j_upper,k_upper))
           
             Sw_part(isource)= trilinear_interpolation(x0,y0,z0, &
                                                   x1,y1,z1, &
                                                   x,y,z, &
-                                                  uz1(i_lower,j_lower,k_lower), &
-                                                  uz1(i_upper,j_lower,k_lower), &
-                                                  uz1(i_lower,j_lower,k_upper), &
-                                                  uz1(i_upper,j_lower,k_upper), &
-                                                  uz1(i_lower,j_upper,k_lower), &
-                                                  uz1(i_upper,j_upper,k_lower), &
-                                                  uz1(i_lower,j_upper,k_upper), &
-                                                  uz1(i_upper,j_upper,k_upper))
+                                                  uz1_halo(i_lower,j_lower,k_lower), &
+                                                  uz1_halo(i_upper,j_lower,k_lower), &
+                                                  uz1_halo(i_lower,j_lower,k_upper), &
+                                                  uz1_halo(i_upper,j_lower,k_upper), &
+                                                  uz1_halo(i_lower,j_upper,k_lower), &
+                                                  uz1_halo(i_upper,j_upper,k_lower), &
+                                                  uz1_halo(i_lower,j_upper,k_upper), &
+                                                  uz1_halo(i_upper,j_upper,k_upper))
  
         else
             Su_part(isource)=0.0

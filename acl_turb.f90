@@ -289,6 +289,8 @@ contains
     if(nrank==0) then
         write(6,*) "Turbine : ",   turbine%name
         write(6,*) "======================================="
+        write(6,*) "Thrust coeff : ",   turbine%CT
+        write(6,*) "Power  coeff  : ",  turbine%CP
         write(6,*) "Thrust  : ",  turbine%Thrust/1000., "kN"
         write(6,*) "Torque  : ",  turbine%Torque/1000., "kN m"
         write(6,*) "Power   : ",  turbine%Power/1000000., "MW"

@@ -80,7 +80,6 @@ type ActuatorLineType
     
     ! Element Circulation Gamma 
     real(mytype), allocatable :: EGamma(:)     ! Element Circulation (Gamma)
-    
     ! Element Forces in the nts direction
     real(mytype), allocatable :: EFn(:)         ! Element Force in the normal direction
     real(mytype), allocatable :: EFt(:)         ! Element Force in the tangential direction (rearward chord line direction) 
@@ -114,7 +113,8 @@ type ActuatorLineType
     ! Degrees of Freedom
     
     real(mytype) :: COR(3)       ! Center of Rotation
-    real(mytype) :: SpanWise(3)   ! Point of Rotation
+    real(mytype) :: SpanWise(3)  ! Point of Rotation
+    real(mytype) :: GammaCirc    ! GammaCirc (for the constant circulation simulations)
    
     ! Unsteady Loading
     logical :: do_added_mass=.false.
@@ -347,11 +347,6 @@ end type ActuatorLineType
     CD=CD*(1+0.05*(-1.0+2.0*rand(ielem)))
     endif
 
-    if(act_line%Is_constant_circulation) then
-    CL=act_line%EGamma(ielem)/(0.5*ElemArea*ur)
-    CD=0.
-    CM25=0.
-    endif
 
     ! Tangential and normal coeffs
     CN=CL*cos(alpha)+CD*sin(alpha)                                   
@@ -363,6 +358,12 @@ end type ActuatorLineType
     FN=0.5*CN*ElemArea*ur**2.0
     FT=0.5*CT*ElemArea*ur**2.0
     MS=0.5*CM25*ElemChord*ElemArea*ur**2.0
+   
+    if(act_line%Is_constant_circulation) then
+    FN=act_line%GammaCirc*ur*ElemArea/ElemChord*cos(alpha)
+    FT=-act_line%GammaCirc*ur*ElemArea/ElemChord*sin(alpha)
+    MS=0.
+    endif
     !===============================================
     ! Compute forces in the X, Y, Z axis and torque  
     !===============================================

@@ -318,7 +318,7 @@ contains
         if (ConstantCirculationFlag==1) then
             do j=1,Turbine(i)%NBlades
             Turbine(i)%Blade(j)%Is_constant_circulation=.true.  
-            Turbine(i)%Blade(j)%EGamma(:)=GammaCirc 
+            Turbine(i)%Blade(j)%GammaCirc=GammaCirc  
             end do
         endif
         
@@ -509,13 +509,13 @@ contains
            else if (Turbine(i)%Is_upstreamvel_controlled) then
                 call compute_rotor_upstream_velocity(Turbine(i),WSRotorAve)
                 Turbine(i)%Uref=WSRotorAve
-                Turbine(i)%angularVel=Turbine(i)%Uref*Turbine(i)%TSR/Turbine(i)%Rmax
-            	!Turbine(i)%angularVel=sqrt(abs(Turbine(i)%Torque)/(0.5*0.432*Turbine(i)%A*Turbine(i)%Rmax**3./Turbine(i)%TSR**3.))
+                !Turbine(i)%angularVel=Turbine(i)%Uref*Turbine(i)%TSR/Turbine(i)%Rmax
+                Turbine(i)%angularVel=sqrt(abs(Turbine(i)%Torque)/(0.5*0.432*Turbine(i)%A*Turbine(i)%Rmax**3./Turbine(i)%TSR**3.))
                 theta=Turbine(i)%angularVel*DeltaT
                 Turbine(i)%AzimAngle=Turbine(i)%AzimAngle+theta
                 call rotate_turbine(Turbine(i),Turbine(i)%RotN,theta)
                 call Compute_Turbine_RotVel(Turbine(i))  
-	   endif
+            endif
             
             enddo
         endif
