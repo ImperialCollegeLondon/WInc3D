@@ -27,13 +27,13 @@ call filter(0.0d0)
 ! Filter the velocity with twice the grid scale according to Bou-zeid et al 2005
 call filx(uxf1,ux,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0) 
 call filx(uzf1,uz,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0) 
-if (nrank==0) then
-open(30,file='filter.dat')
-do i=1,xsize(1)
-write(30,*) ux(i,1,1), uxf1(i,1,1)
-enddo
-close(30)
-endif
+!if (nrank==0) then
+!open(30,file='filter.dat')
+!do i=1,xsize(1)
+!write(30,*) ux(i,1,1), uxf1(i,1,1)
+!enddo
+!close(30)
+!endif
 
 ! Determine the shear stress using Moeng's formulation
 !*****************************************************************************************
