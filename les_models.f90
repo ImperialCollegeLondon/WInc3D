@@ -877,12 +877,12 @@ subroutine compute_sgs(ux1, uy1, uz1, ep1, sxx1, syy1, szz1, sxy1, sxz1, syz1, n
   real(mytype), dimension(xsize(1), xsize(2), xsize(3)) :: sgsx1, sgsy1, sgsz1
 
   ! Auxilliary variables
-  real(mytype), dimension(xsize(1), xsize(2), xsize(3)) :: ta1f, tb1f, tc1f, td1f, te1f, tf1f
-  real(mytype), dimension(ysize(1), ysize(2), ysize(3)) :: tb2f, td2f, te2f, tc2f, tf2f
-  real(mytype), dimension(zsize(1), zsize(2), zsize(3)) :: tc3f, te3f, tf3f
   real(mytype), dimension(xsize(1), xsize(2), xsize(3)) :: gxx1, gyx1, gzx1
   real(mytype), dimension(ysize(1), ysize(2), ysize(3)) :: gxy2, gyy2, gzy2
   real(mytype), dimension(zsize(1), zsize(2), zsize(3)) :: gxz3, gyz3, gzz3 
+  real(mytype), dimension(xsize(1), xsize(2), xsize(3)) :: gxx1f, gyx1f, gzx1f 
+  real(mytype), dimension(ysize(1), ysize(2), ysize(3)) :: gxy2f, gyy2f, gzy2f
+  real(mytype), dimension(zsize(1), zsize(2), zsize(3)) :: gxz3f, gyz3f, gzz3f
   real(mytype), dimension(ysize(1), ysize(2), ysize(3)) :: sgsx2, sgsy2, sgsz2
   real(mytype), dimension(zsize(1), zsize(2), zsize(3)) :: sgsx3, sgsy3, sgsz3
   real(mytype),dimension(xsize(1),xsize(3)) :: tauwallxy1, tauwallzy1 
@@ -925,10 +925,16 @@ subroutine compute_sgs(ux1, uy1, uz1, ep1, sxx1, syy1, szz1, sxy1, sxz1, syz1, n
   call derx (gyx1, tb1, di1, sx, ffx, fsx, fwx, xsize(1), xsize(2), xsize(3), 0)
   call derx (gzx1, tc1, di1, sx, ffx, fsx, fwx, xsize(1), xsize(2), xsize(3), 0)
 
+  ! filter the sgs? 
+  call filter(0.48d0)
+  call filx(gxx1f,gxx1,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0) 
+  call filx(gyx1f,gyx1,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0) 
+  call filx(gzx1f,gzx1,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0) 
+
   ! Add to the SGS 
-  sgsx1(:,:,:)=sgsx1(:,:,:)-gxx1(:,:,:)
-  sgsy1(:,:,:)=sgsy1(:,:,:)-gyx1(:,:,:)
-  sgsz1(:,:,:)=sgsz1(:,:,:)-gzx1(:,:,:)
+  sgsx1(:,:,:)=sgsx1(:,:,:)-gxx1f(:,:,:)
+  sgsy1(:,:,:)=sgsy1(:,:,:)-gyx1f(:,:,:)
+  sgsz1(:,:,:)=sgsz1(:,:,:)-gzx1f(:,:,:)
  
   ! transpose to Y-pencil 
   call transpose_x_to_y(sgsx1, sgsx2)
@@ -959,6 +965,10 @@ subroutine compute_sgs(ux1, uy1, uz1, ep1, sxx1, syy1, szz1, sxy1, sxz1, syz1, n
   call derz(gxz3,tc3,di3,sz,ffz,fsz,fwz,zsize(1),zsize(2),zsize(3),0)
   call derz(gyz3,te3,di3,sz,ffz,fsz,fwz,zsize(1),zsize(2),zsize(3),0)
   call derz(gzz3,tf3,di3,sz,ffz,fsz,fwz,zsize(1),zsize(2),zsize(3),0)
+
+  call filz(gxz3f,gxz3,di3,fisz,fiffz,fifsz,fifwz,zsize(1),zsize(2),zsize(3),0) 
+  call filz(gyz3f,gyz3,di3,fisz,fiffz,fifsz,fifwz,zsize(1),zsize(2),zsize(3),0) 
+  call filz(gzz3f,gzz3,di3,fisz,fiffz,fifsz,fifwz,zsize(1),zsize(2),zsize(3),0) 
    
   sgsx3(:,:,:)=sgsx3(:,:,:)-gxz3(:,:,:)
   sgsy3(:,:,:)=sgsy3(:,:,:)-gyz3(:,:,:)

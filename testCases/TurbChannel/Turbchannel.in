@@ -8,7 +8,6 @@
     u2  = 1.              ! u2 (min velocity) (for inflow condition) 
     noise  = 0.125        ! Turbulence intensity (1=100%) !! Initial condition
     noise1 = 0.0          ! Turbulence intensity (1=100%) !! Inflow condition
-    dt = 0.005           ! Time step
     
     ! Additional effects  
     ibuoyancy=0           ! Buoyancy flag (0: No buoyanancy 1: Buoyancy)
@@ -28,6 +27,7 @@
     ifirst = 1	          ! First iteration   
     ilast = 50000         ! Last iteration 
     nscheme = 1           ! Temporal scheme (1:AB2, 2: RK3, 3:RK4, 4:AB3)
+    dt = 0.005           ! Time step
     istret = 0            ! y mesh refinement (0:no, 1:center, 2:both sides, 3:bottom)
     beta = 0.259065151    ! Refinement parameter (beta) 
     iskew = 1             ! (0:urotu, 1:skew, for the convective terms)
