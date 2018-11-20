@@ -1,0 +1,92 @@
+#!/usr/bin/env python3
+# 
+# Georgios (Yorgos) Deskos
+# This script reads the .load files and plots the loads
+import os, glob
+import shutil
+import sys
+import string
+import filecmp
+import difflib
+import subprocess
+import math
+import re
+import argparse
+import csv
+import time
+import numpy as np
+from numpy import genfromtxt
+import matplotlib.pyplot as plt
+from math import sqrt, pi
+
+# ====================================
+# Parser Arguments
+# ====================================
+parser = argparse.ArgumentParser(description="Script that reads from one or more files and plots Blade load statistics")
+parser.add_argument("-v","--verbose",action="store_true",help="Prints a script description on the screen")
+parser.add_argument("-p","--plot",action="store_true",help="Plots the Cp versus the TSR")
+parser.add_argument("-w","--write",help="Write results in a .dat file",type=str)
+parser.add_argument("FILENAME", type=str, help="Filename, should end with .load")
+
+args = parser.parse_args()
+input_file = args.FILENAME
+
+Data = genfromtxt(input_file,delimiter=',',skip_header=1)
+N=len(Data)
+X=np.zeros((N,1));
+Y=np.zeros((N,1));
+Z=np.zeros((N,1));
+rdistR=np.zeros((N,1));
+pitch=np.zeros((N,1));
+AOA=np.zeros((N,1));
+AOAdot=np.zeros((N,1));
+Re=np.zeros((N,1));
+Ur=np.zeros((N,1));
+epsilon=np.zeros((N,1));
+CL=np.zeros((N,1));
+CD=np.zeros((N,1));
+CM=np.zeros((N,1));
+CN=np.zeros((N,1));
+CT=np.zeros((N,1));
+Fn=np.zeros((N,1));
+Ft=np.zeros((N,1));
+Gamma=np.zeros((N,1));
+
+for i in range(N):
+    X[i]=Data[i,1];
+    Y[i]=Data[i,2];
+    Z[i]=Data[i,3];
+    rdistR[i]=Data[i,4];
+    pitch[i]=Data[i,6];
+    AOA[i]=Data[i,7];
+    AOAdot[i]=Data[i,8];
+    Re[i]=Data[i,9];
+    Ur[i]=Data[i,10];
+    epsilon[i]=Data[i,11];
+    CL[i]=Data[i,12];
+    CD[i]=Data[i,13];
+    CM[i]=Data[i,14];
+    CN[i]=Data[i,15];
+    CT[i]=Data[i,16];
+    Fn[i]=Data[i,17];
+    Ft[i]=Data[i,18];
+    Gamma[i]=Data[i,20];
+    
+# Analytic solution
+U=1.
+b=10.
+c0=1.
+alpha=10.*pi/180.
+alphal0=-3.64*pi/180.
+S=pi*c0/2.*b/2.
+AR=b**2./S
+Gammamax=2*b*1.*(alpha-alphal0)/(1+AR/2.)
+z=-np.cos(np.linspace(0,pi,1000))*b/2.
+GammaTheo=Gammamax*(1-(z/(b/2.))**2.)**(1./2.)
+
+plt.figure(1)
+plt.plot(z,GammaTheo,'r')
+plt.plot(-60+Z,Gamma,'k.')
+plt.xlabel('Distance r [m]')
+plt.ylabel('Gamma')
+plt.show()

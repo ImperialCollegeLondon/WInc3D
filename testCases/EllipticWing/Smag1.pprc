@@ -1,0 +1,18 @@
+&PostProcess
+    nx=101
+    ny=101
+    nz=121
+    xlx = 10           ! Lx (Size of the box in x-direction)
+    yly = 10           ! Ly (Size of the box in y-direction) 
+    zlz = 12          ! Lz (Size of the box in z-direction) 
+    nclx=0
+    ncly=1
+    nclz=0
+    nfiles=400
+    file1=1
+    filen=400
+    istret=0
+    ialm=0
+    ibuoyancy=0
+/End
+
