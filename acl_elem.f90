@@ -166,13 +166,13 @@ end type ActuatorLineType
     actuatorline%QCz(istation)=rR(istation)*length*Svec(3)+actuatorline%COR(3)
     
     if(actuatorline%pitch_control) then
-        actuatorline%pitch(istation)=actuatorline%pitch_angle_init/180.0*pi+pi/2.  
+        actuatorline%pitch(istation)=actuatorline%pitch_angle_init/180.0*pi  
     else 
-        actuatorline%pitch(istation)=pitch(istation)/180.0*pi+pi/2.    
+        actuatorline%pitch(istation)=pitch(istation)/180.0*pi    
     endif
  
-    actuatorline%tx(istation)= sin(actuatorline%pitch(istation))    
-    actuatorline%ty(istation)= cos(actuatorline%pitch(istation))     
+    actuatorline%tx(istation)= cos(actuatorline%pitch(istation))    
+    actuatorline%ty(istation)= -sin(actuatorline%pitch(istation))     
     actuatorline%tz(istation)= 0.0     
     actuatorline%C(istation)=ctoR(istation)*length
     actuatorline%thick(istation)=thick(istation)
@@ -347,6 +347,11 @@ end type ActuatorLineType
     CD=CD*(1+0.05*(-1.0+2.0*rand(ielem)))
     endif
 
+    if(act_line%Is_constant_circulation) then
+    CL=2.*act_line%GammaCirc/(ur*ElemChord)
+    CD=0.
+    MS=0.
+    endif
 
     ! Tangential and normal coeffs
     CN=CL*cos(alpha)+CD*sin(alpha)                                   
@@ -359,11 +364,6 @@ end type ActuatorLineType
     FT=0.5*CT*ElemArea*ur**2.0
     MS=0.5*CM25*ElemChord*ElemArea*ur**2.0
    
-    if(act_line%Is_constant_circulation) then
-    FN=act_line%GammaCirc*ur*ElemArea/ElemChord*cos(alpha)
-    FT=-act_line%GammaCirc*ur*ElemArea/ElemChord*sin(alpha)
-    MS=0.
-    endif
     !===============================================
     ! Compute forces in the X, Y, Z axis and torque  
     !===============================================
@@ -396,6 +396,7 @@ end type ActuatorLineType
     !===============================================
     act_line%EAOA_LAST(ielem)=alpha 
     act_line%EUn_last(ielem)=urdn 
+    act_line%EGamma(ielem)=CL*ElemChord*ur/2.
     end do 
 
 
