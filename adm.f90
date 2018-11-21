@@ -49,7 +49,11 @@ contains
             do idisc=1,Nad
             read(15,'(A)') ReadLine
             read(Readline,*) ActuatorDisc(idisc)%COR(1),ActuatorDisc(idisc)%COR(2),ActuatorDisc(idisc)%COR(3),ActuatorDisc(idisc)%RotN(1),ActuatorDisc(idisc)%RotN(2),ActuatorDisc(idisc)%RotN(3),ActuatorDisc(idisc)%D 
-            close(15)
+            !if (nrank==0) then
+            !    print *, 'actuator ', idisc, ' --> (X,Y,Z)=  ',ActuatorDisc(idisc)%COR(1), ActuatorDisc(idisc)%COR(2),ActuatorDisc(idisc)%COR(3) 
+            !    print *, '                          Axis =   ',ActuatorDisc(idisc)%RotN(1), ActuatorDisc(idisc)%RotN(2),ActuatorDisc(idisc)%RotN(3) 
+            !    print *, '                          Diameter =   ',ActuatorDisc(idisc)%D 
+            !endif
             if(iadmmode==0) then
                 ActuatorDisc(idisc)%CT=CT
                 ActuatorDisc(idisc)%alpha=aind
@@ -57,14 +61,8 @@ contains
                 if(nrank==0) print *, "not available yet"
                 stop
             endif
-            if (nrank==0) then
-                print *, 'actuator ', idisc, ' --> (X,Y,Z)=  ',ActuatorDisc(idisc)%COR(1), ActuatorDisc(idisc)%COR(2),ActuatorDisc(idisc)%COR(3) 
-                print *, '                          Axis =   ',ActuatorDisc(idisc)%RotN(1), ActuatorDisc(idisc)%RotN(2),ActuatorDisc(idisc)%RotN(3) 
-                print *, '                          Diameter =   ',ActuatorDisc(idisc)%D 
-                print *, '                          Thrust Coeff = ',ActuatorDisc(idisc)%CT, ', Induction factor = ', ActuatorDisc(idisc)%alpha 
-                print *, "====================================================================================================="
-            endif
             enddo
+            close(15)
         endif
         !### Create the source term
 
@@ -125,7 +123,9 @@ contains
         allocate(counter_total(Nad))
      
         do idisc=1,Nad
+        uave=0.
         counter(idisc)=0
+        counter_total(idisc)=0.
         do k=1,xsize(3)
         zmesh=(xstart(3)+k-1-1)*dz 
         do j=1,xsize(2)
