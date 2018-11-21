@@ -54,6 +54,8 @@ NAMELIST/NumConfig/nx,ny,nz,p_row,p_col,nclx,ncly,nclz,TurbRadius,ifirst,ilast,n
 NAMELIST/FileParam/ilit,isave,imodulo,ioutflow,iinflow,OutflowOnsetIndex, NTimeSteps
 NAMELIST/IBMParam/ivirt,ibmshape,cex,cey,cez,ra
 NAMELIST/ALMParam/ialm,NTurbines,TurbinesPath,NActuatorlines,ActuatorlinesPath,eps_factor
+NAMELIST/ADMParam/iadm,Ndiscs,ADMcoords,iadmmode,CT,aind,fileADM
+
 NAMELIST/StatParam/spinup_time,nstat,nvisu,iprobe,Probelistfile,nsampling, y_loc_pencil, z_loc_pencil 
 NAMELIST/ABLParam/iabl,z_zero,k_roughness,PsiM,ustar,IPressureGradient,Ug,dBL,idampingzone, Imassconserve 
 #ifdef DOUBLE_PREC 
@@ -111,6 +113,12 @@ ioutflow=0
 idampingzone=0
 Imassconserve=0
 zs_tr=0.1
+iadm=0
+Ndiscs=0
+iadmmode=0
+CT=0.75
+aind=0.25
+fileADM='/./'
 
 ! READ PARAMETERS FROM FILE
 open(10,file=InputFN) 
@@ -120,6 +128,7 @@ read(10,nml=StatParam)
 read(10,nml=FileParam)
 read(10,nml=IBMParam)
 read(10,nml=ALMParam)
+read(10,nml=ADMParam)
 read(10,nml=ABLParam)
 
 close(10) 

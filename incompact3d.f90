@@ -45,6 +45,8 @@ USE derivZ
 !>>GD INTRODUCE THE actuator_line_modules
 use actuator_line_model 
 use actuator_line_source
+!>>GD INTRODUCE THE actuator_disc_modules
+use actuator_disc_model
 
 implicit none
 
@@ -221,6 +223,10 @@ if (ialm==1) then
   call actuator_line_model_init(Nturbines,Nactuatorlines,TurbinesPath,ActuatorlinesPath,dt)  
   call initialize_actuator_source 
 endif
+if (iadm==1) then
+  call actuator_disc_model_init(Ndiscs,admCoords,iadmmode,CT,aind,fileADM)
+  call actuator_disc_model_compute_source(ux1,uy1,uz1)
+endif
 
 ! Initialise the Probe inside the domain
 if (iprobe==1) then
@@ -270,6 +276,10 @@ do itime=ifirst,ilast
           write(6,*) '' 
       endif
    endif
+   if(iadm==1) then
+    call actuator_disc_model_compute_source(ux1,uy1,uz1)
+   endif
+
    if (jLES.ge.2) then
    call filter(0.480d0)
    call apply_spatial_filter(ux1,uy1,uz1,ux2,uy2,uz2,ux3,uy3,uz3)

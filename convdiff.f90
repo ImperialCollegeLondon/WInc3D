@@ -38,7 +38,7 @@ subroutine convdiff(ux1,uy1,uz1,phi1,uxt,uyt,uzt,ep1,divdiva,curldiva,ta1,tb1,tc
 !*************************************************************************************
 
 USE param
-USE var, only: FTx, FTy, FTz
+USE var, only: FTx, FTy, FTz, Fdiscx, Fdiscy, Fdiscz
 USE decomp_2d
 USE decomp_2d_io
 USE MPI
@@ -488,6 +488,12 @@ if (ialm==1) then
     ta1(:,:,:)=ta1(:,:,:)+FTx(:,:,:)
     tb1(:,:,:)=tb1(:,:,:)+FTy(:,:,:)
     tc1(:,:,:)=tc1(:,:,:)+FTz(:,:,:)
+endif
+! Turbine forcing through an actuator disc model
+if (iadm==1) then
+    ta1(:,:,:)=ta1(:,:,:)+Fdiscx(:,:,:)
+    tb1(:,:,:)=tb1(:,:,:)+Fdiscy(:,:,:)
+    tc1(:,:,:)=tc1(:,:,:)+Fdiscz(:,:,:)
 endif
 
 

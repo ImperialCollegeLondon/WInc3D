@@ -39,7 +39,7 @@ subroutine VISU_INSTA (ux1,uy1,uz1,phi1,ta1,tb1,tc1,td1,te1,tf1,tg1,th1,ti1,di1,
 !############################################################################
 
 USE param
-USE var, only: FTx, FTy, FTz, ep1, nut1, shrt_coeff
+USE var, only: FTx, FTy, FTz, GammaDisc,ep1, nut1, shrt_coeff
 USE decomp_2d
 USE decomp_2d_io
 
@@ -161,6 +161,15 @@ call fine_to_coarseV(1,phi1,uvisu)
    call decomp_2d_write_one(1,uvisu,filename,2)
 !   call decomp_2d_write_one(nx_global,ny_global,nz_global,&
 !        1,phi1,filename)
+endif
+
+if (iadm==1) then
+    uvisu=0.
+    call fine_to_coarseV(1,GammaDisc,uvisu)
+    997 format('gammadisc',I4.4)
+    write(filename, 997) itime/imodulo
+    call decomp_2d_write_one(1,uvisu,filename,2)    
+
 endif
 !############################################################################
 !  ALM Momentum Source term

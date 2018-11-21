@@ -80,6 +80,13 @@ character :: filesauve*80, filenoise*80, &
      nchamp*80,filepath*80, fileturb*80, filevisu*80 
 character,dimension(100) :: turbinesPath*80, ActuatorlinesPath*80 ! Assign a maximum number of 100 turbines and alms
 real(mytype), dimension(5) :: adt,bdt,cdt,gdt
+! Actuator disc model
+integer :: iadm ! Actuator disc flag
+integer :: Ndiscs ! number of actuator discs
+character(len=100) :: admCoords
+integer :: iadmmode ! 0: constnat thrust, 1: from a list
+real(mytype) :: CT, aind
+character(len=100) :: fileADM
 
 !module filter
 real(mytype),dimension(200) :: idata
