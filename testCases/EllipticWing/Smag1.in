@@ -4,9 +4,9 @@
     iin = 0               ! Inflow conditions (1: classic, 2: turbinit)
     
     ! Domain and scaling
-    xlx = 100             ! Lx (Size of the box in x-direction)
-    yly = 100             ! Ly (Size of the box in y-direction) 
-    zlz = 120             ! Lz (Size of the box in z-direction) 
+    xlx = 10              ! Lx (Size of the box in x-direction)
+    yly = 10              ! Ly (Size of the box in y-direction) 
+    zlz = 12              ! Lz (Size of the box in z-direction) 
     re  = 100000          ! nu=1/re (Kinematic Viscosity)
     sc  = 1.              ! Schmidt number (if passive scalar)
     u1  = 1.              ! u1 (max velocity) (for inflow condition)
@@ -43,7 +43,7 @@
     ifirst = 1	          ! First iteration   
     ilast =  10000        ! Last iteration 
     nscheme = 2           ! Temporal scheme (1: ?, 2: RK3, 3:RK4, 4:AB2)
-    dt = 0.1             ! Time step
+    dt = 0.01             ! Time step
     
     ! Governing equations formulations
     iskew = 1             ! (0:urotu, 1:skew, for the convective terms)

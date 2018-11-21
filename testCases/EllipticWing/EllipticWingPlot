@@ -74,8 +74,8 @@ for i in range(N):
     
 # Analytic solution
 U=1.
-b=10.
-c0=1.
+b=1.
+c0=0.1
 alpha=10.*pi/180.
 alphal0=-3.64*pi/180.
 S=pi*c0/2.*b/2.
@@ -86,7 +86,9 @@ GammaTheo=Gammamax*(1-(z/(b/2.))**2.)**(1./2.)
 
 plt.figure(1)
 plt.plot(z,GammaTheo,'r')
-plt.plot(-60+Z,Gamma,'k.')
-plt.xlabel('Distance r [m]')
-plt.ylabel('Gamma')
+plt.plot(-6+Z,Gamma,'k.')
+plt.xlabel('r [m]')
+plt.ylabel('$\Gamma$')
+plt.xlim(-0.55,0.55)
+plt.ylim(0,0.08)
 plt.show()

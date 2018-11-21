@@ -3,7 +3,7 @@
 ! Aerodynamic parameters                 |
 !=========================================
 name='EllipticWing'                              ! Name of the turbine
-origin=20,50,60                            ! Actual location of the turbine 
+origin=2,5,6                            ! Actual location of the turbine 
 actuatorline_geom='EllipticWing_ae10.al'  ! Blade geometry
 numfoil=1                                    ! Number of airfoil from which the interpolation is done
 afname='ThinCambered.air'
