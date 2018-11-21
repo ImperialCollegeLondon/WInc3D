@@ -55,9 +55,9 @@ NAMELIST/FileParam/ilit,isave,imodulo,ioutflow,iinflow,OutflowOnsetIndex, NTimeS
 NAMELIST/IBMParam/ivirt,ibmshape,cex,cey,cez,ra
 NAMELIST/ALMParam/ialm,NTurbines,TurbinesPath,NActuatorlines,ActuatorlinesPath,eps_factor
 NAMELIST/ADMParam/iadm,Ndiscs,ADMcoords,iadmmode,CT,aind,fileADM
-
 NAMELIST/StatParam/spinup_time,nstat,nvisu,iprobe,Probelistfile,nsampling, y_loc_pencil, z_loc_pencil 
 NAMELIST/ABLParam/iabl,z_zero,k_roughness,PsiM,ustar,IPressureGradient,Ug,dBL,idampingzone, Imassconserve 
+
 #ifdef DOUBLE_PREC 
 pi=dacos(-1.d0) 
 #else

@@ -132,7 +132,12 @@ contains
         if (istret.eq.0) ymesh=(xstart(2)+j-1-2)*dy
         if (istret.ne.0) ymesh=yp(xstart(2)+j)
         do i=1,xsize(1)
-        if(GammaDisc(i,j,k)>=0.and.GammaDisc(i,j,k)<=1) then
+        xmesh=(i-1)*dx
+        deltax=abs(xmesh-actuatordisc(idisc)%COR(1))
+        deltay=abs(ymesh-actuatordisc(idisc)%COR(2))
+        deltaz=abs(zmesh-actuatordisc(idisc)%COR(3))
+        deltar=sqrt(deltay**2.+deltaz**2.)
+        if(deltar<=actuatordisc(idisc)%D/2..and.deltax<dx/2.) then
             ! Take the inner product to compute the rotor-normal velocity
             uave=uave+ux1(i,j,k)*actuatordisc(idisc)%RotN(1)+&
                  uy1(i,j,k)*actuatordisc(idisc)%RotN(2)+&
@@ -141,7 +146,7 @@ contains
         endif
         enddo
         enddo
-        enddo 
+        enddo
             Udisc_partial(idisc)=uave
         enddo
 
@@ -152,7 +157,7 @@ contains
 
         do idisc=1,Nad
         if (counter_total(idisc)==0) then
-            print *, 'counter=0 for the disc --- something is wrong with the adm'
+            print *, 'counter=0 for the disc --- something is wrong with the disc number: ', idisc
             stop
         endif
         actuatordisc(idisc)%Udisc=actuatordisc(idisc)%Udisc/counter_total(idisc)
@@ -170,23 +175,17 @@ contains
     end subroutine actuator_disc_model_compute_source
 
 
-    subroutine actuator_disc_model_compute(ux1,uy1,uz1)
-
-        USE param
-        USE var, only: Fdiscx, Fdiscy, Fdiscz, GammaDisc
-        USE decomp_2d
-        USE decomp_2d_io
-        USE MPI
-
-        implicit none
-        real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux1,uy1,uz1
-
-
-    end subroutine actuator_disc_model_compute
 
     subroutine actuator_disc_model_diagnostics
-        implicit none
+        implicit none 
+        integer :: i,j,k, idisc, ierr
         
+        if(nrank==0) then
+        do idisc=1,Nad
+        print*, idisc, actuatordisc(idisc)%Udisc
+        enddo
+        endif
+        return 
     end subroutine actuator_disc_model_diagnostics
 
 end module actuator_disc_model

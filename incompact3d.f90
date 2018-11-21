@@ -278,6 +278,7 @@ do itime=ifirst,ilast
    endif
    if(iadm==1) then
     call actuator_disc_model_compute_source(ux1,uy1,uz1)
+    call actuator_disc_model_diagnostics
    endif
 
    if (jLES.ge.2) then
