@@ -4,7 +4,7 @@
     iin = 1               ! Inflow conditions (1: classic, 2: turbinit)
     
     ! Domain and scaling
-    xlx = 3141.59         ! Lx (Size of the box in x-direction)
+    xlx = 12566.37         ! Lx (Size of the box in x-direction)
     yly = 1000            ! Ly (Size of the box in y-direction) 
     zlz = 3141.59         ! Lz (Size of the box in z-direction) 
     re  = 10000           ! nu=1/re (Kinematic Viscosity)
@@ -25,11 +25,11 @@
 ! Numerical Configuration
 &NumConfig
     ! Simulation size and parallelisation
-    nx=96                 ! X-direction nodes
-    ny=97                  ! Y-direction nodes
-    nz=96                 ! Z-direction nodes
+    nx=256                 ! X-direction nodes
+    ny=65                  ! Y-direction nodes
+    nz=64                  ! Z-direction nodes
 
-    p_row=4               ! Row partition
+    p_row=4                ! Row partition
     p_col=4                ! Column partition
 
     ! Boundary conditions and mesh 
@@ -41,9 +41,9 @@
 
     ! Time and time-marching schemes
     ifirst = 1	          ! First iteration   
-    ilast =  20        ! Last iteration 
+    ilast =  12000        ! Last iteration 
     nscheme = 2           ! Temporal scheme (1: ?, 2: RK3, 3:RK4, 4:AB2)
-    dt = 0.1             ! Time step
+    dt = 0.25             ! Time step
     
     ! Governing equations formulations
     iskew = 1             ! (0:urotu, 1:skew, for the convective terms)
@@ -62,7 +62,7 @@
 /End
 
 &StatParam
-    spinup_time=5000.	  ! Time after which statistics are collected (in seconds)
+    spinup_time=600.	  ! Time after which statistics are collected (in seconds)
     nstat=1               ! Size arrays for statistic collection 
     nvisu=1               ! Size for visualisation collection 
     iprobe = 0            ! Set probe
@@ -71,7 +71,7 @@
 /End
 
 &FileParam
-    ilit=1             ! Read initial flow field ?
+    ilit=0             ! Read initial flow field ?
     isave=100     	   ! Frequency for writing backup file  
     imodulo=10        ! Frequency for visualization 
     ioutflow=0		   ! Outflow flag
@@ -94,7 +94,7 @@ ialm=0                   ! iadm (0: disc model off, 1: disc model on)
 
 &ADMParam
 iadm=1                    ! iadm (0: disc model off, 1: disc model on)
-Ndiscs=24
+Ndiscs=54
 ADMcoords='Turbines.ad'
 iadmmode=0
 CT=0.75
@@ -109,6 +109,9 @@ ustar=0.45              ! friction velocity
 PsiM=0                    ! stability correction for momentum (taken equal to 0 for neutral stability)
 IPressureGradient=1	      ! if 1 then apply a pressure gradient
 idampingzone=0
+ifringeregion=1
+FLS=5235.98
+FLE=6283.185
 dBL=1000.
 UG=16,0,0
 /End

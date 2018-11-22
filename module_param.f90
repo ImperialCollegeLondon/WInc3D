@@ -72,7 +72,8 @@ real(mytype) :: t,xxk1,xxk2, spinup_time
 real(mytype) :: smagcst, nSmag, walecst,dys, FSGS, rxxnu, cnu, dynhypvisc
 real(mytype) :: eps_factor ! Smoothing factor 
 real(mytype) :: TurbRadius,z_zero,k_roughness,PsiM,ustar,u_shear, dBL
-integer :: IPressureGradient,idampingzone, Imassconserve
+integer :: IPressureGradient,idampingzone,ifringeregion,Imassconserve
+real(mytype) :: FLS, FLE, FDL
 real(mytype),dimension(3) :: UG
 integer :: itr,itime
 character :: dirname*80

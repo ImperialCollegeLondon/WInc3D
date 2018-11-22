@@ -1076,11 +1076,8 @@ return
 end subroutine abl
 
 !*******************************************************************************
-!
 subroutine damping_zone(ux,uy,uz) ! Damping zone for ABL 
-!
 !*******************************************************************************
-
 USE decomp_2d
 USE param
 USE var
@@ -1096,10 +1093,10 @@ do i=1,ysize(1)
 do j=1,ny
 if (istret.eq.0) y=(j-1)*dy
 if (istret.ne.0) y=yp(j)
-if (y>1.1*dBL) then
+if (y>yly-(yly-dBL)/4) then
     lambda=1.0
-elseif (y>0.9*dBL.and.y<1.1*dBL) then
-    lambda=0.5*(1-cos(pi*(y-0.9*dBL)/(0.2*dBL)))
+elseif (y>dBL.and.y<yly-(yly-dBL)/4) then
+    lambda=0.5*(1-cos(pi*(y-dBL)/(yly-(yly-dBL)/4.-dBL)))
 else 
     lambda=0.
 endif
@@ -1112,6 +1109,44 @@ enddo
 
 return
 end subroutine damping_zone
+
+!*******************************************************************************
+subroutine fringe_region(ux,uy,uz) ! Damping zone for ABL 
+!*******************************************************************************
+USE decomp_2d
+USE param
+USE var
+
+implicit none
+
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux,uy,uz
+integer :: j,i,k,code
+real(mytype) :: x, lambda
+
+FDL=FLE-FLS
+do k=1,xsize(3)
+do j=1,xsize(2)
+do i=1,nx/2
+x=(i-1)*dx
+if (x<FLs) then
+    lambda=0.0
+elseif(x.ge.FLS.and.x<FLE-FDL) then
+    lambda=0.5*(1-cos(4*pi/3.*(x-FLs)/(FLe-FDL)))
+elseif(x.ge.FLE-FDL.and.x<FLE) then
+    lambda=1.
+else 
+    lambda=0.
+endif
+ux(i+nx/2,j,k)=lambda*ux(i,j,k)+(1-lambda)*ux(i+nx/2,j,k)
+uy(i+nx/2,j,k)=lambda*uy(i,j,k)+(1-lambda)*uy(i+nx/2,j,k)
+uz(i+nx/2,j,k)=lambda*uz(i,j,k)+(1-lambda)*uz(i+nx/2,j,k)
+enddo
+enddo
+enddo
+
+return
+end subroutine fringe_region 
+
 
 
 subroutine apply_spatial_filter(ux1,uy1,uz1,ux2,uy2,uz2,ux3,uy3,uz3)

@@ -14,21 +14,23 @@ import math
 
 
 H=1000.
-Lx=2*pi*H
+Lx=4*pi*H
 Ly=H
 Lz=pi*H
-Nt=4*6
-sx=pi*H/4.
+nx=9
+nz=6
+Nt=nx*nz
+sx=pi*H/6.
 sz=pi*H/6.
 
 TurbineName=[]
 TurbinesCoords=np.zeros((Nt,2))
 
-for j in range(0,6):
-    for i in range(0,4):
+for j in range(0,nz):
+    for i in range(0,nx):
         TurbineName.append('WT_'+str(i)+str(j))
-        TurbinesCoords[i+4*j,0]=sx/2.+i*sx
-        TurbinesCoords[i+4*j,1]=sz/2.+j*sz
+        TurbinesCoords[i+nx*j,0]=2*pi*H+sx/2.+i*sx
+        TurbinesCoords[i+nx*j,1]=sz/2.+j*sz
 
 with open('Turbines.ad','w') as fturout:
     for i in range(len(TurbineName)):
@@ -38,16 +40,6 @@ plt.rc('text',usetex=True)
 plt.rc('font',family='serif')
 
 plt.figure(1)
-plt.plot(TurbinesCoords[:,0]/1000,TurbinesCoords[:,1]/1000,'ko')
-plt.xlabel("x [km]",fontsize=16)
-plt.ylabel("y [km]",fontsize=16)
-plt.arrow(1,5, 6, 0, head_width=0.25, head_length=0.4, fc='b', ec='b')
-plt.text(7.5,5,r"$\theta=270^\circ$",color='blue',fontsize=14)
-plt.arrow(1,5,5.196,3 , head_width=0.25, head_length=0.4, fc='b', ec='b')
-plt.text(6.5,8.5,r"$\theta=240^\circ$",color='blue',fontsize=14)
-plt.arrow(1,5,5.196,-3 , head_width=0.25, head_length=0.4, fc='b', ec='b')
-plt.text(6.5,1.0,r"$\theta=300^\circ$",color='blue',fontsize=14)
-plt.xlim((0,6.16))
-plt.ylim((-1.12,0))
+plt.plot(TurbinesCoords[:,0]/(pi*1000),TurbinesCoords[:,1]/(1000*pi),'ko')
+plt.xlim(0,4)
 plt.savefig('fig_HornsRev_accurate.eps')
-

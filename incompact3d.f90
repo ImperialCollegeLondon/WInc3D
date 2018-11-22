@@ -218,15 +218,6 @@ call decomp_info_init(nxm, ny, nz, ph4)
 call decomp_info_init(nxm, ny, nz, ph2)  
 call decomp_info_init(nxm, nym, nz, ph3) 
 
-! Initialise the Turbine Model
-if (ialm==1) then
-  call actuator_line_model_init(Nturbines,Nactuatorlines,TurbinesPath,ActuatorlinesPath,dt)  
-  call initialize_actuator_source 
-endif
-if (iadm==1) then
-  call actuator_disc_model_init(Ndiscs,admCoords,iadmmode,CT,aind,fileADM)
-  call actuator_disc_model_compute_source(ux1,uy1,uz1)
-endif
 
 ! Initialise the Probe inside the domain
 if (iprobe==1) then
@@ -242,6 +233,17 @@ endif
 
 ! EXPORT THE INITIAL SOLUTION
 itime=ifirst-1
+
+! Initialise the turbine models
+if (ialm==1) then
+  call actuator_line_model_init(Nturbines,Nactuatorlines,TurbinesPath,ActuatorlinesPath,dt)  
+  call initialize_actuator_source 
+endif
+if (iadm==1) then
+  call actuator_disc_model_init(Ndiscs,admCoords,iadmmode,CT,aind,fileADM)
+  call actuator_disc_model_compute_source(ux1,uy1,uz1)
+endif
+
 if (mod(itime,imodulo)==0) then
    call VISU_INSTA(ux1,uy1,uz1,phi1,ta1,tb1,tc1,td1,te1,tf1,tg1,th1,ti1,di1,&
         ta2,tb2,tc2,td2,te2,tf2,tg2,th2,ti2,tj2,di2,&
@@ -254,6 +256,7 @@ if (nrank==0.and.mod(itime,imodulo)==0) then
    call actuator_line_model_write_output(itime/imodulo) ! Write the Rotor output
 end if
 endif 
+
 
 do itime=ifirst,ilast
    t=(itime-1)*dt
@@ -278,7 +281,6 @@ do itime=ifirst,ilast
    endif
    if(iadm==1) then
     call actuator_disc_model_compute_source(ux1,uy1,uz1)
-    call actuator_disc_model_diagnostics
    endif
 
    if (jLES.ge.2) then
@@ -382,6 +384,11 @@ do itime=ifirst,ilast
    if (ialm==1) then
     if (nrank==0.and.mod(itime,imodulo)==0) then
        call actuator_line_model_write_output(itime/imodulo) ! Write the Rotor output
+    end if
+   endif 
+   if (iadm==1) then
+    if (nrank==0.and.mod(itime,imodulo)==0) then 
+       call actuator_disc_model_write_output(itime/imodulo) ! Write the disc output
     end if
    endif 
 enddo

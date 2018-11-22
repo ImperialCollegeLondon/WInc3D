@@ -8,13 +8,14 @@ module actuator_disc_model
     implicit none
     
     type ActuatorDiscType
-        character(len=100):: name           ! Actuator disk name
+        integer :: ID                       ! Actuator disk ID
         real(mytype) :: D                   ! Actuator disk diameter 
         real(mytype) :: COR(3)              ! Center of Rotation
         real(mytype) :: RotN(3)             ! axis of rotation
         real(mytype) :: CT                  ! Thrust coefficient
         real(mytype) :: alpha               ! Induction coefficient
         real(mytype) :: Udisc               ! Disc-averaged velocity
+        real(mytype) :: Udisc_prev          ! Disc-averaged velocity
     end type ActuatorDiscType
 
     type(ActuatorDiscType), allocatable, save :: ActuatorDisc(:)
@@ -47,6 +48,7 @@ contains
             allocate(ActuatorDisc(Nad))
             open(15,file=admCoords)
             do idisc=1,Nad
+            actuatordisc(idisc)%ID=idisc
             read(15,'(A)') ReadLine
             read(Readline,*) ActuatorDisc(idisc)%COR(1),ActuatorDisc(idisc)%COR(2),ActuatorDisc(idisc)%COR(3),ActuatorDisc(idisc)%RotN(1),ActuatorDisc(idisc)%RotN(2),ActuatorDisc(idisc)%RotN(3),ActuatorDisc(idisc)%D 
             !if (nrank==0) then
@@ -73,13 +75,13 @@ contains
         
         use decomp_2d, only: mytype, nproc, xstart, xend, xsize, update_halo
         use MPI
-        use param, only: dx,dy,dz,eps_factor,xnu,yp,istret,xlx,yly,zlz
+        use param, only: dx,dy,dz,eps_factor,xnu,yp,istret,xlx,yly,zlz,dt,itime,ustar,dBL
         use var, only: FDiscx, FDiscy, FDiscz, GammaDisc
         
         implicit none
         real(mytype), dimension(xsize(1),xsize(2),xsize(3)) :: ux1, uy1, uz1       
         real(mytype) :: xmesh, ymesh,zmesh,deltax,deltay,deltaz,deltar,dr,gamma_disc_partial
-        real(mytype) :: uave,CTprime
+        real(mytype) :: uave,CTprime, T_relax, alpha_relax
         real(mytype), allocatable, dimension(:) :: Udisc_partial
         integer,allocatable, dimension(:) :: counter, counter_total
         integer :: i,j,k, idisc, ierr
@@ -99,7 +101,7 @@ contains
         deltaz=abs(zmesh-actuatordisc(idisc)%COR(3))
         deltar=sqrt(deltay**2.+deltaz**2.)
         dr=sqrt(dx**2.+dz**2.)
-        if(deltax>dx) then 
+        if(deltax>dx/2.) then 
             gamma_disc_partial=0.
         elseif (deltax<=dx/2.) then
             if(deltar<=actuatordisc(idisc)%D/2.) then
@@ -162,7 +164,22 @@ contains
         endif
         actuatordisc(idisc)%Udisc=actuatordisc(idisc)%Udisc/counter_total(idisc)
         enddo
+        
         deallocate(Udisc_partial,counter,counter_total)
+
+        ! Time relaxation
+        if (itime==0) then
+            do idisc=1,Nad
+            actuatordisc(idisc)%Udisc_prev=actuatordisc(idisc)%Udisc
+            enddo
+        else
+            do idisc=1,Nad
+            T_relax=0.27*dBL/ustar
+            alpha_relax=1.-exp(-dt/T_relax)
+            actuatordisc(idisc)%Udisc=alpha_relax*actuatordisc(idisc)%Udisc+(1.-alpha_relax)*actuatordisc(idisc)%Udisc_prev
+            actuatordisc(idisc)%Udisc_prev=actuatordisc(idisc)%Udisc
+            enddo
+        endif
 
         ! Compute the forces
         do idisc=1,Nad
@@ -176,16 +193,51 @@ contains
 
 
 
-    subroutine actuator_disc_model_diagnostics
-        implicit none 
-        integer :: i,j,k, idisc, ierr
+    !subroutine actuator_disc_model_diagnostics
+    !    implicit none 
+    !    integer :: i,j,k, idisc, ierr
+    !    
+    !    if(nrank==0) then
+    !    do idisc=1,Nad
+    !    print*, idisc, actuatordisc(idisc)%Udisc
+    !    enddo
+    !    endif
+    !    return 
+    !end subroutine actuator_disc_model_diagnostics
+    
+    subroutine actuator_disc_model_write_output(dump_no)
+
+        implicit none
+        integer,intent(in) :: dump_no
+        integer :: idisc
+        character(len=100) :: dir
+
+        call system('mkdir -p ADM/'//adjustl(trim(dirname(dump_no))))
         
-        if(nrank==0) then
-        do idisc=1,Nad
-        print*, idisc, actuatordisc(idisc)%Udisc
-        enddo
+        dir='ADM/'//adjustl(trim(dirname(dump_no)))
+
+        if (Nad>0) then
+            do idisc=1,Nad
+                call actuator_disc_write(actuatordisc(idisc),dir)
+            end do
         endif
+
         return 
-    end subroutine actuator_disc_model_diagnostics
+    end subroutine actuator_disc_model_write_output
+    
+    subroutine actuator_disc_write(ad,dir)
+
+        implicit none
+        type(ActuatorDiscType),intent(in) :: ad 
+        character(len=100),intent(in) :: dir
+        character(LEN=22) :: Format
+        
+        open(2020,File=trim(dir)//'/'//trim(int2str(ad%ID))//'.adm')
+        write(2020,*) 'Udisc, CT'
+        Format="(2(E14.7,A))"
+        write(2020,Format) ad%Udisc,',',ad%CT
+        close(2020)
+
+    end subroutine actuator_disc_write
 
 end module actuator_disc_model

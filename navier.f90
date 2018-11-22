@@ -187,6 +187,11 @@ if (itype==8.and.Imassconserve==1) then ! atmospheric boundary layer with mass c
    call transpose_y_to_x(gx,ux)
 endif
 
+
+if(iabl==1.and.ifringeregion==1) then
+   call fringe_region(ux,uy,uz)
+endif
+
 return
 end subroutine corgp
 

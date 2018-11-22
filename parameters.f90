@@ -56,7 +56,7 @@ NAMELIST/IBMParam/ivirt,ibmshape,cex,cey,cez,ra
 NAMELIST/ALMParam/ialm,NTurbines,TurbinesPath,NActuatorlines,ActuatorlinesPath,eps_factor
 NAMELIST/ADMParam/iadm,Ndiscs,ADMcoords,iadmmode,CT,aind,fileADM
 NAMELIST/StatParam/spinup_time,nstat,nvisu,iprobe,Probelistfile,nsampling, y_loc_pencil, z_loc_pencil 
-NAMELIST/ABLParam/iabl,z_zero,k_roughness,PsiM,ustar,IPressureGradient,Ug,dBL,idampingzone, Imassconserve 
+NAMELIST/ABLParam/iabl,z_zero,k_roughness,PsiM,ustar,IPressureGradient,Ug,dBL,idampingzone,ifringeregion,FLS,FLE,Imassconserve 
 
 #ifdef DOUBLE_PREC 
 pi=dacos(-1.d0) 
@@ -111,6 +111,7 @@ UG=[10.0d0,0.0d0,0.0d0]
 IPressureGradient=0
 ioutflow=0
 idampingzone=0
+ifringeregion=0
 Imassconserve=0
 zs_tr=0.1
 iadm=0
