@@ -1130,9 +1130,9 @@ do i=1,nx/2
 x=(i-1)*dx
 if (x<FLs) then
     lambda=0.0
-elseif(x.ge.FLS.and.x<FLE-FDL) then
+elseif(x.ge.FLS.and.x<FLE-FDL/4.) then
     lambda=0.5*(1-cos(4*pi/3.*(x-FLs)/(FLe-FDL)))
-elseif(x.ge.FLE-FDL.and.x<FLE) then
+elseif(x.ge.FLE-FDL/4..and.x<FLE) then
     lambda=1.
 else 
     lambda=0.
