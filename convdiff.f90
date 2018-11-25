@@ -467,14 +467,16 @@ do i=1,xsize(1)
 
 if (istret.eq.0) y=(j+xstart(2)-1-1)*dy
 if (istret.ne.0) y=yp(j+xstart(2)-1)
+x=(i+xstart(1)-1-1)*dx
 
-if (y>1.1*dBL) then
+if (y>yly-(yly-dBL)/4) then
     lambda=1.0
-elseif (y>0.9*dBL.and.y<1.1*dBL) then
+elseif (y>dBL.and.y<yly-(yly-dBL)/4) then
     lambda=0.5*(1-cos(pi*(y-0.9*dBL)/(0.2*dBL)))
 else 
     lambda=0.
 endif
+if(ifringeregion==1.and.x.le.xlx/2.) lambda=0 ! Apply if using the fring region with half domain
 ta1(i,j,k)=ta1(i,j,k)-5.*ustar/yly*lambda*(ux1(i,j,k)-UG(1))
 tb1(i,j,k)=tb1(i,j,k)-5.*ustar/yly*lambda*(uy1(i,j,k)-UG(2))
 tc1(i,j,k)=tc1(i,j,k)-5.*ustar/yly*lambda*(uz1(i,j,k)-UG(3))

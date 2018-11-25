@@ -334,14 +334,14 @@ if (mod(itime,isave)==0) then
    call decomp_2d_write_one(1,uvmean,'uvmean.dat',1)
    call decomp_2d_write_one(1,uwmean,'uwmean.dat',1)
    call decomp_2d_write_one(1,vwmean,'vwmean.dat',1)
+   if (jLES.ge.2) then
+   call decomp_2d_write_one(1,tauxymean,'tauxymean.dat',1)
+   endif
    if (nrank==0) print *,'write stat arrays velocity done!'
    if (iscalar==1) then
       call decomp_2d_write_one(1,phimean,'phimean.dat',1)
       call decomp_2d_write_one(1,phiphimean,'phiphimean.dat',1)
       if (nrank==0) print *,'write stat arrays scalar done!'
-   endif
-   if (jLES.ge.2) then
-   call decomp_2d_write_one(1,tauxymean,'tauxymean.dat',1)
    endif
 !   call decomp_2d_write_one(nx_global,ny_global,nz_global,1,ux1,'compa.dat')
    
