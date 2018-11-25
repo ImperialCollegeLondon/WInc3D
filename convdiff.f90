@@ -469,10 +469,10 @@ if (istret.eq.0) y=(j+xstart(2)-1-1)*dy
 if (istret.ne.0) y=yp(j+xstart(2)-1)
 x=(i+xstart(1)-1-1)*dx
 
-if (y>yly-(yly-dBL)/4) then
+if (y>yly-(yly-dBL)/4.) then
     lambda=1.0
-elseif (y>dBL.and.y<yly-(yly-dBL)/4) then
-    lambda=0.5*(1-cos(pi*(y-0.9*dBL)/(0.2*dBL)))
+elseif (y>dBL.and.y<yly-(yly-dBL)/4.) then
+    lambda=0.5*(1-cos(4*pi/3.*(y-dBL)/(yly-(yly-dBL)/4.)))
 else 
     lambda=0.
 endif
