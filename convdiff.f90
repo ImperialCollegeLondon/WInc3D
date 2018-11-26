@@ -85,7 +85,7 @@ logical, dimension(2) :: dummy_periods
 
 integer :: ijk,nvect1,nvect2,nvect3,i,j,k,code
 character(len=20) :: filename
-real(mytype) :: x,y,z, lambda
+real(mytype) :: x,y,z, lambda,lf
 
 ta1=0.;tb1=0.;tc1=0.
 
@@ -446,12 +446,12 @@ endif
 ! Buoyancy Effects
 if (ibuoyancy==1) then     
     ! Average quantities over the x-z plane 
-    deltaphi1(:,:,:)=(phi1(:,:,:)-TempRef)/TempRef
+    deltaphi1(:,:,:)=(TempRef-phi1(:,:,:))/TempRef
     tb1(:,:,:)=tb1(:,:,:) + 9.81*deltaphi1(:,:,:)
 endif
 
 if (IPressureGradient==1) then
-    ta1(:,:,:)=ta1(:,:,:)+ustar**2./yly ! Apply a pressure gradient in the stream-wise direction
+    ta1(:,:,:)=ta1(:,:,:)+ustar**2./dBL ! Apply a pressure gradient in the stream-wise direction
 endif
 
 ! Coriolis Effects
@@ -461,6 +461,7 @@ if (icoriolis==1) then
 endif
 
 if (idampingzone==1) then
+lf=yly-dBL
 do k=1,xsize(3)
 do j=1,xsize(2)
 do i=1,xsize(1)
@@ -469,10 +470,10 @@ if (istret.eq.0) y=(j+xstart(2)-1-1)*dy
 if (istret.ne.0) y=yp(j+xstart(2)-1)
 x=(i+xstart(1)-1-1)*dx
 
-if (y>yly-(yly-dBL)/4.) then
+if (y>=yly-(yly-dBL)/4.) then
     lambda=1.0
-elseif (y>dBL.and.y<yly-(yly-dBL)/4.) then
-    lambda=0.5*(1-cos(4*pi/3.*(y-dBL)/(yly-(yly-dBL)/4.)))
+elseif (y>=dBL.and.y<yly-(yly-dBL)/4.) then
+    lambda=0.5*(1.-cos(pi*(y-dBL)/(yly-(yly-dBL)/4.-dBL)))
 else 
     lambda=0.
 endif
