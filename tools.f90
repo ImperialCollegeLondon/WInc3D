@@ -1123,10 +1123,12 @@ real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux,uy,uz
 integer :: j,i,k,code
 real(mytype) :: x, lambda
 
+FLS=xlx/4.-xlx/(4.*6.)
+FLE=xlx/4.
 FDL=FLE-FLS
 do k=1,xsize(3)
 do j=1,xsize(2)
-do i=1,nx/2
+do i=1,nx/4
 x=(i-1)*dx
 if (x<FLs) then
     lambda=0.0
@@ -1137,9 +1139,9 @@ elseif(x.ge.FLE-FDL/4..and.x<FLE) then
 else 
     lambda=0.
 endif
-ux(i+nx/2,j,k)=lambda*ux(i,j,k)+(1-lambda)*ux(i+nx/2,j,k)
-uy(i+nx/2,j,k)=lambda*uy(i,j,k)+(1-lambda)*uy(i+nx/2,j,k)
-uz(i+nx/2,j,k)=lambda*uz(i,j,k)+(1-lambda)*uz(i+nx/2,j,k)
+ux(i+3*nx/4,j,k)=lambda*ux(i,j,k)+(1-lambda)*ux(i+3*nx/4,j,k)
+uy(i+3*nx/4,j,k)=lambda*uy(i,j,k)+(1-lambda)*uy(i+3*nx/4,j,k)
+uz(i+3*nx/4,j,k)=lambda*uz(i,j,k)+(1-lambda)*uz(i+3*nx/4,j,k)
 enddo
 enddo
 enddo

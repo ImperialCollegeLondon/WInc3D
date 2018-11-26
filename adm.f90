@@ -16,6 +16,7 @@ module actuator_disc_model
         real(mytype) :: alpha               ! Induction coefficient
         real(mytype) :: Udisc               ! Disc-averaged velocity
         real(mytype) :: Udisc_prev          ! Disc-averaged velocity
+        real(mytype) :: Power
     end type ActuatorDiscType
 
     type(ActuatorDiscType), allocatable, save :: ActuatorDisc(:)
@@ -184,60 +185,38 @@ contains
         ! Compute the forces
         do idisc=1,Nad
         CTprime=actuatordisc(idisc)%CT/(1-actuatordisc(idisc)%alpha)**2.
+        ! Compute power
+        actuatordisc(idisc)%Power=0.5*CTprime*actuatordisc(idisc)%Udisc**3.*pi*actuatordisc(idisc)%D**2./4.*0.432/0.56
         Fdiscx(:,:,:)=-0.5*CTprime*actuatordisc(idisc)%Udisc**2.*GammaDisc(:,:,:)/dx
         Fdiscy(:,:,:)=0.  
         Fdiscz(:,:,:)=0.
         enddo
 
+        return
     end subroutine actuator_disc_model_compute_source
 
-
-
-    !subroutine actuator_disc_model_diagnostics
-    !    implicit none 
-    !    integer :: i,j,k, idisc, ierr
-    !    
-    !    if(nrank==0) then
-    !    do idisc=1,Nad
-    !    print*, idisc, actuatordisc(idisc)%Udisc
-    !    enddo
-    !    endif
-    !    return 
-    !end subroutine actuator_disc_model_diagnostics
-    
+ 
     subroutine actuator_disc_model_write_output(dump_no)
 
         implicit none
         integer,intent(in) :: dump_no
         integer :: idisc
-        character(len=100) :: dir
+        character(len=100) :: dir, Format
 
-        call system('mkdir -p ADM/'//adjustl(trim(dirname(dump_no))))
+        call system('mkdir -p ADM/')
         
-        dir='ADM/'//adjustl(trim(dirname(dump_no)))
+        dir='ADM/'
 
         if (Nad>0) then
+        open(2020,File=trim(dir)//'discs_time'//trim(int2str(dump_no))//'.adm')
+        write(2020,*) 'Udisc, CT, Power'
+            Format="(3(E14.7,A))"
             do idisc=1,Nad
-                call actuator_disc_write(actuatordisc(idisc),dir)
+            write(2020,Format) actuatordisc(idisc)%Udisc,',',actuatordisc(idisc)%CT,',',actuatordisc(idisc)%Power
             end do
+        close(2020)
         endif
 
         return 
     end subroutine actuator_disc_model_write_output
-    
-    subroutine actuator_disc_write(ad,dir)
-
-        implicit none
-        type(ActuatorDiscType),intent(in) :: ad 
-        character(len=100),intent(in) :: dir
-        character(LEN=22) :: Format
-        
-        open(2020,File=trim(dir)//'/'//trim(int2str(ad%ID))//'.adm')
-        write(2020,*) 'Udisc, CT'
-        Format="(2(E14.7,A))"
-        write(2020,Format) ad%Udisc,',',ad%CT
-        close(2020)
-
-    end subroutine actuator_disc_write
-
 end module actuator_disc_model
