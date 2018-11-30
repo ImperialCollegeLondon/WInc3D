@@ -176,7 +176,7 @@ contains
         else
             do idisc=1,Nad
             T_relax=15 !0.27*dBL/ustar
-            alpha_relax=(dt/T_relax)/(1+dt/T_relax)
+            alpha_relax=(dt/T_relax)/(1.+dt/T_relax)
             actuatordisc(idisc)%Udisc=alpha_relax*actuatordisc(idisc)%Udisc+(1.-alpha_relax)*actuatordisc(idisc)%Udisc_prev
             actuatordisc(idisc)%Udisc_prev=actuatordisc(idisc)%Udisc
             enddo

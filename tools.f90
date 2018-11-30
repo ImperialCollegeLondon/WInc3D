@@ -1145,10 +1145,42 @@ uz(i+3*nx/4,j,k)=lambda*uz(i,j,k)+(1-lambda)*uz(i+3*nx/4,j,k)
 enddo
 enddo
 enddo
-
 return
 end subroutine fringe_region 
 
+subroutine spanwise_shifting(ux3,uy3,uz3) ! periodic shifting
+
+    USE decomp_2d
+    USE param
+
+    implicit none
+    real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: ux3,uy3,uz3 
+    integer :: i,j,k
+
+    if (zsize(1)>nx/2) then
+    do k=1,zsize(3)/2
+    do j=1,zsize(2)
+    do i=1,zsize(1)
+    ux3(i,j,k)=ux3(i,j,k+zsize(3)/2)
+    uy3(i,j,k)=uy3(i,j,k+zsize(3)/2)
+    uz3(i,j,k)=uz3(i,j,k+zsize(3)/2)
+    enddo
+    enddo
+    enddo
+    do k=zsize(3)/2+1,zsize(3)
+    do j=1,zsize(2)
+    do i=1,zsize(1)
+    ux3(i,j,k)=ux3(i,j,k-zsize(3)/2)
+    uy3(i,j,k)=uy3(i,j,k-zsize(3)/2)
+    uz3(i,j,k)=uz3(i,j,k-zsize(3)/2)
+    enddo
+    enddo
+    enddo
+
+    endif
+return
+
+end subroutine spanwise_shifting 
 
 
 subroutine apply_spatial_filter(ux1,uy1,uz1,ux2,uy2,uz2,ux3,uy3,uz3)

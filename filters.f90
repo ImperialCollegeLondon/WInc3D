@@ -9,6 +9,7 @@ USE parfiZ
 !=================================================	
 implicit none
 real(mytype),intent(in) :: af 
+real(mytype) :: af1,afn
 integer ::  i,j,k
 ! Set the coefficient for the discrete filter following 
 ! the tridiagonal filtering of Motheau and Abraham, JCP 2016 
@@ -31,6 +32,7 @@ ficix=0.5*(-3. + 6.*af)/16.      ! c/2
 fidix=0.5*(1. - 2.*af)/32.       ! d/2
 ! Explicit third-order filters near the boundaries!
 !Boundary point 1
+af1=0.
 fia1x=7./8.+af/8.               ! a1/2
 fib1x=3./8.+5.*af/8.            ! b1/2
 fic1x=-3./8.+3./8.*af           ! c1/2
@@ -41,6 +43,7 @@ fib2x=5./8.+3./4.*af    ! b2/2
 fic2x=3./8.+af/4.    ! c2/2
 fid2x=-1./8.+af/4.   ! d2/2
 !Boundary point n
+afn=0.
 fianx=7./8.+af/8.               ! a1/2
 fibnx=3./8.+5.*af/8.            ! b1/2
 ficnx=-3./8.+3./8.*af           ! c1/2
@@ -75,7 +78,7 @@ if (nclx.eq.0) then
    enddo   
 endif
 if (nclx.eq.1) then
-   fiffx(1)   =af+af
+   fiffx(1)   =af1
    fiffx(2)   =af
    fiffx(ny-2)=af
    fiffx(ny-1)=af
@@ -88,7 +91,7 @@ if (nclx.eq.1) then
    fifbx(1)   =af 
    fifbx(2)   =af
    fifbx(nx-2)=af
-   fifbx(nx-1)=af+af
+   fifbx(nx-1)=afn
    fifbx(nx  )=0.
    do i=3,nx-3
       fiffy(i)=af
@@ -96,30 +99,8 @@ if (nclx.eq.1) then
       fifby(i)=af
    enddo
 endif
-if (nclx.eq.1) then
-   fiffx(1)   =af+af
-   fiffx(2)   =af
-   fiffx(nx-2)=af
-   fiffx(nx-1)=af
-   fiffx(nx)  =0.
-   fifcx(1)   =1.
-   fifcx(2)   =1.
-   fifcx(nx-2)=1.
-   fifcx(nx-1)=1.
-   fifcx(nx  )=1.
-   fifbx(1)   =af 
-   fifbx(2)   =af
-   fifbx(nx-2)=af
-   fifbx(nx-1)=af+af
-   fifbx(nx  )=0.
-   do i=3,nx-3
-      fiffx(i)=af
-      fifcx(i)=1.
-      fifbx(i)=af
-   enddo
-endif
 if (nclx.eq.2) then
-   fiffx(1)   =af 
+   fiffx(1)   =af1 
    fiffx(2)   =af
    fiffx(nx-2)=af
    fiffx(nx-1)=af
@@ -132,7 +113,7 @@ if (nclx.eq.2) then
    fifbx(1)   =af 
    fifbx(2)   =af
    fifbx(nx-2)=af
-   fifbx(nx-1)=af
+   fifbx(nx-1)=afn
    fifbx(nx  )=0.
    do i=3,nx-3
       fiffx(i)=af
@@ -195,7 +176,7 @@ if (ncly.eq.0) then
    enddo   
 endif
 if (ncly.eq.1) then
-   fiffy(1)   =af+af
+   fiffy(1)   =af1
    fiffy(2)   =af
    fiffy(ny-2)=af
    fiffy(ny-1)=af
@@ -208,7 +189,7 @@ if (ncly.eq.1) then
    fifby(1)   =af 
    fifby(2)   =af
    fifby(ny-2)=af
-   fifby(ny-1)=af+af
+   fifby(ny-1)=afn
    fifby(ny  )=0.
    do j=3,ny-3
       fiffy(j)=af
@@ -217,7 +198,7 @@ if (ncly.eq.1) then
    enddo
 endif
 if (ncly.eq.2) then
-   fiffy(1)   =af 
+   fiffy(1)   =af1 
    fiffy(2)   =af
    fiffy(ny-2)=af
    fiffy(ny-1)=af
@@ -230,7 +211,7 @@ if (ncly.eq.2) then
    fifby(1)   =af 
    fifby(2)   =af
    fifby(ny-2)=af
-   fifby(ny-1)=af
+   fifby(ny-1)=afn
    fifby(ny  )=0.
    do j=3,ny-3
       fiffy(j)=af
@@ -291,7 +272,7 @@ if (nclz.eq.0) then
       enddo
 endif
 if (nclz.eq.1) then
-   fiffz(1)   =af+af
+   fiffz(1)   =af1
    fiffz(2)   =af
    fiffz(nz-2)=af
    fiffz(nz-1)=af
@@ -304,7 +285,7 @@ if (nclz.eq.1) then
    fifbz(1)   =af 
    fifbz(2)   =af
    fifbz(nz-2)=af
-   fifbz(nz-1)=af+af
+   fifbz(nz-1)=afn
    fifbz(nz  )=0.
    do k=3,nz-3
       fiffz(k)=af
@@ -313,7 +294,7 @@ if (nclz.eq.1) then
    enddo
 endif
 if (nclz.eq.2) then
-   fiffz(1)   =af 
+   fiffz(1)   =af1
    fiffz(2)   =af
    fiffz(nz-2)=af
    fiffz(nz-1)=af
@@ -326,7 +307,7 @@ if (nclz.eq.2) then
    fifbz(1)   =af 
    fifbz(2)   =af
    fifbz(nz-2)=af
-   fifbz(nz-1)=af
+   fifbz(nz-1)=afn
    fifbz(nz  )=0.
    do k=3,nz-3
       fiffz(k)=af
@@ -410,8 +391,7 @@ endif
 if (nclx==2) then 
    do k=1,nz
    do j=1,ny 
-      tx(1,j,k)=fia1x*ux(1,j,k)+fib1x*ux(2,j,k)+fic1x*ux(3,j,k)+&
-                fid1x*ux(4,j,k)
+      tx(1,j,k)=ux(1,j,k)
       tx(2,j,k)=fia2x*ux(1,j,k)+fib2x*ux(2,j,k)+fic2x*ux(3,j,k)+&
                 fid2x*ux(4,j,k)
       do i=3,nx-2
@@ -419,8 +399,7 @@ if (nclx==2) then
                                   +ficix*(ux(i+2,j,k)+ux(i-2,j,k))&
                                   +fidix*(ux(i+3,j,k)+ux(i-3,j,k)) 
       enddo
-      tx(nx,j,k)=fianx*ux(nx,j,k)+fibnx*ux(nx-1,j,k)+ficnx*ux(nx-2,j,k)+&
-                            fidnx*ux(nx-3,j,k)
+      tx(nx,j,k)=ux(nx,j,k)
       tx(nx-1,j,k)=fiamx*ux(nx,j,k)+fibmx*ux(nx-1,j,k)+ficmx*ux(nx-2,j,k)+&
                             fidmx*ux(nx-3,j,k)
       do i=2,nx 
@@ -513,9 +492,7 @@ if (ncly==1) then
     if (npaire==1) then 
     do k=1,nz 
     do i=1,nx 
-         ty(i,1,k)=fiajy*uy(i,1,k)+fibjy*(uy(i,2,k)+uy(i,2,k))& 
-                                  +ficjy*(uy(i,3,k)+uy(i,3,k))&
-                                  +fidjy*(uy(i,5,k)+uy(i,5,k)) 
+         ty(i,1,k)=uy(i,1,k) 
          ty(i,2,k)=fiajy*uy(i,2,k)+fibjy*(uy(i,3,k)+uy(i,1,k))& 
                                   +ficjy*(uy(i,4,k)+uy(i,2,k))&
                                   +fidjy*(uy(i,5,k)+uy(i,3,k)) 
@@ -535,9 +512,7 @@ if (ncly==1) then
     enddo 
     do k=1,nz 
     do i=1,nx 
-       ty(i,ny,k)=fiajy*uy(i,ny,k)+fibjy*(uy(i,ny-1,k)+uy(i,ny-1,k))& 
-                                      +ficjy*(uy(i,ny-2,k)+uy(i,ny-2,k))&
-                                      +fidjy*(uy(i,ny-3,k)+uy(i,ny-3,k)) 
+       ty(i,ny,k)=uy(i,ny,k)
        ty(i,ny-1,k)=fiajy*uy(i,ny-1,k)+fibjy*(uy(i,ny,k)  +uy(i,ny-2,k))& 
                                       +ficjy*(uy(i,ny-1,k)+uy(i,ny-3,k))&
                                       +fidjy*(uy(i,ny-2,k)+uy(i,ny-4,k)) 
@@ -569,7 +544,7 @@ if (ncly==1) then
    if (npaire==0) then 
       do k=1,nz 
       do i=1,nx 
-         ty(i,1,k)=fiajy*uy(i,1,k)
+         ty(i,1,k)=uy(i,1,k)
          ty(i,2,k)=fiajy*uy(i,2,k)+fibjy*(uy(i,3,k)+uy(i,1,k))& 
                                   +ficjy*(uy(i,4,k)-uy(i,2,k))&
                                   +fidjy*(uy(i,5,k)-uy(i,3,k)) 
@@ -589,7 +564,7 @@ if (ncly==1) then
       enddo 
       do k=1,nz 
       do i=1,nx 
-         ty(i,ny,k)=fiajy*uy(i,ny,k)
+         ty(i,ny,k)=uy(i,ny,k)
          ty(i,ny-1,k)=fiajy*uy(i,ny-1,k)+fibjy*(uy(i,ny,k)  +uy(i,ny-2,k))& 
                                         +ficjy*(-uy(i,ny-1,k)+uy(i,ny-3,k))&
                                         +fidjy*(-uy(i,ny-2,k)+uy(i,ny-4,k)) 
@@ -623,8 +598,7 @@ endif
 if (ncly==2) then 
    do k=1,nz
    do i=1,nx 
-      ty(i,1,k)=fia1y*uy(i,1,k)+fib1y*uy(i,2,k)+fic1y*uy(i,3,k)+&
-                fid1y*uy(i,4,k)
+      ty(i,1,k)=uy(i,1,k)
       ty(i,2,k)=fia2y*uy(i,1,k)+fib2y*uy(i,2,k)+fic2y*uy(i,3,k)+&
                 fid2y*uy(i,4,k)
       do j=3,ny-2
@@ -632,8 +606,7 @@ if (ncly==2) then
                                   +ficjy*(uy(i,j+2,k)+uy(i,j-2,k))&
                                   +fidjy*(uy(i,j+3,k)+uy(i,j-3,k)) 
       enddo
-      ty(i,ny,k)=fiany*uy(i,ny,k)+  fibny*uy(i,ny-1,k)+ficny*uy(i,ny-2,k)+&
-                                    fidny*uy(i,ny-3,k)
+      ty(i,ny,k)=uy(i,ny,k)
       ty(i,ny-1,k)=fiamy*uy(i,ny,k)+fibmy*uy(i,ny-1,k)+ficmy*uy(i,ny-2,k)+&
                                     fidmy*uy(i,ny-3,k)
       do j=2,ny 
