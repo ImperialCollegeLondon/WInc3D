@@ -107,7 +107,7 @@ contains
         elseif (deltax<=dx/2.) then
             if(deltar<=actuatordisc(idisc)%D/2.) then
                 gamma_disc_partial=1.
-            elseif(deltar>actuatordisc(idisc)%D/2..and.deltar<=actuatordisc(idisc)%D/2.+2*dr) then    
+            elseif(deltar>actuatordisc(idisc)%D/2..and.deltar<=actuatordisc(idisc)%D/2.+2.*dr) then    
                 gamma_disc_partial=1.-(deltar-actuatordisc(idisc)%D/2.)/(2*dr)    
             else
                 gamma_disc_partial=0.
@@ -168,7 +168,7 @@ contains
         
         deallocate(Udisc_partial,counter,counter_total)
 
-        ! Time relaxation
+        ! Time relaxation -- low pass filter
         if (itime==0) then
             do idisc=1,Nad
             actuatordisc(idisc)%Udisc_prev=actuatordisc(idisc)%Udisc

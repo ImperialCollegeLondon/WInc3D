@@ -483,7 +483,7 @@ endif
 !else 
 !    lambda=0.
 !endif
-if(ifringeregion==1.and.x.ge.xlx/2.) lambda=0 ! Apply if using the fring region with half domain
+if(ifringeregion==1.and.x.ge.xlx/4.) lambda=0 ! Apply if using the fring region with half domain
 ta1(i,j,k)=ta1(i,j,k)-5.*ustar/yly*lambda*(ux1(i,j,k)-UG(1))
 tb1(i,j,k)=tb1(i,j,k)-5.*ustar/yly*lambda*(uy1(i,j,k)-UG(2))
 tc1(i,j,k)=tc1(i,j,k)-5.*ustar/yly*lambda*(uz1(i,j,k)-UG(3))
