@@ -445,8 +445,8 @@ endif
 
 ! Buoyancy Effects
 if (ibuoyancy==1) then     
-    ! Average quantities over the x-z plane 
-    deltaphi1(:,:,:)=(TempRef-phi1(:,:,:))/TempRef
+    ! Average quantities over the x-z plane
+    deltaphi1(:,:,:)=(phi1(:,:,:)-TempRef)/TempRef
     tb1(:,:,:)=tb1(:,:,:) + 9.81*deltaphi1(:,:,:)
 endif
 

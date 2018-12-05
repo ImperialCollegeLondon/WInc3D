@@ -151,7 +151,7 @@ if args.write:
             VpVp=float(np.average(vpvp[:,jprofile,:])/ustar**2.)
             WpWp=float(np.average(wpwp[:,jprofile,:])/ustar**2.)
             UpVp=float(-np.average(upvp[:,jprofile,:])/ustar**2.)
-            TAU=float(np.average(tauav[:,jprofile,:])/ustar**2.)
+            TAU=np.min((1-Y)-UpVp,0)#float(np.average(tauav[:,jprofile,:])/ustar**2.)
             TOTALSTRESSES=TAU+UpVp
             I=float(sqrt(upup[ixloc[0],jprofile,kxloc[0]])/sqrt(uav[ixloc[0],jprofile,kxloc[0]]**2.+wav[ixloc[0],jprofile,kxloc[0]]**2.))
             fout.write(str(Y)+' '+ str(U)+' '+str(Uustar)+' '+str(Phi)+' '+str(UpUp)+' '+str(VpVp)+' '+str(WpWp)+' '+str(UpVp)+' '+str(TAU)+' '+str(TOTALSTRESSES)+' '+str(I)+'\n')

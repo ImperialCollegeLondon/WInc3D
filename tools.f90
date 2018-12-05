@@ -1183,39 +1183,46 @@ return
 end subroutine spanwise_shifting 
 
 
-subroutine apply_spatial_filter(ux1,uy1,uz1,ux2,uy2,uz2,ux3,uy3,uz3)
+subroutine apply_spatial_filter(ux1,uy1,uz1,phi1,ux2,uy2,uz2,phi2,ux3,uy3,uz3,phi3)
 
 USE decomp_2d
 USE param
-USE var, only: uxf1,uyf1,uzf1,uxf2,uyf2,uzf2,uxf3,uyf3,uzf3,di1,di2,di3
+USE var, only: uxf1,uyf1,uzf1,uxf2,uyf2,uzf2,uxf3,uyf3,uzf3,di1,di2,di3,phif1,phif2,phif3
 
 implicit none
-real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux1,uy1,uz1
-real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: ux2,uy2,uz2
-real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: ux3,uy3,uz3
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux1,uy1,uz1,phi1
+real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: ux2,uy2,uz2,phi2
+real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: ux3,uy3,uz3,phi3
 integer :: i,j,k,npaire
 
 call filx(uxf1,ux1,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0) 
 call filx(uyf1,uy1,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0) 
 call filx(uzf1,uz1,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0)
+call filx(phif1,phi1,di1,fisx,fiffx,fifsx,fifwx,xsize(1),xsize(2),xsize(3),0)
 call transpose_x_to_y(uxf1,ux2)
 call transpose_x_to_y(uyf1,uy2)
 call transpose_x_to_y(uzf1,uz2)
+call transpose_x_to_y(phif1,phi2)
 call fily(uxf2,ux2,di2,fisy,fiffy,fifsy,fifwy,ppy,ysize(1),ysize(2),ysize(3),1) 
 call fily(uyf2,uy2,di2,fisy,fiffy,fifsy,fifwy,ppy,ysize(1),ysize(2),ysize(3),0) 
 call fily(uzf2,uz2,di2,fisy,fiffy,fifsy,fifwy,ppy,ysize(1),ysize(2),ysize(3),1)
+call fily(phif2,phi2,di2,fisy,fiffy,fifsy,fifwy,ppy,ysize(1),ysize(2),ysize(3),0)
 call transpose_y_to_z(uxf2,ux3)
 call transpose_y_to_z(uyf2,uy3)
 call transpose_y_to_z(uzf2,uz3)
+call transpose_y_to_z(phif2,phi3)
 call filz(uxf3,ux3,di3,fisz,fiffz,fifsz,fifwz,zsize(1),zsize(2),zsize(3),0) 
 call filz(uyf3,uy3,di3,fisz,fiffz,fifsz,fifwz,zsize(1),zsize(2),zsize(3),0) 
 call filz(uzf3,uz3,di3,fisz,fiffz,fifsz,fifwz,zsize(1),zsize(2),zsize(3),0) 
+call filz(phif3,phi3,di3,fisz,fiffz,fifsz,fifwz,zsize(1),zsize(2),zsize(3),0) 
 call transpose_z_to_y(uxf3,ux2)
 call transpose_z_to_y(uyf3,uy2)
 call transpose_z_to_y(uzf3,uz2)
+call transpose_z_to_y(phif3,phi2)
 call transpose_y_to_x(ux2,ux1)
 call transpose_y_to_x(uy2,uy1)
 call transpose_y_to_x(uz2,uz1)
+call transpose_y_to_x(phi2,phi1)
 
 return
 
