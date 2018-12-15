@@ -497,8 +497,8 @@ if (ncly==1) then
                                   +ficjy*(uy(i,4,k)+uy(i,2,k))&
                                   +fidjy*(uy(i,5,k)+uy(i,3,k)) 
          ty(i,3,k)=fiajy*uy(i,3,k)+fibjy*(uy(i,4,k)+uy(i,2,k))& 
-                                  +ficjy*(uy(i,5,k)+uy(i,3,k))&
-                                  +fidjy*(uy(i,6,k)+uy(i,4,k)) 
+                                  +ficjy*(uy(i,5,k)+uy(i,1,k))&
+                                  +fidjy*(uy(i,6,k)+uy(i,2,k)) 
     enddo
     enddo 
     do k=1,nz 
@@ -517,8 +517,8 @@ if (ncly==1) then
                                       +ficjy*(uy(i,ny-1,k)+uy(i,ny-3,k))&
                                       +fidjy*(uy(i,ny-2,k)+uy(i,ny-4,k)) 
        ty(i,ny-2,k)=fiajy*uy(i,ny-2,k)+fibjy*(uy(i,ny-1,k)+uy(i,ny-3,k))& 
-                                      +ficjy*(uy(i,ny-2,k)+uy(i,ny-4,k))&
-                                      +fidjy*(uy(i,ny-3,k)+uy(i,ny-5,k)) 
+                                      +ficjy*(uy(i,ny,k)+uy(i,ny-4,k))&
+                                      +fidjy*(uy(i,ny-1,k)+uy(i,ny-5,k)) 
     enddo
     enddo 
     do k=1,nz
