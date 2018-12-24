@@ -17,6 +17,8 @@ module actuator_disc_model
         real(mytype) :: Udisc               ! Disc-averaged velocity
         real(mytype) :: Udisc_prev          ! Disc-averaged velocity
         real(mytype) :: Power
+        real(mytype) :: Udisc_ave
+        real(mytype) :: Power_ave
     end type ActuatorDiscType
 
     type(ActuatorDiscType), allocatable, save :: ActuatorDisc(:)
@@ -76,7 +78,7 @@ contains
         
         use decomp_2d, only: mytype, nproc, xstart, xend, xsize, update_halo
         use MPI
-        use param, only: dx,dy,dz,eps_factor,xnu,yp,istret,xlx,yly,zlz,dt,itime,ustar,dBL
+        use param, only: dx,dy,dz,eps_factor,xnu,yp,istret,xlx,yly,zlz,dt,itime,ustar,dBL, spinup_time
         use var, only: FDiscx, FDiscy, FDiscz, GammaDisc
         
         implicit none
@@ -182,6 +184,13 @@ contains
             enddo
         endif
 
+        ! Compute the average values after spin_up time
+        if(itime*dt>=spinup_time) then
+            do idisc=1,Nad
+             actuatordisc(idisc)%Udisc_ave=actuatordisc(idisc)%Udisc_ave+actuatordisc(idisc)%Udisc  
+             actuatordisc(idisc)%Power_ave=actuatordisc(idisc)%Power_ave+actuatordisc(idisc)%Power   
+            enddo
+        endif
         ! Compute the forces
         do idisc=1,Nad
         CTprime=actuatordisc(idisc)%CT/(1-actuatordisc(idisc)%alpha)**2.
@@ -203,7 +212,7 @@ contains
         integer :: idisc
         character(len=100) :: dir, Format
 
-        call system('mkdir -p ADM/')
+        !call system('mkdir -p ADM/')
         
         dir='ADM/'
 
@@ -212,7 +221,7 @@ contains
         write(2020,*) 'Udisc, CT, Power'
             Format="(3(E14.7,A))"
             do idisc=1,Nad
-            write(2020,Format) actuatordisc(idisc)%Udisc,',',actuatordisc(idisc)%CT,',',actuatordisc(idisc)%Power
+            write(2020,Format) actuatordisc(idisc)%Udisc,',',actuatordisc(idisc)%CT,',',actuatordisc(idisc)%Power,actuatordisc(idisc)%Udisc_ave,',',actuatordisc(idisc)%Power_ave
             end do
         close(2020)
         endif
