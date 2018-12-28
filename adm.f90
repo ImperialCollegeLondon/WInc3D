@@ -218,14 +218,12 @@ contains
         integer :: idisc
         character(len=100) :: dir, Format
 
-        !call system('mkdir -p ADM/')
-        
         if (Nad>0) then
         open(2020,File='discs_time'//trim(int2str(dump_no))//'.adm')
-        write(2020,*) 'Udisc, CT, Power'
-            Format="(3(E14.7,A))"
+        write(2020,*) 'Udisc, CT, Power, Udisc_ave, Power_ave'
+            Format="(5(E14.7,A))"
             do idisc=1,Nad
-            write(2020,Format) actuatordisc(idisc)%Udisc,',',actuatordisc(idisc)%CT,',',actuatordisc(idisc)%Power,actuatordisc(idisc)%Udisc_ave,',',actuatordisc(idisc)%Power_ave
+            write(2020,Format) actuatordisc(idisc)%Udisc,',',actuatordisc(idisc)%CT,',',actuatordisc(idisc)%Power,',',actuatordisc(idisc)%Udisc_ave,',',actuatordisc(idisc)%Power_ave
             end do
         close(2020)
         endif
