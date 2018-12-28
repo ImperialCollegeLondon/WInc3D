@@ -17,8 +17,8 @@ module actuator_disc_model
         real(mytype) :: Udisc               ! Disc-averaged velocity
         real(mytype) :: Udisc_prev          ! Disc-averaged velocity
         real(mytype) :: Power
-        real(mytype) :: Udisc_ave
-        real(mytype) :: Power_ave
+        real(mytype) :: Udisc_ave=0.0_mytype
+        real(mytype) :: Power_ave=0.0_mytype
     end type ActuatorDiscType
 
     type(ActuatorDiscType), allocatable, save :: ActuatorDisc(:)
@@ -78,17 +78,17 @@ contains
         
         use decomp_2d, only: mytype, nproc, xstart, xend, xsize, update_halo
         use MPI
-        use param, only: dx,dy,dz,eps_factor,xnu,yp,istret,xlx,yly,zlz,dt,itime,ustar,dBL, spinup_time
+        use param, only: dx,dy,dz,eps_factor,xnu,yp,istret,xlx,yly,zlz,dt,u1,u2,iverifyadm,itime,ustar,dBL, spinup_time
         use var, only: FDiscx, FDiscy, FDiscz, GammaDisc
         
         implicit none
         real(mytype), dimension(xsize(1),xsize(2),xsize(3)) :: ux1, uy1, uz1       
         real(mytype) :: xmesh, ymesh,zmesh,deltax,deltay,deltaz,deltar,dr,gamma_disc_partial
-        real(mytype) :: uave,CTprime, T_relax, alpha_relax
+        real(mytype) :: uave,CTprime, T_relax, alpha_relax, Ratio
         real(mytype), allocatable, dimension(:) :: Udisc_partial
         integer,allocatable, dimension(:) :: counter, counter_total
         integer :: i,j,k, idisc, ierr
-     
+
         ! First compute Gamma
         GammaDisc=0.
         do idisc=1,Nad
@@ -177,7 +177,7 @@ contains
             enddo
         else
             do idisc=1,Nad
-            T_relax=15 !0.27*dBL/ustar
+            T_relax=10 !0.27*dBL/ustar
             alpha_relax=(dt/T_relax)/(1.+dt/T_relax)
             actuatordisc(idisc)%Udisc=alpha_relax*actuatordisc(idisc)%Udisc+(1.-alpha_relax)*actuatordisc(idisc)%Udisc_prev
             actuatordisc(idisc)%Udisc_prev=actuatordisc(idisc)%Udisc
@@ -193,12 +193,18 @@ contains
         endif
         ! Compute the forces
         do idisc=1,Nad
+
         CTprime=actuatordisc(idisc)%CT/(1-actuatordisc(idisc)%alpha)**2.
         ! Compute power
         actuatordisc(idisc)%Power=0.5*CTprime*actuatordisc(idisc)%Udisc**3.*pi*actuatordisc(idisc)%D**2./4.*0.432/0.56
         Fdiscx(:,:,:)=-0.5*CTprime*actuatordisc(idisc)%Udisc**2.*GammaDisc(:,:,:)/dx
         Fdiscy(:,:,:)=0.  
         Fdiscz(:,:,:)=0.
+        ! Check if the total disc actuator disc F_t is equal to 
+        if(iverifyadm.eq.1) then
+            Ratio=sum(Fdiscx(:,:,:))/(-0.5*actuatordisc(idisc)%CT*((u1+u2)/2.0_mytype)**2.0_mytype*pi/4.0_mytype*actuatordisc(idisc)%D**2.0_mytype)
+            if (nrank==0) print *, Ratio
+        endif
         enddo
 
         return
@@ -214,10 +220,8 @@ contains
 
         !call system('mkdir -p ADM/')
         
-        dir='ADM/'
-
         if (Nad>0) then
-        open(2020,File=trim(dir)//'discs_time'//trim(int2str(dump_no))//'.adm')
+        open(2020,File='discs_time'//trim(int2str(dump_no))//'.adm')
         write(2020,*) 'Udisc, CT, Power'
             Format="(3(E14.7,A))"
             do idisc=1,Nad

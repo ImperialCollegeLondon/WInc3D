@@ -83,7 +83,7 @@ character,dimension(100) :: turbinesPath*80, ActuatorlinesPath*80 ! Assign a max
 real(mytype), dimension(5) :: adt,bdt,cdt,gdt
 ! Actuator disc model
 integer :: iadm ! Actuator disc flag
-integer :: Ndiscs ! number of actuator discs
+integer :: Ndiscs,iverifyadm ! number of actuator discs
 character(len=100) :: admCoords
 integer :: iadmmode ! 0: constnat thrust, 1: from a list
 real(mytype) :: CT, aind
