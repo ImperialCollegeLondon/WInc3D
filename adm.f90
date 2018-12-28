@@ -83,8 +83,9 @@ contains
         
         implicit none
         real(mytype), dimension(xsize(1),xsize(2),xsize(3)) :: ux1, uy1, uz1       
-        real(mytype) :: xmesh, ymesh,zmesh,deltax,deltay,deltaz,deltar,dr,gamma_disc_partial
-        real(mytype) :: uave,CTprime, T_relax, alpha_relax, Ratio
+        real(mytype) :: xmesh, ymesh,zmesh,deltax,deltay,deltaz,deltar,dr,gamma_disc_partial,Heaviside,DiscsTotalArea
+        real(mytype) :: uave,CTprime, T_relax, alpha_relax, Uinf, CTave,Ratio,sumforce,Sumforce_partial
+        real(mytype) :: DeltaFilter, DeltaFilterR
         real(mytype), allocatable, dimension(:) :: Udisc_partial
         integer,allocatable, dimension(:) :: counter, counter_total
         integer :: i,j,k, idisc, ierr
@@ -102,18 +103,25 @@ contains
         deltax=abs(xmesh-actuatordisc(idisc)%COR(1))
         deltay=abs(ymesh-actuatordisc(idisc)%COR(2))
         deltaz=abs(zmesh-actuatordisc(idisc)%COR(3))
-        deltar=sqrt(deltay**2.+deltaz**2.)
-        dr=sqrt(dx**2.+dz**2.)
-        if(deltax>dx/2.) then 
-            gamma_disc_partial=0.
+        deltar=sqrt(deltax**2.+deltay**2.+deltaz**2.)
+        DeltaFilter=(dx*dy*dz)**(1.0_mytype/3.0_mytype)
+        DeltaFilterR=3.0_mytype/2.0_mytype*DeltaFilter
+        dr=sqrt(dy**2.+dz**2.)
+        if(deltax>dx) then 
+            Heaviside=0.
         elseif (deltax<=dx/2.) then
             if(deltar<=actuatordisc(idisc)%D/2.) then
-                gamma_disc_partial=1.
-            elseif(deltar>actuatordisc(idisc)%D/2..and.deltar<=actuatordisc(idisc)%D/2.+2.*dr) then    
-                gamma_disc_partial=1.-(deltar-actuatordisc(idisc)%D/2.)/(2*dr)    
+                Heaviside=1.
             else
-                gamma_disc_partial=0.
-            endif
+                Heaviside=0.
+        endif
+            ! Compute based on Goit and Meyers
+            gamma_disc_partial=6.0/(pi*DeltaFilterR**2.0)**(3.0/2.0)*exp(-6.0*deltar**2.0/DeltaFilterR**2.0)*Heaviside*dx*dy*dz
+            !elseif(deltar>actuatordisc(idisc)%D/2..and.deltar<=actuatordisc(idisc)%D/2.+dr) then    
+            !    gamma_disc_partial=1.-(deltar-actuatordisc(idisc)%D/2.)/dr    
+            !else
+            !    gamma_disc_partial=0.
+            !endif
     
         endif
         GammaDisc(i,j,k)=GammaDisc(i,j,k)+gamma_disc_partial
@@ -142,9 +150,11 @@ contains
         deltay=abs(ymesh-actuatordisc(idisc)%COR(2))
         deltaz=abs(zmesh-actuatordisc(idisc)%COR(3))
         deltar=sqrt(deltay**2.+deltaz**2.)
-        if(deltar<=actuatordisc(idisc)%D/2..and.deltax<dx/2.) then
+        dr=sqrt(dx**2.+dz**2.)
+        if(deltar<=actuatordisc(idisc)%D/2.and.deltax<=dx) then
             ! Take the inner product to compute the rotor-normal velocity
-            uave=uave+ux1(i,j,k)*actuatordisc(idisc)%RotN(1)+&
+            uave=uave+&!sqrt(ux1(i,j,k)**2.+uy1(i,j,k)**2.+uz1(i,j,k)**2.)
+                 actuatordisc(idisc)%RotN(1)+&
                  uy1(i,j,k)*actuatordisc(idisc)%RotN(2)+&
                  uz1(i,j,k)*actuatordisc(idisc)%RotN(3)
                  counter(idisc)=counter(idisc)+1
@@ -177,7 +187,7 @@ contains
             enddo
         else
             do idisc=1,Nad
-            T_relax=10 !0.27*dBL/ustar
+            T_relax= 10.! 0.27*dBL/ustar
             alpha_relax=(dt/T_relax)/(1.+dt/T_relax)
             actuatordisc(idisc)%Udisc=alpha_relax*actuatordisc(idisc)%Udisc+(1.-alpha_relax)*actuatordisc(idisc)%Udisc_prev
             actuatordisc(idisc)%Udisc_prev=actuatordisc(idisc)%Udisc
@@ -196,16 +206,33 @@ contains
 
         CTprime=actuatordisc(idisc)%CT/(1-actuatordisc(idisc)%alpha)**2.
         ! Compute power
-        actuatordisc(idisc)%Power=0.5*CTprime*actuatordisc(idisc)%Udisc**3.*pi*actuatordisc(idisc)%D**2./4.*0.432/0.56
-        Fdiscx(:,:,:)=-0.5*CTprime*actuatordisc(idisc)%Udisc**2.*GammaDisc(:,:,:)/dx
+        actuatordisc(idisc)%Power=0.5_mytype*CTprime*actuatordisc(idisc)%Udisc**3.0_mytype*pi*actuatordisc(idisc)%D**2._mytype/4._mytype*0.432_mytype/0.56_mytype
+        Fdiscx(:,:,:)=-0.5_mytype*CTprime*actuatordisc(idisc)%Udisc**2.0_mytype*GammaDisc(:,:,:)
         Fdiscy(:,:,:)=0.  
         Fdiscz(:,:,:)=0.
+        enddo
+        
         ! Check if the total disc actuator disc F_t is equal to 
         if(iverifyadm.eq.1) then
-            Ratio=sum(Fdiscx(:,:,:))/(-0.5*actuatordisc(idisc)%CT*((u1+u2)/2.0_mytype)**2.0_mytype*pi/4.0_mytype*actuatordisc(idisc)%D**2.0_mytype)
-            if (nrank==0) print *, Ratio
+            sumforce=0.
+            do k=1,xsize(3)
+            do j=1,xsize(2)
+            do i=1,xsize(1)
+            sumforce_partial=sumforce_partial+GammaDisc(i,j,k)
+            enddo
+            enddo
+            enddo
+
+            call MPI_ALLREDUCE(Sumforce_partial,sumforce,1,MPI_REAL8,MPI_SUM, &
+                MPI_COMM_WORLD,ierr)
+            do idisc=1,Nad
+            DiscsTotalArea=DiscsTotalArea+pi/4.0_mytype*actuatordisc(idisc)%D**2.0_mytype
+            enddo
+            CTave=sum(actuatordisc%CT)/Nad
+            Uinf=(u1+u2)/2.0_mytype
+            Ratio=sumforce*(dx*dy*dz)/(DiscsTotalArea)
+            if (nrank==0) print *, 'ADM verification ratio', Ratio
         endif
-        enddo
 
         return
     end subroutine actuator_disc_model_compute_source
