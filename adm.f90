@@ -103,28 +103,28 @@ contains
         deltax=abs(xmesh-actuatordisc(idisc)%COR(1))
         deltay=abs(ymesh-actuatordisc(idisc)%COR(2))
         deltaz=abs(zmesh-actuatordisc(idisc)%COR(3))
-        deltar=sqrt(deltax**2.+deltay**2.+deltaz**2.)
+        deltar=sqrt(deltay**2.+deltaz**2.)
         DeltaFilter=(dx*dy*dz)**(1.0_mytype/3.0_mytype)
         DeltaFilterR=3.0_mytype/2.0_mytype*DeltaFilter
         dr=sqrt(dy**2.+dz**2.)
-        if(deltax>dx) then 
+        if(deltax>dx/2.) then 
             Heaviside=0.
         elseif (deltax<=dx/2.) then
             if(deltar<=actuatordisc(idisc)%D/2.) then
                 Heaviside=1.
             else
                 Heaviside=0.
+            endif
         endif
             ! Compute based on Goit and Meyers
-            gamma_disc_partial=6.0/(pi*DeltaFilterR**2.0)**(3.0/2.0)*exp(-6.0*deltar**2.0/DeltaFilterR**2.0)*Heaviside*dx*dy*dz
+            GammaDisc(i,j,k)=(6.0/(pi*DeltaFilterR**2.0))**(3.0/2.0)*exp(-6.0*deltar**2.0/DeltaFilterR**2.0)*Heaviside*dx*dy*dz
             !elseif(deltar>actuatordisc(idisc)%D/2..and.deltar<=actuatordisc(idisc)%D/2.+dr) then    
             !    gamma_disc_partial=1.-(deltar-actuatordisc(idisc)%D/2.)/dr    
             !else
             !    gamma_disc_partial=0.
             !endif
     
-        endif
-        GammaDisc(i,j,k)=GammaDisc(i,j,k)+gamma_disc_partial
+        !GammaDisc(i,j,k)=GammaDisc(i,j,k)+gamma_disc_partial
         enddo
         enddo
         enddo 
