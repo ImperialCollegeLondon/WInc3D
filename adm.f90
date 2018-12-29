@@ -15,7 +15,8 @@ module actuator_disc_model
         real(mytype) :: CT                  ! Thrust coefficient
         real(mytype) :: alpha               ! Induction coefficient
         real(mytype) :: Udisc               ! Disc-averaged velocity
-        real(mytype) :: Udisc_prev          ! Disc-averaged velocity
+        real(mytype) :: UF                  ! Disc-averaged velocity -- filtered
+        real(mytype) :: UF_prev             ! Disc-averaged velocity -- filtered previous
         real(mytype) :: Power
         real(mytype) :: Udisc_ave=0.0_mytype
         real(mytype) :: Power_ave=0.0_mytype
@@ -85,7 +86,7 @@ contains
         real(mytype), dimension(xsize(1),xsize(2),xsize(3)) :: ux1, uy1, uz1       
         real(mytype) :: xmesh, ymesh,zmesh,deltax,deltay,deltaz,deltar,dr,gamma_disc_partial,Heaviside,DiscsTotalArea
         real(mytype) :: uave,CTprime, T_relax, alpha_relax, Uinf, CTave,Ratio,sumforce,Sumforce_partial
-        real(mytype) :: DeltaFilter, DeltaFilterR
+        real(mytype) :: Delta, DeltaSmoothing
         real(mytype), allocatable, dimension(:) :: Udisc_partial
         integer,allocatable, dimension(:) :: counter, counter_total
         integer :: i,j,k, idisc, ierr
@@ -93,10 +94,11 @@ contains
         ! First compute Gamma
         GammaDisc=0.
         do idisc=1,Nad
+
         do k=1,xsize(3)
         zmesh=(xstart(3)+k-1-1)*dz 
         do j=1,xsize(2)
-        if (istret.eq.0) ymesh=(xstart(2)+j-1-2)*dy
+        if (istret.eq.0) ymesh=(xstart(2)+j-1-1)*dy
         if (istret.ne.0) ymesh=yp(xstart(2)+j)
         do i=1,xsize(1)
         xmesh=(xstart(1)+i-1-1)*dx
@@ -104,30 +106,26 @@ contains
         deltay=abs(ymesh-actuatordisc(idisc)%COR(2))
         deltaz=abs(zmesh-actuatordisc(idisc)%COR(3))
         deltar=sqrt(deltay**2.+deltaz**2.)
-        DeltaFilter=(dx*dy*dz)**(1.0_mytype/3.0_mytype)
-        DeltaFilterR=3.0_mytype/2.0_mytype*DeltaFilter
+        Delta=sqrt(dy**2.+dz**2.)
+        DeltaSmoothing=2.5*Delta
         dr=sqrt(dy**2.+dz**2.)
+        
         if(deltax>dx/2.) then 
-            Heaviside=0.
+            GammaDisc(i,j,k)=0.
         elseif (deltax<=dx/2.) then
-            if(deltar<=actuatordisc(idisc)%D/2.) then
-                Heaviside=1.
+            if(deltar<=actuatordisc(idisc)%D/2.0) then
+                GammaDisc(i,j,k)=1.
+            elseif(deltar>actuatordisc(idisc)%D/2..and. deltar<=actuatordisc(idisc)%D/2.+dr) then
+                GammaDisc(i,j,k)=1.-(deltar-actuatordisc(idisc)%D/2.)/dr    
             else
-                Heaviside=0.
+                GammaDisc(i,j,k)=0.
             endif
         endif
-            ! Compute based on Goit and Meyers
-            GammaDisc(i,j,k)=(6.0/(pi*DeltaFilterR**2.0))**(3.0/2.0)*exp(-6.0*deltar**2.0/DeltaFilterR**2.0)*Heaviside*dx*dy*dz
-            !elseif(deltar>actuatordisc(idisc)%D/2..and.deltar<=actuatordisc(idisc)%D/2.+dr) then    
-            !    gamma_disc_partial=1.-(deltar-actuatordisc(idisc)%D/2.)/dr    
-            !else
-            !    gamma_disc_partial=0.
-            !endif
-    
-        !GammaDisc(i,j,k)=GammaDisc(i,j,k)+gamma_disc_partial
+        
         enddo
         enddo
-        enddo 
+        enddo
+            
         enddo
         
         ! Then compute disc-averaged velocity
@@ -150,11 +148,11 @@ contains
         deltay=abs(ymesh-actuatordisc(idisc)%COR(2))
         deltaz=abs(zmesh-actuatordisc(idisc)%COR(3))
         deltar=sqrt(deltay**2.+deltaz**2.)
-        dr=sqrt(dx**2.+dz**2.)
-        if(deltar<=actuatordisc(idisc)%D/2.and.deltax<=dx) then
+        dr=sqrt(dy**2.+dz**2.)
+        if(deltar<=actuatordisc(idisc)%D/2.) then
             ! Take the inner product to compute the rotor-normal velocity
             uave=uave+&!sqrt(ux1(i,j,k)**2.+uy1(i,j,k)**2.+uz1(i,j,k)**2.)
-                 actuatordisc(idisc)%RotN(1)+&
+                 ux1(i,j,k)*actuatordisc(idisc)%RotN(1)+&
                  uy1(i,j,k)*actuatordisc(idisc)%RotN(2)+&
                  uz1(i,j,k)*actuatordisc(idisc)%RotN(3)
                  counter(idisc)=counter(idisc)+1
@@ -176,6 +174,7 @@ contains
             stop
         endif
         actuatordisc(idisc)%Udisc=actuatordisc(idisc)%Udisc/counter_total(idisc)
+        if (nrank==0) print *, actuatordisc(idisc)%Udisc
         enddo
         
         deallocate(Udisc_partial,counter,counter_total)
@@ -183,31 +182,26 @@ contains
         ! Time relaxation -- low pass filter
         if (itime==0) then
             do idisc=1,Nad
-            actuatordisc(idisc)%Udisc_prev=actuatordisc(idisc)%Udisc
+            actuatordisc(idisc)%UF=actuatordisc(idisc)%Udisc
+            actuatordisc(idisc)%UF_prev=actuatordisc(idisc)%Udisc
             enddo
         else
             do idisc=1,Nad
-            T_relax= 10.! 0.27*dBL/ustar
+            T_relax= 5.! 0.27*dBL/ustar
             alpha_relax=(dt/T_relax)/(1.+dt/T_relax)
-            actuatordisc(idisc)%Udisc=alpha_relax*actuatordisc(idisc)%Udisc+(1.-alpha_relax)*actuatordisc(idisc)%Udisc_prev
-            actuatordisc(idisc)%Udisc_prev=actuatordisc(idisc)%Udisc
+            actuatordisc(idisc)%UF=alpha_relax*actuatordisc(idisc)%UF+(1.-alpha_relax)*actuatordisc(idisc)%UF_prev
+            actuatordisc(idisc)%UF_prev=actuatordisc(idisc)%Udisc
             enddo
         endif
 
-        ! Compute the average values after spin_up time
-        if(itime*dt>=spinup_time) then
-            do idisc=1,Nad
-             actuatordisc(idisc)%Udisc_ave=actuatordisc(idisc)%Udisc_ave+actuatordisc(idisc)%Udisc  
-             actuatordisc(idisc)%Power_ave=actuatordisc(idisc)%Power_ave+actuatordisc(idisc)%Power   
-            enddo
-        endif
         ! Compute the forces
         do idisc=1,Nad
 
         CTprime=actuatordisc(idisc)%CT/(1-actuatordisc(idisc)%alpha)**2.
         ! Compute power
-        actuatordisc(idisc)%Power=0.5_mytype*CTprime*actuatordisc(idisc)%Udisc**3.0_mytype*pi*actuatordisc(idisc)%D**2._mytype/4._mytype*0.432_mytype/0.56_mytype
-        Fdiscx(:,:,:)=-0.5_mytype*CTprime*actuatordisc(idisc)%Udisc**2.0_mytype*GammaDisc(:,:,:)
+        actuatordisc(idisc)%Power=0.5_mytype*CTprime*actuatordisc(idisc)%UF**2.0_mytype*actuatordisc(idisc)%Udisc&
+                                  *pi*actuatordisc(idisc)%D**2._mytype/4._mytype*0.432_mytype/0.56_mytype
+        Fdiscx(:,:,:)=-0.5_mytype*CTprime*actuatordisc(idisc)%UF**2.0_mytype*GammaDisc(:,:,:)/dx
         Fdiscy(:,:,:)=0.  
         Fdiscz(:,:,:)=0.
         enddo
@@ -218,7 +212,7 @@ contains
             do k=1,xsize(3)
             do j=1,xsize(2)
             do i=1,xsize(1)
-            sumforce_partial=sumforce_partial+GammaDisc(i,j,k)
+            sumforce_partial=sumforce_partial+Fdiscx(i,j,k)
             enddo
             enddo
             enddo
@@ -229,9 +223,17 @@ contains
             DiscsTotalArea=DiscsTotalArea+pi/4.0_mytype*actuatordisc(idisc)%D**2.0_mytype
             enddo
             CTave=sum(actuatordisc%CT)/Nad
-            Uinf=(u1+u2)/2.0_mytype
-            Ratio=sumforce*(dx*dy*dz)/(DiscsTotalArea)
+            Uinf=sum(actuatordisc%UF)/Nad
+            Ratio=sumforce*dx*dy*dz/(-0.5*CTprime*Uinf**2*DiscsTotalArea)
             if (nrank==0) print *, 'ADM verification ratio', Ratio
+        endif
+        
+        ! Compute the average values after spin_up time
+        if(itime*dt>=spinup_time) then
+            do idisc=1,Nad
+             actuatordisc(idisc)%Udisc_ave=actuatordisc(idisc)%Udisc_ave+actuatordisc(idisc)%Udisc  
+             actuatordisc(idisc)%Power_ave=actuatordisc(idisc)%Power_ave+actuatordisc(idisc)%Power   
+            enddo
         endif
 
         return
