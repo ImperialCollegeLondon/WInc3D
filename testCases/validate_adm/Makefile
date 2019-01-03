@@ -1,5 +1,5 @@
 run:
-	mpirun -np 16 ~/WInc3D/incompact3d Smag1.in
+	mpirun -np 8 ~/WInc3D/incompact3d Smag1.in
 
 vis:
 	~/WInc3D/visualize Smag1.pprc

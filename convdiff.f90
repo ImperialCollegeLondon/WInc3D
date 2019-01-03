@@ -471,7 +471,7 @@ if (istret.ne.0) y=yp(j+xstart(2)-1)
 x=(i+xstart(1)-1-1)*dx
 if (y>=1.1*dBL) then
     lambda=1.0
-elseif (y>dBL.and.y<1.1*dBL) then
+elseif (y>=dBL.and.y<1.1*dBL) then
     lambda=0.5*(1-cos(pi*(y-dBL)/(0.1*dBL)))
 else 
     lambda=0.
@@ -484,9 +484,9 @@ endif
 !    lambda=0.
 !endif
 if(ifringeregion==1.and.x.ge.xlx/4.) lambda=0 ! Apply if using the fring region with half domain
-ta1(i,j,k)=ta1(i,j,k)-5.*ustar/yly*lambda*(ux1(i,j,k)-UG(1))
-tb1(i,j,k)=tb1(i,j,k)-5.*ustar/yly*lambda*(uy1(i,j,k)-UG(2))
-tc1(i,j,k)=tc1(i,j,k)-5.*ustar/yly*lambda*(uz1(i,j,k)-UG(3))
+ta1(i,j,k)=ta1(i,j,k)-0.5*ustar/dBL*lambda*(ux1(i,j,k)-UG(1))
+tb1(i,j,k)=tb1(i,j,k)-0.5*ustar/dBL*lambda*(uy1(i,j,k)-UG(2))
+tc1(i,j,k)=tc1(i,j,k)-0.5*ustar/dBL*lambda*(uz1(i,j,k)-UG(3))
 enddo
 enddo
 enddo
