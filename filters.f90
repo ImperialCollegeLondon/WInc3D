@@ -492,7 +492,9 @@ if (ncly==1) then
     if (npaire==1) then 
     do k=1,nz 
     do i=1,nx 
-         ty(i,1,k)=uy(i,1,k) 
+         ty(i,1,k)=fiajy*uy(i,1,k)+fibjy*(uy(i,2,k)+uy(i,2,k))&
+                                  +ficjy*(uy(i,3,k)+uy(i,3,k))&
+                                  +fidjy*(uy(i,4,k)+uy(i,4,k))
          ty(i,2,k)=fiajy*uy(i,2,k)+fibjy*(uy(i,3,k)+uy(i,1,k))& 
                                   +ficjy*(uy(i,4,k)+uy(i,2,k))&
                                   +fidjy*(uy(i,5,k)+uy(i,3,k)) 
@@ -512,7 +514,10 @@ if (ncly==1) then
     enddo 
     do k=1,nz 
     do i=1,nx 
-       ty(i,ny,k)=uy(i,ny,k)
+       !ty(i,ny,k)=uy(i,ny,k)
+       ty(i,ny,k)=fiajy*uy(i,ny,k)+fibjy*(uy(i,ny-1,k)+uy(i,ny-1,k))&
+                                  +ficjy*(uy(i,ny-2,k)+uy(i,ny-2,k))&
+                                  +fidjy*(uy(i,ny-3,k)+uy(i,ny-3,k))
        ty(i,ny-1,k)=fiajy*uy(i,ny-1,k)+fibjy*(uy(i,ny,k)  +uy(i,ny-2,k))& 
                                       +ficjy*(uy(i,ny-1,k)+uy(i,ny-3,k))&
                                       +fidjy*(uy(i,ny-2,k)+uy(i,ny-4,k)) 
@@ -565,7 +570,7 @@ if (ncly==1) then
       do k=1,nz 
       do i=1,nx 
          ty(i,ny,k)=uy(i,ny,k)
-         ty(i,ny-1,k)=fiajy*uy(i,ny-1,k)+fibjy*(uy(i,ny,k)  +uy(i,ny-2,k))& 
+         ty(i,ny-1,k)=fiajy*uy(i,ny-1,k)+fibjy*(uy(i,ny,k)+uy(i,ny-2,k))& 
                                         +ficjy*(-uy(i,ny-1,k)+uy(i,ny-3,k))&
                                         +fidjy*(-uy(i,ny-2,k)+uy(i,ny-4,k)) 
          ty(i,ny-2,k)=fiajy*uy(i,ny-2,k)+fibjy*(uy(i,ny-1,k)+uy(i,ny-3,k))& 
