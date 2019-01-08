@@ -176,7 +176,7 @@ if (ncly.eq.0) then
    enddo   
 endif
 if (ncly.eq.1) then
-   fiffy(1)   =af1
+   fiffy(1)   =af+af
    fiffy(2)   =af
    fiffy(ny-2)=af
    fiffy(ny-1)=af
@@ -189,7 +189,7 @@ if (ncly.eq.1) then
    fifby(1)   =af 
    fifby(2)   =af
    fifby(ny-2)=af
-   fifby(ny-1)=afn
+   fifby(ny-1)=af+af
    fifby(ny  )=0.
    do j=3,ny-3
       fiffy(j)=af
@@ -549,7 +549,7 @@ if (ncly==1) then
    if (npaire==0) then 
       do k=1,nz 
       do i=1,nx 
-         ty(i,1,k)=uy(i,1,k)
+         ty(i,1,k)=fiajy*uy(i,1,k)
          ty(i,2,k)=fiajy*uy(i,2,k)+fibjy*(uy(i,3,k)+uy(i,1,k))& 
                                   +ficjy*(uy(i,4,k)-uy(i,2,k))&
                                   +fidjy*(uy(i,5,k)-uy(i,3,k)) 
@@ -569,7 +569,7 @@ if (ncly==1) then
       enddo 
       do k=1,nz 
       do i=1,nx 
-         ty(i,ny,k)=uy(i,ny,k)
+         ty(i,ny,k)=fiajy*uy(i,ny,k)
          ty(i,ny-1,k)=fiajy*uy(i,ny-1,k)+fibjy*(uy(i,ny,k)+uy(i,ny-2,k))& 
                                         +ficjy*(-uy(i,ny-1,k)+uy(i,ny-3,k))&
                                         +fidjy*(-uy(i,ny-2,k)+uy(i,ny-4,k)) 

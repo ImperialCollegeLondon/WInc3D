@@ -284,7 +284,7 @@ do itime=ifirst,ilast
    endif
 
    if (jLES.ge.2) then
-   call filter(0.480d0)
+   call filter(0.49_mytype)
    call apply_spatial_filter(ux1,uy1,uz1,phi1,ux2,uy2,uz2,phi2,ux3,uy3,uz3,phi3)
    endif         
    
