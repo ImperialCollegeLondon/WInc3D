@@ -684,7 +684,7 @@ if (nclz==0) then
       rz(i,j,nz)=fialz           
    enddo
    enddo
-   do k=2, nz
+   do k=2,nz
    do j=1,ny
    do i=1,nx
          tz(i,j,k)=tz(i,j,k)-tz(i,j,k-1)*fifsz(k) 
