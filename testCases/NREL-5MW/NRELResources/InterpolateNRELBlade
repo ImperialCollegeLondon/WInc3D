@@ -33,6 +33,56 @@ cR_New=np.interp(rR_New,rR_ref,cR_ref)
 pitch_New=np.interp(rR_New,rR_ref,pitch_ref)
 t2c_New=np.interp(rR_New,rR_ref,t2c_ref)
 
+
+# Read the strucrure part and make sure that the structural and aerodynamic models are the same
+Astruct=np.genfromtxt('Structure.txt',delimiter=',',skip_header=2)
+rR_struct=Astruct[:,0]
+AeroCent_struct=Astruct[:,1]  #Aerodynamic center
+StrTwist_struct=Astruct[:,2]  #Structural Twist
+BMassDen_struct=Astruct[:,3]  #B
+FlpStff_struct=Astruct[:,4]    # Flapwise stiffness (EI)
+EdgStff_struct=Astruct[:,5]   # Edge-wise stiffness (EI)
+GJStff_struct=Astruct[:,6]    # Torsional stiffness (GJ)
+EAStff_struct=Astruct[:,7]    #
+Alpha_struct=Astruct[:,8]
+FlpInert_struct=Astruct[:,9]
+EdgInert_struct=Astruct[:,10]
+Precrv_struct=Astruct[:,11]
+Preswp_struct=Astruct[:,12]
+FlpcgOf_struct=Astruct[:,13] 
+EdgcgOf_struct=Astruct[:,14]  
+FlpEAOf_struct=Astruct[:,15] 
+EdgEAOf_struct=Astruct[:,16]
+rR_struct_New=np.linspace(rR_struct[0],rR_struct[-1],NElem)
+AeroCent_struct_New=np.interp(rR_struct_New,rR_struct,AeroCent_struct)
+StrTwist_struct_New=np.interp(rR_struct_New,rR_struct,StrTwist_struct)
+BMassDen_struct_New=np.interp(rR_struct_New,rR_struct,BMassDen_struct)
+FlpStff_struct_New=np.interp(rR_struct_New,rR_struct,FlpStff_struct)
+EdgStff_struct_New=np.interp(rR_struct_New,rR_struct,EdgStff_struct)
+GJStff_struct_New=np.interp(rR_struct_New,rR_struct,GJStff_struct)
+EAStff_struct_New=np.interp(rR_struct_New,rR_struct,EAStff_struct)
+Alpha_struct_New=np.interp(rR_struct_New,rR_struct,Alpha_struct)
+FlpInert_struct_New=np.interp(rR_struct_New,rR_struct,FlpInert_struct)
+EdgInert_struct_New=np.interp(rR_struct_New,rR_struct,EdgInert_struct)
+Precrv_struct_New=np.interp(rR_struct_New,rR_struct,Precrv_struct)
+Preswp_struct_New=np.interp(rR_struct_New,rR_struct,Preswp_struct)
+FlpcgOf_struct_New=np.interp(rR_struct_New,rR_struct,FlpcgOf_struct)
+EdgcgOf_struct_New=np.interp(rR_struct_New,rR_struct,EdgcgOf_struct)
+FlpEAOf_struct_New=np.interp(rR_struct_New,rR_struct,FlpEAOf_struct)
+EdgEAOf_struct_New=np.interp(rR_struct_New,rR_struct,EdgEAOf_struct)
+
+with open('NRELBlade_N'+str(NElem)+'.al','w') as fout:
+    fout.write('R  : '+str(R)+' \n')
+    fout.write('Spanwise  : 0.0 0.0 1.0 \n')
+    fout.write('NStations : '+str(NElem)+'\n')
+    for j in range(0,NElem):
+        fout.write(str(rR_New[j])+'\t'+str(cR_New[j])+'\t'+str(pitch_New[j])+'\t'+str(t2c_New[j])+'\n')
+
+with open('NRELBlade_N'+str(NElem)+'.struct','w') as fout:
+    fout.write('NStations : '+str(NElem)+'\n')
+    for j in range(0,NElem):
+        fout.write(str(rR_struct_New[j])+'\t'+str(AeroCent_struct_New[j])+'\t'+str(StrTwist_struct_New[j])+'\t'+str(BMassDen_struct_New[j])+'\t'+str(FlpStff_struct_New[j])+'\t'+str(EdgStff_struct_New[j])+'\t'+str(GJStff_struct_New[j])+'\t'+str(EAStff_struct_New[j])+'\t'+str(Alpha_struct_New[j])+'\t'+str(FlpInert_struct_New[j])+'\t'+str(EdgInert_struct_New[j])+'\t'+str(Precrv_struct_New[j])+'\t'+str(Preswp_struct_New[j])+'\t'+str(FlpcgOf_struct_New[j])+'\t'+str(EdgcgOf_struct_New[j])+'\t'+str(FlpEAOf_struct_New[j])+'\t'+str(EdgEAOf_struct_New[j])+'\n')
+
 L=91.5 # This is the original Value
 B=np.genfromtxt('Tower.txt',delimiter=',')
 rR_Tref=B[:,0]/L
@@ -43,16 +93,7 @@ rR_TNew=np.linspace(rR_Tref[0],rR_Tref[-1],NElemT)
 cR_TNew=np.interp(rR_TNew,rR_Tref,cR_Tref)
 pitch_TNew=np.interp(rR_TNew,rR_Tref,pitch_Tref)
 t2c_TNew=np.interp(rR_TNew,rR_Tref,t2c_Tref)
-#plt.figure(1)
-#plt.plot(rR_New,cR_New,'b')
-#plt.plot(rR_ref,cR_ref,'r')
-#plt.show()
-with open('NRELBlade_N'+str(NElem)+'.al','w') as fout:
-    fout.write('R  : '+str(R)+' \n')
-    fout.write('Spanwise  : 0.0 0.0 1.0 \n')
-    fout.write('NStations : '+str(NElem)+'\n')
-    for j in range(0,NElem):
-        fout.write(str(rR_New[j])+'\t'+str(cR_New[j])+'\t'+str(pitch_New[j])+'\t'+str(t2c_New[j])+'\n')
+
 
 with open('NRELTower_N'+str(NElemT)+'.al','w') as fout:
     fout.write('Length  : '+str(L) +'\n')

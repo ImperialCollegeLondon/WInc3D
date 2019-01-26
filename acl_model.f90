@@ -120,7 +120,7 @@ contains
         !-------------------------------------
         ! Dummy variables
         !-------------------------------------
-        character(len=100) :: name, blade_geom, tower_geom, dynstall_param_file, AeroElastInputFile, AeroElastSolverFile, list_controller_file
+        character(len=100) :: name, blade_geom, tower_geom, dynstall_param_file, AeroElast_param_file, list_controller_file
         character(len=100),dimension(10) :: afname
         real(mytype), dimension(3) :: origin
         integer :: numblades,numfoil,towerFlag, TypeFlag, OperFlag, RotFlag, AddedMassFlag, DynStallFlag, EndEffectsFlag
@@ -134,7 +134,7 @@ contains
             tower_geom,tower_drag,tower_lift,tower_strouhal,TypeFlag, OperFlag, tsr, uref,RotFlag, AddedMassFlag, &
             RandomWalkForcingFlag, DynStallFlag,dynstall_param_file,EndEffectsFlag,TipCorr, RootCorr,ShenC1, ShenC2, &
             ConstantCirculationFlag, GammaCirc, &
-            yaw_angle, shaft_tilt_angle, blade_cone_angle,AeroElastFlag, AeroElastModel, AeroElastInputFile, AeroElastSolverFile, &
+            yaw_angle, shaft_tilt_angle, blade_cone_angle,AeroElastFlag, AeroElast_param_file, &
             BladeInertia, GeneratorInertia, GBRatio, GBEfficiency, RatedGenSpeed, RatedLimitGenTorque, CutInGenSpeed, &
             Region2StartGenSpeed,Region2EndGenSpeed,Kgen,RatedPower,MaximumTorque,list_controller_file
 
@@ -339,6 +339,7 @@ contains
        
         if (AeroElastFlag==1) then
             Turbine(i)%do_aeroelasticity=.true.
+            Turbine(i)%beam_file=AeroElast_param_file
         endif
 
 
@@ -450,9 +451,9 @@ contains
                 ! Computes the rigid-body velocity
                 call rotate_turbine(Turbine(i),Turbine(i)%RotN,theta)
                 ! Computes the displacement on the turbine  
-                !if(turbine(i)%do_aeroelasticity) then
-                !    call actuator_line_beam_solve(turbine(i)%beam,DeltaT)
-                !endif
+                if(turbine(i)%do_aeroelasticity) then
+                    call actuator_line_beam_solve(turbine(i)%beam,DeltaT)
+                endif
                 ! Computes the new velocity 
                 call Compute_Turbine_RotVel(Turbine(i))  
             else if(Turbine(i)%Is_NRELController) then
