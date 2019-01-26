@@ -1,5 +1,6 @@
 subroutine filter(af)
 
+USE decomp_2d
 USE param 
 USE parfiX 
 USE parfiY 
@@ -122,7 +123,21 @@ if (nclx.eq.2) then
    enddo
 endif
 ! Prepare coefficients to be used in the Thomas Algorithm
+do i=1,nx
+   fiffxp(i)=fiffx(i)
+   fisfxp(i)=fisfx(i)
+enddo
+if (nclx.eq.1) then
+   fiffxp(1)=0.
+   fisfx (1)=0.
+endif
 call prepare (fifbx,fifcx,fiffx,fifsx,fifwx,nx)
+call prepare (fifbx,fifcx,fiffxp,fifsxp,fifwxp,nx)
+if (nclx.eq.1) then
+   fifbx(nx-1)=0.
+   call prepare (fifbx,fifcx,fiffxp,fifsxp,fwxp,nx)
+endif
+
 !========================================
 ! Define filter coefficients for Y-pencil
 !========================================
@@ -180,20 +195,20 @@ if (ncly.eq.1) then
    fiffy(2)   =af
    fiffy(ny-2)=af
    fiffy(ny-1)=af
-   fiffy(ny)  =0.
-   fifcy(1)   =1.
-   fifcy(2)   =1.
-   fifcy(ny-2)=1.
-   fifcy(ny-1)=1.
-   fifcy(ny  )=1.
+   fiffy(ny)  =0.0_mytype  
+   fifcy(1)   =1.0_mytype
+   fifcy(2)   =1.0_mytype
+   fifcy(ny-2)=1.0_mytype
+   fifcy(ny-1)=1.0_mytype
+   fifcy(ny  )=1.0_mytype
    fifby(1)   =af 
    fifby(2)   =af
    fifby(ny-2)=af
    fifby(ny-1)=af+af
-   fifby(ny  )=0.
+   fifby(ny  )=0.0_mytype
    do j=3,ny-3
       fiffy(j)=af
-      fifcy(j)=1.
+      fifcy(j)=1.0_mytype
       fifby(j)=af
    enddo
 endif
@@ -202,24 +217,34 @@ if (ncly.eq.2) then
    fiffy(2)   =af
    fiffy(ny-2)=af
    fiffy(ny-1)=af
-   fiffy(ny)  =0.
-   fifcy(1)   =1.
-   fifcy(2)   =1.
-   fifcy(ny-2)=1.
-   fifcy(ny-1)=1.
-   fifcy(ny  )=1.
+   fiffy(ny)  =0.0_mytype 
+   fifcy(1)   =1.0_mytype
+   fifcy(2)   =1.0_mytype
+   fifcy(ny-2)=1.0_mytype
+   fifcy(ny-1)=1.0_mytype
+   fifcy(ny  )=1.0_mytype
    fifby(1)   =af 
    fifby(2)   =af
    fifby(ny-2)=af
    fifby(ny-1)=afn
-   fifby(ny  )=0.
+   fifby(ny  )=0.0_mytype
    do j=3,ny-3
       fiffy(j)=af
-      fifcy(j)=1.
+      fifcy(j)=1.0_mytype
       fifby(j)=af
    enddo
 endif
-call prepare(fifby,fifcy,fiffy,fifsy,fifwy,ny)
+do j=1,ny
+   fiffyp(j)=fiffy(j)
+   fisfyp(j)=fisfy(j)
+enddo
+if (ncly.eq.1) then
+   fiffyp(1)=0.0_mytype
+   fisfy (1)=0.0_mytype
+   fifby(ny-1)=0._mytype
+endif
+call prepare (fifby,fifcy,fiffy,fifsy,fifwy,ny)
+call prepare (fifby,fifcy,fiffyp,fifsyp,fifwyp,ny)
 !========================================
 ! Define filter coefficients for Z-pencil
 !========================================
@@ -272,7 +297,7 @@ if (nclz.eq.0) then
       enddo
 endif
 if (nclz.eq.1) then
-   fiffz(1)   =af1
+   fiffz(1)   =af+af
    fiffz(2)   =af
    fiffz(nz-2)=af
    fiffz(nz-1)=af
@@ -285,7 +310,7 @@ if (nclz.eq.1) then
    fifbz(1)   =af 
    fifbz(2)   =af
    fifbz(nz-2)=af
-   fifbz(nz-1)=afn
+   fifbz(nz-1)=af+af
    fifbz(nz  )=0.
    do k=3,nz-3
       fiffz(k)=af
@@ -315,7 +340,20 @@ if (nclz.eq.2) then
       fifbz(k)=af
    enddo
 endif
+do k=1,nz
+   fiffzp(k)=fiffz(k)
+   fisfzp(k)=fisfz(k)
+enddo
+if (nclz.eq.1) then
+   fiffzp(1)=0.
+   fisfz (1)=0.
+endif
 call prepare (fifbz,fifcz,fiffz,fifsz,fifwz,nz)
+call prepare (fifbz,fifcz,fiffzp,fifszp,fifwzp,nz)
+if (nclz.eq.1) then
+   fifbz(nz-1)=0.
+   call prepare (fifbz,fifcz,fiffzp,fifszp,fwzp,nz)
+endif
 
 return 
 

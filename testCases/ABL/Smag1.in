@@ -72,9 +72,9 @@
 
 &FileParam
     ilit=0             ! Read initial flow field ?
-    isave=500     	   ! Frequency for writing backup file  
+    isave=100     	   ! Frequency for writing backup file  
     imodulo=100        ! Frequency for visualization 
-    ioutflow=0		   ! Outflow flag
+    ioutflow=1		   ! Outflow flag
     NTimeSteps=2000
 /End
 
@@ -92,6 +92,10 @@ ialm=0                    ! ialm (0: turbine model off, 1: turbine model on)
 eps_factor=2.2            ! Smoothing parameter factor
 Nturbines=1               ! Number of Turbines
 TurbinesPath='NREL-5MW.turb'
+/End
+
+&ADMParam
+iadm=0
 /End
 
 &ABLParam
