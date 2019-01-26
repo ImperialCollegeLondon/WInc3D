@@ -125,17 +125,13 @@ endif
 ! Prepare coefficients to be used in the Thomas Algorithm
 do i=1,nx
    fiffxp(i)=fiffx(i)
-   fisfxp(i)=fisfx(i)
 enddo
-if (nclx.eq.1) then
-   fiffxp(1)=0.
-   fisfx (1)=0.
-endif
 call prepare (fifbx,fifcx,fiffx,fifsx,fifwx,nx)
 call prepare (fifbx,fifcx,fiffxp,fifsxp,fifwxp,nx)
 if (nclx.eq.1) then
-   fifbx(nx-1)=0.
-   call prepare (fifbx,fifcx,fiffxp,fifsxp,fwxp,nx)
+   fiffx(1)=0.0_mytype
+   fifbx(nx-1)=0.0_mytype
+call prepare (fifbx,fifcx,fiffx,fifsx,fifwx,nx)
 endif
 
 !========================================
@@ -236,15 +232,14 @@ if (ncly.eq.2) then
 endif
 do j=1,ny
    fiffyp(j)=fiffy(j)
-   fisfyp(j)=fisfy(j)
 enddo
-if (ncly.eq.1) then
-   fiffyp(1)=0.0_mytype
-   fisfy (1)=0.0_mytype
-   fifby(ny-1)=0._mytype
-endif
 call prepare (fifby,fifcy,fiffy,fifsy,fifwy,ny)
 call prepare (fifby,fifcy,fiffyp,fifsyp,fifwyp,ny)
+if (ncly.eq.1) then
+   fiffy(1)=0.0_mytype
+   fifby(ny-1)=0.0_mytype
+call prepare (fifby,fifcy,fiffy,fifsy,fifwy,ny)
+endif
 !========================================
 ! Define filter coefficients for Z-pencil
 !========================================
@@ -342,17 +337,13 @@ if (nclz.eq.2) then
 endif
 do k=1,nz
    fiffzp(k)=fiffz(k)
-   fisfzp(k)=fisfz(k)
 enddo
-if (nclz.eq.1) then
-   fiffzp(1)=0.
-   fisfz (1)=0.
-endif
 call prepare (fifbz,fifcz,fiffz,fifsz,fifwz,nz)
 call prepare (fifbz,fifcz,fiffzp,fifszp,fifwzp,nz)
 if (nclz.eq.1) then
-   fifbz(nz-1)=0.
-   call prepare (fifbz,fifcz,fiffzp,fifszp,fwzp,nz)
+   fiffz(1)=0.0_mytype
+   fifbz(nz-1)=0.0_mytype
+call prepare (fifbz,fifcz,fiffz,fifsz,fifwz,nz)
 endif
 
 return 
@@ -552,7 +543,6 @@ if (ncly==1) then
     enddo 
     do k=1,nz 
     do i=1,nx 
-       !ty(i,ny,k)=uy(i,ny,k)
        ty(i,ny,k)=fiajy*uy(i,ny,k)+fibjy*(uy(i,ny-1,k)+uy(i,ny-1,k))&
                                   +ficjy*(uy(i,ny-2,k)+uy(i,ny-2,k))&
                                   +fidjy*(uy(i,ny-3,k)+uy(i,ny-3,k))

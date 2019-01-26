@@ -1,12 +1,12 @@
 &FlowParam
     ! Flow type
     itype = 8             ! Type of Flow  
-    iin = 2               ! Inflow conditions (1: classic, 2: turbinit)
+    iin = 1               ! Inflow conditions (1: classic, 2: turbinit)
     
     ! Domain and scaling
-    xlx = 3000            ! Lx (Size of the box in x-direction)
+    xlx = 2000            ! Lx (Size of the box in x-direction)
     yly = 1000            ! Ly (Size of the box in y-direction) 
-    zlz = 3000            ! Lz (Size of the box in z-direction) 
+    zlz = 2000            ! Lz (Size of the box in z-direction) 
     re  = 66667           ! nu=1/re (Kinematic Viscosity)
     sc  = 1.              ! Schmidt number (if passive scalar)
     u1  = 8.              ! u1 (max velocity) (for inflow condition)
@@ -25,9 +25,9 @@
 ! Numerical Configuration
 &NumConfig
     ! Simulation size and parallelisation
-    nx=64                 ! X-direction nodes
-    ny=65                  ! Y-direction nodes
-    nz=64                 ! Z-direction nodes
+    nx=32                 ! X-direction nodes
+    ny=33                  ! Y-direction nodes
+    nz=32                 ! Z-direction nodes
 
     p_row=4               ! Row partition
     p_col=4                ! Column partition
@@ -72,8 +72,8 @@
 
 &FileParam
     ilit=0             ! Read initial flow field ?
-    isave=100     	   ! Frequency for writing backup file  
-    imodulo=100        ! Frequency for visualization 
+    isave=1000     	   ! Frequency for writing backup file  
+    imodulo=1000        ! Frequency for visualization 
     ioutflow=1		   ! Outflow flag
     NTimeSteps=2000
 /End
@@ -105,6 +105,7 @@ k_roughness=0.4          ! von Karman constant (usually taken to be equal to 0.4
 ustar=0.45              ! friction velocity
 PsiM=0                    ! stability correction for momentum (taken equal to 0 for neutral stability)
 IPressureGradient=1	      ! if 1 then apply a pressure gradient
+imassconserve=1
 idampingzone=0
 dBL=770.
 UG=16,0,0
