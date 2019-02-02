@@ -6,8 +6,16 @@ module actuator_line_beam_model
     use xbeam_shared
 
     type BeamType
-    character(len=100):: name                                       ! Beam model name (the same as the turbine name)
-    real(mytype), allocatable :: pos(:,:)                           ! positions
+    real(mytype), allocatable :: pos_ini(:,:)                       ! positions
+    real(mytype), allocatable :: psi_ini(:,:,:)                     ! CRV of the nodes in the elements
+    real(mytype), allocatable :: pos_def(:,:)                       ! positions
+    real(mytype), allocatable :: psi_def(:,:,:)                     ! CRV of the nodes in the elements
+    real(mytype), allocatable :: pos_dot_def(:,:)                   ! positions
+    real(mytype), allocatable :: psi_dot_def(:,:,:)                 ! CRV of the nodes in the elements
+    real(mytype), allocatable :: static_forces(:,:)                 ! Static forces
+    real(mytype), allocatable :: dynamic_forces(:,:)                ! Dynamic forces
+    real(mytype), allocatable :: gravity_forces(:,:)                ! Gravity forces
+     
     real(mytype), allocatable :: StructuralTwist(:)
     real(mytype), allocatable :: frame_of_reference_delta(:)
 
@@ -70,7 +78,7 @@ contains
     beam%Ndofs=6*(beam%Nnodes-Nblades)
 
     ! First allocate
-    allocate(beam%pos(beam%Nnodes,3))
+    allocate(beam%pos_ini(beam%Nnodes,3))
     allocate(beam%elem(beam%NElems))
     allocate(beam%node(beam%Nnodes))
     
@@ -78,15 +86,15 @@ contains
     
         ! Init the coordinates from the actuator line model
         do jelem=1,acl(iblade)%Nelem
-        beam%pos((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem-1,1)=acl(iblade)%QCx(jelem)  ! First-point of the element
-        beam%pos((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem,1)=acl(iblade)%PEx(jelem)      ! Mid-point of the element
-        beam%pos((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem+1,1)=acl(iblade)%QCx(jelem+1) ! Last-point of the element
-        beam%pos((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem-1,2)=acl(iblade)%QCy(jelem)  ! First-point of the element
-        beam%pos((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem,2)=acl(iblade)%PEy(jelem)      ! Mid-point of the element
-        beam%pos((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem+1,2)=acl(iblade)%QCy(jelem+1) ! Last-point of the element
-        beam%pos((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem-1,3)=acl(iblade)%QCz(jelem)  ! First-point of the element
-        beam%pos((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem,3)=acl(iblade)%PEz(jelem)      ! Mid-point of the element
-        beam%pos((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem+1,3)=acl(iblade)%QCz(jelem+1) ! Last-point of the element
+        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem-1,1)=acl(iblade)%QCx(jelem)  ! First-point of the element
+        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem,1)=acl(iblade)%PEx(jelem)      ! Mid-point of the element
+        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem+1,1)=acl(iblade)%QCx(jelem+1) ! Last-point of the element
+        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem-1,2)=acl(iblade)%QCy(jelem)  ! First-point of the element
+        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem,2)=acl(iblade)%PEy(jelem)      ! Mid-point of the element
+        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem+1,2)=acl(iblade)%QCy(jelem+1) ! Last-point of the element
+        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem-1,3)=acl(iblade)%QCz(jelem)  ! First-point of the element
+        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem,3)=acl(iblade)%PEz(jelem)      ! Mid-point of the element
+        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem+1,3)=acl(iblade)%QCz(jelem+1) ! Last-point of the element
         enddo
     
         !Define Element information (beam%elem) based on the beam information
@@ -115,9 +123,10 @@ contains
     type(BeamType),intent(inout) :: beam
 	real(mytype),intent(in) :: dt
 
-    ! Update location of the beams
-
+    ! Update the position of the beams
+    
     ! Update the velocities
+
 
     ! Call the cbeam solver (timestep variation -- not sure if that is the correct thing to do)
     !call cbeam3_solv_nlndyn_step(beam%Ndofs, &
