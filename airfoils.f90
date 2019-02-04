@@ -4,9 +4,9 @@ module Airfoils
   use actuator_line_model_utils
 
   implicit none
-  real(mytype), parameter :: pi=3.1415926535897932_8
-  real(mytype), parameter :: conrad = pi / 180.0 
-  real(mytype), parameter :: condeg = 180.0 / pi  
+  real(mytype), parameter :: pi=3.1415926535897932_mytype
+  real(mytype), parameter :: conrad = pi / 180.0_mytype
+  real(mytype), parameter :: condeg = 180.0_mytype / pi  
   
   type AirfoilType
   

@@ -5,7 +5,7 @@ module actuator_line_model_utils
     ! Define parameters for ALM
 
     public QuatRot, cross, IsoKernel, AnIsoKernel, int2str
-
+    
 contains 
 
     ! Obviously not completed

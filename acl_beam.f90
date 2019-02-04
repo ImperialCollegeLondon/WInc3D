@@ -2,10 +2,12 @@ module actuator_line_beam_model
 
     ! Use the actuator_line Modules
     use decomp_2d, only: mytype, nrank
+    use airfoils 
     use actuator_line_element
     use xbeam_shared
 
     type BeamType
+    ! Global variables
     real(mytype), allocatable :: pos_ini(:,:)                       ! positions
     real(mytype), allocatable :: psi_ini(:,:,:)                     ! CRV of the nodes in the elements
     real(mytype), allocatable :: pos_def(:,:)                       ! positions
@@ -14,22 +16,25 @@ module actuator_line_beam_model
     real(mytype), allocatable :: psi_dot_def(:,:,:)                 ! CRV of the nodes in the elements
     real(mytype), allocatable :: static_forces(:,:)                 ! Static forces
     real(mytype), allocatable :: dynamic_forces(:,:)                ! Dynamic forces
-    real(mytype), allocatable :: gravity_forces(:,:)                ! Gravity forces
-     
-    real(mytype), allocatable :: StructuralTwist(:)
-    real(mytype), allocatable :: frame_of_reference_delta(:)
-
+    real(mytype), allocatable :: gravity_forces(:,:)                ! Gravity forces     
     integer :: Nnodes                                               ! Number of nodes
     integer :: Ndofs                                                ! Number of degrees of freedom=6*(num_nodes-3) (blades are clamped at the root)
     integer :: NElems                                               ! Number of elements
     type(xbelem), allocatable  :: elem(:)                           ! Element information.
     type(xbnode), allocatable  :: node(:)                           ! Nodal information.
 
-    ! Beam Characteristics 
+    ! Beam Characteristics from File Read 
     real(mytype), allocatable :: rR(:),AeroCent(:), StrcTwist(:), BMassDen(:)  
     real(mytype), allocatable :: FlpStff(:),EdgStff(:), GJStff(:), EAStff(:)  
     real(mytype), allocatable :: Alpha(:), FlpInert(:), EdgInert(:), PrecrvRef(:), PreswpRef(:) 
     real(mytype), allocatable :: FlpcgOf(:),EdgcgOf(:),FlpEAOf(:),EdgEAOf(:)
+
+    ! Beam working variables
+    real(mytype), allocatable :: prebending(:),presweept(:),node_struct_twist(:),EA(:),EIy(:),EIz(:)
+    real(mytype), allocatable :: GJ(:),GAy(:),GAz(:),mass(:),inertia_xb(:),inertia_yb(:),inertia_zb(:),pos_cg_B(:,:)
+    real(mytype), allocatable :: blade_y_BFoR(:,:), mass_db(:,:,:),stiffness_matrix_db(:,:,:)
+    ! Constants
+    real(mytype) :: poisson_coeff=0.3_mytype
 
     end type BeamType
 
@@ -47,8 +52,7 @@ contains
     integer :: i
     character(1000) :: ReadLine
     
-    ! OPEN and READ the structural characteristics of the blades
-    
+    ! OPEN and READ the structural characteristics of single blades 
     open(15,file=FN)
     ! Read the Number of Nstations  
     read(15,'(A)') ReadLine
@@ -70,15 +74,88 @@ contains
     end do
     
     close(15)
+   
+    ! Make sure that the structural and aerodynamic blade elements are equal in number
+    if(NStations/=acl(1)%Nelem+1) then
+        stop
+    endif
+   
+    ! Define some variables
+    beam%StrcTwist(:)=-beam%StrcTwist(:)*conrad
+    
+    ! Allocate working arrays (for a single blade)
+    allocate(beam%prebending(Nstations),beam%presweept(Nstations),beam%node_struct_twist(Nstations))
+    allocate(beam%EA(Nstations-1), beam%EIy(Nstations-1),beam%EIz(Nstations-1),beam%GJ(Nstations-1))
+    allocate(beam%GAy(Nstations-1),beam%GAz(Nstations-1),beam%mass(Nstations-1),beam%inertia_xb(Nstations-1),beam%inertia_yb(Nstations-1),beam%inertia_zb(Nstations-1))
+    allocate(beam%pos_cg_B(Nstations-1,3),beam%blade_y_BFoR(Nstations-1,3),beam%mass_db(NStations-1,6,6),beam%stiffness_matrix_db(Nstations-1,6,6))
 
+    ! Compute working arrays
+        ! x    z
+        ! ^   ^    Local co-ordinate system for the working arrays 
+        ! |  /
+        ! | / 
+        ! |/  
+        ! O--------> y
+    do i=1,Nstations-1
+        beam%prebending(i)=beam%PrecrvRef(i)
+        beam%presweept(i)=beam%PreswpRef(i)
+        beam%node_struct_twist(i)=beam%StrcTwist(i)
+        beam%EA(i) =0.5_mytype*(beam%EAStff(i)+beam%EAStff(i+1))
+        beam%EIz(i)=0.5_mytype*(beam%FlpStff(i)+beam%FlpStff(i+1)) ! Flap and edge-wise directions are in a local co-ordinate system
+        beam%EIy(i)=0.5_mytype*(beam%FlpStff(i)+beam%FlpStff(i+1)) 
+        beam%GJ(i)=0.5_mytype*(beam%GJStff(i)+beam%GJStff(i+1)) 
+        beam%GAy(i)=beam%EA(i)/2.0_mytype*(1.0_mytype+beam%poisson_coeff)  
+        beam%GAz(i)=beam%EA(i)/2.0_mytype*(1.0_mytype+beam%poisson_coeff)
+        beam%mass(i)=0.5_mytype*(beam%BMassDen(i)+beam%BMassDen(i+1))
+        beam%inertia_yb(i)=0.5_mytype*(beam%EdgInert(i)+beam%EdgInert(i+1))
+        beam%inertia_zb(i)=0.5_mytype*(beam%FlpInert(i)+beam%FlpInert(i+1))
+        beam%inertia_xb(i)=beam%inertia_yb(i)+beam%inertia_zb(i) 
+        beam%pos_cg_B(i,2)=0.5_mytype*(beam%FlpcgOf(i)+beam%FlpcgOf(i+1))
+        beam%pos_cg_B(i,3)=0.5_mytype*(beam%EdgcgOf(i)+beam%EdgcgOf(i+1))
+        ! Frame of Reference Delta
+        beam%blade_y_BFoR(i,:)=(/1.0_mytype,0.0_mytype,0.0_mytype/)
+    enddo
+    ! Compute last value (only for node-arrays)
+    beam%prebending(Nstations)=beam%PrecrvRef(Nstations)
+    beam%presweept(Nstations)=beam%PreswpRef(Nstations)
+    beam%node_struct_twist(Nstations)=beam%StrcTwist(Nstations)
+    beam%blade_y_BFoR(Nstations,:)=(/1.0_mytype,0.0_mytype,0.0_mytype/)
 
-    ! Degrees of freedom for the beam. It should be equal to the number of blades times twice the number of elements plus one (midpoints + edges)
+    ! Compute the element Mass matrix
+    do i=1,Nstations-1
+        beam%mass_db(i,1:3,1:3)=beam%mass(i)
+        beam%mass_db(i,1:3,4:6)=reshape((/0.0_mytype,beam%mass(i)*beam%pos_cg_B(i,3),-1.0_mytype*beam%mass(i)*beam%pos_cg_B(i,2),&
+                                        -1.0_mytype*beam%mass(i)*beam%pos_cg_B(i,3),0.0_mytype,beam%mass(i)*beam%pos_cg_B(i,1),&
+                                        beam%mass(i)*beam%pos_cg_B(i,2),-1.0_mytype*beam%mass(i)*beam%pos_cg_B(i,1),0.0_mytype/),(/3,3/)) 
+        beam%mass_db(i,4:6,1:3)=-1.0_mytype*beam%mass_db(i,1:3,4:6)  ! Mass anti-symmetry
+        beam%mass_db(i,4:6,4:6)=reshape((/beam%inertia_xb(i),0.0_mytype,0.0_mytype,0.0_mytype,beam%inertia_yb(i),0.0_mytype,0.0_mytype,0.0_mytype,beam%inertia_zb(i)/),(/3,3/))
+    enddo
+   
+    ! Compute the elemebt stiffness matrix
+    do i=1,Nstations-1
+        beam%stiffness_matrix_db(i,1:6,1:6)=reshape((/beam%EA(i),0.0_mytype,0.0_mytype,0.0_mytype,0.0_mytype,0.0_mytype,&
+                                                     0.0_mytype,beam%GAy(i),0.0_mytype,0.0_mytype,0.0_mytype,0.0_mytype,&
+                                                     0.0_mytype,0.0_mytype,beam%GAz(i),0.0_mytype,0.0_mytype,0.0_mytype,&
+                                                     0.0_mytype, 0.0_mytype,0.0_mytype,beam%GJ(i),0.0_mytype,0.0_mytype,&
+                                                     0.0_mytype, 0.0_mytype,0.0_mytype,0.0_mytype,beam%EIy(i),0.0_mytype,&
+                                                     0.0_mytype, 0.0_mytype,0.0_mytype,0.0_mytype,0.0_mytype ,beam%EIz(i)/),(/6,6/))
+    enddo
+    
+    ! Degrees of freedom for the multibeam. It should be equal to the number of blades times twice the number of elements plus one (midpoints + edges)
     beam%Nnodes=Nblades*(2*acl(1)%Nelem+1)
     beam%NElems=Nblades*acl(1)%Nelem
     beam%Ndofs=6*(beam%Nnodes-Nblades)
 
-    ! First allocate
+    ! First allocate the global variables
     allocate(beam%pos_ini(beam%Nnodes,3))
+    allocate(beam%psi_ini(beam%Nnodes,3,3))           
+    allocate(beam%pos_def(beam%Nnodes,3))           
+    allocate(beam%psi_def(beam%Nnodes,3,3))           
+    allocate(beam%pos_dot_def(beam%Nnodes,3))                   
+    allocate(beam%psi_dot_def(beam%Nnodes,3,3))                 
+    allocate(beam%static_forces(beam%Nnodes,6))                
+    allocate(beam%dynamic_forces(beam%Nnodes,6))                
+    allocate(beam%gravity_forces(beam%Nnodes,6))               
     allocate(beam%elem(beam%NElems))
     allocate(beam%node(beam%Nnodes))
     
@@ -152,46 +229,5 @@ contains
     return
 
     end subroutine actuator_line_beam_solve
-
-    subroutine  read_beam_characteristics(FN,rR,AeroCent,StrcTwist,BMassDen,FlpStff,EdgStff,GJStff,EAStff,Alpha,&
-                       FlpInert,EdgInert,PrecrvRef,PreswpRef,FlpcgOf,EdgcgOf,FlpEAOf,EdgEAOf,Nstations)
-    
-    implicit none
-    character(len=100),intent(in)  :: FN ! FileName of the geometry file
-    real(mytype), allocatable,intent(out) :: rR(:),AeroCent(:), StrcTwist(:), BMassDen(:)  
-    real(mytype), allocatable,intent(out) :: FlpStff(:),EdgStff(:), GJStff(:), EAStff(:)  
-    real(mytype), allocatable,intent(out) :: Alpha(:), FlpInert(:), EdgInert(:), PrecrvRef(:), PreswpRef(:) 
-    real(mytype), allocatable,intent(out) :: FlpcgOf(:),EdgcgOf(:),FlpEAOf(:),EdgEAOf(:)
-    integer, intent(out) :: Nstations
-    integer :: i
-    character(1000) :: ReadLine
-    
-    open(15,file=FN)
-    ! Read the Number of Nstations  
-    read(15,'(A)') ReadLine
-    read(ReadLine(index(ReadLine,':')+1:),*) Nstations
-
-    allocate(rR(Nstations),AeroCent(Nstations),StrcTwist(Nstations),BMassDen(Nstations))
-    allocate(FlpStff(Nstations),EdgStff(Nstations),GJStff(Nstations),EAStff(Nstations))
-    allocate(Alpha(Nstations),FlpInert(Nstations),EdgInert(Nstations),PrecrvRef(Nstations),PreswpRef(Nstations))
-    allocate(FlpcgOf(Nstations),EdgcgOf(Nstations),FlpEAOf(Nstations),EdgEAOf(Nstations))
-    
-    ! Read the station specs
-    do i=1,NStations
-    
-    read(15,'(A)') ReadLine ! Structure ....
-
-    read(ReadLine,*) rR(i), AeroCent(i), StrcTwist(i), BMassDen(i), FlpStff(i), EdgStff(i), GJStff(i), EAStff(i), & 
-                     Alpha(i), FlpInert(i), EdgInert(i), PrecrvRef(i), PreswpRef(i), FlpcgOf(i), EdgcgOf(i), FlpEAOf(i), EdgEAOf(i)   
-
-    end do
-    
-    close(15)
-
-
-    end subroutine read_beam_characteristics 
-
-
-
 
 end module actuator_line_beam_model
