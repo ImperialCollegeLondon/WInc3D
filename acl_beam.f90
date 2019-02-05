@@ -2,6 +2,7 @@ module actuator_line_beam_model
 
     ! Use the actuator_line Modules
     use decomp_2d, only: mytype, nrank
+    use actuator_line_model_utils
     use airfoils 
     use actuator_line_element
     use xbeam_shared
@@ -49,7 +50,7 @@ contains
     integer :: iblade,jElem,knode
     character(len=100),intent(in)  :: FN ! FileName of the geometry file
     integer :: Nstations
-    integer :: i
+    integer :: i,j
     character(1000) :: ReadLine
     
     ! OPEN and READ the structural characteristics of single blades 
@@ -70,7 +71,6 @@ contains
 
     read(ReadLine,*) beam%rR(i),    beam%AeroCent(i), beam%StrcTwist(i), beam%BMassDen(i),  beam%FlpStff(i),   beam%EdgStff(i), beam%GJStff(i),  beam%EAStff(i), & 
                      beam%Alpha(i), beam%FlpInert(i), beam%EdgInert(i),  beam%PrecrvRef(i), beam%PreswpRef(i), beam%FlpcgOf(i), beam%EdgcgOf(i), beam%FlpEAOf(i), beam%EdgEAOf(i)   
-
     end do
     
     close(15)
@@ -112,14 +112,11 @@ contains
         beam%inertia_xb(i)=beam%inertia_yb(i)+beam%inertia_zb(i) 
         beam%pos_cg_B(i,2)=0.5_mytype*(beam%FlpcgOf(i)+beam%FlpcgOf(i+1))
         beam%pos_cg_B(i,3)=0.5_mytype*(beam%EdgcgOf(i)+beam%EdgcgOf(i+1))
-        ! Frame of Reference Delta
-        beam%blade_y_BFoR(i,:)=(/1.0_mytype,0.0_mytype,0.0_mytype/)
     enddo
     ! Compute last value (only for node-arrays)
     beam%prebending(Nstations)=beam%PrecrvRef(Nstations)
     beam%presweept(Nstations)=beam%PreswpRef(Nstations)
     beam%node_struct_twist(Nstations)=beam%StrcTwist(Nstations)
-    beam%blade_y_BFoR(Nstations,:)=(/1.0_mytype,0.0_mytype,0.0_mytype/)
 
     ! Compute the element Mass matrix
     do i=1,Nstations-1
@@ -140,7 +137,14 @@ contains
                                                      0.0_mytype, 0.0_mytype,0.0_mytype,0.0_mytype,beam%EIy(i),0.0_mytype,&
                                                      0.0_mytype, 0.0_mytype,0.0_mytype,0.0_mytype,0.0_mytype ,beam%EIz(i)/),(/6,6/))
     enddo
+  
     
+    if (nrank==0) then 
+    do j=1,6
+        print *, beam%stiffness_matrix_db(1,j,j)/10.**9.
+    enddo
+    endif
+
     ! Degrees of freedom for the multibeam. It should be equal to the number of blades times twice the number of elements plus one (midpoints + edges)
     beam%Nnodes=Nblades*(2*acl(1)%Nelem+1)
     beam%NElems=Nblades*acl(1)%Nelem
@@ -163,15 +167,24 @@ contains
     
         ! Init the coordinates from the actuator line model
         do jelem=1,acl(iblade)%Nelem
-        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem-1,1)=acl(iblade)%QCx(jelem)  ! First-point of the element
-        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem,1)=acl(iblade)%PEx(jelem)      ! Mid-point of the element
-        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem+1,1)=acl(iblade)%QCx(jelem+1) ! Last-point of the element
-        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem-1,2)=acl(iblade)%QCy(jelem)  ! First-point of the element
-        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem,2)=acl(iblade)%PEy(jelem)      ! Mid-point of the element
-        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem+1,2)=acl(iblade)%QCy(jelem+1) ! Last-point of the element
-        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem-1,3)=acl(iblade)%QCz(jelem)  ! First-point of the element
-        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem,3)=acl(iblade)%PEz(jelem)      ! Mid-point of the element
-        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem+1,3)=acl(iblade)%QCz(jelem+1) ! Last-point of the element
+        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem-1,1)=acl(iblade)%QCx(jelem)        ! First-point of the element
+        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem,  1)=acl(iblade)%PEx(jelem)        ! Mid-point of the element
+        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem+1,1)=acl(iblade)%QCx(jelem+1)      ! Last-point of the element
+        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem-1,2)=acl(iblade)%QCy(jelem)        ! First-point of the element
+        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem,  2)=acl(iblade)%PEy(jelem)        ! Mid-point of the element
+        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem+1,2)=acl(iblade)%QCy(jelem+1)      ! Last-point of the element
+        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem-1,3)=acl(iblade)%QCz(jelem)        ! First-point of the element
+        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem,  3)=acl(iblade)%PEz(jelem)        ! Mid-point of the element
+        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem+1,3)=acl(iblade)%QCz(jelem+1)      ! Last-point of the element
+        beam%psi_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem-1,1,:)=(/0.,1.,0./)      ! First-point of the element
+        beam%psi_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem,  1,:)=(/0.,1.,0./)    ! Mid-point of the element
+        beam%psi_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem+1,1,:)=(/0.,1.,0./)    ! Last-point of the element
+        beam%psi_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem-1,2,:)=(/0.,1.,0./)    ! First-point of the element
+        beam%psi_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem,  2,:)=(/0.,1.,0./)    ! Mid-point of the element
+        beam%psi_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem+1,2,:)=(/0.,1.,0./)    ! Last-point of the element
+        beam%psi_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem-1,3,:)=(/0.,1.,0./)    ! First-point of the element
+        beam%psi_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem,  3,:)=(/0.,1.,0./)    ! Mid-point of the element
+        beam%psi_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem+1,3,:)=(/0.,1.,0./)    ! Last-point of the element
         enddo
     
         !Define Element information (beam%elem) based on the beam information
@@ -210,20 +223,20 @@ contains
         !                            beam%NElems,&
         !                            beam%Nnodes,&
         !                            dt,&
-        !                            elem,&
-        !                            node,&
-        !                            static_forces,&
-        !                            dynamic_forces,&
-        !                            gravity_forces,&
-        !                            quat,&
-        !                            for_vel,&
-        !                            for_acc,&
-        !                            pos_ini,&
-        !                            psi_ini,&
-        !                            pos_def,&
-        !                            psi_def,&
-        !                            pos_dot_def,&
-        !                            psi_dot_def,&
+        !                            beam%elem,&
+        !                            beam%node,&
+        !                            beam%static_forces,&
+        !                            beam%dynamic_forces,&
+        !                            beam%gravity_forces,&
+        !                            beam%quat,&
+        !                            beam%for_vel,& ! Frame of reference velocity
+        !                            beam%for_acc,& ! Frame of reference acceleration
+        !                            beam%pos_ini,& ! Initial -- unloaded position of the nodes
+        !                            beam%psi_ini,& ! Initial -- unloaded cartertisian rotation vector
+        !                            beam%pos_def,&
+        !                            beam%psi_def,&
+        !                            beam%pos_dot_def,&
+        !                            beam%psi_dot_def,&
         !                            options)
 
     return

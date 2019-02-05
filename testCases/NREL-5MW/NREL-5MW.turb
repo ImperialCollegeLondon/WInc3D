@@ -5,7 +5,7 @@
 name='NREL-5MW'                              ! Name of the turbine
 origin=252,90.,252                            ! Actual location of the turbine 
 numblades=3                                  ! number of blades
-blade_geom='NRELResources/NRELBlade_N71.al'  ! Blade geometry
+blade_geom='NRELResources/NRELBlade_N8.al'  ! Blade geometry
 numfoil=8                                    ! Number of airfoil from which the interpolation is done
 afname='NRELResources/Airfoils/cylinder1.air','NRELResources/Airfoils/cylinder2.air','NRELResources/Airfoils/DU21_A17.air','NRELResources/Airfoils/DU25_A17.air','NRELResources/Airfoils/DU30_A17.air','NRELResources/Airfoils/DU35_A17.air','NRELResources/Airfoils/DU40_A17.air','NRELResources/Airfoils/NACA64_A17.air'
 towerFlag=0                                  ! Tower model ? (0: no, 1: yes)
@@ -30,7 +30,7 @@ blade_cone_angle=0.                         ! Blade cone angle (in degrees)
 ! Aeroelasticity parameters              |
 !=========================================
 AeroElastFlag=1                                                                   ! 0: off, 1: on
-AeroElast_param_file='NRELResources/NRELBlade_N71.struct'                             ! 0: Static, 1: Dynamic
+AeroElast_param_file='NRELResources/NRELBlade_N8.struct'                             ! 0: Static, 1: Dynamic
 !=========================================
 ! Operation/Controller parameters        |
 !=========================================

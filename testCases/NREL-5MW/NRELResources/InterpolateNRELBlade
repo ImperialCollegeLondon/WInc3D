@@ -35,7 +35,7 @@ t2c_New=np.interp(rR_New,rR_ref,t2c_ref)
 
 
 # Read the strucrure part and make sure that the structural and aerodynamic models are the same
-Astruct=np.genfromtxt('Structure.txt',delimiter=',',skip_header=2)
+Astruct=np.genfromtxt('Structure.txt',delimiter='',skip_header=2)
 rR_struct=Astruct[:,0]
 AeroCent_struct=Astruct[:,1]  #Aerodynamic center
 StrTwist_struct=Astruct[:,2]  #Structural Twist
@@ -53,7 +53,7 @@ FlpcgOf_struct=Astruct[:,13]
 EdgcgOf_struct=Astruct[:,14]  
 FlpEAOf_struct=Astruct[:,15] 
 EdgEAOf_struct=Astruct[:,16]
-rR_struct_New=np.linspace(rR_struct[0],rR_struct[-1],NElem)
+rR_struct_New=np.linspace(rR_ref[0],rR_ref[-1],NElem)
 AeroCent_struct_New=np.interp(rR_struct_New,rR_struct,AeroCent_struct)
 StrTwist_struct_New=np.interp(rR_struct_New,rR_struct,StrTwist_struct)
 BMassDen_struct_New=np.interp(rR_struct_New,rR_struct,BMassDen_struct)
