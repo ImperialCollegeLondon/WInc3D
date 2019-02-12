@@ -11,7 +11,7 @@ FFT= generic
 
 # Paths to xbeam 
 xbeam_PATH=../xbeam
-xbeam_INCLUDE=-I$(xbeam_PATH)/src
+xbeam_INCLUDE=-I$(xbeam_PATH)/src -I$(xbeam_PATH)/src/xbeam_base
 xbeam_LIB=-L$(xbeam_PATH)/lib -lxbeam 
 
 # Paths to FFTW 3
@@ -56,7 +56,7 @@ incompact3d : $(OBJ)
 	$(FC) -O3 -o $@ $(OBJ) $(LIBFFT) $(LIBS) $(DEBUG) $(xbeam_LIB) 
 
 %.o : %.f90
-	$(FC) $(OPTFC) $(OPTIONS) $(INC) $(xbeam_INCLUDE) $(DEBUG) -c $<
+	$(FC) $(OPTFC) $(OPTIONS) $(INC) $(xbeam_INCLUDE) $(DEBUG) $(LIBS) -c $<
 	
 visualize :
 	mpif90 paraview_incompact3d.f90 -o visualize 

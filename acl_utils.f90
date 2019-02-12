@@ -91,7 +91,7 @@ contains
    vOx=vx-Ox
    vOy=vy-Oy
    vOz=vz-Oz
-   p=reshape([0.0d0,vOx,vOy,vOz],[4,1])
+       p=reshape([0.0d0,vOx,vOy,vOz],[4,1])
    
    ! Rotation quaternion and conjugate
     q=(/cos(Theta/2),nRx*sin(Theta/2),nRy*sin(Theta/2),nRz*sin(Theta/2)/)
@@ -115,53 +115,24 @@ contains
    
    end subroutine QuatRot
     
-   subroutine rotation_matrix(v1,v2,v3,CAB)
+   subroutine rotation_matrix(v1,v2,v3,RoTMat)
         
         implicit none
         
         real(mytype), intent(in)  :: v1(3),v2(3),v3(3)
-        real(mytype), intent(out) :: CAB(3,3)
+        real(mytype), intent(out) :: RotMat(3,3)
         integer :: i,j
 
         do j=1,3
             do i=1,3
-            CAB(i,j)=v1(j)
-            CAB(i,j)=v2(j)
-            CAB(i,j)=v3(j)
+            RotMat(i,j)=v1(j)
+            RotMat(i,j)=v2(j)
+            RotMat(i,j)=v3(j)
             enddo
         enddo
         
     end subroutine rotation_matrix
     
-    subroutine rotation2crv(CAB,psi)
-        implicit none
-
-        real(mytype), intent(in) :: CAB(3,3)
-        real(mytype), intent(out) :: psi(3)
-
-
-    end subroutine 
-
-    subroutine rotation2quat(CAB,quat)
-        implicit none
-        
-        real(mytype), intent(in) :: CAB(3,3)
-        real(mytype), intent(out) :: quat(4)
-        real(mytype) :: s(4,4)
-
-        s(1,1)=1.0+CAB(1,1)+CAB(2,2)+CAB(3,3)
-        s(2,2:4)=(/CAB(3,2)-CAB(2,3),&
-                   CAB(1,3)-CAB(3,1),&
-                   CAB(2,1)-CAB(1,2)/)
-        
-        s(2,1)=CAB(3,2)-CAB(3,1)
-        s(3,2)=CAB(2,1)+CAB(1,2)
-
-    end subroutine rotation2quat
-
-    
-
-
     subroutine IDW(Ncol,Xcol,Ycol,Zcol,Fxcol,Fycol,Fzcol,p,Xmesh,Ymesh,Zmesh,Fxmesh,Fymesh,Fzmesh)
         implicit none
         integer, intent(in) :: Ncol

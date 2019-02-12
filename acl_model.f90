@@ -450,10 +450,6 @@ contains
                 Turbine(i)%AzimAngle=Turbine(i)%AzimAngle+theta
                 ! Computes the rigid-body velocity
                 call rotate_turbine(Turbine(i),Turbine(i)%RotN,theta)
-                ! Computes the displacement on the turbine  
-                if(turbine(i)%do_aeroelasticity) then
-                    call actuator_line_beam_solve(turbine(i)%beam,DeltaT)
-                endif
                 ! Computes the new velocity 
                 call Compute_Turbine_RotVel(Turbine(i))  
             else if(Turbine(i)%Is_NRELController) then
@@ -549,7 +545,6 @@ contains
         implicit none
 
         integer :: i,j
-        ! Zero the Source Term at each time step
 
         !write(*,*) 'Entering the actuator_line_model_compute_forces'
 
@@ -567,8 +562,16 @@ contains
             do j=1,Turbine(i)%Nblades
             call Compute_ActuatorLine_Forces(Turbine(i)%Blade(j),visc,deltaT,ctime)    
             end do
+            ! Computes the displacement on the turbine  
+            if(turbine(i)%do_aeroelasticity) then
+                call actuator_line_beam_solve(Turbine(i)%blade,Turbine(i)%beam,Turbine(i)%Nblades,Turbine(i)%RotN,Turbine(i)%angularVel,deltaT)
+                do j=1,Turbine(i)%Nblades
+                call Compute_ActuatorLine_Forces(Turbine(i)%Blade(j),visc,deltaT,ctime)    
+                end do
+            endif
+            
             call Compute_performance(Turbine(i))
-
+            
             ! Tower
             if(Turbine(i)%has_tower) then
                 call Compute_Tower_Forces(Turbine(i)%Tower,visc,ctime,Turbine(i)%TowerLift,Turbine(i)%TowerDrag,Turbine(i)%TowerStrouhal)
