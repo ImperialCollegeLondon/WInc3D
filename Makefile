@@ -24,7 +24,7 @@ FC = mpif90
 OPTFC = -O3 -funroll-loops -ftree-vectorize -fcray-pointer -cpp -ffree-line-length-0 -g -fbacktrace -ffpe-trap=invalid,zero
 CC = mpicc
 CFLAGS = -O3 
-LIBS = -fopenmp -llapack -lblas  
+LIBS = -fopenmp -llapack -lblas   
 
 # include PATH 
 ifeq ($(FFT),generic)
@@ -56,7 +56,7 @@ incompact3d : $(OBJ)
 	$(FC) -O3 -o $@ $(OBJ) $(LIBFFT) $(LIBS) $(DEBUG) $(xbeam_LIB) 
 
 %.o : %.f90
-	$(FC) $(OPTFC) $(OPTIONS) $(INC) $(xbeam_INCLUDE) $(DEBUG) $(LIBS) -c $<
+	$(FC) $(OPTFC) $(OPTIONS) $(INC) $(xbeam_INCLUDE) $(DEBUG) -c $<
 	
 visualize :
 	mpif90 paraview_incompact3d.f90 -o visualize 
