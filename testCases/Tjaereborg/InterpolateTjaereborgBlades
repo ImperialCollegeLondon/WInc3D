@@ -1,0 +1,30 @@
+#!/usr/bin/env python3
+
+import math
+import argparse
+import csv
+import f90nml
+import matplotlib
+import numpy as np
+from scipy import interpolate
+from pylab import *
+import matplotlib.pyplot as plt
+
+R=30.55
+NElem=97
+rR_New=np.linspace(0.19,1.0,NElem)
+cR_New=np.linspace(3.3/R,0.9/R,NElem)
+pitch_New=-np.linspace(-1./3.0*R,0,NElem)
+t2c_New=np.linspace(0.12,0.12,NElem)
+
+for i in range(NElem):
+    if(rR_New[i]<0.5):
+        t2c_New[i]=0.24
+
+with open('Tjaereborg_N'+str(NElem)+'.al','w') as fout:
+    fout.write('R  : '+str(R/R)+' \n')
+    fout.write('Spanwise  : 0.0 0.0 1.0 \n')
+    fout.write('NStations : '+str(NElem)+'\n')
+    for j in range(NElem):
+        fout.write(str(rR_New[j])+'\t'+str(cR_New[j])+'\t'+str(pitch_New[j])+'\t'+str(t2c_New[j])+'\n')
+
