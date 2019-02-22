@@ -29,7 +29,7 @@ type TurbineType
     logical :: Is_ListController = .false. ! Active control-based rotational velocity using the rotor averaged velocity and
                                            ! interpolation lists
 
-    logical :: do_aeroelasticity=.true.    ! Flag
+    logical :: do_aeroelasticity=.false.    ! Flag
     character(len=100) :: beam_file
     type(BeamType) :: beam         ! Elastic structural beam model for the blades
     
@@ -210,7 +210,7 @@ contains
     do iblade=1,turbine%NBlades
     turbine%IRotor=turbine%IRotor+turbine%Blade(iblade)%Inertia
     enddo   
- 
+
     call Compute_Turbine_RotVel(turbine)
     
     return

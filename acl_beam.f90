@@ -144,13 +144,6 @@ contains
                                                      0.0_mytype, 0.0_mytype,0.0_mytype,0.0_mytype,0.0_mytype ,beam%EIz(i)/),(/6,6/))
     enddo
   
-    
-    if (nrank==0) then 
-    do j=1,6
-        print *, beam%stiffness_matrix_db(1,j,j)/10.**9.
-    enddo
-    endif
-
     ! Degrees of freedom for the multibeam. It should be equal to the number of blades times twice the number of elements plus one (midpoints + edges)
     beam%Nnodes=Nblades*(2*acl(1)%Nelem+1)
     beam%NElems=Nblades*acl(1)%Nelem
@@ -173,11 +166,11 @@ contains
     
     do iblade=1,Nblades 
         ! Init the coordinates from the actuator line model
-        call QuatRot(1.0_mytype,0.0_mytype,0.0_mytype,(iblade-1)/Nblades*2*pi,1.0_mytype,& 
-                    0.0_mytype,0.0_mytype,0.0_mytype,0.0_mytype,0.0_mytype,BFoRx(1),BFoRx(2),BFoRx(3))
-        call QuatRot(0.0_mytype,1.0_mytype,0.0_mytype,(iblade-1)/Nblades*2*pi,1.0_mytype,& 
-                    0.0_mytype,0.0_mytype,0.0_mytype,0.0_mytype,0.0_mytype,BFoRy(1),BFoRy(2),BFoRy(3))
         call QuatRot(0.0_mytype,0.0_mytype,1.0_mytype,(iblade-1)/Nblades*2*pi,1.0_mytype,& 
+                    0.0_mytype,0.0_mytype,0.0_mytype,0.0_mytype,0.0_mytype,BFoRx(1),BFoRx(2),BFoRx(3))
+        call QuatRot(0.0_mytype,-1.0_mytype,0.0_mytype,(iblade-1)/Nblades*2*pi,1.0_mytype,& 
+                    0.0_mytype,0.0_mytype,0.0_mytype,0.0_mytype,0.0_mytype,BFoRy(1),BFoRy(2),BFoRy(3))
+        call QuatRot(1.0_mytype,0.0_mytype,0.0_mytype,(iblade-1)/Nblades*2*pi,1.0_mytype,& 
                     0.0_mytype,0.0_mytype,0.0_mytype,0.0_mytype,0.0_mytype,BFoRz(1),BFoRz(2),BFoRz(3))
         RotMat=reshape((/BForx(1),BForx(2),BForx(3),&
                          BFory(1),BFory(2),BFory(3),&
@@ -208,6 +201,7 @@ contains
         beam%pos_dot_def=0.0_mytype  
         beam%psi_dot_def=0.0_mytype
 
+    
         !Define Element information (beam%elem) based on the beam information
         do jelem=1,acl(iblade)%NElem    
             beam%elem(jelem+(iblade-1)*acl(iblade)%NElem)%NumNodes=3
@@ -259,6 +253,12 @@ contains
         enddo
     enddo 
     
+    if(nrank==0) then 
+        do i=1,beam%Nnodes 
+        print *, beam%pos_ini(i,2)-90
+        enddo
+    endif
+    
     beam%quat=(/1.0_mytype,0.0_mytype,0.0_mytype,0.0_mytype/)
 
     ! Set options 
@@ -303,32 +303,41 @@ contains
             enddo
         enddo
     enddo
-
-    
+     
     do inode=1,beam%Nnodes
         CBA(inode, :, :)=rotvect_psi2Mat(beam%psi_def(beam%node(inode)%master(1),beam%node(inode)%master(2),:))
         beam%dynamic_forces(inode, 1:3) = MATMUL(CBA(inode, :, :), beam%FORCE(inode, 1:3)) ! FORCES IN A FoR
     enddo
-    
-    call cbeam3_solv_nlndyn_step(beam%Ndofs, &
-                                    beam%NElems,&
-                                    beam%Nnodes,&
-                                    dt,&
-                                    beam%elem,&
-                                    beam%node,&
-                                    beam%static_forces,&
-                                    beam%dynamic_forces,&
-                                    beam%gravity_forces,&
-                                    beam%quat,&
-                                    for_vel,& ! Frame of reference velocity
-                                    for_acc,& ! Frame of reference acceleration
-                                    beam%pos_ini,& ! Initial -- unloaded position of the nodes
-                                    beam%psi_ini,& ! Initial -- unloaded cartertisian rotation vector
-                                    beam%pos_def,&
-                                    beam%psi_def,&
-                                    beam%pos_dot_def,&
-                                    beam%psi_dot_def,&
-                                    beam%options)
+ 
+
+    !do iblade=1,Nblades 
+    !    do jelem=1,blade(iblade)%Nelem
+    !        do inode=1,3
+    !            i_index=(iblade-1)*(2*blade(iblade)%NElem+1)+2*jelem-1+inode-1
+    !            if(nrank==0) print *, beam%Force(i_index,1), blade(iblade)%EFx(jelem)
+    !        enddo
+    !    enddo
+    !enddo
+
+    !call cbeam3_solv_nlndyn_step(beam%Ndofs, &
+    !                                beam%NElems,&
+    !                                beam%Nnodes,&
+    !                                dt,&
+    !                                beam%elem,&
+    !                                beam%node,&
+    !                                beam%static_forces,&
+    !                                beam%dynamic_forces,&
+    !                                beam%gravity_forces,&
+    !                                beam%quat,&
+    !                                for_vel,& ! Frame of reference velocity
+    !                                for_acc,& ! Frame of reference acceleration
+    !                                beam%pos_ini,& ! Initial -- unloaded position of the nodes
+    !                                beam%psi_ini,& ! Initial -- unloaded cartertisian rotation vector
+    !                                beam%pos_def,&
+    !                                beam%psi_def,&
+    !                                beam%pos_dot_def,&
+    !                                beam%psi_dot_def,&
+    !                                beam%options)
 
     return
 
