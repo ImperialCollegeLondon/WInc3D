@@ -8,9 +8,9 @@
     nclx=2
     ncly=1
     nclz=1
-    nfiles=11
+    nfiles=81
     file1=0
-    filen=10
+    filen=80
     istret=0
     ialm=0
     ibuoyancy=0

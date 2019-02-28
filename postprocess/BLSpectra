@@ -54,14 +54,13 @@ for i in range(M):
 
 
 
-NumbModes=32
-Nhalf=16+1
+NumbModes=1024
+Nhalf=NumbModes/2+1
 PSD_ave0=np.zeros((Nhalf,1))
 PSD_ave1=np.zeros((Nhalf,1))
 PSD_ave2=np.zeros((Nhalf,1))
 PSD_ave3=np.zeros((Nhalf,1))
-ustar=0.45
-
+ustar=0.21
 dx=2*pi*1000/N
 
 # Compute Power for location 0
@@ -134,10 +133,10 @@ plt.rc('font',family='serif')
 
 if args.plot:   
     plt.figure(1,figsize=(4,6))
-    plt.loglog(f0,PSD_ave0,'r',label='y/H='+str(Y[0,0,0]/1000.))
-    plt.loglog(f1,PSD_ave1,'r',label='y/H='+str(Y[0,0,1]/1000.))
-    plt.loglog(f2,PSD_ave2,'r',label='y/H='+str(Y[0,0,2]/1000.))
-    plt.loglog(f3,PSD_ave3,'r',label='y/H='+str(Y[0,0,3]/1000.))
+    plt.loglog(f0,PSD_ave0,'r',label='z='+str(Y[0,0,0]))
+    plt.loglog(f1,PSD_ave1,'r',label='z='+str(Y[0,0,1]))
+    plt.loglog(f2,PSD_ave2,'r',label='z='+str(Y[0,0,2]))
+    plt.loglog(f3,PSD_ave3,'r',label='z='+str(Y[0,0,3]))
     plt.loglog(f_inertial,psd_inertial,'--k',label='-5/3')
     plt.loglog(f_taylor,psd_taylor,'--k',label='-1')
     plt.ylabel(r"E_{uu}(y)/u_*^{-2}y^{-1}")

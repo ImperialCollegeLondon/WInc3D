@@ -12,14 +12,14 @@ import matplotlib.pyplot as plt
 
 R=30.55
 NElem=97
-rR_New=np.linspace(0.19,1.0,NElem)
-cR_New=np.linspace(3.3/R,0.9/R,NElem)
-pitch_New=-np.linspace(-1./3.0*R,0,NElem)
+rR_New=np.linspace(6.,R,NElem)/R
+cR_New=np.linspace(3.3,0.9,NElem)/R
+pitch_New=np.linspace(24.56/3.+1,1,NElem)
 t2c_New=np.linspace(0.12,0.12,NElem)
 
-for i in range(NElem):
-    if(rR_New[i]<0.5):
-        t2c_New[i]=0.24
+#for i in range(NElem):
+#    if(rR_New[i]<0.75):
+#        t2c_New[i]=0.24
 
 with open('Tjaereborg_N'+str(NElem)+'.al','w') as fout:
     fout.write('R  : '+str(R/R)+' \n')

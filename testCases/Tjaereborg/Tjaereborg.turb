@@ -18,6 +18,6 @@ ConstantCirculationFlag=0
 GammaCirc=0.130
 OperFlag=1                                   ! Operation flag (1: Prescribed velocity, 2: five region active controller, 3: reading from a list)  
 RotFlag=1
-uref=10.                                     ! Reference velocity
+uref=1.                                     ! Reference velocity
 tsr=7.07                                     ! Tip speed ratio (for prescribed velocity)       
 /End

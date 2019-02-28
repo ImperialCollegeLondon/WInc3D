@@ -368,7 +368,7 @@ do itime=ifirst,ilast
            endif
         endif
 
-        if(isnapshot==1) then
+        if(isnapshot==1.and.mod(itime,sfreq)==0) then
             ! WRITE SNAPSHOTS
             call VISU_SNAP(ux1,uy1,uz1,uvisu)
         endif
