@@ -304,7 +304,7 @@ contains
     type(TurbineType),intent(inout) :: turbine
     integer :: iblade,ielem
     real(mytype) ::g1,alpha,pitch,F,Froot,Ftip,rtip, rroot, phi, axis_mag
-    real(mytype) :: nxe,nye,nze,txe,tye,tze,sxe,sye,sze,u,v,w,ub,vb,wb,urdc,urdn,ur
+    real(mytype) :: nxe,nye,nze,txe,tye,tze,sxe,sye,sze,u,v,w,ub,vb,wb,urdc,urdn,ur,umag
     
     
     do iblade=1,turbine%Nblades
@@ -333,10 +333,12 @@ contains
         urdc=txe*(u-ub)+tye*(v-vb)+tze*(w-wb)! Tangential
         ur=sqrt(urdn**2.0+urdc**2.0)
         ! This is the dynamic angle of attack 
+        umag=sqrt((u-ub)**2.0+(v-vb)**2.0+(w-wb)**2.)
         axis_mag=sqrt(turbine%RotN(1)**2+turbine%RotN(2)**2+turbine%RotN(3)**2)
+        
         phi=pi/2.0
         if (ur>10e-8) then
-                phi=acos((turbine%RotN(1)*(u-ub)+turbine%RotN(2)*(v-vb)+turbine%RotN(3)*(w-wb))/(axis_mag*ur))
+                phi=acos((turbine%RotN(1)*(u-ub)+turbine%RotN(2)*(v-vb)+turbine%RotN(3)*(w-wb))/(axis_mag*umag))
         endif
        
         rroot=turbine%blade(iblade)%ERdist(ielem)/turbine%Rmax
