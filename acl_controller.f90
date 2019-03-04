@@ -235,9 +235,9 @@ subroutine operate_controller(control,time,NumBl,rotSpeed)
     IF (control%iStatus>=0)  THEN  ! .TRUE. if were want to do control
     
     !Main control calculations:
-    !========================================================================================	
-    ! Filter the HSS (generator) speed measurement:
-    ! NOTE: This is a very simple recursive, single-pole, low-pass filter with
+     !========================================================================================	
+     ! Filter the HSS (generator) speed measurement:
+     ! NOTE: This is a very simple recursive, single-pole, low-pass filter with
     !       exponential smoothing.
     ! Update the coefficient in the recursive formula based on the elapsed time
     !   since the last call to the controller:

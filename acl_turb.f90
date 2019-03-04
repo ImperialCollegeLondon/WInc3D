@@ -139,13 +139,12 @@ contains
     call rotate_turbine(turbine,(/0.0d0,1.0d0,0.0d0/),turbine%yaw_angle*pi/180.0d0)
     ! Tilt
     call rotate_turbine(turbine,(/0.0d0,0.0d0,1.0d0/),-turbine%shaft_tilt_angle*pi/180.0d0)
-    
+   
     ! Set the rotational axis
     call QuatRot(turbine%RotN(1),turbine%RotN(2),turbine%RotN(3),turbine%yaw_angle*pi/180.0d0,0.0d0,1.0d0,0.0d0,0.0d0,0.0d0,0.d0,&
             turbine%RotN(1),turbine%RotN(2),turbine%RotN(3))
     call QuatRot(turbine%RotN(1),turbine%RotN(2),turbine%RotN(3),-turbine%shaft_tilt_angle*pi/180.0d0,0.0d0,0.0d0,1.0d0,0.0d0,0.0d0,0.d0,&
             turbine%RotN(1),turbine%RotN(2),turbine%RotN(3))
-    
     !if(turbine%do_aeroelasticity) then
     !call actuator_line_beam_model_init(turbine%beam,turbine%blade,turbine%NBlades)
     !endif
@@ -172,7 +171,8 @@ contains
    
     turbine%Tower%COR=turbine%origin
     turbine%Tower%NElem=Nstations-1  
-    
+    turbine%Tower%L=turbine%Towerheight
+
     do istation=1,Nstations
     turbine%Tower%QCx(istation)= turbine%Tower%COR(1) + turbine%TowerOffset  
     turbine%Tower%QCy(istation)= turbine%Tower%COR(2) - rR(istation)*turbine%Towerheight*Svec(2) 
@@ -336,14 +336,9 @@ contains
         axis_mag=sqrt(turbine%RotN(1)**2+turbine%RotN(2)**2+turbine%RotN(3)**2)
         phi=pi/2.0
         if (ur>10e-8) then
-            if (turbine%IsCounterClockwise) then
-        phi=asin(-(turbine%RotN(1)*(u-ub)+turbine%RotN(2)*(v-vb)+turbine%RotN(3)*(w-wb))/(axis_mag*ur))
-            else if (turbine%IsClockwise) then
-        phi=asin((turbine%RotN(1)*(u-ub)+turbine%RotN(2)*(v-vb)+turbine%RotN(3)*(w-wb))/(axis_mag*ur))
-            endif
+                phi=acos((turbine%RotN(1)*(u-ub)+turbine%RotN(2)*(v-vb)+turbine%RotN(3)*(w-wb))/(axis_mag*ur))
         endif
-        if (abs(phi)>1) phi=1.0
-
+       
         rroot=turbine%blade(iblade)%ERdist(ielem)/turbine%Rmax
         rtip=(turbine%Rmax-turbine%blade(iblade)%ERdist(ielem))/turbine%Rmax
         
@@ -359,7 +354,7 @@ contains
                 write(*,*) "Only Glauret and ShenEtAl2005 are available at the moment"
                 stop
             endif
-            if (abs(exp(-g1*turbine%Nblades/2.0*(1.0/rroot-1.0)/sin(phi)))>1) then
+            if (abs(exp(-g1*turbine%Nblades/2.0*(1.0/rroot-1.0)/sin(phi)))>1.) then
                 write(*,*) "Something went wrong with the tip correction model -- phi =", phi
                 Ftip=1.
             endif
@@ -376,7 +371,8 @@ contains
             endif
             Froot=2.0/pi*acos(exp(-g1*turbine%Nblades/2.0*(1.0/rtip-1.0)/sin(phi)))
         endif
-            turbine%blade(iblade)%EEndeffects_factor(ielem)=Ftip*Froot
+
+            turbine%blade(iblade)%EEndeffects_factor(ielem)=Ftip*Froot 
         end do
     end do
 

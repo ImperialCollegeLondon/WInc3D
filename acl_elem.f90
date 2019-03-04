@@ -337,7 +337,6 @@ end type ActuatorLineType
     ! The value is initialized to 1.0 it should not make any difference
     ! when it is not activated
     !==========================================================================
-    CL=CL*act_line%EEndeffects_factor(ielem)
     
     ! Apply Random walk on the Lift and drag forces
     if(act_line%do_random_walk_forcing) then
@@ -363,6 +362,9 @@ end type ActuatorLineType
     FN=0.5*CN*ElemArea*ur**2.0
     FT=0.5*CT*ElemArea*ur**2.0
     MS=0.5*CM25*ElemChord*ElemArea*ur**2.0
+    
+    FN=FN*act_line%EEndeffects_factor(ielem)
+    FT=FT*act_line%EEndeffects_factor(ielem)
    
     !===============================================
     ! Compute forces in the X, Y, Z axis and torque  
