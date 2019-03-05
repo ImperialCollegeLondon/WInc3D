@@ -57,7 +57,7 @@ integer,save :: nxm,nym,nzm
 integer :: nclx,ncly,nclz
 integer :: ifft, ivirt,istret,iforc_entree,iturb, ialm, Nturbines, NActuatorlines
 integer :: itype, iskew, iin, nscheme, ifirst, ilast, iles, jLES, jADV
-integer :: isave,ilit,srestart,idebmod, imodulo, idemarre, icommence, irecord
+integer :: isave,ilit,srestart,idebmod, imodulo, idemarre, icommence, irecord, ialmoutput
 integer :: iscalar,ilag,npif,izap
 character :: inflow_file*80, sem_file*80
 integer :: iprobe, Nprobes, Nsampling, isnapshot, ioutflow, iinflow, OutflowOnsetIndex, NTimeSteps

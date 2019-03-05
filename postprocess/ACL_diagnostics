@@ -37,12 +37,10 @@ X=np.zeros((N,1));
 Y=np.zeros((N,1));
 Z=np.zeros((N,1));
 rdistR=np.zeros((N,1));
-pitch=np.zeros((N,1));
 AOA=np.zeros((N,1));
 AOAdot=np.zeros((N,1));
 Re=np.zeros((N,1));
 Ur=np.zeros((N,1));
-epsilon=np.zeros((N,1));
 CL=np.zeros((N,1));
 CD=np.zeros((N,1));
 CM=np.zeros((N,1));
@@ -50,93 +48,53 @@ CN=np.zeros((N,1));
 CT=np.zeros((N,1));
 Fn=np.zeros((N,1));
 Ft=np.zeros((N,1));
-Gamma=np.zeros((N,1));
+F1=np.zeros((N,1));
 
 for i in range(N):
     X[i]=Data[i,1];
     Y[i]=Data[i,2];
     Z[i]=Data[i,3];
     rdistR[i]=Data[i,4];
-    pitch[i]=Data[i,6];
-    AOA[i]=Data[i,7];
-    AOAdot[i]=Data[i,8];
-    Re[i]=Data[i,9];
-    Ur[i]=Data[i,10];
-    epsilon[i]=Data[i,11];
-    CL[i]=Data[i,12];
-    CD[i]=Data[i,13];
-    CM[i]=Data[i,14];
-    CN[i]=Data[i,15];
-    CT[i]=Data[i,16];
-    Fn[i]=Data[i,17];
-    Ft[i]=Data[i,18];
-    Gamma[i]=Data[i,20];
+    AOA[i]=Data[i,5];
+    AOAdot[i]=Data[i,6];
+    Re[i]=Data[i,7];
+    Ur[i]=Data[i,8];
+    CL[i]=Data[i,9];
+    CD[i]=Data[i,10];
+    CM[i]=Data[i,11];
+    CN[i]=Data[i,12];
+    CT[i]=Data[i,13];
+    Fn[i]=Data[i,14];
+    Ft[i]=Data[i,15];
+    F1[i]=Data[i,16];
     
 ####--------------- Plotting -------------------##### 
 plt.figure(1)
 plt.subplot(221)
-plt.plot(rdistR,pitch,'-k.')
-plt.xlabel('Root distance r [m]')
-plt.ylabel('Blade Pitch angle [degrees]')
-plt.subplot(222)
 plt.plot(rdistR,AOA,'-k.')
 plt.xlabel('Root distance r [m]')
-plt.ylabel('Effective AOA [degrees]')
-plt.subplot(223)
+plt.ylabel('Angle of attack [degrees]')
+plt.subplot(222)
 plt.plot(rdistR,AOAdot,'-k.')
 plt.xlabel('Root distance r [m]')
 plt.ylabel('AOA rate of change [degrees/s]')
+plt.subplot(223)
+plt.plot(rdistR,CL,'-k.')
+plt.xlabel('Root distance r [m]')
+plt.ylabel('$C_L$')
 plt.subplot(224)
-plt.plot(rdistR,Ur,'-k.')
+plt.plot(rdistR,CD,'-k.')
 plt.xlabel('Root distance r [m]')
-plt.ylabel('Relative Velocity [m/s]')
-plt.show()
+plt.ylabel('$C_D$')
 
-#plt.figure(2)
-#plt.subplot(221)
-#plt.plot(rdistR,CL,'-k.')
-#plt.ylim(0,1.1*max(CL))
-#plt.xlabel('Root distance r [m]')
-#plt.ylabel('Lift Coefficient C_L')
-#plt.subplot(222)
-#plt.plot(rdistR,CD,'-k.')
-#plt.ylim(0,1.1*max(CD))
-#plt.xlabel('Root distance r [m]')
-#plt.ylabel('Drag Coefficient C_D')
-#plt.subplot(223)
-#plt.plot(rdistR,CN,'-k.')
-#plt.ylim(0,1.1*max(CN))
-#plt.xlabel('Root distance r [m]')
-#plt.ylabel('Normal Force Coefficient C_N')
-#plt.subplot(224)
-#plt.plot(rdistR,CT,'-k.')
-#plt.xlabel('Root distance r [m]')
-#plt.ylabel('Tangential Force Coefficient C_T')
-#plt.show()
-
-#plt.figure(3)
-#plt.subplot(311)
-#plt.plot(rdistR,Fn,'-k.')
-#plt.xlabel('Root distance r [m]')
-#plt.ylabel('Fn')
-#plt.subplot(312)
-#plt.plot(rdistR,Ft,'-k.')
-#plt.xlabel('Root distance r [m]')
-#plt.ylabel('Ft')
-#plt.subplot(313)
-#plt.plot(rdistR,epsilon,'-k.')
-#plt.xlabel('Root distance r [m]')
-#plt.ylabel('epsilon')
-#plt.show()
-
-plt.figure(4)
+plt.figure(2)
 plt.subplot(211)
-plt.plot(rdistR,Gamma,'-k.')
+plt.plot(rdistR,Fn,'-k.')
 plt.xlabel('Root distance r [m]')
-plt.ylabel('Gamma')
+plt.ylabel('$F_N$')
 plt.subplot(212)
-plt.plot(Z,Gamma,'-k.')
+plt.plot(rdistR,-Ft,'-k.')
 plt.xlabel('Distance r [m]')
-plt.ylabel('Gamma')
+plt.ylabel('$F_T$')
 plt.show()
 

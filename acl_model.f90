@@ -76,9 +76,11 @@ contains
         integer :: itur,ial,iblade
         character(len=100) :: dir
 
-        call system('mkdir -p ALM/'//adjustl(trim(dirname(dump_no))))
+        !call system('mkdir -p ALM/'//adjustl(trim(dirname(dump_no))))
         
-        dir='ALM/'//adjustl(trim(dirname(dump_no)))
+        !dir='ALM/'//adjustl(trim(dirname(dump_no)))
+
+        dir=adjustl(trim(dirname(dump_no)))
 
         if (Ntur>0) then
             do itur=1,Ntur

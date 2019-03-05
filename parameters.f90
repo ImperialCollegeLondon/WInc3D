@@ -43,7 +43,7 @@ USE decomp_2d
 implicit none
 
 character(len=*),intent(in):: InputFN 
-real(mytype) :: theta, cfl,cf2 
+real(mytype) :: theta, cfl,cf2
 integer :: longueur ,impi,j
 character :: a*80
 
@@ -53,7 +53,7 @@ NAMELIST/NumConfig/nx,ny,nz,p_row,p_col,nclx,ncly,nclz,TurbRadius,ifirst,ilast,n
     beta,iskew,iscalar,jles,FSGS,jadv,smagcst,SmagWallDamp,nSmag,iwallmodel,walecst,rxxnu,cnu,dynhypvisc  
 NAMELIST/FileParam/ilit,isave,imodulo,ioutflow,iinflow,OutflowOnsetIndex, NTimeSteps
 NAMELIST/IBMParam/ivirt,ibmshape,cex,cey,cez,ra
-NAMELIST/ALMParam/ialm,NTurbines,TurbinesPath,NActuatorlines,ActuatorlinesPath,eps_factor
+NAMELIST/ALMParam/ialm,ialmoutput,NTurbines,TurbinesPath,NActuatorlines,ActuatorlinesPath,eps_factor
 NAMELIST/ADMParam/iadm,Ndiscs,ADMcoords,iverifyadm,iadmmode,CT,aind,fileADM
 NAMELIST/StatParam/spinup_time,nstat,nvisu,iprobe,Probelistfile,nsampling, y_loc_pencil,& 
                   z_loc_pencil,isnapshot,simin,simax,sjmin,sjmax,skmin,skmax,sfreq 
@@ -101,6 +101,7 @@ isave=100
 imodulo=100
 ivirt=0
 ialm=0
+ialmoutput=50
 eps_factor=2.0
 rxxnu=1.0
 cnu=0.44

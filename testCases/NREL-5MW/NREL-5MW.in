@@ -1,7 +1,7 @@
 &FlowParam
     ! Flow type
-    itype = 1             ! Type of Flow  
-    iin = 0               ! Inflow conditions (1: classic, 2: turbinit)
+    itype = 8             ! Type of Flow  
+    iin = 1              ! Inflow conditions (1: classic, 2: turbinit)
     
     ! Domain and scaling
     xlx = 252            ! Lx (Size of the box in x-direction)
@@ -9,8 +9,8 @@
     zlz = 252            ! Lz (Size of the box in z-direction) 
     re  = 66667           ! nu=1/re (Kinematic Viscosity)
     sc  = 1.              ! Schmidt number (if passive scalar)
-    u1  = 8.              ! u1 (max velocity) (for inflow condition)
-    u2  = 8.              ! u2 (min velocity) (for inflow condition) 
+    u1  = 8              ! u1 (max velocity) (for inflow condition)
+    u2  = 8              ! u2 (min velocity) (for inflow condition) 
     noise  = 0.125        ! Turbulence intensity (1=100%) !! Initial condition
     noise1 = 0.0          ! Turbulence intensity (1=100%) !! Inflow condition
     
@@ -42,7 +42,7 @@
     ifirst = 1	          ! First iteration   
     ilast = 1000        ! Last iteration 
     nscheme = 2           ! Temporal scheme (1: ?, 2: RK3, 3:RK4, 4:AB2)
-    dt = 0.02             ! Time step
+    dt = 0.05             ! Time step
     
     ! Governing equations formulations
     iskew = 1             ! (0:urotu, 1:skew, for the convective terms)
@@ -51,9 +51,9 @@
     ! Large-eddy simulation modelling parameters
     jles=2                ! LES Model (0:DNS, 1: iLES 2:Smag, 3:WALE, 4: scale-invariant dyn. Smag, 5: scale-dependent dyn. Smag )
     FSGS=1.0              ! Filter Size/ Grid Size for explicit LES only
-    smagcst=0.16          ! Smagorinsky constant
-    SmagWallDamp=0        ! Smagorinsky damping function for ABL if 1
-    nSmag=1               ! Smagorinksy damping coefficient 
+    smagcst=0.14          ! Smagorinsky constant
+    SmagWallDamp=1        ! Smagorinsky damping function for ABL if 1
+    nSmag=3               ! Smagorinksy damping coefficient 
     walecst=0.5           ! WALES Model Coefficient
     rxxnu=100        	  ! Implicit LES factor 
 /End
@@ -71,7 +71,7 @@
     ilit=0                ! Read initial flow field ?
     isave=25     	  ! Frequency for writing backup file  
     imodulo=25         ! Frequency for visualization 
-    ioutflow=1		  ! Outflow flag
+    ioutflow=0		  ! Outflow flag
     NTimeSteps=2000
 /End
 
@@ -87,7 +87,8 @@
 
 &ALMParam
 ialm=1                    ! ialm (0: turbine model off, 1: turbine model on)
-eps_factor=2.2            ! Smoothing parameter factor
+ialmoutput=1
+eps_factor=2.            ! Smoothing parameter factor
 Nturbines=1               ! Number of Turbines
 TurbinesPath='NREL-5MW.turb'
 /End
@@ -97,9 +98,10 @@ iadm=0
 /End
 
 &ABLParam
-iabl=0                    ! iabl (1: atmospheric boundary layer modelling by applying a shear stress)
-z_zero=0.05	              ! Roughness length
+iabl=1                    ! iabl (1: atmospheric boundary layer modelling by applying a shear stress)
+z_zero=0.001	              ! Roughness length
 k_roughness=0.4          ! von Karman constant (usually taken to be equal to 0.41)
-ustar=0.442              ! friction velocity
-IPressureGradient=0	      ! if 1 then apply a pressure gradient
+ustar=0.281              ! friction velocity
+dBL=504
+IPressureGradient=1	      ! if 1 then apply a pressure gradient
 /End

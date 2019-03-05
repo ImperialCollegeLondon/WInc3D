@@ -252,8 +252,8 @@ if (mod(itime,imodulo)==0) then
         ta3,di3,nxmsize,nymsize,nzmsize,phG,ph2,ph3,uvisu) 
 endif
 if (ialm==1) then
-if (nrank==0.and.mod(itime,imodulo)==0) then
-   call actuator_line_model_write_output(itime/imodulo) ! Write the Rotor output
+    if (nrank==0.and.mod(itime,ialmoutput)==0) then
+   call actuator_line_model_write_output(itime/ialmoutput) ! Write the Rotor output
 end if
 endif 
 
@@ -387,8 +387,8 @@ do itime=ifirst,ilast
    endif
 
    if (ialm==1) then
-    if (nrank==0.and.mod(itime,imodulo)==0) then
-       call actuator_line_model_write_output(itime/imodulo) ! Write the Rotor output
+    if (nrank==0.and.mod(itime,ialmoutput)==0) then
+       call actuator_line_model_write_output(itime/ialmoutput) ! Write the Rotor output
     end if
    endif 
    if (iadm==1) then

@@ -46,6 +46,9 @@ endif
 
 all: incompact3d visualize
 
+fileOperation.o: fileOperation.c
+	$(CC) $(CFLAGS) -c $<
+
 alloc_shm.o: alloc_shm.c
 	$(CC) $(CFLAGS) -c $<
 

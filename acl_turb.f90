@@ -77,7 +77,7 @@ contains
 
     call read_actuatorline_geometry(turbine%blade_geom_file,turbine%Rmax,SVec,rR,ctoR,pitch,thick,Nstations)
     ! Make sure that the spanwise is [0 0 1]
-    Svec = [sin(turbine%blade_cone_angle/180.0*pi),0.0d0,cos(turbine%blade_cone_angle/180.0*pi)]
+    Svec = [0.0d0,0.0d0,1.0d0]
     ! Make sure that origin is [0,0,0] : we set everything to origin 0 and then translate the
     ! turbine to the actual origin(this is for simplicity)
     theta=2*pi/turbine%Nblades
@@ -89,6 +89,7 @@ contains
     turbine%blade(iblade)%L=turbine%Rmax
     turbine%blade(iblade)%NElem=Nstations-1 
     
+
     do istation=1,Nstations
     turbine%blade(iblade)%QCx(istation)=rR(istation)*turbine%Rmax*Svec(1)+turbine%blade(iblade)%COR(1)+turbine%dist_from_axis
     turbine%blade(iblade)%QCy(istation)=rR(istation)*turbine%Rmax*Svec(2)+turbine%blade(iblade)%COR(2)
@@ -109,9 +110,17 @@ contains
         turbine%blade(iblade)%pitch(istation)=pitch(istation)/180.0*pi
         turbine%blade(iblade)%FlipN = .true.
     endif
+    !### Do the blade cone angle ###
+    ! Rotate coordinates (around y)
+    call QuatRot(turbine%blade(iblade)%QCx(istation),turbine%blade(iblade)%QCy(istation),turbine%blade(iblade)%QCz(istation),turbine%blade_cone_angle*pi/180.0d0,&
+                0.0d0,1.0d0,0.0d0,0.0d0,0.0d0,0.d0,turbine%blade(iblade)%QCx(istation),turbine%blade(iblade)%QCy(istation),turbine%blade(iblade)%QCz(istation))
+    ! Rotate tangential vectors (around y)
+    call QuatRot(turbine%blade(iblade)%tx(istation),turbine%blade(iblade)%ty(istation),turbine%blade(iblade)%tz(istation),turbine%blade_cone_angle*pi/180.0d0,&
+                0.0d0,1.0d0,0.0d0,0.0d0,0.0d0,0.d0,turbine%blade(iblade)%tx(istation),turbine%blade(iblade)%ty(istation),turbine%blade(iblade)%tz(istation)) 
     end do
+    
 
-    ! Rotate Blade 1 to forme the other blades 
+    ! Rotate Blade 1 to form the other blades 
     call rotate_actuatorline(turbine%blade(iblade),turbine%blade(iblade)%COR,turbine%RotN,(iblade-1)*theta)   
  
     call make_actuatorline_geometry(turbine%blade(iblade))
@@ -215,7 +224,8 @@ contains
     return
 
     end subroutine set_turbine_geometry
-    
+   
+
     subroutine compute_performance(turbine)
 
     implicit none
@@ -303,7 +313,7 @@ contains
     implicit none
     type(TurbineType),intent(inout) :: turbine
     integer :: iblade,ielem
-    real(mytype) ::g1,alpha,pitch,F,Froot,Ftip,rtip, rroot, phi, axis_mag
+    real(mytype) ::g1,alpha,pitch,F,Froot,Ftip,rtip, rroot, phi, sphi,axis_mag
     real(mytype) :: nxe,nye,nze,txe,tye,tze,sxe,sye,sze,u,v,w,ub,vb,wb,urdc,urdn,ur,umag
     
     
@@ -335,12 +345,12 @@ contains
         ! This is the dynamic angle of attack 
         umag=sqrt((u-ub)**2.0+(v-vb)**2.0+(w-wb)**2.)
         axis_mag=sqrt(turbine%RotN(1)**2+turbine%RotN(2)**2+turbine%RotN(3)**2)
-        
-        phi=pi/2.0
-        if (ur>10e-8) then
-                phi=acos((turbine%RotN(1)*(u-ub)+turbine%RotN(2)*(v-vb)+turbine%RotN(3)*(w-wb))/(axis_mag*umag))
-        endif
-       
+        phi=turbine%blade(iblade)%EAOA(ielem)+turbine%blade(iblade)%Epitch(ielem)
+
+        !if (umag>1e-8) then
+        !phi=acos((turbine%RotN(1)*(u-ub)+turbine%RotN(2)*(v-vb)+turbine%RotN(3)*(w-wb))/(axis_mag*umag))
+        !endif
+
         rroot=turbine%blade(iblade)%ERdist(ielem)/turbine%Rmax
         rtip=(turbine%Rmax-turbine%blade(iblade)%ERdist(ielem))/turbine%Rmax
         
@@ -351,7 +361,7 @@ contains
             if (turbine%EndEffectModel_is_Glauret) then
                 g1=1.0
             else if (turbine%EndEffectModel_is_Shen) then
-                g1=exp(-turbine%ShenCoeff_c1*(turbine%NBlades*turbine%TSR-turbine%ShenCoeff_c2))+0.1
+                g1=dexp(-turbine%ShenCoeff_c1*(turbine%NBlades*turbine%TSR-turbine%ShenCoeff_c2))+0.1
             else
                 write(*,*) "Only Glauret and ShenEtAl2005 are available at the moment"
                 stop
@@ -360,7 +370,7 @@ contains
                 write(*,*) "Something went wrong with the tip correction model -- phi =", phi
                 Ftip=1.
             endif
-            Ftip=2.0/pi*acos(exp(-g1*turbine%Nblades/2.0*(1.0/rroot-1.0)/sin(phi)))
+            Ftip=2.0/pi*acos(exp(-g1*turbine%Nblades/2.0*(1.0/rroot-1.0)/dsin(phi)))
         endif
         if (turbine%do_root_correction) then
             if (turbine%EndEffectModel_is_Glauret) then
