@@ -339,13 +339,12 @@ do j=1,xsize(2)
    if (ux(nx-1,j,k).lt.uxmin) uxmin=ux(nx-1,j,k)
 enddo
 enddo
+
 call MPI_ALLREDUCE(uxmax,uxmax1,1,real_type,MPI_MAX,MPI_COMM_WORLD,code)
 call MPI_ALLREDUCE(uxmin,uxmin1,1,real_type,MPI_MIN,MPI_COMM_WORLD,code)
 vphase=0.5*(uxmax1+uxmin1)
 
 cx=vphase*gdt(itr)*udx
-
-
 if (itype.ne.9) then
    do k=1,xsize(3)
    do j=1,xsize(2)

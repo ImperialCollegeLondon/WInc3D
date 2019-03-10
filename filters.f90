@@ -38,11 +38,18 @@ fia1x=7./8.+af/8.               ! a1/2
 fib1x=3./8.+5.*af/8.            ! b1/2
 fic1x=-3./8.+3./8.*af           ! c1/2
 fid1x=1./8.-1./8.*af            ! d1/2
-!Boundary point 2
+!Boundary point 2 (Third order)
 fia2x=1./8.+3./4.*af    ! a2
 fib2x=5./8.+3./4.*af    ! b2/2
 fic2x=3./8.+af/4.    ! c2/2
 fid2x=-1./8.+af/4.   ! d2/2
+!Boundary point 3 (Fifth order)
+fia3x= -1./32.+af/16.       ! a3
+fib3x= 5./32.+11./16.*af    ! b3/2
+fic3x= 11./16.+5.*af/8.     ! c3/2
+fid3x= 5./16.+3.*af/8.      ! d3/2
+fie3x=-5./32.+5.*af/16.     ! e3/2
+fif3x=1./32.-af/16.         ! f3/2
 !Boundary point n
 afn=0.
 fianx=7./8.+af/8.               ! a1/2
@@ -54,6 +61,13 @@ fiamx=1./8.+3./4.*af    ! a2
 fibmx=5./8.+3./4.*af    ! b2/2
 ficmx=3./8.+af/4.    ! c2/2
 fidmx=-1./8.+af/4.   ! d2/2
+!Boundary point p=n-2 (Fifth order)
+fiapx= -1./32.+af/16.       ! a3
+fibpx= 5./32.+11./16.*af    ! b3/2
+ficpx= 11./16.+5.*af/8.     ! c3/2
+fidpx= 5./16.+3.*af/8.      ! d3/2
+fiepx=-5./32.+5.*af/16.     ! e3/2
+fifpx=1./32.-af/16.         ! f3/2
 ! Set the coefficients for the matrix A
 ! Periodic case
 if (nclx.eq.0) then
@@ -423,7 +437,9 @@ if (nclx==2) then
       tx(1,j,k)=ux(1,j,k)
       tx(2,j,k)=fia2x*ux(1,j,k)+fib2x*ux(2,j,k)+fic2x*ux(3,j,k)+&
                 fid2x*ux(4,j,k)
-      do i=3,nx-2
+      tx(3,j,k)=fia3x*ux(1,j,k)+fib3x*ux(2,j,k)+fic3x*ux(3,j,k)+&
+                fid3x*ux(4,j,k)+fie3x*ux(5,j,k)+fif3x*ux(6,j,k)
+      do i=4,nx-3
          tx(i,j,k)=fiaix*ux(i,j,k)+fibix*(ux(i+1,j,k)+ux(i-1,j,k))& 
                                   +ficix*(ux(i+2,j,k)+ux(i-2,j,k))&
                                   +fidix*(ux(i+3,j,k)+ux(i-3,j,k)) 
@@ -431,6 +447,8 @@ if (nclx==2) then
       tx(nx,j,k)=ux(nx,j,k)
       tx(nx-1,j,k)=fiamx*ux(nx,j,k)+fibmx*ux(nx-1,j,k)+ficmx*ux(nx-2,j,k)+&
                             fidmx*ux(nx-3,j,k)
+      tx(nx-2,j,k)=fiapx*ux(nx,j,k)+fibpx*ux(nx-1,j,k)+ficpx*ux(nx-2,j,k)+&
+                fidpx*ux(nx-3,j,k)+fiepx*ux(nx-4,j,k)+fifpx*ux(nx-5,j,k)
       do i=2,nx 
          tx(i,j,k)=tx(i,j,k)-tx(i-1,j,k)*fifsx(i) 
       enddo

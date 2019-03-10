@@ -5,7 +5,7 @@
 name='NREL-5MW'                              ! Name of the turbine
 origin=63,90.,126                            ! Actual location of the turbine 
 numblades=3                                  ! number of blades
-blade_geom='NRELResources/NRELBlade_N91.al'  ! Blade geometry
+blade_geom='NRELResources/NRELBlade_N71.al'  ! Blade geometry
 numfoil=8                                    ! Number of airfoil from which the interpolation is done
 afname='NRELResources/Airfoils/cylinder1.air','NRELResources/Airfoils/cylinder2.air','NRELResources/Airfoils/DU21_A17.air','NRELResources/Airfoils/DU25_A17.air','NRELResources/Airfoils/DU30_A17.air','NRELResources/Airfoils/DU35_A17.air','NRELResources/Airfoils/DU40_A17.air','NRELResources/Airfoils/NACA64_A17.air'
 towerFlag=1                                 ! Tower model ? (0: no, 1: yes)
@@ -22,7 +22,7 @@ RootCorr=0                                   ! Root correction model (0: no, 1: 
 ShenC1=0.125                                 ! Shen et. al 2005 moedl coefficient (c1)   
 ShenC2=21                                    ! Shen et. al 2005 model coefficient (c2)
 yaw_angle=0.                                 ! Rotor Yaw angle (in degrees)
-shaft_tilt_angle=5.                          ! Hub tilt angle (in degrees)
+shaft_tilt_angle=0.                          ! Hub tilt angle (in degrees)
 blade_cone_angle=2.5                         ! Blade cone angle (in degrees)
 !=========================================
 ! Aeroelasticity parameters              |
@@ -44,7 +44,7 @@ CutInGenSpeed=70.16224                       ! Cut-in generator speed in rad/sec
 RatedLimitGenTorque=15000.0                  ! Rated Limit Generator Torque
 Region2StartGenSpeed=91.21091                ! Region 2 starting point generator speed
 Region2EndGenSpeed=121.6805                  ! Region 2 ending point generator speed
-Kgen=2.                                 ! Region 2 genrator ceoffici
+Kgen=2.33                                 ! Region 2 genrator ceoffici
 RatedPower=5296610.0                         ! Rated Power in Watts   ! Rated power
 MaximumTorque=47402.91                       ! Maximum Torque in N*m 
 /End
