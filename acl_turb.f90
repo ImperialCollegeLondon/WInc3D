@@ -23,11 +23,13 @@ type TurbineType
     real(mytype) :: Torque, angularVel,deltaOmega,TSR,Uref ! Torque and rotation for the shaft  
     real(mytype) :: AzimAngle=0.0
     real(mytype) :: dist_from_axis=0.0
+    real(mytype) :: cbp=0.0, cbp_old=0.0 ! Collective blade pitch
     integer :: No_rev=0.0
     logical :: Is_constant_rotation_operated = .false. ! For a constant rotational velocity (in Revolutions Per Minute)
     logical :: Is_NRELController = .false. ! Active control-based rotational velocity using the NREL controller
     logical :: Is_ListController = .false. ! Active control-based rotational velocity using the rotor averaged velocity and
                                            ! interpolation lists
+    logical :: Is_upstreamvel_controlled=.false. 
 
     logical :: do_aeroelasticity=.true.    ! Flag
     !type(BeamType) :: beam         ! Elastic structural beam model for the blades
@@ -39,7 +41,6 @@ type TurbineType
     type(ControllerType) :: controller     ! Contoller
     logical :: IsClockwise = .false.
     logical :: IsCounterClockwise = .false. 
-    logical :: Is_upstreamvel_controlled=.false. 
     logical :: Has_Tower=.false.
     real(mytype) :: Towerheight, TowerOffset, TowerDrag, TowerLift, TowerStrouhal
     logical :: Has_BladeEndEffectModelling=.false.
@@ -60,7 +61,7 @@ type TurbineType
     real(mytype) :: Thrust, Power ! Absolute values for Thrust and Power
 
     ! Rotor Statistics
-    real(mytype) :: CT_ave, CP_ave, Torque_ave
+    real(mytype) :: CT_ave=0.0_mytype, CP_ave=0.0_mytype, Torque_ave=0.0_mytype
 
 end type TurbineType
     
@@ -314,43 +315,14 @@ contains
     type(TurbineType),intent(inout) :: turbine
     integer :: iblade,ielem
     real(mytype) ::g1,alpha,pitch,F,Froot,Ftip,rtip, rroot, phi, sphi,axis_mag
-    real(mytype) :: nxe,nye,nze,txe,tye,tze,sxe,sye,sze,u,v,w,ub,vb,wb,urdc,urdn,ur,umag
     
     
     do iblade=1,turbine%Nblades
     ! Compute angle phi at the tip 
     do ielem=1,turbine%blade(iblade)%Nelem
-        nxe=turbine%blade(iblade)%nEx(ielem)
-        nye=turbine%blade(iblade)%nEy(ielem)
-        nze=turbine%blade(iblade)%nEz(ielem)
-        txe=turbine%blade(iblade)%tEx(ielem)
-        tye=turbine%blade(iblade)%tEy(ielem)
-        tze=turbine%blade(iblade)%tEz(ielem)
-        sxe=turbine%blade(iblade)%sEx(ielem)
-        sye=turbine%blade(iblade)%sEy(ielem)
-        sze=turbine%blade(iblade)%sEz(ielem)
-        u=turbine%blade(iblade)%EVx(ielem)
-        v=turbine%blade(iblade)%EVy(ielem)
-        w=turbine%blade(iblade)%EVz(ielem) 
-
-        !=====================================
-        ! Solid Body Rotation of the elements
-        !=====================================
-        ub=turbine%blade(iblade)%EVbx(ielem)
-        vb=turbine%blade(iblade)%EVby(ielem)
-        wb=turbine%blade(iblade)%EVbz(ielem)
-        urdn=nxe*(u-ub)+nye*(v-vb)+nze*(w-wb)! Normal 
-        urdc=txe*(u-ub)+tye*(v-vb)+tze*(w-wb)! Tangential
-        ur=sqrt(urdn**2.0+urdc**2.0)
-        ! This is the dynamic angle of attack 
-        umag=sqrt((u-ub)**2.0+(v-vb)**2.0+(w-wb)**2.)
-        axis_mag=sqrt(turbine%RotN(1)**2+turbine%RotN(2)**2+turbine%RotN(3)**2)
+        
         phi=turbine%blade(iblade)%EAOA(ielem)+turbine%blade(iblade)%Epitch(ielem)
-
-        !if (umag>1e-8) then
-        !phi=acos((turbine%RotN(1)*(u-ub)+turbine%RotN(2)*(v-vb)+turbine%RotN(3)*(w-wb))/(axis_mag*umag))
-        !endif
-
+        !if (nrank==0) print *, "AoA = ", turbine%blade(iblade)%EAOA(ielem), "Pitch =", turbine%blade(iblade)%EPitch(ielem), "phi =", phi
         rroot=turbine%blade(iblade)%ERdist(ielem)/turbine%Rmax
         rtip=(turbine%Rmax-turbine%blade(iblade)%ERdist(ielem))/turbine%Rmax
         
@@ -366,17 +338,17 @@ contains
                 write(*,*) "Only Glauret and ShenEtAl2005 are available at the moment"
                 stop
             endif
-            if (abs(exp(-g1*turbine%Nblades/2.0*(1.0/rroot-1.0)/sin(phi)))>1.) then
-                write(*,*) "Something went wrong with the tip correction model -- phi =", phi
+            if (dabs(dexp(-g1*turbine%Nblades/2.0*(1.0/rroot-1.0)/dsin(phi)))>1.) then
+                if (nrank==0) print *, "Something went wrong with the tip correction model -- phi =", phi
                 Ftip=1.
             endif
-            Ftip=2.0/pi*acos(exp(-g1*turbine%Nblades/2.0*(1.0/rroot-1.0)/dsin(phi)))
+            Ftip=2.0/pi*dacos(dexp(-g1*turbine%Nblades/2.0*(1.0/rroot-1.0)/dsin(phi)))
         endif
         if (turbine%do_root_correction) then
             if (turbine%EndEffectModel_is_Glauret) then
                 g1=1.0
             else if (turbine%EndEffectModel_is_Shen) then
-                g1=exp(-turbine%ShenCoeff_c1*(turbine%NBlades*turbine%TSR-turbine%ShenCoeff_c2))+0.1
+                g1=dexp(-turbine%ShenCoeff_c1*(turbine%NBlades*turbine%TSR-turbine%ShenCoeff_c2))+0.1
             else
                 write(*,*) "Only Glauret and ShenEtAl2005 are available at the moment"
                 stop

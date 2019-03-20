@@ -157,17 +157,27 @@ fiajy=(11. + 10.*af)/16.         ! a
 fibjy=0.5*(15. + 34.*af)/32.     ! b/2 
 ficjy=0.5*(-3. + 6.*af)/16.      ! c/2
 fidjy=0.5*(1. - 2.*af)/32.       ! d/2
+! Explicit third-order filters near the boundaries!
 !Boundary point 1
+af1=0.
 fia1y=7./8.+af/8.               ! a1/2
 fib1y=3./8.+5.*af/8.            ! b1/2
 fic1y=-3./8.+3./8.*af           ! c1/2
 fid1y=1./8.-1./8.*af            ! d1/2
-!Boundary point 2
+!Boundary point 2 (Third order)
 fia2y=1./8.+3./4.*af    ! a2
 fib2y=5./8.+3./4.*af    ! b2/2
 fic2y=3./8.+af/4.    ! c2/2
 fid2y=-1./8.+af/4.   ! d2/2
+!Boundary point 3 (Fifth order)
+fia3y= -1./32.+af/16.       ! a3
+fib3y= 5./32.+11./16.*af    ! b3/2
+fic3y= 11./16.+5.*af/8.     ! c3/2
+fid3y= 5./16.+3.*af/8.      ! d3/2
+fie3y=-5./32.+5.*af/16.     ! e3/2
+fif3y=1./32.-af/16.         ! f3/2
 !Boundary point n
+afn=0.
 fiany=7./8.+af/8.               ! a1/2
 fibny=3./8.+5.*af/8.            ! b1/2
 ficny=-3./8.+3./8.*af           ! c1/2
@@ -177,6 +187,13 @@ fiamy=1./8.+3./4.*af    ! a2
 fibmy=5./8.+3./4.*af    ! b2/2
 ficmy=3./8.+af/4.    ! c2/2
 fidmy=-1./8.+af/4.   ! d2/2
+!Boundary point p=n-2 (Fifth order)
+fiapy= -1./32.+af/16.       ! a3
+fibpy= 5./32.+11./16.*af    ! b3/2
+ficpy= 11./16.+5.*af/8.     ! c3/2
+fidpy= 5./16.+3.*af/8.      ! d3/2
+fiepy=-5./32.+5.*af/16.     ! e3/2
+fifpy=1./32.-af/16.         ! f3/2
 ! Define coefficients
 if (ncly.eq.0) then
    fiffy(1)   =af
@@ -258,22 +275,31 @@ endif
 ! Define filter coefficients for Z-pencil
 !========================================
 fialz=af                         ! alpha_f
-!Interior points
 fiakz=(11. + 10.*af)/16.         ! a
 fibkz=0.5*(15. + 34.*af)/32.     ! b/2 
 fickz=0.5*(-3. + 6.*af)/16.      ! c/2
 fidkz=0.5*(1. - 2.*af)/32.       ! d/2
+! Explicit third-order filters near the boundaries!
 !Boundary point 1
+af1=0.
 fia1z=7./8.+af/8.               ! a1/2
 fib1z=3./8.+5.*af/8.            ! b1/2
 fic1z=-3./8.+3./8.*af           ! c1/2
 fid1z=1./8.-1./8.*af            ! d1/2
-!Boundary point 2
+!Boundary point 2 (Third order)
 fia2z=1./8.+3./4.*af    ! a2
 fib2z=5./8.+3./4.*af    ! b2/2
 fic2z=3./8.+af/4.    ! c2/2
 fid2z=-1./8.+af/4.   ! d2/2
+!Boundary point 3 (Fifth order)
+fia3z= -1./32.+af/16.       ! a3
+fib3z= 5./32.+11./16.*af    ! b3/2
+fic3z= 11./16.+5.*af/8.     ! c3/2
+fid3z= 5./16.+3.*af/8.      ! d3/2
+fie3z=-5./32.+5.*af/16.     ! e3/2
+fif3z=1./32.-af/16.         ! f3/2
 !Boundary point n
+afn=0.
 fianz=7./8.+af/8.               ! a1/2
 fibnz=3./8.+5.*af/8.            ! b1/2
 ficnz=-3./8.+3./8.*af           ! c1/2
@@ -283,6 +309,13 @@ fiamz=1./8.+3./4.*af    ! a2
 fibmz=5./8.+3./4.*af    ! b2/2
 ficmz=3./8.+af/4.    ! c2/2
 fidmz=-1./8.+af/4.   ! d2/2
+!Boundary point p=n-2 (Fifth order)
+fiapz= -1./32.+af/16.       ! a3
+fibpz= 5./32.+11./16.*af    ! b3/2
+ficpz= 11./16.+5.*af/8.     ! c3/2
+fidpz= 5./16.+3.*af/8.      ! d3/2
+fiepz=-5./32.+5.*af/16.     ! e3/2
+fifpz=1./32.-af/16.         ! f3/2
 if (nclz.eq.0) then
       fiffz(1)   =af
       fiffz(2)   =af

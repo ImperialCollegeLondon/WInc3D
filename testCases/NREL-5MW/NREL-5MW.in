@@ -1,7 +1,7 @@
 &FlowParam
     ! Flow type
-    itype = 8             ! Type of Flow  
-    iin = 1              ! Inflow conditions (1: classic, 2: turbinit)
+    itype = 1             ! Type of Flow  
+    iin = 0              ! Inflow conditions (1: classic, 2: turbinit)
     
     ! Domain and scaling
     xlx = 252            ! Lx (Size of the box in x-direction)

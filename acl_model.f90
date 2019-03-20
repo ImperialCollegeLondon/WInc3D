@@ -446,6 +446,9 @@ contains
 
         if (Ntur>0) then
             do i=1,Ntur
+
+
+
             if(Turbine(i)%Is_constant_rotation_operated) then
                 theta=Turbine(i)%angularVel*DeltaT
                 Turbine(i)%AzimAngle=Turbine(i)%AzimAngle+theta
@@ -473,13 +476,16 @@ contains
                 ! Then do picth control (if not zero)
                 do j=1,Turbine(i)%NBlades
                 if (Turbine(i)%IsClockwise) then
-                deltapitch=-Turbine(i)%Controller%PitCom(j)
+                Turbine(i)%cbp=Turbine(i)%Controller%PitCom(j)
                 else
-                deltapitch=Turbine(i)%Controller%PitCom(j)
+                stop 
                 endif
+                deltapitch=Turbine(i)%cbp-Turbine(i)%cbp_old
+                if(nrank==0) print *, 'Doing Pitch control', deltapitch
                 call pitch_actuator_line(Turbine(i)%Blade(j),deltapitch)
                 enddo
-            
+           
+                Turbine(i)%cbp_old=deltapitch
                 ! After you do both variable speed and pitch control update the status of the controller
                 Turbine(i)%Controller%IStatus=Turbine(i)%Controller%IStatus+1
             
@@ -491,7 +497,7 @@ contains
                 Turbine(i)%Uref=WSRotorAve
                 !> Compute Omega and pitch by interpolating from the list
                 call from_list_controller(Omega,pitch_angle,turbine(i),WSRotorAve)
-                Turbine(i)%angularVel=Omega/(60./(2*pi))  !Translate in Rad/sec
+                Turbine(i)%angularVel=Omega/(60./(2.*pi))  !Translate in Rad/sec
                 theta=Turbine(i)%angularVel*DeltaT
                 Turbine(i)%AzimAngle=Turbine(i)%AzimAngle+theta
                 call rotate_turbine(Turbine(i),Turbine(i)%RotN,theta)

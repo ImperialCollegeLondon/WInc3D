@@ -493,7 +493,8 @@ end type ActuatorLineType
     
     !> Change the pitch angle by changing n,t and s unit vectors
     Nstation=act_line%Nelem+1
-    
+   
+
     !> Compute the blade--wise unit vector 
     S=sqrt((act_line%QCX(NStation)-act_line%COR(1))**2. + &
            (act_line%QCY(NStation)-act_line%COR(2))**2. + &
@@ -818,7 +819,8 @@ end type ActuatorLineType
     allocate(actuatorline%EFz(NElem))
     allocate(actuatorline%A_rbf(NElem,NElem))
     allocate(actuatorline%EEndeffects_factor(NElem)) ! End effects factor for the blade
-    
+
+    actuatorline%EAOA=0.0_mytype
     end subroutine allocate_actuatorline
 
 end module actuator_line_element

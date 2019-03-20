@@ -19,10 +19,10 @@ real(mytype) :: visc
 sigma_conv=[0.0, sqrt(3.0), 2.85]
 sigma_diff=[2.0, 2.5, 2.9]
 
-if(jles==0) then
-visc=xnu
-elseif (jles==1) then
+if(jles==1) then
 visc=rxxnu*xnu
+else 
+visc=xnu
 endif
 
 ! This is considering 1D peridic boundaries
