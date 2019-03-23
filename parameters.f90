@@ -51,7 +51,7 @@ character :: a*80
 NAMELIST/FlowParam/itype,iin,NEddies,sem_file,xlx,yly,zlz,re,sc,u1,u2,noise,noise1,ibuoyancy,icoriolis,Pr,TempRef,CoriolisFreq 
 NAMELIST/NumConfig/nx,ny,nz,p_row,p_col,nclx,ncly,nclz,TurbRadius,ifirst,ilast,nscheme,dt,istret, &
     beta,iskew,iscalar,jles,FSGS,jadv,smagcst,SmagWallDamp,nSmag,iwallmodel,walecst,rxxnu,cnu,dynhypvisc  
-NAMELIST/FileParam/ilit,isave,imodulo,ioutflow,iinflow,NInflows, NTimeSteps
+NAMELIST/FileParam/ilit,isave,imodulo,ioutflow,InflowPath, NTimeSteps
 NAMELIST/IBMParam/ivirt,ibmshape,cex,cey,cez,ra
 NAMELIST/ALMParam/ialm,ialmoutput,NTurbines,TurbinesPath,NActuatorlines,ActuatorlinesPath,eps_factor
 NAMELIST/ADMParam/iadm,Ndiscs,ADMcoords,iverifyadm,iadmmode,CT,aind,fileADM
@@ -112,6 +112,7 @@ dBL=500 !delta of the boundary layer
 UG=[10.0d0,0.0d0,0.0d0]
 IPressureGradient=0
 ioutflow=0
+InflowPath='./'
 idampingzone=0
 ifringeregion=0
 Imassconserve=0

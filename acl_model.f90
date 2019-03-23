@@ -464,6 +464,7 @@ contains
                 !if(nrank==0) write(*,*) 'Entering the control-based operation for turbine', Turbine(i)%name 
                 ! First do control	 
                 call operate_controller(Turbine(i)%Controller,ctime,Turbine(i)%NBlades,Turbine(i)%angularVel) 
+                if (nrank==0) print *, Turbine(i)%Torque 
                 Turbine(i)%deltaOmega=(Turbine(i)%Torque-Turbine(i)%Controller%GearBoxRatio*Turbine(i)%Controller%GenTrq)/(Turbine(i)%IRotor+Turbine(i)%Controller%GearBoxRatio**2.*Turbine(i)%Controller%IGenerator)*DeltaT
                 Turbine(i)%angularVel=Turbine(i)%angularVel+Turbine(i)%deltaOmega
                 ! Then Calculate the angular velocity and compute the DeltaTheta  and AzimAngle              

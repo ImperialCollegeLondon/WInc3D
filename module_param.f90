@@ -88,8 +88,8 @@ integer :: Ndiscs,iverifyadm ! number of actuator discs
 character(len=100) :: admCoords
 integer :: iadmmode ! 0: constnat thrust, 1: from a list
 real(mytype) :: CT, aind
-character(len=100) :: fileADM
-
+character(len=100) :: fileADM 
+character(len=100) :: InflowPath ! Inflow file
 !module filter
 real(mytype),dimension(200) :: idata
 real(mytype), save, allocatable, dimension(:) :: fiffx, fifcx, fifbx, fisfx, fiscx, fisbx,fifsx,fifwx,fissx,fiswx

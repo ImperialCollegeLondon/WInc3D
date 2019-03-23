@@ -419,8 +419,11 @@ if (itype.eq.2) then
 endif
 
 if (itype.eq.3) then
-    if (nrank==0) print *,'READ initial conditions from file'
-    if (NTimeSteps<xsize(1).and.nrank==0) write(*,*) "Ntimesteps should be at least equal to nx"
+   if (nrank==0) print *,'Reading initial conditions from file'
+   if (NTimeSteps<xsize(1)) then 
+        write(*,*) "Ntimesteps should be at least equal to nx"
+        stop
+   endif
    do k=1,xsize(3)
    do j=1,xsize(2)
    do i=1,xsize(1)
