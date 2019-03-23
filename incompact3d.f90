@@ -193,7 +193,7 @@ call decomp_info_init(nxm,nym,nzm,phG)
 ! ======================================================
 ! Initialise inflow file
 if (iin==3) then
-    call read_inflow(ux_inflow,uy_inflow,uz_inflow)
+    call read_inflow(ux_inflow,uy_inflow,uz_inflow,0)
 endif
 
 if (ilit==0) call init(ux1,uy1,uz1,ep1,phi1,gx1,gy1,gz1,phis1,hx1,hy1,hz1,phiss1)  
@@ -284,10 +284,15 @@ do itime=ifirst,ilast
     call actuator_disc_model_compute_source(ux1,uy1,uz1)
    endif
 
-   if (jLES.ge.2) then
-   call filter(0.49_mytype)
-   call apply_spatial_filter(ux1,uy1,uz1,phi1,ux2,uy2,uz2,phi2,ux3,uy3,uz3,phi3)
-   endif         
+    if (iin==3.and.mod(itime,NTimeSteps)==0) then
+    ! Read new inflow
+    call read_inflow(ux_inflow,uy_inflow,uz_inflow,itime/NTimeSteps)
+    endif
+
+    if (jLES.ge.2) then
+    call filter(0.49_mytype)
+    call apply_spatial_filter(ux1,uy1,uz1,phi1,ux2,uy2,uz2,phi2,ux3,uy3,uz3,phi3)
+    endif         
    
    do itr=1,iadvance_time
 
@@ -343,18 +348,15 @@ do itime=ifirst,ilast
 
       call test_speed_min_max(ux1,uy1,uz1)
       if (iscalar==1) call test_scalar_min_max(phi1)
-
-      enddo
+        
+    enddo
        
+
+
         if (t>=spinup_time) then
         call STATISTIC(ux1,uy1,uz1,phi1,ta1,umean,vmean,wmean,phimean,uumean,vvmean,wwmean,&
            uvmean,uwmean,vwmean,phiphimean,tmean)
         
-        if(ioutflow==1) then
-        output_counter=output_counter+1
-        call append_outflow(ux1,uy1,uz1,output_counter) 
-        endif
-
         if(ialm==1) call actuator_line_statistics()
 
         if(iprobe==1) then
@@ -396,11 +398,23 @@ do itime=ifirst,ilast
     if (nrank==0.and.mod(itime,imodulo)==0) then 
        call actuator_disc_model_write_output(itime/imodulo) ! Write the disc output
     end if
-   endif 
+   endif
+
+    if(ioutflow==1) then
+      
+      output_counter=output_counter+1
+      call append_outflow(ux1,uy1,uz1,output_counter)  
+    
+      if (mod(itime,NTimeSteps)==0) then 
+          call write_outflow(itime/NTimeSteps)  
+          output_counter=0
+      endif
+    endif
+
+
 enddo
     ! Write Outflow 
     
-    if (ioutflow==1) call write_outflow()  
 
 t2=MPI_WTIME()-t1
 call MPI_ALLREDUCE(t2,t1,1,MPI_REAL8,MPI_SUM, &

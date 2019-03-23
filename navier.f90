@@ -728,7 +728,6 @@ call transpose_x_to_y(td1,td2,ph4)!->NXM NY NZ
 call transpose_x_to_y(te1,te2,ph4)
 call transpose_x_to_y(tf1,tf2,ph4)
 
-
 !WORK Y-PENCILS
 call intery6(ta2,td2,di2,sy,cifyp6,cisyp6,ciwyp6,(ph1%yen(1)-ph1%yst(1)+1),ysize(2),nymsize,ysize(3),1)
 call decy6(tb2,te2,di2,sy,cfy6,csy6,cwy6,ppyi,(ph1%yen(1)-ph1%yst(1)+1),ysize(2),nymsize,ysize(3),0)

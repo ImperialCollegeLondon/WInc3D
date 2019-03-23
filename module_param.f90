@@ -60,7 +60,7 @@ integer :: itype, iskew, iin, nscheme, ifirst, ilast, iles, jLES, jADV
 integer :: isave,ilit,srestart,idebmod, imodulo, idemarre, icommence, irecord, ialmoutput
 integer :: iscalar,ilag,npif,izap
 character :: inflow_file*80, sem_file*80
-integer :: iprobe, Nprobes, Nsampling, isnapshot, ioutflow, iinflow, OutflowOnsetIndex, NTimeSteps
+integer :: iprobe, Nprobes, Nsampling, isnapshot, ioutflow, iinflow, NInflows, NTimeSteps
 integer :: simin,simax,sjmin,sjmax,skmin,skmax,sfreq
 integer :: y_loc_pencil(4), z_loc_pencil(4)
 integer :: NEddies  !For syntetic eddy method

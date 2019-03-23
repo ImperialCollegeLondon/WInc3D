@@ -428,7 +428,7 @@ endif
 end subroutine restart
 
 ! ************************************************************************
-subroutine read_inflow(ux1,uy1,uz1)
+subroutine read_inflow(ux1,uy1,uz1,ifileinflow)
 !
 ! ************************************************************************
 
@@ -436,12 +436,13 @@ USE decomp_2d
 USE decomp_2d_io
 use var, only: ux_inflow, uy_inflow, uz_inflow
 USE param
+use actuator_line_model_utils
 USE MPI
 
 implicit none
 
 TYPE(DECOMP_INFO) :: phG
-integer :: i,j,k,irestart,nzmsize,fh,ierror,code
+integer :: i,j,k,irestart,nzmsize,fh,ierror,code, ifileinflow
 real(mytype), dimension(NTimeSteps,xsize(2),xsize(3)) :: ux1,uy1,uz1
 integer (kind=MPI_OFFSET_KIND) :: filesize, disp
 real(mytype) :: xdt
@@ -450,7 +451,7 @@ logical, dimension(2) :: dummy_periods
 
 if (iscalar==0) then
     if (nrank==0) print *,'READING INFLOW'
-    call MPI_FILE_OPEN(MPI_COMM_WORLD, 'inflow', &
+    call MPI_FILE_OPEN(MPI_COMM_WORLD, 'inflow'//trim(int2str(ifileinflow+1)), &
          MPI_MODE_RDONLY, MPI_INFO_NULL, &
          fh, ierror)
     disp = 0_MPI_OFFSET_KIND
@@ -497,17 +498,19 @@ return
 end subroutine append_outflow
 
 ! ***********************************************************************
-subroutine write_outflow()
+subroutine write_outflow(ifileoutflow)
 !
 ! ***********************************************************************
     USE decomp_2d
     USE decomp_2d_io
+    use actuator_line_model_utils
     USE param
     use var, only: ux_recOutflow, uy_recOutflow, uz_recOutflow
     USE MPI
 
 implicit none
 
+integer,intent(in) :: ifileoutflow
 TYPE(DECOMP_INFO) :: phG
 integer :: i,j,k,irestart,nzmsize,fh,code
 integer (kind=MPI_OFFSET_KIND) :: filesize, disp
@@ -520,7 +523,7 @@ integer :: ierror, newtype, data_type
 
 if (iscalar==0) then
     if (nrank==0) print *,'WRITING OUTFLOW'
-    call MPI_FILE_OPEN(MPI_COMM_WORLD, 'outflow', &
+    call MPI_FILE_OPEN(MPI_COMM_WORLD, 'inflow'//trim(int2str(ifileoutflow)), &
          MPI_MODE_CREATE+MPI_MODE_WRONLY, MPI_INFO_NULL, &
          fh, ierror)
     filesize = 0_MPI_OFFSET_KIND
@@ -1181,6 +1184,125 @@ subroutine spanwise_shifting(ux3,uy3,uz3) ! periodic shifting
 return
 
 end subroutine spanwise_shifting 
+
+subroutine radial_tripping(tb,ta) !TRIPPING SUBROUTINE FOR TURBULENT BOUNDARY LAYERS
+
+USE param
+USE var
+USE decomp_2d
+USE MPI
+
+implicit none
+
+integer :: i,j,k
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: tb, ta
+integer :: seed0, ii, code
+real(mytype) :: z_pos, randx, p_tr, b_tr, x_pos, y_pos, A_tr
+
+integer :: modes
+
+!Done in X-Pencils
+seed0=randomseed !Seed for random number
+!A_tr=A_trip*min(1.0,0.8+real(itime)/200.0)
+!xs_tr=4.0/2.853
+!ys_tr=2.0/2.853
+!ts_tr=4.0/2.853
+!x0_tr=40.0/2.853
+A_tr = 0.1*dt
+
+if ((itime.eq.ifirst).and.(nrank.eq.0)) then
+call random_seed(SIZE=ii)
+call random_seed(PUT=seed0*(/ (1, i = 1, ii) /))
+
+!DEBUG:
+!call random_number(randx)
+!call MPI_BCAST(randx,1,real_type,0,MPI_COMM_WORLD,code)
+!write(*,*) 'RANDOM:', nrank, randx, ii
+!First random generation of h_nxt
+
+
+  do j=1,modes
+
+    call random_number(randx)
+    h_coeff(j)=1.0*(randx-0.5)
+  enddo
+    h_coeff=h_coeff/sqrt(DBLE(modes)) 
+endif
+
+!Initialization h_nxt  (always bounded by xsize(3)^2 operations)
+if (itime.eq.ifirst) then
+  call MPI_BCAST(h_coeff,modes,real_type,0,MPI_COMM_WORLD,code)
+  nxt_itr=0
+  do k=1,xsize(3)
+     h_nxt(k)=0.0
+     z_pos=-zlz/2.0+(xstart(3)+(k-1)-1)*dz
+   do j=1,z_modes
+      h_nxt(k)= h_nxt(k)+h_coeff(j)*sin(2.0*pi*j*z_pos/zlz)
+   enddo
+  enddo
+end if
+
+
+
+!Time-loop
+ i=int(t/ts_tr)
+    if (i.ge.nxt_itr) then  !Nxt_itr is a global variable
+        nxt_itr=i+1
+        
+        !First random generation of h
+        h_i(:)=h_nxt(:)
+        if (nrank .eq. 0) then
+         do j=1,z_modes
+            call random_number(randx)
+            h_coeff(j)=1.0*(randx-0.5)
+         enddo
+        h_coeff=h_coeff/sqrt(DBLE(z_modes)) !Non-dimensionalization
+        end if
+        
+        call MPI_BCAST(h_coeff,z_modes,real_type,0,MPI_COMM_WORLD,code)
+          
+        
+        !Initialization h_nxt  (always bounded by z_steps^2 operations)
+       do k=1,xsize(3)
+          h_nxt(k)=0.0
+          z_pos=-zlz/2.0+(xstart(3)+(k-1)-1)*dz
+          do j=1,z_modes
+            h_nxt(k)= h_nxt(k)+h_coeff(j)*sin(2.0*pi*j*z_pos/zlz)
+          enddo
+        enddo
+     endif
+
+
+ !Time coefficient
+  p_tr=t/ts_tr-i
+  b_tr=3.0*p_tr**2-2.0*p_tr**3
+  
+  !Creation of tripping velocity
+  do i=1,xsize(1)
+    x_pos=(xstart(1)+(i-1)-1)*dx
+    do j=1,xsize(2) 
+      !y_pos=(xstart(2)+(j-1)-1)*dy   
+      y_pos=yp(xstart(2)+(j-1))
+      do k=1,xsize(3)
+       !g(z)*EXP_F(X,Y)
+       ta(i,j,k)=((1.0-b_tr)*h_i(k)+b_tr*h_nxt(k))
+       !ta(i,j,k)=A_tr*exp(-((x_pos-x0_tr)/xs_tr)**2-(y_pos/ys_tr)**2)*ta(i,j,k)
+       ta(i,j,k)=A_tr*exp(-((x_pos-x0_tr)/xs_tr)**2-((y_pos-0.5)/ys_tr)**2)*ta(i,j,k)  
+       tb(i,j,k)=tb(i,j,k)+ta(i,j,k)
+       
+       z_pos=-zlz/2.0+(xstart(3)+(k-1)-1)*dz
+      ! if ((((x_pos-x0_tr)**2).le.9.0e-3).and.(y_pos.le.0.0001).and.((z_pos).le.0.03))then
+      !       open(442,file='tripping.dat',form='formatted',position='APPEND')
+      !  write(442,*) t,ta(i,j,k)
+      !  close(442)   
+      ! end if
+
+      enddo
+    enddo
+  enddo
+    
+return   
+end subroutine radial_tripping 
 
 
 subroutine apply_spatial_filter(ux1,uy1,uz1,phi1,ux2,uy2,uz2,phi2,ux3,uy3,uz3,phi3)
