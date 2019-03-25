@@ -92,9 +92,9 @@ contains
     
 
     do istation=1,Nstations
-    turbine%blade(iblade)%QCx(istation)=rR(istation)*turbine%Rmax*Svec(1)+turbine%blade(iblade)%COR(1)+turbine%dist_from_axis
-    turbine%blade(iblade)%QCy(istation)=rR(istation)*turbine%Rmax*Svec(2)+turbine%blade(iblade)%COR(2)
-    turbine%blade(iblade)%QCz(istation)=rR(istation)*turbine%Rmax*Svec(3)+turbine%blade(iblade)%COR(3)
+    turbine%blade(iblade)%QCx(istation)=rR(istation)*turbine%Rmax*Svec(1)!+turbine%blade(iblade)%COR(1)+turbine%dist_from_axis
+    turbine%blade(iblade)%QCy(istation)=rR(istation)*turbine%Rmax*Svec(2)!+turbine%blade(iblade)%COR(2)
+    turbine%blade(iblade)%QCz(istation)=rR(istation)*turbine%Rmax*Svec(3)!+turbine%blade(iblade)%COR(3)
     if(turbine%IsCounterClockwise) then
         turbine%blade(iblade)%tx(istation)=sin(pitch(istation)/180.0*pi)    
         turbine%blade(iblade)%ty(istation)=-cos(pitch(istation)/180.0*pi)    
@@ -118,9 +118,14 @@ contains
     ! Rotate tangential vectors (around y)
     call QuatRot(turbine%blade(iblade)%tx(istation),turbine%blade(iblade)%ty(istation),turbine%blade(iblade)%tz(istation),turbine%blade_cone_angle*pi/180.0d0,&
                 0.0d0,1.0d0,0.0d0,0.0d0,0.0d0,0.d0,turbine%blade(iblade)%tx(istation),turbine%blade(iblade)%ty(istation),turbine%blade(iblade)%tz(istation)) 
+    
+    ! Translate to the COR of each turbine
+    turbine%blade(iblade)%QCx(istation)=turbine%blade(iblade)%QCx(istation)+turbine%blade(iblade)%COR(1)
+    turbine%blade(iblade)%QCy(istation)=turbine%blade(iblade)%QCy(istation)+turbine%blade(iblade)%COR(2)
+    turbine%blade(iblade)%QCz(istation)=turbine%blade(iblade)%QCz(istation)+turbine%blade(iblade)%COR(3)
+
     end do
     
-
     ! Rotate Blade 1 to form the other blades 
     call rotate_actuatorline(turbine%blade(iblade),turbine%blade(iblade)%COR,turbine%RotN,(iblade-1)*theta)   
  
