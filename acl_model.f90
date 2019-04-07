@@ -26,11 +26,14 @@ contains
 
     subroutine actuator_line_model_init(Nturbines,Nactuatorlines,turbines_file,actuatorlines_file,dt)
 
+        use param, only: ialmrestart
+
         implicit none
         integer :: Nturbines, Nactuatorlines
         character(len=80),dimension(100),intent(in) :: turbines_file, actuatorlines_file 
         real(mytype), intent(in) :: dt
         integer :: itur,ial 
+        
         if (nrank==0) then        
         write(6,*) '====================================================='
         write(6,*) 'Initializing the Actuator Line Model'
@@ -446,9 +449,6 @@ contains
 
         if (Ntur>0) then
             do i=1,Ntur
-
-
-
             if(Turbine(i)%Is_constant_rotation_operated) then
                 theta=Turbine(i)%angularVel*DeltaT
                 Turbine(i)%AzimAngle=Turbine(i)%AzimAngle+theta
@@ -463,6 +463,7 @@ contains
             else if(Turbine(i)%Is_NRELController) then
                 !if(nrank==0) write(*,*) 'Entering the control-based operation for turbine', Turbine(i)%name 
                 ! First do control	 
+                call compute_rotor_upstream_velocity(Turbine(i))
                 call operate_controller(Turbine(i)%Controller,ctime,Turbine(i)%NBlades,Turbine(i)%angularVel) 
                 Turbine(i)%deltaOmega=(Turbine(i)%Torque-Turbine(i)%Controller%GearBoxRatio*Turbine(i)%Controller%GenTrq)/(Turbine(i)%IRotor+Turbine(i)%Controller%GearBoxRatio**2.*Turbine(i)%Controller%IGenerator)*DeltaT
                 Turbine(i)%angularVel=Turbine(i)%angularVel+Turbine(i)%deltaOmega
@@ -493,7 +494,7 @@ contains
             
                 if(nrank==0) write(*,*) 'Entering the List-controlled operation for the turbine', Turbine(i)%name 
                 !> Compute the rotor averaged wind speed
-                call compute_rotor_upstream_velocity(Turbine(i),WSRotorAve)
+                call compute_rotor_upstream_velocity(Turbine(i))
                 Turbine(i)%Uref=WSRotorAve
                 !> Compute Omega and pitch by interpolating from the list
                 call from_list_controller(Omega,pitch_angle,turbine(i),WSRotorAve)
@@ -515,8 +516,7 @@ contains
                 call pitch_actuator_line(Turbine(i)%Blade(j),deltapitch)
                 enddo 
            else if (Turbine(i)%Is_upstreamvel_controlled) then
-                call compute_rotor_upstream_velocity(Turbine(i),WSRotorAve)
-                Turbine(i)%Uref=WSRotorAve
+                call compute_rotor_upstream_velocity(Turbine(i))
                 !Turbine(i)%angularVel=Turbine(i)%Uref*Turbine(i)%TSR/Turbine(i)%Rmax
                 Turbine(i)%angularVel=sqrt(abs(Turbine(i)%Torque)/(0.5*0.432*Turbine(i)%A*Turbine(i)%Rmax**3./Turbine(i)%TSR**3.))
                 theta=Turbine(i)%angularVel*DeltaT
@@ -524,8 +524,10 @@ contains
                 call rotate_turbine(Turbine(i),Turbine(i)%RotN,theta)
                 call Compute_Turbine_RotVel(Turbine(i))  
             endif
-            
             enddo
+
+            ! DO FARM_LEVEL CONTROL 
+
         endif
 
         if (Nal>0) then

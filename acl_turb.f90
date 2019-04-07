@@ -21,6 +21,9 @@ type TurbineType
     real(mytype) :: IRotor ! Inertia of the Rotor
     real(mytype) :: A ! Rotor area
     real(mytype) :: Torque, angularVel,deltaOmega,TSR,Uref ! Torque and rotation for the shaft  
+    real(mytype) :: Ux_upstream=0.0
+    real(mytype) :: Uy_upstream=0.0
+    real(mytype) :: Uz_upstream=0.0
     real(mytype) :: AzimAngle=0.0
     real(mytype) :: dist_from_axis=0.0
     real(mytype) :: cbp=0.0, cbp_old=0.0 ! Collective blade pitch
@@ -69,7 +72,7 @@ end type TurbineType
 contains
     
     subroutine set_turbine_geometry(turbine)
-
+    use param, only: ialmrestart
     implicit none
     type(TurbineType),intent(inout) :: turbine
     real(mytype), allocatable :: rR(:),ctoR(:),pitch(:),thick(:)
@@ -90,7 +93,6 @@ contains
     turbine%blade(iblade)%L=turbine%Rmax
     turbine%blade(iblade)%NElem=Nstations-1 
     
-
     do istation=1,Nstations
     turbine%blade(iblade)%QCx(istation)=rR(istation)*turbine%Rmax*Svec(1)!+turbine%blade(iblade)%COR(1)+turbine%dist_from_axis
     turbine%blade(iblade)%QCy(istation)=rR(istation)*turbine%Rmax*Svec(2)!+turbine%blade(iblade)%COR(2)
@@ -127,6 +129,10 @@ contains
     end do
     
     ! Rotate Blade 1 to form the other blades 
+    if (ialmrestart==1) then
+    ! Read the checkpoint information and rotate actuator lines accordingly
+    endif
+
     call rotate_actuatorline(turbine%blade(iblade),turbine%blade(iblade)%COR,turbine%RotN,(iblade-1)*theta)   
  
     call make_actuatorline_geometry(turbine%blade(iblade))
@@ -190,7 +196,7 @@ contains
 
     do istation=1,Nstations
     turbine%Tower%QCx(istation)= turbine%Tower%COR(1) + turbine%TowerOffset  
-    turbine%Tower%QCy(istation)= turbine%Tower%COR(2) - rR(istation)*turbine%Towerheight*Svec(2) 
+    turbine%Tower%QCy(istation)= rR(istation)*turbine%Towerheight*Svec(2) 
     turbine%Tower%QCz(istation)= turbine%Tower%COR(3) 
     turbine%Tower%tx(istation)= 1.0    
     turbine%Tower%ty(istation)= 0.0    
@@ -231,6 +237,15 @@ contains
 
     end subroutine set_turbine_geometry
    
+    subroutine restart_turbine_geometry(turbine)
+
+        implicit none
+        type(TurbineType),intent(inout) :: turbine
+
+
+        return
+
+    end subroutine restart_turbine_geometry 
 
     subroutine compute_performance(turbine)
 
@@ -528,7 +543,7 @@ contains
 
     end subroutine from_list_controller
 
-    subroutine compute_rotor_upstream_velocity(turbine,WSRotorAve)
+    subroutine compute_rotor_upstream_velocity(turbine)
 
 use actuator_line_model_utils ! used only for the trilinear interpolation
 USE param 
@@ -538,7 +553,6 @@ use MPI
 
         implicit none
         type(TurbineType),intent(inout) ::turbine
-        real(mytype),intent(out) :: WSRotorAve
         integer :: iblade, ielem,Nelem
         real(mytype) :: Rupstream(3)
         real(mytype) :: Ux,Uy,Uz,Phixy,Phixz
@@ -548,14 +562,14 @@ use MPI
 	    real(mytype) :: dist, min_dist 
         integer :: min_i,min_j,min_k
         integer :: i,j,k,ierr
-	
+
         Ux=0.
         Uy=0.
         Uz=0.
        
         ! Velocity is calculated at a probe point (closest) at one D upstream the turbine
 
-        Rupstream(:)=turbine%origin(:)-abs(turbine%rotN(:))*2.*turbine%Rmax       
+        Rupstream(:)=turbine%origin(:)-turbine%rotN(:)*2.*turbine%Rmax       
         if (istret.eq.0) then 
         ymin=(xstart(2)-1)*dy-dy/2.0 ! Add -dy/2.0 overlap
         ymax=(xend(2)-1)*dy+dy/2.0   ! Add +dy/2.0 overlap
@@ -595,9 +609,7 @@ use MPI
             Uy_part=uy1(min_i,min_j,min_k)
             Uz_part=uz1(min_i,min_j,min_k)
             Phixy_part=0.0
-            Phixz_part=0.0
-	    
- 
+            Phixz_part=0.0    
         else
             Ux_part=0.0
             Uy_part=0.0
@@ -613,8 +625,12 @@ use MPI
             MPI_COMM_WORLD,ierr)
         call MPI_ALLREDUCE(Uz_part,Uz,1,MPI_REAL8,MPI_SUM, &
             MPI_COMM_WORLD,ierr)
- 
-        WSRotorAve=sqrt(Ux**2.0+Uy**2.0+Uz**2.0)
+        
+        Turbine%Ux_upstream=Ux
+        Turbine%Uy_upstream=Uy
+        Turbine%Uz_upstream=Uz
+
+        Turbine%Uref=sqrt(Ux**2.0+Uy**2.0+Uz**2.0)
         return
     
     end subroutine Compute_Rotor_upstream_Velocity

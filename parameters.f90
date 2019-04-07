@@ -53,7 +53,7 @@ NAMELIST/NumConfig/nx,ny,nz,p_row,p_col,nclx,ncly,nclz,TurbRadius,ifirst,ilast,n
     beta,iskew,iscalar,jles,FSGS,jadv,smagcst,SmagWallDamp,nSmag,iwallmodel,walecst,rxxnu,cnu,dynhypvisc  
 NAMELIST/FileParam/ilit,isave,imodulo,ioutflow,InflowPath, NTimeSteps
 NAMELIST/IBMParam/ivirt,ibmshape,cex,cey,cez,ra
-NAMELIST/ALMParam/ialm,ialmoutput,NTurbines,TurbinesPath,NActuatorlines,ActuatorlinesPath,eps_factor
+NAMELIST/ALMParam/ialm,ialmrestart, ialmoutput,NTurbines,TurbinesPath,NActuatorlines,ActuatorlinesPath,eps_factor
 NAMELIST/ADMParam/iadm,Ndiscs,ADMcoords,iverifyadm,iadmmode,CT,aind,fileADM
 NAMELIST/StatParam/spinup_time,nstat,nvisu,iprobe,Probelistfile,nsampling, y_loc_pencil,& 
                   z_loc_pencil,isnapshot,simin,simax,sjmin,sjmax,skmin,skmax,sfreq 
@@ -102,6 +102,7 @@ imodulo=100
 ivirt=0
 ialm=0
 ialmoutput=50
+ialmrestart=0.
 eps_factor=2.0
 rxxnu=1.0
 cnu=0.44

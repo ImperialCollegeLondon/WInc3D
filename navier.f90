@@ -532,6 +532,12 @@ integer :: k,j,i,fh,ierror,ii
 integer :: code
 integer (kind=MPI_OFFSET_KIND) :: disp
 
+if(iin.eq.0) then
+ux1=0.
+uy1=0.
+uz1=0.
+endif
+
 if (iin.eq.1) then !generation of a random noise near the bottom of the channel
 call system_clock(count=code)
 call random_seed(size = ii)
