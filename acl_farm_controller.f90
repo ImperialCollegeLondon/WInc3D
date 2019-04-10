@@ -14,7 +14,7 @@ subroutine GebraadController(Turbine,Ntur,time)
     TotalPower=0.0_mytype
     do i=1,Ntur
     TotalPower=TotalPower+Turbine(i)%Power
-    call compute_rotor_upstream_velocity(Turbine(i),WSRotorAve)
+    call compute_rotor_upstream_velocity(Turbine(i))
     enddo
 
     do i=1,Ntur
