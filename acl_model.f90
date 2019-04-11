@@ -477,7 +477,7 @@ contains
                 ! Then do picth control (if not zero)
                 do j=1,Turbine(i)%NBlades
                 if (Turbine(i)%IsClockwise) then
-                Turbine(i)%cbp=Turbine(i)%Controller%PitCom(j)
+                Turbine(i)%cbp=Turbine(i)%Controller%PitCom(j)*180.0_mytype/pi
                 else
                 stop 
                 endif
@@ -486,7 +486,7 @@ contains
                 call pitch_actuator_line(Turbine(i)%Blade(j),deltapitch)
                 enddo
            
-                Turbine(i)%cbp_old=deltapitch
+                Turbine(i)%cbp_old=Turbine(i)%cbp
                 ! After you do both variable speed and pitch control update the status of the controller
                 Turbine(i)%Controller%IStatus=Turbine(i)%Controller%IStatus+1
             

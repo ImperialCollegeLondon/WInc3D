@@ -52,7 +52,7 @@ write(2018,Format)ielem,',',act_line%ERdist(ielem)/act_line%L,',',act_line%Epitc
         write(2016,*) 'Number of Revs, GeneratorSpeed, GeneratorTorque, BladePitch1, BladePitch2, BladePitch3, Omega, DOmega, Ux, Uy, Uz, Thrust, Torque, Power'
         write(2016,*) '[-], [rad/s], [N m], [deg], [deg], [deg], [rad/s], [rad/s], [m/s], [m/s], [m/s], [N], [N m], [W]'
         Format="(14(E14.7,A))" 
-        write(2016,Format) turbine%AzimAngle/(2*pi),',',turbine%controller%GenSpeed,',',turbine%controller%GenTrq,',',turbine%controller%PitCom(1),',',turbine%controller%PitCom(2),',',turbine%controller%PitCom(3),',',turbine%angularVel,',',turbine%deltaOmega,',',turbine%Ux_upstream,',',turbine%Uy_upstream,',',turbine%Uz_upstream,',',turbine%Thrust,',',turbine%Torque,',',turbine%Power
+        write(2016,Format) turbine%AzimAngle/(2*pi),',',turbine%controller%GenSpeed,',',turbine%controller%GenTrq,',',turbine%controller%PitCom(1)*180.0_mytype/pi,',',turbine%controller%PitCom(2)*180.0_mytype/pi,',',turbine%controller%PitCom(3)*180.0_mytype/pi,',',turbine%angularVel,',',turbine%deltaOmega,',',turbine%Ux_upstream,',',turbine%Uy_upstream,',',turbine%Uz_upstream,',',turbine%Thrust,',',turbine%Torque,',',turbine%Power
         close(2016)
 
     end subroutine actuator_line_turbine_write_output
