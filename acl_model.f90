@@ -470,23 +470,23 @@ contains
                 ! Then Calculate the angular velocity and compute the DeltaTheta  and AzimAngle              
                 theta=Turbine(i)%angularVel*DeltaT
                 Turbine(i)%AzimAngle=Turbine(i)%AzimAngle+theta
-            
-                call rotate_turbine(Turbine(i),Turbine(i)%RotN,theta)
-                call Compute_Turbine_RotVel(Turbine(i))  
-            
+                
                 ! Then do picth control (if not zero)
                 do j=1,Turbine(i)%NBlades
                 if (Turbine(i)%IsClockwise) then
-                Turbine(i)%cbp=Turbine(i)%Controller%PitCom(j)*180.0_mytype/pi
+                Turbine(i)%cbp=-Turbine(i)%Controller%PitCom(j)
                 else
                 stop 
                 endif
                 deltapitch=Turbine(i)%cbp-Turbine(i)%cbp_old
-                if(nrank==0) print *, 'Doing Pitch control', deltapitch
+                if(nrank==0) print *, 'Doing Pitch control', -deltapitch*180./pi
                 call pitch_actuator_line(Turbine(i)%Blade(j),deltapitch)
                 enddo
-           
                 Turbine(i)%cbp_old=Turbine(i)%cbp
+            
+                call rotate_turbine(Turbine(i),Turbine(i)%RotN,theta)
+                call Compute_Turbine_RotVel(Turbine(i))  
+             
                 ! After you do both variable speed and pitch control update the status of the controller
                 Turbine(i)%Controller%IStatus=Turbine(i)%Controller%IStatus+1
             

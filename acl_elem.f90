@@ -487,8 +487,8 @@ end type ActuatorLineType
 
     implicit none
     type(ActuatorLineType),intent(INOUT) :: act_line
-    real(mytype), intent(in) :: pitch_angle !Pitch in degrees
-    real(mytype) :: S, sx, sy, sz, tx,ty,tz, new_tx, new_ty, new_tz
+    real(mytype), intent(inout) :: pitch_angle !Pitch in degrees
+    real(mytype) :: S, sx, sy, sz, tx,ty,tz, new_tx, new_ty, new_tz, tmag
     integer :: istation, Nstation
     
     !> Change the pitch angle by changing n,t and s unit vectors
@@ -504,20 +504,26 @@ end type ActuatorLineType
     sy=(act_line%QCY(NStation)-act_line%COR(2))/S
     sz=(act_line%QCZ(NStation)-act_line%COR(3))/S
 
-    do istation=1,Nstation 
     
+    do istation=1,Nstation 
     tx=act_line%tx(istation)
     ty=act_line%ty(istation)
     tz=act_line%tz(istation)   
+    !if (nrank==0) print *, ' initial tau', tx,ty,tz
+    !if (nrank==0) print *, ' initial pitch', acos(ty)*180.0/pi 
 
-    call QuatRot(tx,ty,tz,pitch_angle*pi/180.,sx,sy,sz,0.0d0,0.0d0,0.0d0,new_tx,new_ty,new_tz)
+    call QuatRot(tx,ty,tz,pitch_angle,sx,sy,sz,0.0_mytype,0.0_mytype,0.0_mytype,new_tx,new_ty,new_tz)
+    tmag=sqrt(new_tx**2.+new_ty**2.+new_tz**2.)
+    act_line%tx(istation)=new_tx/tmag
+    act_line%ty(istation)=new_ty/tmag
+    act_line%tz(istation)=new_tz/tmag
+
+    act_line%pitch(istation)=act_line%pitch(istation)-pitch_angle
     
-    act_line%tx(istation)=new_tx
-    act_line%ty(istation)=new_ty
-    act_line%tz(istation)=new_tz
-
-    act_line%pitch(istation)=act_line%pitch(istation)+pitch_angle
+    !if (nrank==0) print *, 'new tau', new_tx/tmag,new_ty/tmag ,new_tz/tmag
+    !if (nrank==0) print *, ' new pitch', acos(new_ty/tmag)*180.0/pi 
     end do
+    !stop
 
     call make_actuatorline_geometry(act_line) 
 
