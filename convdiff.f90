@@ -503,6 +503,9 @@ if (iadm==1) then
     tc1(:,:,:)=tc1(:,:,:)+Fdiscz(:,:,:)
 endif
 
+if(itripping>0) then
+
+endif
 
 end subroutine convdiff
 

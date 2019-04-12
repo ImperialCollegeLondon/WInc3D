@@ -53,6 +53,7 @@ real(mytype), save, allocatable, dimension(:,:,:) :: ux_inflow, uy_inflow, uz_in
 ! define the Momentum Source arrays for the three directions
 real(mytype), save, allocatable, dimension(:,:,:) :: FTx, FTy, FTz
 real(mytype), save, allocatable, dimension(:,:,:) :: Fdiscx, Fdiscy, Fdiscz, GammaDisc
+real(mytype), save, allocatable, dimension(:,:,:) :: Ftripx, Ftripy, Ftripz
 
 ! define Probe location and velocity/scalar quantities
 real(mytype), save, allocatable, dimension(:) :: xprobe,yprobe,zprobe,uprobe,vprobe,wprobe
@@ -175,7 +176,12 @@ contains
     allocate(Fdiscz(xsize(1),xsize(2),xsize(3))) 
     allocate(Gammadisc(xsize(1),xsize(2),xsize(3))) 
     endif
-    
+   
+    if(itripping==1) then
+    allocate(Ftripx(xsize(1),xsize(2),xsize(3)))
+    allocate(Ftripy(xsize(1),xsize(2),xsize(3)))
+    allocate(Ftripz(xsize(1),xsize(2),xsize(3))) 
+    endif
     
 !arrays for statistic collection!pay attention to the size!
     allocate (umean(xstS(1):xenS(1),xstS(2):xenS(2),xstS(3):xenS(3)))

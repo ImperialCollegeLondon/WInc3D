@@ -237,16 +237,6 @@ contains
 
     end subroutine set_turbine_geometry
    
-    subroutine restart_turbine_geometry(turbine)
-
-        implicit none
-        type(TurbineType),intent(inout) :: turbine
-
-
-        return
-
-    end subroutine restart_turbine_geometry 
-
     subroutine compute_performance(turbine)
 
     implicit none
@@ -467,7 +457,7 @@ contains
     end do 
     
     end subroutine rotate_turbine  
-    
+   
     subroutine read_list_controller_file(FN,turbine) 
     
     implicit none

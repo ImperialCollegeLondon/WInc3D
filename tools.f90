@@ -1185,123 +1185,72 @@ return
 
 end subroutine spanwise_shifting 
 
-subroutine radial_tripping(tb,ta) !TRIPPING SUBROUTINE FOR TURBULENT BOUNDARY LAYERS
+subroutine radial_tripping(x0,y0,z0,Radius,time) !TRIPPING SUBROUTINE FOR TURBINE WAKES
 
 USE param
-USE var
+USE var, only: Ftripx, Ftripy, Ftripz,ta1
 USE decomp_2d
 USE MPI
 
 implicit none
 
-integer :: i,j,k
-real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: tb, ta
-integer :: seed0, ii, code
-real(mytype) :: z_pos, randx, p_tr, b_tr, x_pos, y_pos, A_tr
-
-integer :: modes
-
-!Done in X-Pencils
-seed0=randomseed !Seed for random number
-!A_tr=A_trip*min(1.0,0.8+real(itime)/200.0)
-!xs_tr=4.0/2.853
-!ys_tr=2.0/2.853
-!ts_tr=4.0/2.853
-!x0_tr=40.0/2.853
-A_tr = 0.1*dt
-
-if ((itime.eq.ifirst).and.(nrank.eq.0)) then
-call random_seed(SIZE=ii)
-call random_seed(PUT=seed0*(/ (1, i = 1, ii) /))
-
-!DEBUG:
-!call random_number(randx)
-!call MPI_BCAST(randx,1,real_type,0,MPI_COMM_WORLD,code)
-!write(*,*) 'RANDOM:', nrank, randx, ii
-!First random generation of h_nxt
+real(mytype),intent(in) :: x0,y0,z0,Radius,time
+real(mytype) :: etay,etaz,Amp,p_tr,b_tr
+real(mytype) :: xmesh,ymesh,zmesh,xr,yr,zr,theta
+integer :: i,j,k, itheta, Ntheta
+integer :: modes,code,ii
 
 
-  do j=1,modes
+Ftripx=0; Ftripy=0; Ftripz=0;
 
-    call random_number(randx)
-    h_coeff(j)=1.0*(randx-0.5)
-  enddo
-    h_coeff=h_coeff/sqrt(DBLE(modes)) 
-endif
-
-!Initialization h_nxt  (always bounded by xsize(3)^2 operations)
-if (itime.eq.ifirst) then
-  call MPI_BCAST(h_coeff,modes,real_type,0,MPI_COMM_WORLD,code)
-  nxt_itr=0
-  do k=1,xsize(3)
-     h_nxt(k)=0.0
-     z_pos=-zlz/2.0+(xstart(3)+(k-1)-1)*dz
-   do j=1,z_modes
-      h_nxt(k)= h_nxt(k)+h_coeff(j)*sin(2.0*pi*j*z_pos/zlz)
-   enddo
-  enddo
-end if
-
-
-
-!Time-loop
- i=int(t/ts_tr)
-    if (i.ge.nxt_itr) then  !Nxt_itr is a global variable
-        nxt_itr=i+1
-        
-        !First random generation of h
-        h_i(:)=h_nxt(:)
-        if (nrank .eq. 0) then
-         do j=1,z_modes
-            call random_number(randx)
-            h_coeff(j)=1.0*(randx-0.5)
+! Compute the Torus geometry (hard-coded)
+Amp=0.005
+etay=10*dy
+etaz=10*dz
+Ntheta=1000
+do k=1,xsize(3)
+      zmesh=(k+xstart(3)-1-1)*dz
+   do j=1,xsize(2)
+      ymesh=(j+xstart(2)-1-1)*dy
+      do i=1,xsize(1)
+         xmesh=(i-1)*dx
+         do itheta=1,Ntheta
+            theta=(itheta-1)/Ntheta*2._mytype*pi
+            yr=y0+Radius*sin(theta)
+            zr=z0+Radius*cos(theta)
+            if(xmesh>Radius.and.xmesh<2.5*Radius) then
+            Ftripx(i,j,k)=Amp*dexp(((ymesh-yr)/etay)**2.+((zmesh-zr)/etaz)**2.) ! Only axial
+            Ftripy(i,j,k)=0.0
+            Ftripz(i,j,k)=0.0
+            endif
          enddo
-        h_coeff=h_coeff/sqrt(DBLE(z_modes)) !Non-dimensionalization
-        end if
-        
-        call MPI_BCAST(h_coeff,z_modes,real_type,0,MPI_COMM_WORLD,code)
-          
-        
-        !Initialization h_nxt  (always bounded by z_steps^2 operations)
-       do k=1,xsize(3)
-          h_nxt(k)=0.0
-          z_pos=-zlz/2.0+(xstart(3)+(k-1)-1)*dz
-          do j=1,z_modes
-            h_nxt(k)= h_nxt(k)+h_coeff(j)*sin(2.0*pi*j*z_pos/zlz)
-          enddo
-        enddo
-     endif
-
-
- !Time coefficient
-  p_tr=t/ts_tr-i
-  b_tr=3.0*p_tr**2-2.0*p_tr**3
-  
-  !Creation of tripping velocity
-  do i=1,xsize(1)
-    x_pos=(xstart(1)+(i-1)-1)*dx
-    do j=1,xsize(2) 
-      !y_pos=(xstart(2)+(j-1)-1)*dy   
-      y_pos=yp(xstart(2)+(j-1))
-      do k=1,xsize(3)
-       !g(z)*EXP_F(X,Y)
-       ta(i,j,k)=((1.0-b_tr)*h_i(k)+b_tr*h_nxt(k))
-       !ta(i,j,k)=A_tr*exp(-((x_pos-x0_tr)/xs_tr)**2-(y_pos/ys_tr)**2)*ta(i,j,k)
-       ta(i,j,k)=A_tr*exp(-((x_pos-x0_tr)/xs_tr)**2-((y_pos-0.5)/ys_tr)**2)*ta(i,j,k)  
-       tb(i,j,k)=tb(i,j,k)+ta(i,j,k)
-       
-       z_pos=-zlz/2.0+(xstart(3)+(k-1)-1)*dz
-      ! if ((((x_pos-x0_tr)**2).le.9.0e-3).and.(y_pos.le.0.0001).and.((z_pos).le.0.03))then
-      !       open(442,file='tripping.dat',form='formatted',position='APPEND')
-      !  write(442,*) t,ta(i,j,k)
-      !  close(442)   
-      ! end if
-
-      enddo
+     enddo
     enddo
-  enddo
-    
-return   
+ enddo
+
+
+ ! Compute the temporal term
+ call system_clock(count=code)
+ call random_seed(size = ii)
+ call random_seed(put = code+63946*nrank*(/ (i - 1, i = 1, ii) /)) !
+ i=int(time/ts_tr)
+ p_tr=time/ts_tr-i
+ b_tr=3.0*p_tr**2-2.0*p_tr**3
+
+ call random_number(ta1)
+
+ if (itripping==1) then ! Noise-symmetric
+ Ftripx(:,:,:)=Ftripx(:,:,:)*ta1(:,:,:)
+ !Creation of tripping Force 
+ elseif (itripping==2) then ! Harmonic-symmetric
+
+ elseif (itripping==3) then ! Noise-asymmetric
+
+ elseif (itripping==4) then ! Harmonic-symmetric
+ 
+ endif 
+
+ return   
 end subroutine radial_tripping 
 
 
