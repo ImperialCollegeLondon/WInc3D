@@ -2,7 +2,7 @@ program visu_paraview
 
   implicit none
 
-  integer(4) :: nx,ny,nz,ialm,iadm,ivirt,jles,ibuoyancy,isnapshot
+  integer(4) :: nx,ny,nz,ialm,iadm,ivirt,jles,ibuoyancy,isnapshot,iprec
   real(4) :: xlx,yly,zlz,dt,dx,dy,dz
   integer(4) :: nfiles, icrfile, file1, filen, ifile, isnap, snap1,snapn,dig1, dig2, dig3, dig4
   real(4), allocatable :: yp(:),y1(:),y3(:)
@@ -14,7 +14,7 @@ program visu_paraview
 
   character(4) :: chits
   NAMELIST/PostProcess/nx,ny,nz,xlx,yly,zlz,nclx,ncly,nclz,istret,nfiles,file1,filen,ialm,iadm,ivirt,jles,ibuoyancy,dynhypvisc,&
-                        isnapshot,imin,imax,jmin,jmax,kmin,kmax,snap1,snapn
+                        isnapshot,imin,imax,jmin,jmax,kmin,kmax,snap1,snapn,iprec
  !==========================================================================
  ! Handle Input file
  nargin=command_argument_count()
@@ -32,7 +32,7 @@ program visu_paraview
  end if
  !===========================================================================
   
-  
+  iprec=8 
   open(10,file=InputFN) 
   read(10,nml=PostProcess)
   close(10) 
@@ -125,7 +125,7 @@ program visu_paraview
 !DOUBLE PRECISION-->Precision=8
      write(nfil,*)'            <Attribute Name="ux" Center="Node">'
      write(nfil,*)'               <DataItem Format="Binary" '
-     write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
+     write(nfil,*)'                DataType="Float" Precision="',iprec,'" Endian="little"'
      write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
      write(nfil,*)'                  ux'//chits
      write(nfil,*)'               </DataItem>'
@@ -133,7 +133,7 @@ program visu_paraview
      
      write(nfil,*)'            <Attribute Name="uy" Center="Node">'
      write(nfil,*)'               <DataItem Format="Binary" '
-     write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
+     write(nfil,*)'                DataType="Float" Precision="',iprec,'" Endian="little"'
      write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
      write(nfil,*)'                  uy'//chits
      write(nfil,*)'               </DataItem>'
@@ -141,7 +141,7 @@ program visu_paraview
      
      write(nfil,*)'            <Attribute Name="uz" Center="Node">'
      write(nfil,*)'               <DataItem Format="Binary" '
-     write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
+     write(nfil,*)'                DataType="Float" Precision="',iprec,'" Endian="little"'
      write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
      write(nfil,*)'                  uz'//chits
      write(nfil,*)'               </DataItem>'
@@ -149,7 +149,7 @@ program visu_paraview
      
      write(nfil,*)'            <Attribute Name="pp" Center="Node">'
      write(nfil,*)'               <DataItem Format="Binary" '
-     write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
+     write(nfil,*)'                DataType="Float" Precision="',iprec,'" Endian="little"'
      write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
      write(nfil,*)'                  pp'//chits
      write(nfil,*)'               </DataItem>'
@@ -157,7 +157,7 @@ program visu_paraview
      
      write(nfil,*)'            <Attribute Name="vort" Center="Node">'
      write(nfil,*)'               <DataItem Format="Binary" '
-     write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
+     write(nfil,*)'                DataType="Float" Precision="',iprec,'" Endian="little"'
      write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
      write(nfil,*)'                  vort'//chits
      write(nfil,*)'               </DataItem>'
@@ -166,7 +166,7 @@ program visu_paraview
      if(iadm==1) then
      write(nfil,*)'            <Attribute Name="gammadisc" Center="Node">'
      write(nfil,*)'               <DataItem Format="Binary" '
-     write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
+     write(nfil,*)'                DataType="Float" Precision="',iprec,'" Endian="little"'
      write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
      write(nfil,*)'                  gammadisc'//chits
      write(nfil,*)'               </DataItem>'
@@ -176,7 +176,7 @@ program visu_paraview
      if(ialm==1) then
      write(nfil,*)'            <Attribute Name="Ftx" Center="Node">'
      write(nfil,*)'               <DataItem Format="Binary" '
-     write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
+     write(nfil,*)'                DataType="Float" Precision="',iprec,'" Endian="little"'
      write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
      write(nfil,*)'                  Ftx'//chits
      write(nfil,*)'               </DataItem>'
@@ -184,7 +184,7 @@ program visu_paraview
      
      write(nfil,*)'            <Attribute Name="Fty" Center="Node">'
      write(nfil,*)'               <DataItem Format="Binary" '
-     write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
+     write(nfil,*)'                DataType="Float" Precision="',iprec,'" Endian="little"'
      write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
      write(nfil,*)'                  Fty'//chits
      write(nfil,*)'               </DataItem>'
@@ -192,7 +192,7 @@ program visu_paraview
      
      write(nfil,*)'            <Attribute Name="Ftz" Center="Node">'
      write(nfil,*)'               <DataItem Format="Binary" '
-     write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
+     write(nfil,*)'                DataType="Float" Precision="',iprec,'" Endian="little"'
      write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
      write(nfil,*)'                  Ftz'//chits
      write(nfil,*)'               </DataItem>'
@@ -202,7 +202,7 @@ program visu_paraview
      if(jles.eq.1.and.dynhypvisc.eq.1) then
      write(nfil,*)'            <Attribute Name="dynvisc" Center="Node">'
      write(nfil,*)'               <DataItem Format="Binary" '
-     write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
+     write(nfil,*)'                DataType="Float" Precision="',iprec,'" Endian="little"'
      write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
      write(nfil,*)'                  dynvisc'//chits
      write(nfil,*)'               </DataItem>'
@@ -212,7 +212,7 @@ program visu_paraview
      if(ibuoyancy==1) then
      write(nfil,*)'            <Attribute Name="temp" Center="Node">'
      write(nfil,*)'               <DataItem Format="Binary" '
-     write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
+     write(nfil,*)'                DataType="Float" Precision="',iprec,'" Endian="little"'
      write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
      write(nfil,*)'                  temp'//chits
      write(nfil,*)'               </DataItem>'
@@ -222,7 +222,7 @@ program visu_paraview
      if(ivirt>0) then     
      write(nfil,*)'            <Attribute Name="IBM" Center="Node">'
      write(nfil,*)'               <DataItem Format="Binary" '
-     write(nfil,*)'                DataType="Float" Precision="8" Endian="little"'
+     write(nfil,*)'                DataType="Float" Precision="',iprec,'" Endian="little"'
      write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
      write(nfil,*)'                  IBM'//chits
      write(nfil,*)'               </DataItem>'

@@ -1228,7 +1228,6 @@ do k=1,xsize(3)
     enddo
  enddo
 
-
  ! Compute the temporal term
  call system_clock(count=code)
  call random_seed(size = ii)
