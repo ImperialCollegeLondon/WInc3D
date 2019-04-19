@@ -23,7 +23,7 @@ ShenC1=0.125                                 ! Shen et. al 2005 moedl coefficien
 ShenC2=21                                    ! Shen et. al 2005 model coefficient (c2)
 yaw_angle=0.                                 ! Rotor Yaw angle (in degrees)
 shaft_tilt_angle=0.                          ! Hub tilt angle (in degrees)
-blade_cone_angle=2.5                         ! Blade cone angle (in degrees)
+blade_cone_angle=0.                         ! Blade cone angle (in degrees)
 !=========================================
 ! Aeroelasticity parameters              |
 !=========================================
@@ -32,8 +32,8 @@ AeroElastFlag=0                              ! 0: off, 1: on
 ! Operation/Controller parameters        |
 !=========================================
 OperFlag=2                                   ! Operation flag (1: Prescribed velocity, 2: five region active controller, 3: reading from a list)  
-uref=8.0                                     ! Reference velocity
-tsr=7.                                       ! Tip speed ratio (for prescribed velocity)       
+uref=15.0                                    ! Reference velocity
+tsr=5.317                                    ! Tip speed ratio (for prescribed velocity)       
 RotFlag=1                                    ! 1: Clockwise, 2: Counterclockwise
 BladeInertia=11776047                        ! Blade inertia
 GeneratorInertia=534.116                     ! Generator Inertia

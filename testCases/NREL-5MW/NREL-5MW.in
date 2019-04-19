@@ -9,8 +9,8 @@
     zlz = 252            ! Lz (Size of the box in z-direction) 
     re  = 66667           ! nu=1/re (Kinematic Viscosity)
     sc  = 1.              ! Schmidt number (if passive scalar)
-    u1  = 8              ! u1 (max velocity) (for inflow condition)
-    u2  = 8              ! u2 (min velocity) (for inflow condition) 
+    u1  = 15              ! u1 (max velocity) (for inflow condition)
+    u2  = 15              ! u2 (min velocity) (for inflow condition) 
     noise  = 0.125        ! Turbulence intensity (1=100%) !! Initial condition
     noise1 = 0.0          ! Turbulence intensity (1=100%) !! Inflow condition
     
@@ -40,7 +40,7 @@
 
     ! Time and time-marching schemes
     ifirst = 1	          ! First iteration   
-    ilast = 1000        ! Last iteration 
+    ilast = 2000        ! Last iteration 
     nscheme = 2           ! Temporal scheme (1: ?, 2: RK3, 3:RK4, 4:AB2)
     dt = 0.02             ! Time step
     
@@ -87,7 +87,7 @@
 
 &ALMParam
 ialm=1                    ! ialm (0: turbine model off, 1: turbine model on)
-ialmoutput=1
+ialmoutput=10
 eps_factor=2.            ! Smoothing parameter factor
 Nturbines=1               ! Number of Turbines
 TurbinesPath='NREL-5MW.turb'

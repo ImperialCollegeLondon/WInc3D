@@ -1185,61 +1185,58 @@ return
 
 end subroutine spanwise_shifting 
 
-subroutine radial_tripping(x0,y0,z0,Radius,time) !TRIPPING SUBROUTINE FOR TURBINE WAKES
+subroutine radial_tripping(time) !TRIPPING SUBROUTINE FOR TURBINE WAKES HARDCODED
 
 USE param
-USE var, only: Ftripx, Ftripy, Ftripz,ta1
+USE var, only: Ftripx, randomtrip 
 USE decomp_2d
-USE MPI
 
 implicit none
 
-real(mytype),intent(in) :: x0,y0,z0,Radius,time
+real(mytype),intent(in) :: time
+real(mytype) :: x0,y0,z0,Radius
 real(mytype) :: etay,etaz,Amp,p_tr,b_tr
-real(mytype) :: xmesh,ymesh,zmesh,xr,yr,zr,theta,lambda
+real(mytype) :: xmesh,ymesh,zmesh,Rmesh
 integer :: i,j,k, itheta, Ntheta
 integer :: modes,code,ii
 
 
-Ftripx=0; Ftripy=0; Ftripz=0;
+Ftripx(:,:,:)=0. 
 
 ! Compute the Torus geometry (hard-coded)
 Amp=0.005
+Radius=1.
+x0=2*Radius
+y0=5*Radius
+z0=5*Radius
 etay=10*dy
 etaz=10*dz
-Ntheta=1000
 do k=1,xsize(3)
-      zmesh=(k+xstart(3)-1-1)*dz
-   do j=1,xsize(2)
-      ymesh=(j+xstart(2)-1-1)*dy
-      do i=1,xsize(1)
-         xmesh=(i-1)*dx
-         do itheta=1,Ntheta
-            theta=(itheta-1)/Ntheta*2._mytype*pi
-            yr=y0+Radius*sin(theta)
-            zr=z0+Radius*cos(theta)
-            if(xmesh>Radius.and.xmesh<2.5*Radius) then
-            Ftripx(i,j,k)=Amp*dexp(((ymesh-yr)/etay)**2.+((zmesh-zr)/etaz)**2.) ! Only axial
-            Ftripy(i,j,k)=0.0
-            Ftripz(i,j,k)=0.0
+    zmesh=(k+xstart(3)-1-1)*dz
+    do j=1,xsize(2)
+        ymesh=(j+xstart(2)-1-1)*dy
+        do i=1,xsize(1)
+            xmesh=(i-1)*dx
+            rmesh=sqrt(ymesh**2.+zmesh**2.)   
+            if(xmesh>0.5*Radius.and.xmesh<2*Radius.and.rmesh<1.1*Radius.and.rmesh>0.9*Radius) then
+                Ftripx(i,j,k)=Amp!*dexp(((ymesh-yr)/etay)**2.+((zmesh-zr)/etaz)**2.) ! Only axial
             endif
-         enddo
-     enddo
+        enddo
     enddo
- enddo
+enddo
 
  ! Compute the temporal term
  call system_clock(count=code)
  call random_seed(size = ii)
  call random_seed(put = code+63946*nrank*(/ (i - 1, i = 1, ii) /)) !
- i=int(time/ts_tr)
- p_tr=time/ts_tr-i
- b_tr=3.0*p_tr**2-2.0*p_tr**3
+ !i=int(time/ts_tr)
+ !p_tr=time/ts_tr-i
+ !b_tr=3.0*p_tr**2-2.0*p_tr**3
 
- call random_number(ta1)
+ call random_number(randomtrip)
 
  if (itripping==1) then ! Noise-symmetric
- Ftripx(:,:,:)=Ftripx(:,:,:)*ta1(:,:,:)
+ Ftripx(:,:,:)=Ftripx(:,:,:)*randomtrip(:,:,:)
  !Creation of tripping Force 
  elseif (itripping==2) then ! Harmonic-symmetric
  T=0.5 ! in seconds

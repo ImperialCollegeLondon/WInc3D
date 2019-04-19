@@ -53,7 +53,7 @@ real(mytype), save, allocatable, dimension(:,:,:) :: ux_inflow, uy_inflow, uz_in
 ! define the Momentum Source arrays for the three directions
 real(mytype), save, allocatable, dimension(:,:,:) :: FTx, FTy, FTz
 real(mytype), save, allocatable, dimension(:,:,:) :: Fdiscx, Fdiscy, Fdiscz, GammaDisc
-real(mytype), save, allocatable, dimension(:,:,:) :: Ftripx, Ftripy, Ftripz
+real(mytype), save, allocatable, dimension(:,:,:) :: Ftripx, randomtrip
 
 ! define Probe location and velocity/scalar quantities
 real(mytype), save, allocatable, dimension(:) :: xprobe,yprobe,zprobe,uprobe,vprobe,wprobe
@@ -177,10 +177,9 @@ contains
     allocate(Gammadisc(xsize(1),xsize(2),xsize(3))) 
     endif
    
-    if(itripping==1) then
+    if(itripping==1.or.itripping==2) then
+    allocate(randomtrip(xsize(1),xsize(2),xsize(3)))
     allocate(Ftripx(xsize(1),xsize(2),xsize(3)))
-    allocate(Ftripy(xsize(1),xsize(2),xsize(3)))
-    allocate(Ftripz(xsize(1),xsize(2),xsize(3))) 
     endif
     
 !arrays for statistic collection!pay attention to the size!
@@ -268,9 +267,9 @@ contains
     call alloc_z(dv3,ph,.true.)
     call alloc_z(po3,ph,.true.)
     
-    z_modes=int(zlz/zs_tr)
-    allocate(h_coeff(z_modes))
-    allocate(h_nxt(xsize(3)),h_i(xsize(3)))
+    !z_modes=int(zlz/zs_tr)
+    !allocate(h_coeff(z_modes))
+    !allocate(h_nxt(xsize(3)),h_i(xsize(3)))
     return
   end subroutine init_variables
 

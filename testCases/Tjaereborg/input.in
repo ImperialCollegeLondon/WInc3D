@@ -20,6 +20,7 @@
     TempRef=265           ! Reference potential Temperature in Kelvin 
     icoriolis=0           ! Coriolis flag (0: No buoyanancy 1: Buoyancy)
     CoriolisFreq=1.39e-4  ! Corolios frequency in rad/second
+    itripping = 1           ! radial tripping
 /End
 
 ! Numerical Configuration

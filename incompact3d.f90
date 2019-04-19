@@ -284,6 +284,8 @@ do itime=ifirst,ilast
     call actuator_disc_model_compute_source(ux1,uy1,uz1)
    endif
 
+   if(itripping==1.or.itripping==2) call radial_tripping(t) 
+
     if (iin==3.and.mod(itime,NTimeSteps)==0) then
     ! Read new inflow
     call read_inflow(ux_inflow,uy_inflow,uz_inflow,itime/NTimeSteps)
@@ -304,8 +306,7 @@ do itime=ifirst,ilast
       ! Do filtering here
       call convdiff(ux1,uy1,uz1,phi1,ep1,ta1,tb1,tc1,&
       td1,te1,tf1,tg1,th1,ti1,di1,ux2,uy2,uz2,phi2,ta2,tb2,tc2,td2,te2,tf2,tg2,th2,&
-      ti2,tj2,di2,ux3,uy3,uz3,phi3,ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3,nut1,shrt_coeff, &
-      ucx1,ucy1,ucz1,tmean,sgszmean,sgsxmean,sgsymean)
+      ti2,tj2,di2,ux3,uy3,uz3,phi3,ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3,nut1,shrt_coeff)
 
       ! Potential Temperature -- to be computed after the convdiff
       if (ibuoyancy==1) then

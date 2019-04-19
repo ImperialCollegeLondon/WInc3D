@@ -33,12 +33,11 @@
 !*************************************************************************************
 subroutine convdiff(ux1,uy1,uz1,phi1,ep1,ta1,tb1,tc1,&
      td1,te1,tf1,tg1,th1,ti1,di1,ux2,uy2,uz2,phi2,ta2,tb2,tc2,td2,te2,tf2,tg2,th2,&
-     ti2,tj2,di2,ux3,uy3,phi3,uz3,ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3,nut1,shrt_coeff, &
-     ucx1,ucy1,ucz1,tmean,sgszmean,sgsxmean,sgsymean)
+     ti2,tj2,di2,ux3,uy3,phi3,uz3,ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3,nut1,shrt_coeff)
 !*************************************************************************************
 
 USE param
-USE var, only: FTx, FTy, FTz, Fdiscx, Fdiscy, Fdiscz
+USE var, only: FTx, FTy, FTz, Fdiscx, Fdiscy, Fdiscz, Ftripx
 USE decomp_2d
 USE decomp_2d_io
 USE MPI
@@ -47,7 +46,7 @@ USE MPI
 implicit none
 
 ! GLOBAL ARRAYS
-real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux1,uy1,uz1,phi1,ep1,ucx1,ucy1,ucz1,deltaphi1
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux1,uy1,uz1,phi1,ep1,deltaphi1
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ta1,tb1,tc1,td1,te1,tf1,tf1_abl,tg1,th1,ti1,di1
 real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: ux2,uy2,uz2,phi2,deltaphi2 
 real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: ta2,tb2,tc2,td2,te2,tf2,tf2_abl,ta2_abl,tg2,th2,ti2,tj2,di2
@@ -67,7 +66,6 @@ real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: srt_smag, shrt2, shrt_coef
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: dsmagcst
 
 !STATISTICS Arrays
-real(mytype),dimension(xszS(1),xszS(2),xszS(3)) :: tmean,sgszmean,sgsxmean,sgsymean
 real(mytype),dimension(xszV(1),xszV(2),xszV(3)) :: uvisu
 
 ! Buoyancy 
@@ -504,7 +502,7 @@ if (iadm==1) then
 endif
 
 if(itripping>0) then
-
+    ta1(:,:,:)=ta1(:,:,:)+Ftripx(:,:,:)
 endif
 
 end subroutine convdiff
