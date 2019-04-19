@@ -1196,7 +1196,7 @@ implicit none
 
 real(mytype),intent(in) :: x0,y0,z0,Radius,time
 real(mytype) :: etay,etaz,Amp,p_tr,b_tr
-real(mytype) :: xmesh,ymesh,zmesh,xr,yr,zr,theta
+real(mytype) :: xmesh,ymesh,zmesh,xr,yr,zr,theta,lambda
 integer :: i,j,k, itheta, Ntheta
 integer :: modes,code,ii
 
@@ -1242,11 +1242,8 @@ do k=1,xsize(3)
  Ftripx(:,:,:)=Ftripx(:,:,:)*ta1(:,:,:)
  !Creation of tripping Force 
  elseif (itripping==2) then ! Harmonic-symmetric
-
- elseif (itripping==3) then ! Noise-asymmetric
-
- elseif (itripping==4) then ! Harmonic-symmetric
- 
+ T=0.5 ! in seconds
+ Ftripx(:,:,:)=Ftripx(:,:,:)*(dsin(time/T)+dsin(2.5*time/T)) 
  endif 
 
  return   
