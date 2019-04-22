@@ -1200,7 +1200,6 @@ real(mytype) :: xmesh,ymesh,zmesh,Rmesh
 integer :: i,j,k, itheta, Ntheta
 integer :: modes,code,ii
 
-
 Ftripx(:,:,:)=0. 
 
 ! Compute the Torus geometry (hard-coded)
@@ -1217,8 +1216,8 @@ do k=1,xsize(3)
         ymesh=(j+xstart(2)-1-1)*dy
         do i=1,xsize(1)
             xmesh=(i-1)*dx
-            rmesh=sqrt(ymesh**2.+zmesh**2.)   
-            if(xmesh>0.5*Radius.and.xmesh<2*Radius.and.rmesh<1.1*Radius.and.rmesh>0.9*Radius) then
+            rmesh=sqrt((ymesh-y0)**2.+(zmesh-z0)**2.)   
+            if(xmesh>x0+0.5*Radius.and.xmesh<x0+2*Radius.and.rmesh<1.25*Radius.and.rmesh>0.75*Radius) then
                 Ftripx(i,j,k)=Amp!*dexp(((ymesh-yr)/etay)**2.+((zmesh-zr)/etaz)**2.) ! Only axial
             endif
         enddo
@@ -1239,8 +1238,7 @@ enddo
  Ftripx(:,:,:)=Ftripx(:,:,:)*randomtrip(:,:,:)
  !Creation of tripping Force 
  elseif (itripping==2) then ! Harmonic-symmetric
- T=0.5 ! in seconds
- Ftripx(:,:,:)=Ftripx(:,:,:)*(dsin(time/T)+dsin(2.5*time/T)) 
+ Ftripx(:,:,:)=Ftripx(:,:,:)*(sin(2.*2.*pi*time)+sin(5.*2.*pi*time)) 
  endif 
 
  return   

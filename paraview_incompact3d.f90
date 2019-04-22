@@ -2,7 +2,7 @@ program visu_paraview
 
   implicit none
 
-  integer(4) :: nx,ny,nz,ialm,iadm,ivirt,jles,ibuoyancy,isnapshot,iprec
+  integer(4) :: nx,ny,nz,ialm,iadm,ivirt,jles,ibuoyancy,isnapshot,iprec,itripping
   real(4) :: xlx,yly,zlz,dt,dx,dy,dz
   integer(4) :: nfiles, icrfile, file1, filen, ifile, isnap, snap1,snapn,dig1, dig2, dig3, dig4
   real(4), allocatable :: yp(:),y1(:),y3(:)
@@ -14,7 +14,7 @@ program visu_paraview
 
   character(4) :: chits
   NAMELIST/PostProcess/nx,ny,nz,xlx,yly,zlz,nclx,ncly,nclz,istret,nfiles,file1,filen,ialm,iadm,ivirt,jles,ibuoyancy,dynhypvisc,&
-                        isnapshot,imin,imax,jmin,jmax,kmin,kmax,snap1,snapn,iprec
+                        itripping,isnapshot,imin,imax,jmin,jmax,kmin,kmax,snap1,snapn,iprec
  !==========================================================================
  ! Handle Input file
  nargin=command_argument_count()
@@ -199,6 +199,16 @@ program visu_paraview
      write(nfil,*)'            </Attribute>'
      endif
      
+     if(itripping==1.or.itripping==2) then
+     write(nfil,*)'            <Attribute Name="Ftrip" Center="Node">'
+     write(nfil,*)'               <DataItem Format="Binary" '
+     write(nfil,*)'                DataType="Float" Precision="',iprec,'" Endian="little"'
+     write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
+     write(nfil,*)'                  Ftrip'//chits
+     write(nfil,*)'               </DataItem>'
+     write(nfil,*)'            </Attribute>'
+     endif
+
      if(jles.eq.1.and.dynhypvisc.eq.1) then
      write(nfil,*)'            <Attribute Name="dynvisc" Center="Node">'
      write(nfil,*)'               <DataItem Format="Binary" '

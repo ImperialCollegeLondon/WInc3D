@@ -39,7 +39,7 @@ subroutine VISU_INSTA (ux1,uy1,uz1,phi1,ta1,tb1,tc1,td1,te1,tf1,tg1,th1,ti1,di1,
 !############################################################################
 
 USE param
-USE var, only: FTx, FTy, FTz, GammaDisc,ep1, nut1, shrt_coeff
+USE var, only: FTx, FTy, FTz, Ftripx, GammaDisc,ep1, nut1, shrt_coeff
 USE decomp_2d
 USE decomp_2d_io
 
@@ -197,6 +197,13 @@ endif
 !    call decomp_2d_write_one(1,uvisu,filename,2)    
 !end if
 
+if (itripping==1.or.itripping==2) then
+    uvisu=0.
+    call fine_to_coarseV(1,Ftripx,uvisu)
+    998 format('Ftrip',I4.4)
+    write(filename, 998) itime/imodulo
+    call decomp_2d_write_one(1,uvisu,filename,2)    
+endif
 
 !##########################
 ! Immersed Boundary Method
