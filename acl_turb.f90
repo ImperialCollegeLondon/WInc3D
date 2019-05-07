@@ -21,13 +21,18 @@ type TurbineType
     real(mytype) :: IRotor ! Inertia of the Rotor
     real(mytype) :: A ! Rotor area
     real(mytype) :: Torque, angularVel,deltaOmega,TSR,Uref ! Torque and rotation for the shaft  
+    real(mytype) :: Ux_upstream=0.0
+    real(mytype) :: Uy_upstream=0.0
+    real(mytype) :: Uz_upstream=0.0
     real(mytype) :: AzimAngle=0.0
     real(mytype) :: dist_from_axis=0.0
+    real(mytype) :: cbp=0.0, cbp_old=0.0 ! Collective blade pitch
     integer :: No_rev=0.0
     logical :: Is_constant_rotation_operated = .false. ! For a constant rotational velocity (in Revolutions Per Minute)
     logical :: Is_NRELController = .false. ! Active control-based rotational velocity using the NREL controller
     logical :: Is_ListController = .false. ! Active control-based rotational velocity using the rotor averaged velocity and
                                            ! interpolation lists
+    logical :: Is_upstreamvel_controlled=.false. 
 
     logical :: do_aeroelasticity=.false.    ! Flag
     character(len=100) :: beam_file
@@ -40,7 +45,6 @@ type TurbineType
     type(ControllerType) :: controller     ! Contoller
     logical :: IsClockwise = .false.
     logical :: IsCounterClockwise = .false. 
-    logical :: Is_upstreamvel_controlled=.false. 
     logical :: Has_Tower=.false.
     real(mytype) :: Towerheight, TowerOffset, TowerDrag, TowerLift, TowerStrouhal
     logical :: Has_BladeEndEffectModelling=.false.
@@ -61,7 +65,7 @@ type TurbineType
     real(mytype) :: Thrust, Power ! Absolute values for Thrust and Power
 
     ! Rotor Statistics
-    real(mytype) :: CT_ave, CP_ave, Torque_ave
+    real(mytype) :: CT_ave=0.0_mytype, CP_ave=0.0_mytype, Torque_ave=0.0_mytype
 
 end type TurbineType
     
@@ -69,7 +73,7 @@ end type TurbineType
 contains
     
     subroutine set_turbine_geometry(turbine)
-
+    use param, only: ialmrestart
     implicit none
     type(TurbineType),intent(inout) :: turbine
     real(mytype), allocatable :: rR(:),ctoR(:),pitch(:),thick(:)
@@ -78,7 +82,7 @@ contains
 
     call read_actuatorline_geometry(turbine%blade_geom_file,turbine%Rmax,SVec,rR,ctoR,pitch,thick,Nstations)
     ! Make sure that the spanwise is [0 0 1]
-    Svec = [sin(turbine%blade_cone_angle/180.0*pi),0.0d0,cos(turbine%blade_cone_angle/180.0*pi)]
+    Svec = [0.0d0,0.0d0,1.0d0]
     ! Make sure that origin is [0,0,0] : we set everything to origin 0 and then translate the
     ! turbine to the actual origin(this is for simplicity)
     theta=2*pi/turbine%Nblades
@@ -91,9 +95,9 @@ contains
     turbine%blade(iblade)%NElem=Nstations-1 
     
     do istation=1,Nstations
-    turbine%blade(iblade)%QCx(istation)=rR(istation)*turbine%Rmax*Svec(1)+turbine%blade(iblade)%COR(1)+turbine%dist_from_axis
-    turbine%blade(iblade)%QCy(istation)=rR(istation)*turbine%Rmax*Svec(2)+turbine%blade(iblade)%COR(2)
-    turbine%blade(iblade)%QCz(istation)=rR(istation)*turbine%Rmax*Svec(3)+turbine%blade(iblade)%COR(3)
+    turbine%blade(iblade)%QCx(istation)=rR(istation)*turbine%Rmax*Svec(1)!+turbine%blade(iblade)%COR(1)+turbine%dist_from_axis
+    turbine%blade(iblade)%QCy(istation)=rR(istation)*turbine%Rmax*Svec(2)!+turbine%blade(iblade)%COR(2)
+    turbine%blade(iblade)%QCz(istation)=rR(istation)*turbine%Rmax*Svec(3)!+turbine%blade(iblade)%COR(3)
     if(turbine%IsCounterClockwise) then
         turbine%blade(iblade)%tx(istation)=sin(pitch(istation)/180.0*pi)    
         turbine%blade(iblade)%ty(istation)=-cos(pitch(istation)/180.0*pi)    
@@ -110,9 +114,26 @@ contains
         turbine%blade(iblade)%pitch(istation)=pitch(istation)/180.0*pi
         turbine%blade(iblade)%FlipN = .true.
     endif
-    end do
+    !### Do the blade cone angle ###
+    ! Rotate coordinates (around y)
+    call QuatRot(turbine%blade(iblade)%QCx(istation),turbine%blade(iblade)%QCy(istation),turbine%blade(iblade)%QCz(istation),turbine%blade_cone_angle*pi/180.0d0,&
+                0.0d0,1.0d0,0.0d0,0.0d0,0.0d0,0.d0,turbine%blade(iblade)%QCx(istation),turbine%blade(iblade)%QCy(istation),turbine%blade(iblade)%QCz(istation))
+    ! Rotate tangential vectors (around y)
+    call QuatRot(turbine%blade(iblade)%tx(istation),turbine%blade(iblade)%ty(istation),turbine%blade(iblade)%tz(istation),turbine%blade_cone_angle*pi/180.0d0,&
+                0.0d0,1.0d0,0.0d0,0.0d0,0.0d0,0.d0,turbine%blade(iblade)%tx(istation),turbine%blade(iblade)%ty(istation),turbine%blade(iblade)%tz(istation)) 
+    
+    ! Translate to the COR of each turbine
+    turbine%blade(iblade)%QCx(istation)=turbine%blade(iblade)%QCx(istation)+turbine%blade(iblade)%COR(1)
+    turbine%blade(iblade)%QCy(istation)=turbine%blade(iblade)%QCy(istation)+turbine%blade(iblade)%COR(2)
+    turbine%blade(iblade)%QCz(istation)=turbine%blade(iblade)%QCz(istation)+turbine%blade(iblade)%COR(3)
 
-    ! Rotate Blade 1 to forme the other blades 
+    end do
+    
+    ! Rotate Blade 1 to form the other blades 
+    if (ialmrestart==1) then
+    ! Read the checkpoint information and rotate actuator lines accordingly
+    endif
+
     call rotate_actuatorline(turbine%blade(iblade),turbine%blade(iblade)%COR,turbine%RotN,(iblade-1)*theta)   
  
     call make_actuatorline_geometry(turbine%blade(iblade))
@@ -140,7 +161,7 @@ contains
     call rotate_turbine(turbine,(/0.0d0,1.0d0,0.0d0/),turbine%yaw_angle*pi/180.0d0)
     ! Tilt
     call rotate_turbine(turbine,(/0.0d0,0.0d0,1.0d0/),-turbine%shaft_tilt_angle*pi/180.0d0)
-    
+   
     ! Set the rotational axis
     call QuatRot(turbine%RotN(1),turbine%RotN(2),turbine%RotN(3),turbine%yaw_angle*pi/180.0d0,0.0d0,1.0d0,0.0d0,0.0d0,0.0d0,0.d0,&
             turbine%RotN(1),turbine%RotN(2),turbine%RotN(3))
@@ -150,6 +171,9 @@ contains
     if(turbine%do_aeroelasticity) then
     call actuator_line_beam_model_init(turbine%beam,turbine%blade,turbine%NBlades,turbine%beam_file)
     endif
+    !if(turbine%do_aeroelasticity) then
+    !call actuator_line_beam_model_init(turbine%beam,turbine%blade,turbine%NBlades)
+    !endif
     
     if (nrank==0) then        
     write(6,*) 'Turbine Name : ', adjustl(turbine%name)
@@ -173,10 +197,11 @@ contains
    
     turbine%Tower%COR=turbine%origin
     turbine%Tower%NElem=Nstations-1  
-    
+    turbine%Tower%L=turbine%Towerheight
+
     do istation=1,Nstations
     turbine%Tower%QCx(istation)= turbine%Tower%COR(1) + turbine%TowerOffset  
-    turbine%Tower%QCy(istation)= turbine%Tower%COR(2) - rR(istation)*turbine%Towerheight*Svec(2) 
+    turbine%Tower%QCy(istation)= rR(istation)*turbine%Towerheight*Svec(2) 
     turbine%Tower%QCz(istation)= turbine%Tower%COR(3) 
     turbine%Tower%tx(istation)= 1.0    
     turbine%Tower%ty(istation)= 0.0    
@@ -216,7 +241,7 @@ contains
     return
 
     end subroutine set_turbine_geometry
-    
+   
     subroutine compute_performance(turbine)
 
     implicit none
@@ -304,47 +329,15 @@ contains
     implicit none
     type(TurbineType),intent(inout) :: turbine
     integer :: iblade,ielem
-    real(mytype) ::g1,alpha,pitch,F,Froot,Ftip,rtip, rroot, phi, axis_mag
-    real(mytype) :: nxe,nye,nze,txe,tye,tze,sxe,sye,sze,u,v,w,ub,vb,wb,urdc,urdn,ur
+    real(mytype) ::g1,alpha,pitch,F,Froot,Ftip,rtip, rroot, phi, sphi,axis_mag
     
     
     do iblade=1,turbine%Nblades
     ! Compute angle phi at the tip 
     do ielem=1,turbine%blade(iblade)%Nelem
-        nxe=turbine%blade(iblade)%nEx(ielem)
-        nye=turbine%blade(iblade)%nEy(ielem)
-        nze=turbine%blade(iblade)%nEz(ielem)
-        txe=turbine%blade(iblade)%tEx(ielem)
-        tye=turbine%blade(iblade)%tEy(ielem)
-        tze=turbine%blade(iblade)%tEz(ielem)
-        sxe=turbine%blade(iblade)%sEx(ielem)
-        sye=turbine%blade(iblade)%sEy(ielem)
-        sze=turbine%blade(iblade)%sEz(ielem)
-        u=turbine%blade(iblade)%EVx(ielem)
-        v=turbine%blade(iblade)%EVy(ielem)
-        w=turbine%blade(iblade)%EVz(ielem) 
-
-        !=====================================
-        ! Solid Body Rotation of the elements
-        !=====================================
-        ub=turbine%blade(iblade)%EVbx(ielem)
-        vb=turbine%blade(iblade)%EVby(ielem)
-        wb=turbine%blade(iblade)%EVbz(ielem)
-        urdn=nxe*(u-ub)+nye*(v-vb)+nze*(w-wb)! Normal 
-        urdc=txe*(u-ub)+tye*(v-vb)+tze*(w-wb)! Tangential
-        ur=sqrt(urdn**2.0+urdc**2.0)
-        ! This is the dynamic angle of attack 
-        axis_mag=sqrt(turbine%RotN(1)**2+turbine%RotN(2)**2+turbine%RotN(3)**2)
-        phi=pi/2.0
-        if (ur>10e-8) then
-            if (turbine%IsCounterClockwise) then
-        phi=asin(-(turbine%RotN(1)*(u-ub)+turbine%RotN(2)*(v-vb)+turbine%RotN(3)*(w-wb))/(axis_mag*ur))
-            else if (turbine%IsClockwise) then
-        phi=asin((turbine%RotN(1)*(u-ub)+turbine%RotN(2)*(v-vb)+turbine%RotN(3)*(w-wb))/(axis_mag*ur))
-            endif
-        endif
-        if (abs(phi)>1) phi=1.0
-
+        
+        phi=turbine%blade(iblade)%EAOA(ielem)+turbine%blade(iblade)%Epitch(ielem)
+        !if (nrank==0) print *, "AoA = ", turbine%blade(iblade)%EAOA(ielem), "Pitch =", turbine%blade(iblade)%EPitch(ielem), "phi =", phi
         rroot=turbine%blade(iblade)%ERdist(ielem)/turbine%Rmax
         rtip=(turbine%Rmax-turbine%blade(iblade)%ERdist(ielem))/turbine%Rmax
         
@@ -355,29 +348,30 @@ contains
             if (turbine%EndEffectModel_is_Glauret) then
                 g1=1.0
             else if (turbine%EndEffectModel_is_Shen) then
-                g1=exp(-turbine%ShenCoeff_c1*(turbine%NBlades*turbine%TSR-turbine%ShenCoeff_c2))+0.1
+                g1=dexp(-turbine%ShenCoeff_c1*(turbine%NBlades*turbine%TSR-turbine%ShenCoeff_c2))+0.1
             else
                 write(*,*) "Only Glauret and ShenEtAl2005 are available at the moment"
                 stop
             endif
-            if (abs(exp(-g1*turbine%Nblades/2.0*(1.0/rroot-1.0)/sin(phi)))>1) then
-                write(*,*) "Something went wrong with the tip correction model -- phi =", phi
+            if (dabs(dexp(-g1*turbine%Nblades/2.0*(1.0/rroot-1.0)/dsin(phi)))>1.) then
+                if (nrank==0) print *, "Something went wrong with the tip correction model -- phi =", phi
                 Ftip=1.
             endif
-            Ftip=2.0/pi*acos(exp(-g1*turbine%Nblades/2.0*(1.0/rroot-1.0)/sin(phi)))
+            Ftip=2.0/pi*dacos(dexp(-g1*turbine%Nblades/2.0*(1.0/rroot-1.0)/dsin(phi)))
         endif
         if (turbine%do_root_correction) then
             if (turbine%EndEffectModel_is_Glauret) then
                 g1=1.0
             else if (turbine%EndEffectModel_is_Shen) then
-                g1=exp(-turbine%ShenCoeff_c1*(turbine%NBlades*turbine%TSR-turbine%ShenCoeff_c2))+0.1
+                g1=dexp(-turbine%ShenCoeff_c1*(turbine%NBlades*turbine%TSR-turbine%ShenCoeff_c2))+0.1
             else
                 write(*,*) "Only Glauret and ShenEtAl2005 are available at the moment"
                 stop
             endif
             Froot=2.0/pi*acos(exp(-g1*turbine%Nblades/2.0*(1.0/rtip-1.0)/sin(phi)))
         endif
-            turbine%blade(iblade)%EEndeffects_factor(ielem)=Ftip*Froot
+
+            turbine%blade(iblade)%EEndeffects_factor(ielem)=Ftip*Froot 
         end do
     end do
 
@@ -468,7 +462,7 @@ contains
     end do 
     
     end subroutine rotate_turbine  
-    
+   
     subroutine read_list_controller_file(FN,turbine) 
     
     implicit none
@@ -544,7 +538,7 @@ contains
 
     end subroutine from_list_controller
 
-    subroutine compute_rotor_upstream_velocity(turbine,WSRotorAve)
+    subroutine compute_rotor_upstream_velocity(turbine)
 
 use actuator_line_model_utils ! used only for the trilinear interpolation
 USE param 
@@ -554,7 +548,6 @@ use MPI
 
         implicit none
         type(TurbineType),intent(inout) ::turbine
-        real(mytype),intent(out) :: WSRotorAve
         integer :: iblade, ielem,Nelem
         real(mytype) :: Rupstream(3)
         real(mytype) :: Ux,Uy,Uz,Phixy,Phixz
@@ -564,14 +557,14 @@ use MPI
 	    real(mytype) :: dist, min_dist 
         integer :: min_i,min_j,min_k
         integer :: i,j,k,ierr
-	
+
         Ux=0.
         Uy=0.
         Uz=0.
        
         ! Velocity is calculated at a probe point (closest) at one D upstream the turbine
 
-        Rupstream(:)=turbine%origin(:)-abs(turbine%rotN(:))*2.*turbine%Rmax       
+        Rupstream(:)=turbine%origin(:)-turbine%rotN(:)*2.*turbine%Rmax       
         if (istret.eq.0) then 
         ymin=(xstart(2)-1)*dy-dy/2.0 ! Add -dy/2.0 overlap
         ymax=(xend(2)-1)*dy+dy/2.0   ! Add +dy/2.0 overlap
@@ -611,9 +604,7 @@ use MPI
             Uy_part=uy1(min_i,min_j,min_k)
             Uz_part=uz1(min_i,min_j,min_k)
             Phixy_part=0.0
-            Phixz_part=0.0
-	    
- 
+            Phixz_part=0.0    
         else
             Ux_part=0.0
             Uy_part=0.0
@@ -629,8 +620,12 @@ use MPI
             MPI_COMM_WORLD,ierr)
         call MPI_ALLREDUCE(Uz_part,Uz,1,MPI_REAL8,MPI_SUM, &
             MPI_COMM_WORLD,ierr)
- 
-        WSRotorAve=sqrt(Ux**2.0+Uy**2.0+Uz**2.0)
+        
+        Turbine%Ux_upstream=Ux
+        Turbine%Uy_upstream=Uy
+        Turbine%Uz_upstream=Uz
+
+        Turbine%Uref=sqrt(Ux**2.0+Uy**2.0+Uz**2.0)
         return
     
     end subroutine Compute_Rotor_upstream_Velocity

@@ -39,7 +39,7 @@ subroutine VISU_INSTA (ux1,uy1,uz1,phi1,ta1,tb1,tc1,td1,te1,tf1,tg1,th1,ti1,di1,
 !############################################################################
 
 USE param
-USE var, only: FTx, FTy, FTz, GammaDisc,ep1, nut1, shrt_coeff
+USE var, only: FTx, FTy, FTz, Ftripx, GammaDisc,ep1, nut1, shrt_coeff
 USE decomp_2d
 USE decomp_2d_io
 
@@ -197,6 +197,13 @@ endif
 !    call decomp_2d_write_one(1,uvisu,filename,2)    
 !end if
 
+if (itripping==1.or.itripping==2) then
+    uvisu=0.
+    call fine_to_coarseV(1,Ftripx,uvisu)
+    998 format('Ftrip',I4.4)
+    write(filename, 998) itime/imodulo
+    call decomp_2d_write_one(1,uvisu,filename,2)    
+endif
 
 !##########################
 ! Immersed Boundary Method
@@ -230,6 +237,43 @@ endif
 !IT IS IN A SEPARATE SUBROUTINE
 !############################################################################
 end subroutine VISU_INSTA
+
+
+!##############################################################
+! PRINT SNAPSHOTS
+!##############################################################
+
+subroutine VISU_SNAP(ux1,uy1,uz1,uvisu)
+!
+!############################################################################
+
+USE param
+USE decomp_2d
+USE decomp_2d_io
+
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux1,uy1,uz1
+real(mytype),dimension(xszV(1),xszV(2),xszV(3)) :: uvisu 
+character(len=20) :: filename
+
+uvisu=0.
+call fine_to_coarseV(1,ux1,uvisu)
+1011 format('snap_ux',I4.4)
+      write(filename, 1011) itime/sfreq
+call decomp_2d_write_subdomain(1,ux1,simin,simax,sjmin,sjmax,skmin,skmax,filename)
+uvisu=0.
+call fine_to_coarseV(1,uy1,uvisu)
+1012 format('snap_uy',I4.4)
+      write(filename, 1012) itime/sfreq
+call decomp_2d_write_subdomain(1,uy1,simin,simax,sjmin,sjmax,skmin,skmax,filename)
+uvisu=0.
+call fine_to_coarseV(1,uz1,uvisu)
+1013 format('snap_uz',I4.4)
+      write(filename, 1013) itime/sfreq
+call decomp_2d_write_subdomain(1,uz1,simin,simax,sjmin,sjmax,skmin,skmax,filename)
+
+if (nrank==0) print *, 'Writing snapshot ', itime/sfreq
+
+end subroutine VISU_SNAP
 
 !############################################################################
 !

@@ -428,7 +428,7 @@ endif
 end subroutine restart
 
 ! ************************************************************************
-subroutine read_inflow(ux1,uy1,uz1)
+subroutine read_inflow(ux1,uy1,uz1,ifileinflow)
 !
 ! ************************************************************************
 
@@ -436,12 +436,13 @@ USE decomp_2d
 USE decomp_2d_io
 use var, only: ux_inflow, uy_inflow, uz_inflow
 USE param
+use actuator_line_model_utils
 USE MPI
 
 implicit none
 
 TYPE(DECOMP_INFO) :: phG
-integer :: i,j,k,irestart,nzmsize,fh,ierror,code
+integer :: i,j,k,irestart,nzmsize,fh,ierror,code, ifileinflow
 real(mytype), dimension(NTimeSteps,xsize(2),xsize(3)) :: ux1,uy1,uz1
 integer (kind=MPI_OFFSET_KIND) :: filesize, disp
 real(mytype) :: xdt
@@ -449,8 +450,8 @@ integer, dimension(2) :: dims, dummy_coords
 logical, dimension(2) :: dummy_periods
 
 if (iscalar==0) then
-    if (nrank==0) print *,'READING INFLOW'
-    call MPI_FILE_OPEN(MPI_COMM_WORLD, 'inflow', &
+    if (nrank==0) print *,'READING INFLOW from ',trim(InflowPath)//'inflow'//trim(int2str(ifileinflow+1)) 
+    call MPI_FILE_OPEN(MPI_COMM_WORLD, trim(InflowPath)//'inflow'//trim(int2str(ifileinflow+1)), &
          MPI_MODE_RDONLY, MPI_INFO_NULL, &
          fh, ierror)
     disp = 0_MPI_OFFSET_KIND
@@ -497,17 +498,19 @@ return
 end subroutine append_outflow
 
 ! ***********************************************************************
-subroutine write_outflow()
+subroutine write_outflow(ifileoutflow)
 !
 ! ***********************************************************************
     USE decomp_2d
     USE decomp_2d_io
+    use actuator_line_model_utils
     USE param
     use var, only: ux_recOutflow, uy_recOutflow, uz_recOutflow
     USE MPI
 
 implicit none
 
+integer,intent(in) :: ifileoutflow
 TYPE(DECOMP_INFO) :: phG
 integer :: i,j,k,irestart,nzmsize,fh,code
 integer (kind=MPI_OFFSET_KIND) :: filesize, disp
@@ -520,7 +523,7 @@ integer :: ierror, newtype, data_type
 
 if (iscalar==0) then
     if (nrank==0) print *,'WRITING OUTFLOW'
-    call MPI_FILE_OPEN(MPI_COMM_WORLD, 'outflow', &
+    call MPI_FILE_OPEN(MPI_COMM_WORLD, 'inflow'//trim(int2str(ifileoutflow)), &
          MPI_MODE_CREATE+MPI_MODE_WRONLY, MPI_INFO_NULL, &
          fh, ierror)
     filesize = 0_MPI_OFFSET_KIND
@@ -1181,6 +1184,65 @@ subroutine spanwise_shifting(ux3,uy3,uz3) ! periodic shifting
 return
 
 end subroutine spanwise_shifting 
+
+subroutine radial_tripping(time) !TRIPPING SUBROUTINE FOR TURBINE WAKES HARDCODED
+
+USE param
+USE var, only: Ftripx, randomtrip 
+USE decomp_2d
+
+implicit none
+
+real(mytype),intent(in) :: time
+real(mytype) :: x0,y0,z0,Radius
+real(mytype) :: etay,etaz,Amp,p_tr,b_tr
+real(mytype) :: xmesh,ymesh,zmesh,Rmesh
+integer :: i,j,k, itheta, Ntheta
+integer :: modes,code,ii
+
+Ftripx(:,:,:)=0. 
+
+! Compute the Torus geometry (hard-coded)
+Amp=0.005
+Radius=1.
+x0=2*Radius
+y0=5*Radius
+z0=5*Radius
+etay=10*dy
+etaz=10*dz
+do k=1,xsize(3)
+    zmesh=(k+xstart(3)-1-1)*dz
+    do j=1,xsize(2)
+        ymesh=(j+xstart(2)-1-1)*dy
+        do i=1,xsize(1)
+            xmesh=(i-1)*dx
+            rmesh=sqrt((ymesh-y0)**2.+(zmesh-z0)**2.)   
+            if(xmesh>x0+0.5*Radius.and.xmesh<x0+2*Radius.and.rmesh<1.25*Radius.and.rmesh>0.75*Radius) then
+                Ftripx(i,j,k)=Amp!*dexp(((ymesh-yr)/etay)**2.+((zmesh-zr)/etaz)**2.) ! Only axial
+            endif
+        enddo
+    enddo
+enddo
+
+ ! Compute the temporal term
+ call system_clock(count=code)
+ call random_seed(size = ii)
+ call random_seed(put = code+63946*nrank*(/ (i - 1, i = 1, ii) /)) !
+ !i=int(time/ts_tr)
+ !p_tr=time/ts_tr-i
+ !b_tr=3.0*p_tr**2-2.0*p_tr**3
+
+ call random_number(randomtrip)
+
+ if (itripping==1) then ! Noise-symmetric
+ Ftripx(:,:,:)=Ftripx(:,:,:)*randomtrip(:,:,:)
+ !Creation of tripping Force 
+ elseif (itripping==2) then ! Harmonic-symmetric
+ Ftripx(:,:,:)=Ftripx(:,:,:)*(sin(2.*2.*pi*time)+sin(5.*2.*pi*time)) 
+ endif 
+
+ return   
+end subroutine radial_tripping 
 
 
 subroutine apply_spatial_filter(ux1,uy1,uz1,phi1,ux2,uy2,uz2,phi2,ux3,uy3,uz3,phi3)

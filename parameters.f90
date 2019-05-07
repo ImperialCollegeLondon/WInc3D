@@ -43,19 +43,20 @@ USE decomp_2d
 implicit none
 
 character(len=*),intent(in):: InputFN 
-real(mytype) :: theta, cfl,cf2 
+real(mytype) :: theta, cfl,cf2
 integer :: longueur ,impi,j
 character :: a*80
 
 ! Have you heard of NAMELISTs ?
-NAMELIST/FlowParam/itype,iin,NEddies,sem_file,xlx,yly,zlz,re,sc,u1,u2,noise,noise1,ibuoyancy,icoriolis,Pr,TempRef,CoriolisFreq 
+NAMELIST/FlowParam/itype,iin,NEddies,sem_file,xlx,yly,zlz,re,sc,u1,u2,noise,noise1,itripping,ibuoyancy,icoriolis,Pr,TempRef,CoriolisFreq 
 NAMELIST/NumConfig/nx,ny,nz,p_row,p_col,nclx,ncly,nclz,TurbRadius,ifirst,ilast,nscheme,dt,istret, &
     beta,iskew,iscalar,jles,FSGS,jadv,smagcst,SmagWallDamp,nSmag,iwallmodel,walecst,rxxnu,cnu,dynhypvisc  
-NAMELIST/FileParam/ilit,isave,imodulo,ioutflow,iinflow,OutflowOnsetIndex, NTimeSteps
+NAMELIST/FileParam/ilit,isave,imodulo,ioutflow,InflowPath, NTimeSteps
 NAMELIST/IBMParam/ivirt,ibmshape,cex,cey,cez,ra
-NAMELIST/ALMParam/ialm,NTurbines,TurbinesPath,NActuatorlines,ActuatorlinesPath,eps_factor
+NAMELIST/ALMParam/ialm,ialmrestart, ialmoutput,NTurbines,TurbinesPath,NActuatorlines,ActuatorlinesPath,eps_factor
 NAMELIST/ADMParam/iadm,Ndiscs,ADMcoords,iverifyadm,iadmmode,CT,aind,fileADM
-NAMELIST/StatParam/spinup_time,nstat,nvisu,iprobe,Probelistfile,nsampling, y_loc_pencil, z_loc_pencil 
+NAMELIST/StatParam/spinup_time,nstat,nvisu,iprobe,Probelistfile,nsampling, y_loc_pencil,& 
+                  z_loc_pencil,isnapshot,simin,simax,sjmin,sjmax,skmin,skmax,sfreq 
 NAMELIST/ABLParam/iabl,z_zero,k_roughness,PsiM,ustar,IPressureGradient,Ug,dBL,idampingzone,ifringeregion,FLS,FLE,Imassconserve 
 
 #ifdef DOUBLE_PREC 
@@ -100,6 +101,8 @@ isave=100
 imodulo=100
 ivirt=0
 ialm=0
+ialmoutput=50
+ialmrestart=0.
 eps_factor=2.0
 rxxnu=1.0
 cnu=0.44
@@ -110,10 +113,11 @@ dBL=500 !delta of the boundary layer
 UG=[10.0d0,0.0d0,0.0d0]
 IPressureGradient=0
 ioutflow=0
+InflowPath='./'
 idampingzone=0
 ifringeregion=0
 Imassconserve=0
-zs_tr=0.1
+itripping=0
 iadm=0
 Ndiscs=0
 iverifyadm=0
@@ -121,6 +125,13 @@ iadmmode=0
 CT=0.75
 aind=0.25
 fileADM='/./'
+simin=1
+simax=nx
+sjmin=1
+sjmax=ny
+skmin=1
+skmax=nz
+sfreq=100
 
 ! READ PARAMETERS FROM FILE
 open(10,file=InputFN) 

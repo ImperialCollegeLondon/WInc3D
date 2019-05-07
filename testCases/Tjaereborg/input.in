@@ -1,82 +1,90 @@
 &FlowParam
     ! Flow type
     itype = 1             ! Type of Flow  
-    iin = 0              ! Inflow conditions (1: classic, 2: turbinit)
+    iin = 0               ! Inflow conditions (1: classic, 2: turbinit)
     
     ! Domain and scaling
-    xlx = 252            ! Lx (Size of the box in x-direction)
-    yly = 252            ! Ly (Size of the box in y-direction) 
-    zlz = 252            ! Lz (Size of the box in z-direction) 
-    re  = 66667           ! nu=1/re (Kinematic Viscosity)
+    xlx = 10.            ! Lx (Size of the box in x-direction)
+    yly = 10.            ! Ly (Size of the box in y-direction) 
+    zlz = 10.            ! Lz (Size of the box in z-direction) 
+    re  = 100000           ! nu=1/re (Kinematic Viscosity)
     sc  = 1.              ! Schmidt number (if passive scalar)
-    u1  = 8.0              ! u1 (max velocity) (for inflow condition)
-    u2  = 8.0              ! u2 (min velocity) (for inflow condition) 
+    u1  = 1.              ! u1 (max velocity) (for inflow condition)
+    u2  = 1.              ! u2 (min velocity) (for inflow condition) 
     noise  = 0.125        ! Turbulence intensity (1=100%) !! Initial condition
     noise1 = 0.0          ! Turbulence intensity (1=100%) !! Inflow condition
     
     ! Additional effects  
     ibuoyancy=0           ! Buoyancy flag (0: No buoyanancy 1: Buoyancy)
     Pr=0.333                ! Prandtl number
-    TempRef=300           ! Reference potential Temperature in Kelvin 
+    TempRef=265           ! Reference potential Temperature in Kelvin 
     icoriolis=0           ! Coriolis flag (0: No buoyanancy 1: Buoyancy)
     CoriolisFreq=1.39e-4  ! Corolios frequency in rad/second
+    itripping = 1           ! radial tripping
 /End
 
 ! Numerical Configuration
 &NumConfig
     ! Simulation size and parallelisation
-    nx=129                 ! X-direction nodes
-    ny=129                  ! Y-direction nodes
-    nz=128                 ! Z-direction nodes
-    p_row=4                ! Row partition
-    p_col=4                ! Column partition
+    nx=65                 ! X-direction nodes
+    ny=64               ! Y-direction nodes
+    nz=64                 ! Z-direction nodes
+    p_row=4              ! Row partition
+    p_col=4              ! Column partition
 
     ! Boundary conditions and mesh 
     nclx = 2              ! nclx (BC)
-    ncly = 1              ! ncly (BC) 
+    ncly = 0              ! ncly (BC) 
     nclz = 0              ! nclz (BC)
     istret = 0            ! y mesh refinement (0:no, 1:center, 2:both sides, 3:bottom)
     beta = 0.259065151    ! Refinement parameter (beta) 
 
     ! Time and time-marching schemes
     ifirst = 1	          ! First iteration   
-<<<<<<< HEAD
-    ilast = 1        ! Last iteration 
-=======
-    ilast = 2000        ! Last iteration 
->>>>>>> master
+    ilast = 200        ! Last iteration 
     nscheme = 2           ! Temporal scheme (1: ?, 2: RK3, 3:RK4, 4:AB2)
-    dt = 0.02             ! Time step
+    dt = 0.01            ! Time step
     
     ! Governing equations formulations
     iskew = 1             ! (0:urotu, 1:skew, for the convective terms)
     iscalar = 0           ! iscalar# (0: no scalar, 1:scalar)
-    
     ! Large-eddy simulation modelling parameters
-    jles=2                ! LES Model (0:DNS, 1: iLES 2:Smag, 3:WALE, 4: scale-invariant dyn. Smag, 5: scale-dependent dyn. Smag )
+    jles=1                ! LES Model (0:DNS, 1: iLES 2:Smag, 3:WALE, 4: scale-invariant dyn. Smag, 5: scale-dependent dyn. Smag )
     FSGS=1.0              ! Filter Size/ Grid Size for explicit LES only
     smagcst=0.14          ! Smagorinsky constant
     SmagWallDamp=1        ! Smagorinsky damping function for ABL if 1
-    nSmag=3               ! Smagorinksy damping coefficient 
+    nSmag=3.              ! Smagorinksy damping coefficient 
+    iwallmodel=2
     walecst=0.5           ! WALES Model Coefficient
-    rxxnu=100        	  ! Implicit LES factor 
+    rxxnu=1000        	  ! Implicit LES factor 
+    cnu=0.22
 /End
 
 &StatParam
-    spinup_time=5000.	  ! Time after which statistics are collected (in seconds)
+    spinup_time=25.	  ! Time after which statistics are collected (in seconds)
     nstat=1               ! Size arrays for statistic collection 
     nvisu=1               ! Size for visualisation collection 
-    iprobe = 0            ! Set probe
-    Probelistfile='WakeList.prob'
-    nsampling=5
+    iprobe = 2            ! Set probe
+    y_loc_pencil=3,7,32,48	    
+    z_loc_pencil=32,32,32,32	    
+    ! Snapshot parameters
+    isnapshot=1
+    simin=51
+    simax=129
+    sjmin=39
+    sjmax=91
+    skmin=39
+    skmax=91
+    sfreq=50
+    !Probelistfile='WakeList.prob'
+    nsampling=10
 /End
 
 &FileParam
     ilit=0                ! Read initial flow field ?
-    isave=25     	  ! Frequency for writing backup file  
-    imodulo=25         ! Frequency for visualization 
+    isave=10     	  ! Frequency for writing backup file  
+    imodulo=10         ! Frequency for visualization 
     ioutflow=0		  ! Outflow flag
-    NTimeSteps=2000
 /End
 
 &IBMParam
@@ -88,13 +96,11 @@
     ra=0.5                ! (ibmshape=1--> Radius of the solid body/ ibmshape=2-->thicness of the bottom surface)
 /End
 
-
 &ALMParam
 ialm=1                    ! ialm (0: turbine model off, 1: turbine model on)
-ialmoutput=10
-eps_factor=2.            ! Smoothing parameter factor
+eps_factor=2.2            ! Smoothing parameter factor
 Nturbines=1               ! Number of Turbines
-TurbinesPath='NREL-5MW.turb'
+TurbinesPath='Tjaereborg.turb'
 /End
 
 &ADMParam
@@ -102,10 +108,13 @@ iadm=0
 /End
 
 &ABLParam
-iabl=1                    ! iabl (1: atmospheric boundary layer modelling by applying a shear stress)
-z_zero=0.001	              ! Roughness length
-k_roughness=0.4          ! von Karman constant (usually taken to be equal to 0.41)
-ustar=0.281              ! friction velocity
-dBL=504
-IPressureGradient=1	      ! if 1 then apply a pressure gradient
+iabl=0                    ! iabl (1: atmospheric boundary layer modelling by applying a shear stress)
+z_zero=0.1	          ! Roughness length
+dBL=1000.		  ! Boundary layer length
+k_roughness=0.4           ! von Karman constant (usually taken to be equal to 0.41)
+ustar=0.45                ! friction velocity
+PsiM=0                    ! stability correction for momentum (taken equal to 0 for neutral stability)
+UG=10,0,0
+IPressureGradient=1	  ! if 1 then apply a pressure gradient
+idampingzone=0
 /End

@@ -10,54 +10,54 @@ real(mytype), parameter :: RPM2RPS= 9.5492966   ! Factor to convert radians per 
 
 type ControllerType
 ! Input parameters
-real(mytype) :: CornerFreq    ! Corner frequency (-3dB point) in the recursive, single-pole, 
-real(mytype) :: PC_DT         ! 0.00125 or JASON:THIS CHANGED FOR ITI BARGE: 0.0001 ! Communication interval for pitch  controller, sec.
-real(mytype) :: PC_KI         ! Integral gain for pitch controller at rated pitch (zero), (-).
-real(mytype) :: PC_KK         ! Pitch angle were the derivative of the aerodynamic power 
-real(mytype) :: PC_KP         ! Proportional gain for pitch controller at rated pitch (zero), sec.
-real(mytype) :: PC_MaxPit     ! Maximum pitch setting in pitch controller, rad.
-real(mytype) :: PC_MaxRat     ! Maximum pitch  rate (in absolute value) in pitch  controller, rad/s.
-real(mytype) :: PC_MinPit     ! Minimum pitch setting in pitch controller, rad.
-real(mytype) :: PC_RefSpd     ! Desired (reference) HSS speed for pitch controller, rad/s.
-real(mytype) :: VS_CtInSp     ! Transitional generator speed (HSS side) between regions 1 and 1 1/2, rad/s.
-real(mytype) :: VS_DT         ! JASON:THIS CHANGED FOR ITI BARGE:0.0001 !Communication interval for torque controller, sec.
-real(mytype) :: VS_MaxRat     ! Maximum torque rate (in absolute value) in torque controller, N-m/s.
-real(mytype) :: VS_MaxTq      ! Maximum generator torque in Region 3 (HSS side), N-m. -- chosen to be 10% above VS_RtTq = 43.09355kNm
-real(mytype) :: VS_Rgn2K      ! Generator torque constant in Region 2 (HSS side), N-m/(rad/s)^2.
-real(mytype) :: VS_Rgn2Sp     ! Transitional generator speed (HSS side) between regions 1 1/2 and 2, rad/s.
-real(mytype) :: VS_Rgn3MP     ! Minimum pitch angle at which the torque is computed as if we are in region 3 regardless of the generator speed, rad. -- chosen to be 1.0 degree above PC_MinPit
-real(mytype) :: VS_RtGnSp     ! Rated generator speed (HSS side), rad/s. -- chosen to be 99% of PC_RefSpd
-real(mytype) :: VS_RtPwr      ! Rated generator power in Region 3, Watts. 
-real(mytype) :: VS_SlPc       ! Rated generator slip percentage in Region 2 1/2, %.
-real(mytype) :: GearBoxRatio  ! Gear Box ratio (usually taken 97:1)
-real(mytype) :: IGenerator    ! Moment of inertia for the generator
+real(mytype) :: CornerFreq   =0.0_mytype ! Corner frequency (-3dB point) in the recursive, single-pole, 
+real(mytype) :: PC_DT        =0.0_mytype ! 0.00125 or JASON:THIS CHANGED FOR ITI BARGE: 0.0001 ! Communication interval for pitch  controller, sec.
+real(mytype) :: PC_KI        =0.0_mytype ! Integral gain for pitch controller at rated pitch (zero), (-).
+real(mytype) :: PC_KK        =0.0_mytype ! Pitch angle were the derivative of the aerodynamic power 
+real(mytype) :: PC_KP        =0.0_mytype ! Proportional gain for pitch controller at rated pitch (zero), sec.
+real(mytype) :: PC_MaxPit    =0.0_mytype ! Maximum pitch setting in pitch controller, rad.
+real(mytype) :: PC_MaxRat    =0.0_mytype ! Maximum pitch  rate (in absolute value) in pitch  controller, rad/s.
+real(mytype) :: PC_MinPit    =0.0_mytype ! Minimum pitch setting in pitch controller, rad.
+real(mytype) :: PC_RefSpd    =0.0_mytype ! Desired (reference) HSS speed for pitch controller, rad/s.
+real(mytype) :: VS_CtInSp    =0.0_mytype ! Transitional generator speed (HSS side) between regions 1 and 1 1/2, rad/s.
+real(mytype) :: VS_DT        =0.0_mytype ! JASON:THIS CHANGED FOR ITI BARGE:0.0001 !Communication interval for torque controller, sec.
+real(mytype) :: VS_MaxRat    =0.0_mytype ! Maximum torque rate (in absolute value) in torque controller, N-m/s.
+real(mytype) :: VS_MaxTq     =0.0_mytype ! Maximum generator torque in Region 3 (HSS side), N-m. -- chosen to be 10% above VS_RtTq = 43.09355kNm
+real(mytype) :: VS_Rgn2K     =0.0_mytype ! Generator torque constant in Region 2 (HSS side), N-m/(rad/s)^2.
+real(mytype) :: VS_Rgn2Sp    =0.0_mytype ! Transitional generator speed (HSS side) between regions 1 1/2 and 2, rad/s.
+real(mytype) :: VS_Rgn3MP    =0.0_mytype ! Minimum pitch angle at which the torque is computed as if we are in region 3 regardless of the generator speed, rad. -- chosen to be 1.0 degree above PC_MinPit
+real(mytype) :: VS_RtGnSp    =0.0_mytype ! Rated generator speed (HSS side), rad/s. -- chosen to be 99% of PC_RefSpd
+real(mytype) :: VS_RtPwr     =0.0_mytype ! Rated generator power in Region 3, Watts. 
+real(mytype) :: VS_SlPc      =0.0_mytype ! Rated generator slip percentage in Region 2 1/2, %.
+real(mytype) :: GearBoxRatio =0.0_mytype ! Gear Box ratio (usually taken 97:1)
+real(mytype) :: IGenerator   =0.0_mytype ! Moment of inertia for the generator
 
 ! Local Variables:
-real(mytype) :: Alpha           ! Current coefficient in the recursive, single-pole, low-pass filter, (-).
-real(mytype) :: BlPitch(3)      ! Current values of the blade pitch angles, rad.
-real(mytype) :: ElapTime        ! Elapsed time since the last call to the controller, sec.
-real(mytype) :: GenSpeed        ! Current  HSS (generator) speed, rad/s.
-real(mytype) :: GenSpeedF       ! Filtered HSS (generator) speed, rad/s.
-real(mytype) :: GenTrq          ! Electrical generator torque, N-m.
-real(mytype) :: GK              ! Current value of the gain correction factor, used in the gain scheduling law of the pitch controller, (-).
-real(mytype) :: HorWindV        ! Horizontal hub-heigh wind speed, m/s.
-real(mytype) :: IntSpdErr       ! Current integral of speed error w.r.t. time, rad.
-real(mytype) :: LastGenTrq      ! Commanded electrical generator torque the last time the controller was called, N-m.
-real(mytype) :: LastTime        ! Last time this contoller was called, sec.
-real(mytype) :: LastTimePC      ! Last time the pitch  controller was called, sec.
-real(mytype) :: LastTimeVS      ! Last time the torque controller was called, sec.
-real(mytype) :: PitCom(3)       ! Commanded pitch of each blade the last time the controller was called, rad.
-real(mytype) :: PitComI         ! Integral term of command pitch, rad.
-real(mytype) :: PitComP         ! Proportional term of command pitch, rad.
-real(mytype) :: PitComT         ! Total command pitch based on the sum of the proportional and integral terms, rad.
-real(mytype) :: PitRate(3)      ! Pitch rates of each blade based on the current pitch angles and current pitch command, rad/s.
-real(mytype) :: SpdErr          ! Current speed error, rad/s.
-real(mytype) :: Time            ! Current simulation time, sec.
-real(mytype) :: TrqRate         ! Torque rate based on the current and last torque commands, N-m/s.
-real(mytype) :: VS_Slope15      ! Torque/speed slope of region 1 1/2 cut-in torque ramp , N-m/(rad/s).
-real(mytype) :: VS_Slope25      ! Torque/speed slope of region 2 1/2 induction generator, N-m/(rad/s).
-real(mytype) :: VS_SySp         ! Synchronous speed of region 2 1/2 induction generator, rad/s.
-real(mytype) :: VS_TrGnSp       ! Transitional generator speed (HSS side) between regions 2 and 2 1/2, rad/s.
+real(mytype) :: Alpha       =0.0_mytype           ! Current coefficient in the recursive, single-pole, low-pass filter, (-).
+real(mytype) :: BlPitch(3)  =0.0_mytype    ! Current values of the blade pitch angles, rad.
+real(mytype) :: ElapTime    =0.0_mytype    ! Elapsed time since the last call to the controller, sec.
+real(mytype) :: GenSpeed    =0.0_mytype    ! Current  HSS (generator) speed, rad/s.
+real(mytype) :: GenSpeedF   =0.0_mytype    ! Filtered HSS (generator) speed, rad/s.
+real(mytype) :: GenTrq      =0.0_mytype    ! Electrical generator torque, N-m.
+real(mytype) :: GK          =0.0_mytype    ! Current value of the gain correction factor, used in the gain scheduling law of the pitch controller, (-).
+real(mytype) :: HorWindV    =0.0_mytype    ! Horizontal hub-heigh wind speed, m/s.
+real(mytype) :: IntSpdErr   =0.0_mytype    ! Current integral of speed error w.r.t. time, rad.
+real(mytype) :: LastGenTrq  =0.0_mytype    ! Commanded electrical generator torque the last time the controller was called, N-m.
+real(mytype) :: LastTime    =0.0_mytype    ! Last time this contoller was called, sec.
+real(mytype) :: LastTimePC  =0.0_mytype    ! Last time the pitch  controller was called, sec.
+real(mytype) :: LastTimeVS  =0.0_mytype    ! Last time the torque controller was called, sec.
+real(mytype) :: PitCom(3)   =0.0_mytype    ! Commanded pitch of each blade the last time the controller was called, rad.
+real(mytype) :: PitComI     =0.0_mytype    ! Integral term of command pitch, rad.
+real(mytype) :: PitComP     =0.0_mytype    ! Proportional term of command pitch, rad.
+real(mytype) :: PitComT     =0.0_mytype    ! Total command pitch based on the sum of the proportional and integral terms, rad.
+real(mytype) :: PitRate(3)  =0.0_mytype    ! Pitch rates of each blade based on the current pitch angles and current pitch command, rad/s.
+real(mytype) :: SpdErr      =0.0_mytype    ! Current speed error, rad/s.
+real(mytype) :: Time        =0.0_mytype    ! Current simulation time, sec.
+real(mytype) :: TrqRate     =0.0_mytype    ! Torque rate based on the current and last torque commands, N-m/s.
+real(mytype) :: VS_Slope15  =0.0_mytype    ! Torque/speed slope of region 1 1/2 cut-in torque ramp , N-m/(rad/s).
+real(mytype) :: VS_Slope25  =0.0_mytype    ! Torque/speed slope of region 2 1/2 induction generator, N-m/(rad/s).
+real(mytype) :: VS_SySp     =0.0_mytype    ! Synchronous speed of region 2 1/2 induction generator, rad/s.
+real(mytype) :: VS_TrGnSp   =0.0_mytype    ! Transitional generator speed (HSS side) between regions 2 and 2 1/2, rad/s.
 integer :: iStatus              ! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
 end type ControllerType
 
@@ -75,8 +75,8 @@ subroutine init_controller(control,GeneratorInertia,GBRatio,GBEfficiency,&
     real(mytype), intent(in) :: Region2StartGenSpeed,Region2EndGenSpeed,Kgen,RatedPower,MaximumTorque 
     integer :: AviFail
     
-    control%GearBoxRatio=GBRatio                    ! Gear box ratio
-    control%IGenerator=GeneratorInertia             ! Moment of Inertia for the Generator
+    control%GearBoxRatio=GBRatio            ! Gear box ratio
+    control%IGenerator=GeneratorInertia     ! Moment of Inertia for the Generator
     control%VS_CtInSp=CutInGenSpeed         ! Cut-in speed   
     control%VS_RtGnSp=RatedGenSpeed         ! In rad/s
     control%VS_MaxRat=RatedLimitGenTorque   ! Rated limit to Generation Torque
@@ -86,18 +86,18 @@ subroutine init_controller(control,GeneratorInertia,GBRatio,GBEfficiency,&
     control%VS_RtPwr=RatedPower             ! Rated generator generator power in Region 3, Watts. 
     control%VS_MaxTq=MaximumTorque 
 
-    control%CornerFreq=1.570796   ! Corner frequency (-3dB point) in the recursive, single-pole, 
-    control%PC_DT=0.00125          ! 
-    control%PC_KI=0.008068634     ! Integral gain for pitch controller at rated pitch (zero), (-).
-    control%PC_KK=0.1099965       ! Pitch angle were the derivative of the aerodynamic power 
-    control%PC_KP= 0.01882681     ! Proportional gain for pitch controller at rated pitch (zero), sec.
-    control%PC_MaxPit = 1.570796  ! Maximum pitch setting in pitch controller, rad.
-    control%PC_MaxRat = 0.1396263 ! Maximum pitch  rate (in absolute value) in pitch  controller, rad/s.
-    control%PC_MinPit = 0.0       ! Minimum pitch setting in pitch controller, rad.
-    control%PC_RefSpd = 122.9096  ! Desired (reference) HSS speed for pitch controller, rad/s. 
-    control%VS_DT = 0.00125       ! JASON:THIS CHANGED FOR ITI BARGE:0.0001 !Communication interval for torque controller, sec.
-    control%VS_Rgn3MP= 0.01745329 ! Minimum pitch angle at which the torque is computed as if we are in region 3 regardless of the generator speed, rad. -- chosen to be 1.0 degree above PC_MinPit
-    control%VS_SlPc=10.0          ! Rated generator slip percentage in Region 2 1/2, %. -- chosen to be 5MW divided by the electrical generator efficiency of 94.4%
+    control%CornerFreq=1.570796_mytype   ! Corner frequency (-3dB point) in the recursive, single-pole, 
+    control%PC_DT=0.00125_mytype         ! 
+    control%PC_KI=0.008068634_mytype     ! Integral gain for pitch controller at rated pitch (zero), (-).
+    control%PC_KK=0.1099965_mytype       ! Pitch angle were the derivative of the aerodynamic power 
+    control%PC_KP= 0.01882681_mytype     ! Proportional gain for pitch controller at rated pitch (zero), sec.
+    control%PC_MaxPit = 1.570796_mytype  ! Maximum pitch setting in pitch controller, rad.
+    control%PC_MaxRat = 0.1396263_mytype ! Maximum pitch  rate (in absolute value) in pitch  controller, rad/s.
+    control%PC_MinPit = 0.0_mytype       ! Minimum pitch setting in pitch controller, rad.
+    control%PC_RefSpd = 122.9096_mytype  ! Desired (reference) HSS speed for pitch controller, rad/s. 
+    control%VS_DT = 0.00125_mytype       ! JASON:THIS CHANGED FOR ITI BARGE:0.0001 !Communication interval for torque controller, sec.
+    control%VS_Rgn3MP= 0.01745329_mytype ! Minimum pitch angle at which the torque is computed as if we are in region 3 regardless of the generator speed, rad. -- chosen to be 1.0 degree above PC_MinPit
+    control%VS_SlPc=10.0_mytype          ! Rated generator slip percentage in Region 2 1/2, %. -- chosen to be 5MW divided by the electrical generator efficiency of 94.4%
  
     ! Read input parameters
     ! Determine some torque control parameters not specified directly:
@@ -213,7 +213,7 @@ subroutine operate_controller(control,time,NumBl,rotSpeed)
 
     implicit none
     type(ControllerType), intent(inout) :: control
-   	real(mytype), intent(in) :: Time, rotSpeed
+   	real(mytype), intent(in) :: time, rotSpeed
     integer,intent(in) :: NumBl
     integer :: k
     ! This Bladed-style DLL controller is used to implement a variable-speed
@@ -232,12 +232,12 @@ subroutine operate_controller(control,time,NumBl,rotSpeed)
     control%LastTimeVS =Time-control%VS_DT ! This will ensure that the torque controller is called on the first pass 
     endif  
    
-    IF (control%iStatus>=0)  THEN  ! .TRUE. if were want to do control
+    IF (control%iStatus>0)  THEN  ! .TRUE. if were want to do control
     
     !Main control calculations:
-    !========================================================================================	
-    ! Filter the HSS (generator) speed measurement:
-    ! NOTE: This is a very simple recursive, single-pole, low-pass filter with
+     !========================================================================================	
+     ! Filter the HSS (generator) speed measurement:
+     ! NOTE: This is a very simple recursive, single-pole, low-pass filter with
     !       exponential smoothing.
     ! Update the coefficient in the recursive formula based on the elapsed time
     !   since the last call to the controller:
@@ -264,7 +264,7 @@ subroutine operate_controller(control,time,NumBl,rotSpeed)
     IF((control%GenSpeedF>=control%VS_RtGnSp).OR.(control%PitCom(1)>=control%VS_Rgn3MP)) THEN 
       control%GenTrq = control%VS_RtPwr/control%GenSpeedF
       if (nrank==0) print *, 'Turbine operates in region 3'
-   ELSEIF(control%GenSpeedF<=control%VS_CtInSp)  THEN ! We are in region 1 - torque is zero
+    ELSEIF(control%GenSpeedF<=control%VS_CtInSp)  THEN ! We are in region 1 - torque is zero
       if (nrank==0) print *, 'Turbine operates in region 1'
     control%GenTrq = 0. 
     ELSEIF((control%GenSpeedF>control%VS_CtInSp).and.(control%GenSpeedF<control%VS_Rgn2Sp))  THEN  ! We are in region 1 1/2 - linear ramp in torque from zero to optimal
@@ -283,12 +283,12 @@ subroutine operate_controller(control,time,NumBl,rotSpeed)
    ! Saturate the commanded torque using the torque rate limit:
 
     if (control%iStatus==0) control%LastGenTrq = control%GenTrq   ! Initialize the value of LastGenTrq on the first pass only
-        control%TrqRate=(control%GenTrq-control%LastGenTrq)/control%ElapTime               ! Torque rate (unsaturated)
-        control%TrqRate=MIN(MAX(control%TrqRate,-control%VS_MaxRat),control%VS_MaxRat)   ! Saturate the torque rate using its maximum absolute value
-        control%GenTrq=control%LastGenTrq+control%TrqRate*control%ElapTime ! Saturate the command using the torque rate limit
-        ! Reset the values of LastTimeVS and LastGenTrq to the current values:
-        control%LastTimeVS = Time
-        control%LastGenTrq = control%GenTrq
+    control%TrqRate=(control%GenTrq-control%LastGenTrq)/control%ElapTime               ! Torque rate (unsaturated)
+    control%TrqRate=MIN(MAX(control%TrqRate,-control%VS_MaxRat),control%VS_MaxRat)   ! Saturate the torque rate using its maximum absolute value
+    control%GenTrq=control%LastGenTrq+control%TrqRate*control%ElapTime ! Saturate the command using the torque rate limit
+    ! Reset the values of LastTimeVS and LastGenTrq to the current values:
+    control%LastTimeVS = Time
+    control%LastGenTrq = control%GenTrq
     ENDIF
 !!=======================================================================
 
@@ -316,27 +316,24 @@ subroutine operate_controller(control,time,NumBl,rotSpeed)
 
 !
    ! Compute the current speed error and its integral w.r.t. time; saturate the
-   !   integral term using the pitch angle limits:
+   ! integral term using the pitch angle limits:
 
       control%SpdErr    = control%GenSpeedF - control%PC_RefSpd                                 ! Current speed error
       control%IntSpdErr = control%IntSpdErr + control%SpdErr*control%ElapTime                           ! Current integral of speed error w.r.t. time
-      control%IntSpdErr = MIN( MAX( control%IntSpdErr, control%PC_MinPit/( control%GK*control%PC_KI ) ), &
-                                       control%PC_MaxPit/( control%GK*control%PC_KI )      )    ! Saturate the integral term using the pitch angle limits, converted to integral speed error limits
-
+      control%IntSpdErr = MIN(MAX(control%IntSpdErr,control%PC_MinPit/(control%GK*control%PC_KI)), &
+                                  control%PC_MaxPit/(control%GK*control%PC_KI)) ! Saturate the integral term using the pitch angle limits, converted to integral speed error limits
 
    ! Compute the pitch commands associated with the proportional and integral
-   !   gains:
+   !  gains:
 
       control%PitComP   = control%GK*control%PC_KP*control%SpdErr               ! Proportional term
       control%PitComI   = control%GK*control%PC_KI*control%IntSpdErr            ! Integral term (saturated)
 
-
    ! Superimpose the individual commands to get the total pitch command;
-   !   saturate the overall command using the pitch angle limits:
+   !  saturate the overall command using the pitch angle limits:
 
-      control%PitComT   = control%PitComP + control%PitComI                     ! Overall command (unsaturated)
-      control%PitComT   = MIN( MAX( control%PitComT, control%PC_MinPit ), control%PC_MaxPit )           ! Saturate the overall command using the pitch angle limits
-
+      control%PitComT   = control%PitComP + control%PitComI                                           ! Overall command (unsaturated)
+      control%PitComT   = MIN( MAX( control%PitComT, control%PC_MinPit ), control%PC_MaxPit )         ! Saturate the overall command using the pitch angle limits
 
    ! Saturate the overall commanded pitch using the pitch rate limit:
    ! NOTE: Since the current pitch angle may be different for each blade
@@ -346,11 +343,10 @@ subroutine operate_controller(control,time,NumBl,rotSpeed)
    !       blade.
 
       DO K = 1,NumBl ! Loop through all blades
-
-         control%PitRate(K) = ( control%PitComT - control%BlPitch(K) )/control%ElapTime                 ! Pitch rate of blade K (unsaturated)
+         control%PitRate(K) = (control%PitComT - control%BlPitch(K) )/control%ElapTime                 ! Pitch rate of blade K (unsaturated)
          control%PitRate(K) = MIN( MAX( control%PitRate(K), -control%PC_MaxRat ), control%PC_MaxRat)   ! Saturate the pitch rate of blade K using its maximum absolute value
-         control%PitCom (K) = control%BlPitch(K) + control%PitRate(K)*control%ElapTime                  ! Saturate the overall command of blade K using the pitch rate limit
-
+         control%PitCom (K) = control%BlPitch(K) + control%PitRate(K)*control%ElapTime                 ! Saturate the overall command of blade K using the pitch rate limit
+         control%BlPitch(K)=control%PitCom(K) 
       ENDDO          ! K - all blades
 
    ! Reset the value of LastTimePC to the current value:
@@ -385,6 +381,5 @@ ENDIF
     return
 
 end subroutine operate_controller
-
 
 end module actuator_line_controller

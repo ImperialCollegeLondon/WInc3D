@@ -193,7 +193,7 @@ call decomp_info_init(nxm,nym,nzm,phG)
 ! ======================================================
 ! Initialise inflow file
 if (iin==3) then
-    call read_inflow(ux_inflow,uy_inflow,uz_inflow)
+    call read_inflow(ux_inflow,uy_inflow,uz_inflow,0)
 endif
 
 if (ilit==0) call init(ux1,uy1,uz1,ep1,phi1,gx1,gy1,gz1,phis1,hx1,hy1,hz1,phiss1)  
@@ -238,6 +238,7 @@ itime=ifirst-1
 if (ialm==1) then
   call actuator_line_model_init(Nturbines,Nactuatorlines,TurbinesPath,ActuatorlinesPath,dt)  
   call initialize_actuator_source 
+  call Compute_Momentum_Source_Term_pointwise            
 endif
 if (iadm==1) then
   call actuator_disc_model_init(Ndiscs,admCoords,iadmmode,CT,aind,fileADM)
@@ -252,8 +253,8 @@ if (mod(itime,imodulo)==0) then
         ta3,di3,nxmsize,nymsize,nzmsize,phG,ph2,ph3,uvisu) 
 endif
 if (ialm==1) then
-if (nrank==0.and.mod(itime,imodulo)==0) then
-   call actuator_line_model_write_output(itime/imodulo) ! Write the Rotor output
+    if (nrank==0.and.mod(itime,ialmoutput)==0) then
+   call actuator_line_model_write_output(itime/ialmoutput) ! Write the Rotor output
 end if
 endif 
 
@@ -283,10 +284,17 @@ do itime=ifirst,ilast
     call actuator_disc_model_compute_source(ux1,uy1,uz1)
    endif
 
-   if (jLES.ge.2) then
-   call filter(0.49_mytype)
-   call apply_spatial_filter(ux1,uy1,uz1,phi1,ux2,uy2,uz2,phi2,ux3,uy3,uz3,phi3)
-   endif         
+   if(itripping==1.or.itripping==2) call radial_tripping(t) 
+
+    if (iin==3.and.mod(itime,NTimeSteps)==0) then
+    ! Read new inflow
+    call read_inflow(ux_inflow,uy_inflow,uz_inflow,itime/NTimeSteps)
+    endif
+
+    if (jLES.ge.2) then
+    call filter(0.49_mytype)
+    call apply_spatial_filter(ux1,uy1,uz1,phi1,ux2,uy2,uz2,phi2,ux3,uy3,uz3,phi3)
+    endif         
    
    do itr=1,iadvance_time
 
@@ -296,10 +304,9 @@ do itime=ifirst,ilast
       endif 
 
       ! Do filtering here
-      call convdiff(ux1,uy1,uz1,phi1,uxt,uyt,uzt,ep1,divdiva,curldiva,ta1,tb1,tc1,&
+      call convdiff(ux1,uy1,uz1,phi1,ep1,ta1,tb1,tc1,&
       td1,te1,tf1,tg1,th1,ti1,di1,ux2,uy2,uz2,phi2,ta2,tb2,tc2,td2,te2,tf2,tg2,th2,&
-      ti2,tj2,di2,ux3,uy3,uz3,phi3,ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3,nut1,shrt_coeff, &
-      ucx1,ucy1,ucz1,tmean,sgszmean,sgsxmean,sgsymean)
+      ti2,tj2,di2,ux3,uy3,uz3,phi3,ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3,nut1,shrt_coeff)
 
       ! Potential Temperature -- to be computed after the convdiff
       if (ibuoyancy==1) then
@@ -342,18 +349,15 @@ do itime=ifirst,ilast
 
       call test_speed_min_max(ux1,uy1,uz1)
       if (iscalar==1) call test_scalar_min_max(phi1)
-
-      enddo
+        
+    enddo
        
+
+
         if (t>=spinup_time) then
         call STATISTIC(ux1,uy1,uz1,phi1,ta1,umean,vmean,wmean,phimean,uumean,vvmean,wwmean,&
            uvmean,uwmean,vwmean,phiphimean,tmean)
         
-        if(ioutflow==1) then
-        output_counter=output_counter+1
-        call append_outflow(ux1,uy1,uz1,output_counter) 
-        endif
-
         if(ialm==1) call actuator_line_statistics()
 
         if(iprobe==1) then
@@ -366,6 +370,11 @@ do itime=ifirst,ilast
                call probe_pencil(ux1,uy1,uz1,phi1)
                call write_probe(itime/nsampling) 
            endif
+        endif
+
+        if(isnapshot==1.and.mod(itime,sfreq)==0) then
+            ! WRITE SNAPSHOTS
+            call VISU_SNAP(ux1,uy1,uz1,uvisu)
         endif
    
         endif
@@ -382,19 +391,31 @@ do itime=ifirst,ilast
    endif
 
    if (ialm==1) then
-    if (nrank==0.and.mod(itime,imodulo)==0) then
-       call actuator_line_model_write_output(itime/imodulo) ! Write the Rotor output
+    if (nrank==0.and.mod(itime,ialmoutput)==0) then
+       call actuator_line_model_write_output(itime/ialmoutput) ! Write the Rotor output
     end if
    endif 
    if (iadm==1) then
     if (nrank==0.and.mod(itime,imodulo)==0) then 
        call actuator_disc_model_write_output(itime/imodulo) ! Write the disc output
     end if
-   endif 
+   endif
+
+    if(ioutflow==1) then
+      
+      output_counter=output_counter+1
+      call append_outflow(ux1,uy1,uz1,output_counter)  
+    
+      if (mod(itime,NTimeSteps)==0) then 
+          call write_outflow(itime/NTimeSteps)  
+          output_counter=0
+      endif
+    endif
+
+
 enddo
     ! Write Outflow 
     
-    if (ioutflow==1) call write_outflow()  
 
 t2=MPI_WTIME()-t1
 call MPI_ALLREDUCE(t2,t1,1,MPI_REAL8,MPI_SUM, &

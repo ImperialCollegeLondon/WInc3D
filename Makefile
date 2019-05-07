@@ -21,7 +21,7 @@ FFTW3_LIB = -L$(FFTW3_PATH)/lib -lfftw3 -lfftw3f
 
 # GNU
 FC = mpif90
-OPTFC = -O3 -funroll-loops -ftree-vectorize -fcray-pointer -cpp -ffree-line-length-0 -g -fbacktrace -ffpe-trap=invalid,zero
+OPTFC = -O3 -funroll-loops -ftree-vectorize -fcray-pointer -cpp -ffree-line-length-0 -g -fbacktrace -fcheck=all -ffpe-trap=invalid,zero  
 CC = mpicc
 CFLAGS = -O3 
 LIBS = -fopenmp -llapack -lblas   
@@ -33,7 +33,7 @@ else ifeq ($(FFT),fftw3)
   INC=
 endif
 
-SRC = decomp_2d.f90 glassman.f90 fft_$(FFT).f90 module_param.f90 io.f90 variables.f90 poisson.f90 les_models.f90 SVV.f90 schemes.f90 convdiff.f90 acl_utils.f90 airfoils.f90 dynstall_legacy.f90 dynstall.f90 acl_elem.f90 acl_beam.f90 acl_controller.f90 acl_turb.f90 acl_out.f90 acl_model.f90 acl_source.f90 adm.f90 incompact3d.f90 navier.f90 filters.f90 derive.f90 parameters.f90 tools.f90 visu.f90 probe.f90 cfl.f90 ABL.f90 
+SRC = decomp_2d.f90 glassman.f90 fft_$(FFT).f90 module_param.f90 io.f90 variables.f90 poisson.f90 les_models.f90 SVV.f90 schemes.f90 convdiff.f90 acl_utils.f90 airfoils.f90 dynstall_legacy.f90 dynstall.f90 acl_elem.f90 acl_controller.f90 acl_turb.f90 acl_out.f90 acl_farm_controller.f90 acl_model.f90 acl_source.f90 adm.f90  incompact3d.f90 navier.f90 filters.f90 derive.f90 parameters.f90 tools.f90 visu.f90 probe.f90 cfl.f90 ABL.f90 
 
 ifneq (,$(findstring DSHM,$(OPTIONS)))
 SRC := FreeIPC.f90 $(SRC) $(SRCALM)
@@ -45,6 +45,9 @@ OBJALM =	$(SRCALM:.f90=.o)
 endif	
 
 all: incompact3d visualize
+
+fileOperation.o: fileOperation.c
+	$(CC) $(CFLAGS) -c $<
 
 alloc_shm.o: alloc_shm.c
 	$(CC) $(CFLAGS) -c $<

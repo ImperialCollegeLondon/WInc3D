@@ -339,13 +339,12 @@ do j=1,xsize(2)
    if (ux(nx-1,j,k).lt.uxmin) uxmin=ux(nx-1,j,k)
 enddo
 enddo
+
 call MPI_ALLREDUCE(uxmax,uxmax1,1,real_type,MPI_MAX,MPI_COMM_WORLD,code)
 call MPI_ALLREDUCE(uxmin,uxmin1,1,real_type,MPI_MIN,MPI_COMM_WORLD,code)
 vphase=0.5*(uxmax1+uxmin1)
 
 cx=vphase*gdt(itr)*udx
-
-
 if (itype.ne.9) then
    do k=1,xsize(3)
    do j=1,xsize(2)
@@ -420,8 +419,11 @@ if (itype.eq.2) then
 endif
 
 if (itype.eq.3) then
-    if (nrank==0) print *,'READ initial conditions from file'
-    if (NTimeSteps<xsize(1).and.nrank==0) write(*,*) "Ntimesteps should be at least equal to nx"
+   if (nrank==0) print *,'Reading initial conditions from file'
+   if (NTimeSteps<xsize(1)) then 
+        write(*,*) "Ntimesteps should be at least equal to nx"
+        stop
+   endif
    do k=1,xsize(3)
    do j=1,xsize(2)
    do i=1,xsize(1)
@@ -529,6 +531,12 @@ real(mytype) :: y,z,r,um,r1,r2,r3
 integer :: k,j,i,fh,ierror,ii
 integer :: code
 integer (kind=MPI_OFFSET_KIND) :: disp
+
+if(iin.eq.0) then
+ux1=0.
+uy1=0.
+uz1=0.
+endif
 
 if (iin.eq.1) then !generation of a random noise near the bottom of the channel
 call system_clock(count=code)
@@ -728,7 +736,6 @@ call inter6(tf1,tc1,di1,sx,cifxp6,cisxp6,ciwxp6,xsize(1),nxmsize,xsize(2),xsize(
 call transpose_x_to_y(td1,td2,ph4)!->NXM NY NZ
 call transpose_x_to_y(te1,te2,ph4)
 call transpose_x_to_y(tf1,tf2,ph4)
-
 
 !WORK Y-PENCILS
 call intery6(ta2,td2,di2,sy,cifyp6,cisyp6,ciwyp6,(ph1%yen(1)-ph1%yst(1)+1),ysize(2),nymsize,ysize(3),1)
