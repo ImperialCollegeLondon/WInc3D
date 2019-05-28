@@ -574,7 +574,7 @@ contains
             end do
             ! Computes the displacement on the turbine  
             if(turbine(i)%do_aeroelasticity) then
-                call actuator_line_beam_solve(Turbine(i)%blade,Turbine(i)%beam,Turbine(i)%Nblades,Turbine(i)%RotN,Turbine(i)%angularVel,deltaT)
+                call actuator_line_beam_solve(Turbine(i)%blade,Turbine(i)%beam,Turbine(i)%RotN,Turbine(i)%Nblades,Turbine(i)%angularVel,deltaT)
                 do j=1,Turbine(i)%Nblades
                 call Compute_ActuatorLine_Forces(Turbine(i)%Blade(j),visc,deltaT,ctime)    
                 end do

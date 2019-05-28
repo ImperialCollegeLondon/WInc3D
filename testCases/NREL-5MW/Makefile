@@ -1,5 +1,5 @@
 run:
-	mpirun -np 16 ~/WInc3D/incompact3d NREL-5MW.in
+	mpirun -np 1 ~/WInc3D/incompact3d NREL-5MW.in
 
 vis:
 	~/WInc3D/visualize NREL-5MW.pprc

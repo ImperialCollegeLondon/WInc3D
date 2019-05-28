@@ -4,9 +4,9 @@
     iin = 0              ! Inflow conditions (1: classic, 2: turbinit)
     
     ! Domain and scaling
-    xlx = 252            ! Lx (Size of the box in x-direction)
-    yly = 252            ! Ly (Size of the box in y-direction) 
-    zlz = 252            ! Lz (Size of the box in z-direction) 
+    xlx = 504            ! Lx (Size of the box in x-direction)
+    yly = 504            ! Ly (Size of the box in y-direction) 
+    zlz = 504            ! Lz (Size of the box in z-direction) 
     re  = 66667           ! nu=1/re (Kinematic Viscosity)
     sc  = 1.              ! Schmidt number (if passive scalar)
     u1  = 8.0              ! u1 (max velocity) (for inflow condition)
@@ -28,8 +28,8 @@
     nx=129                 ! X-direction nodes
     ny=129                  ! Y-direction nodes
     nz=128                 ! Z-direction nodes
-    p_row=4                ! Row partition
-    p_col=4                ! Column partition
+    p_row=1                ! Row partition
+    p_col=1                ! Column partition
 
     ! Boundary conditions and mesh 
     nclx = 2              ! nclx (BC)
@@ -40,11 +40,7 @@
 
     ! Time and time-marching schemes
     ifirst = 1	          ! First iteration   
-<<<<<<< HEAD
-    ilast = 1        ! Last iteration 
-=======
-    ilast = 2000        ! Last iteration 
->>>>>>> master
+    ilast = 1000        ! Last iteration 
     nscheme = 2           ! Temporal scheme (1: ?, 2: RK3, 3:RK4, 4:AB2)
     dt = 0.02             ! Time step
     
@@ -73,8 +69,8 @@
 
 &FileParam
     ilit=0                ! Read initial flow field ?
-    isave=25     	  ! Frequency for writing backup file  
-    imodulo=25         ! Frequency for visualization 
+    isave=10     	  ! Frequency for writing backup file  
+    imodulo=10         ! Frequency for visualization 
     ioutflow=0		  ! Outflow flag
     NTimeSteps=2000
 /End
@@ -102,7 +98,7 @@ iadm=0
 /End
 
 &ABLParam
-iabl=1                    ! iabl (1: atmospheric boundary layer modelling by applying a shear stress)
+iabl=0                    ! iabl (1: atmospheric boundary layer modelling by applying a shear stress)
 z_zero=0.001	              ! Roughness length
 k_roughness=0.4          ! von Karman constant (usually taken to be equal to 0.41)
 ustar=0.281              ! friction velocity

@@ -7,6 +7,7 @@ module actuator_line_beam_model
     use actuator_line_element
     use xbeam_shared, only: xbelem, xbnode, xbopts
     use xbeam_undef, only: xbeam_undef_relatree
+    use cbeam3_interface
     use lib_rotvect 
     
     type BeamType
@@ -108,7 +109,7 @@ contains
         beam%node_struct_twist(i)=beam%StrcTwist(i)
         beam%EA(i) =0.5_mytype*(beam%EAStff(i)+beam%EAStff(i+1))
         beam%EIz(i)=0.5_mytype*(beam%FlpStff(i)+beam%FlpStff(i+1)) ! Flap and edge-wise directions are in a local co-ordinate system
-        beam%EIy(i)=0.5_mytype*(beam%FlpStff(i)+beam%FlpStff(i+1)) 
+        beam%EIy(i)=0.5_mytype*(beam%EdgStff(i)+beam%EdgStff(i+1)) 
         beam%GJ(i)=0.5_mytype*(beam%GJStff(i)+beam%GJStff(i+1)) 
         beam%GAy(i)=beam%EA(i)/2.0_mytype*(1.0_mytype+beam%poisson_coeff)  
         beam%GAz(i)=beam%EA(i)/2.0_mytype*(1.0_mytype+beam%poisson_coeff)
@@ -166,25 +167,34 @@ contains
     
     do iblade=1,Nblades 
         ! Init the coordinates from the actuator line model
-        call QuatRot(0.0_mytype,0.0_mytype,1.0_mytype,(iblade-1)/Nblades*2*pi,1.0_mytype,& 
-                    0.0_mytype,0.0_mytype,0.0_mytype,0.0_mytype,0.0_mytype,BFoRx(1),BFoRx(2),BFoRx(3))
-        call QuatRot(0.0_mytype,-1.0_mytype,0.0_mytype,(iblade-1)/Nblades*2*pi,1.0_mytype,& 
-                    0.0_mytype,0.0_mytype,0.0_mytype,0.0_mytype,0.0_mytype,BFoRy(1),BFoRy(2),BFoRy(3))
-        call QuatRot(1.0_mytype,0.0_mytype,0.0_mytype,(iblade-1)/Nblades*2*pi,1.0_mytype,& 
-                    0.0_mytype,0.0_mytype,0.0_mytype,0.0_mytype,0.0_mytype,BFoRz(1),BFoRz(2),BFoRz(3))
-        RotMat=reshape((/BForx(1),BForx(2),BForx(3),&
-                         BFory(1),BFory(2),BFory(3),&
-                         BForz(1),BForz(2),BForz(3)/),(/3,3/))
         do jelem=1,acl(iblade)%Nelem
-        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem-1,1)=acl(iblade)%QCx(jelem)        ! First-point of the element
-        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem,  1)=acl(iblade)%PEx(jelem)        ! Mid-point of the element
-        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem+1,1)=acl(iblade)%QCx(jelem+1)      ! Last-point of the element
-        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem-1,2)=acl(iblade)%QCy(jelem)        ! First-point of the element
-        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem,  2)=acl(iblade)%PEy(jelem)        ! Mid-point of the element
-        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem+1,2)=acl(iblade)%QCy(jelem+1)      ! Last-point of the element
-        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem-1,3)=acl(iblade)%QCz(jelem)        ! First-point of the element
-        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem,  3)=acl(iblade)%PEz(jelem)        ! Mid-point of the element
-        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem+1,3)=acl(iblade)%QCz(jelem+1)      ! Last-point of the element
+        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem-1,1)=acl(iblade)%QCx(jelem)  -acl(iblade)%COR(1)       ! First-point of the element
+        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem,  1)=acl(iblade)%PEx(jelem)  -acl(iblade)%COR(1)       ! Mid-point of the element
+        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem+1,1)=acl(iblade)%QCx(jelem+1)-acl(iblade)%COR(1)     ! Last-point of the element
+        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem-1,2)=acl(iblade)%QCy(jelem)  -acl(iblade)%COR(2)       ! First-point of the element
+        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem,  2)=acl(iblade)%PEy(jelem)  -acl(iblade)%COR(2)       ! Mid-point of the element
+        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem+1,2)=acl(iblade)%QCy(jelem+1)-acl(iblade)%COR(2)     ! Last-point of the element
+        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem-1,3)=acl(iblade)%QCz(jelem)  -acl(iblade)%COR(3)       ! First-point of the element
+        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem,  3)=acl(iblade)%PEz(jelem)  -acl(iblade)%COR(3)       ! Mid-point of the element
+        beam%pos_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem+1,3)=acl(iblade)%QCz(jelem+1)-acl(iblade)%COR(3)     ! Last-point of the element
+        
+        ! BFoRx --> spanwise
+        ! BFoRy --> tangential (negative)
+        ! BFoRz --> normal (positive)
+        BFoRx(1)= acl(iblade)%sEx(jelem)
+        BFoRx(2)= acl(iblade)%sEy(jelem)
+        BFoRx(3)= acl(iblade)%sEz(jelem)
+        BFoRy(1)=-acl(iblade)%tEx(jelem)
+        BFoRy(2)=-acl(iblade)%tEy(jelem)
+        BFoRy(3)=-acl(iblade)%tEz(jelem)
+        BFoRz(1)= acl(iblade)%nEx(jelem)
+        BFoRz(2)= acl(iblade)%nEy(jelem)
+        BFoRz(3)= acl(iblade)%nEz(jelem)
+
+        RotMat=reshape((/BForx(1), BForx(2), BForx(3),&
+                         BFory(1), BFory(2), BFory(3),&
+                         BForz(1), BForz(2), BForz(3)/),(/3,3/))
+         
         beam%psi_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem-1,1,:)=rotvect_mat2psi(RotMat)     ! First-point of the element
         beam%psi_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem,  1,:)=rotvect_mat2psi(RotMat)     ! Mid-point of the element
         beam%psi_ini((iblade-1)*(2*acl(iblade)%NElem+1)+2*jelem+1,1,:)=rotvect_mat2psi(RotMat)     ! Last-point of the element
@@ -201,40 +211,44 @@ contains
         beam%pos_dot_def=0.0_mytype  
         beam%psi_dot_def=0.0_mytype
 
-    
+
         !Define Element information (beam%elem) based on the beam information
         do jelem=1,acl(iblade)%NElem    
             beam%elem(jelem+(iblade-1)*acl(iblade)%NElem)%NumNodes=3
             beam%elem(jelem+(iblade-1)*acl(iblade)%NElem)%MemNo=iblade
-            beam%elem(jelem+(iblade-1)*acl(iblade)%NElem)%Conn=(/1.0d0,1.0d0,1.0d0/)*((jelem-1)*(3-1)+(iblade-1))+(/0.0d0,2.0d0,1.0d0/)
+            beam%elem(jelem+(iblade-1)*acl(iblade)%NElem)%Conn=(/1,1,1/)*(2*(jelem-1)+2*(iblade-1)*acl(iblade)%NElem)+(/1,1,1/)*iblade+(/0,2,1/)
             beam%elem(jelem+(iblade-1)*acl(iblade)%NElem)%Length=acl(iblade)%EDS(jelem) ! Does not to be computed directly 
             beam%elem(jelem+(iblade-1)*acl(iblade)%NElem)%PreCurv=(/0.d0,0.d0,0.d0/) !  This is not used and therefore is set to
                                                                                      !  zero
             beam%elem(jelem+(iblade-1)*acl(iblade)%NElem)%Psi=(/0.d0,0.d0,0.d0/) ! Not used
             beam%elem(jelem+(iblade-1)*acl(iblade)%NElem)%Vector=(/0.d0,0.d0,0.d0/) ! Not used  
         enddo
+    enddo 
         ! Define the master (tree of nodes shared between elements)
         call xbeam_undef_relatree(beam%elem)
 
-        ! Define node (beam%node) params 
-        do i_elem=1,beam%NElems
-            do i_node_local=1,3
-                if(beam%elem(i_elem)%master(i_node_local,1)==0) then
-                     if(beam%elem(i_elem)%master(i_node_local,1)<1) then
-                        beam%elem(i_elem)%master(i_node_local,1)=i_elem
-                        beam%elem(i_elem)%master(i_node_local,2)=i_node_local
-                    endif
-                else
-                    master_elem=beam%elem(i_elem)%master(i_node_local,1)
-                    master_node=beam%elem(i_elem)%master(i_node_local,2)
-                     if(beam%elem(i_elem)%master(i_node_local,1)<1) then
-                        beam%elem(i_elem)%master(i_node_local,1)=master_elem
-                        beam%elem(i_elem)%master(i_node_local,2)=master_node
-                    endif
-                endif
-            enddo
-        enddo
         
+        ! Define node (beam%node) params 
+     do i_elem=1,beam%NElems
+         do i_node_local=1,3
+             if(beam%elem(i_elem)%master(i_node_local,1)==0) then
+                  if(beam%node(beam%elem(i_elem)%Conn(i_node_local))%master(1)<1) then
+                     beam%node(beam%elem(i_elem)%Conn(i_node_local))%master(1)=i_elem
+                     beam%node(beam%elem(i_elem)%Conn(i_node_local))%master(2)=i_node_local
+                 endif
+             else
+                 master_elem=beam%elem(i_elem)%master(i_node_local,1)
+                 master_node=beam%elem(i_elem)%master(i_node_local,2)
+                  if(beam%node(beam%elem(i_elem)%Conn(i_node_local))%master(1)<1) then
+                     beam%node(beam%elem(i_elem)%Conn(i_node_local))%master(1)=master_elem
+                     beam%node(beam%elem(i_elem)%Conn(i_node_local))%master(2)=master_node
+                 endif
+             endif
+         enddo
+     enddo
+      
+
+    do iblade=1,Nblades 
         fcounter=0
         vcounter=0
         do jelem=1,acl(iblade)%NElem
@@ -251,14 +265,7 @@ contains
             beam%node(jelem+(iblade-1)*acl(iblade)%NElem)%Vdof=vcounter
             endif
         enddo
-    enddo 
-    
-    if(nrank==0) then 
-        do i=1,beam%Nnodes 
-        print *, beam%pos_ini(i,2)-90
-        enddo
-    endif
-    
+    enddo
     beam%quat=(/1.0_mytype,0.0_mytype,0.0_mytype,0.0_mytype/)
 
     ! Set options 
@@ -268,7 +275,7 @@ contains
     end subroutine actuator_line_beam_model_init
 
 
-    subroutine actuator_line_beam_solve(blade,beam,Nblades,RotN,angularVel,dt)
+    subroutine actuator_line_beam_solve(blade,beam,RotN,Nblades,angularVel,dt)
 
     use cbeam3_solv ! This loads the module from xbeam (WInc3D needs to be compiled against the xbeam library)
 
@@ -279,11 +286,12 @@ contains
     type(ActuatorLineType),intent(in) :: blade(3)
 	real(mytype), intent(in) :: dt, angularVel, RotN(3)
     real(mytype) :: quat(4), for_vel(6), for_acc(6)
-    real(mytype), allocatable :: CBA(:,:,:)  
+    real(mytype), allocatable :: CBA(:,:,:), q(:), dqdt(:) 
     integer :: inode, imaster_elem, imaster_node,i_index, iblade, jelem
     
     allocate(CBA(beam%Nnodes,3,3))
-   
+    allocate(q(beam%Ndofs+10),dqdt(beam%Ndofs+10))
+
     ! Translate the beam forces from the global to the local CRF
     beam%static_forces=0.0
     for_vel=(/0.0_mytype,0.0_mytype,0.0_mytype,RotN(1)*angularVel,RotN(2)*angularVel,RotN(3)*angularVel/)
@@ -303,41 +311,44 @@ contains
             enddo
         enddo
     enddo
-     
+    
     do inode=1,beam%Nnodes
         CBA(inode, :, :)=rotvect_psi2Mat(beam%psi_def(beam%node(inode)%master(1),beam%node(inode)%master(2),:))
         beam%dynamic_forces(inode, 1:3) = MATMUL(CBA(inode, :, :), beam%FORCE(inode, 1:3)) ! FORCES IN A FoR
+        beam%static_forces=0._mytype
     enddo
- 
+
 
     !do iblade=1,Nblades 
     !    do jelem=1,blade(iblade)%Nelem
     !        do inode=1,3
     !            i_index=(iblade-1)*(2*blade(iblade)%NElem+1)+2*jelem-1+inode-1
-    !            if(nrank==0) print *, beam%Force(i_index,1), blade(iblade)%EFx(jelem)
     !        enddo
     !    enddo
     !enddo
 
-    !call cbeam3_solv_nlndyn_step(beam%Ndofs, &
-    !                                beam%NElems,&
-    !                                beam%Nnodes,&
-    !                                dt,&
-    !                                beam%elem,&
-    !                                beam%node,&
-    !                                beam%static_forces,&
-    !                                beam%dynamic_forces,&
-    !                                beam%gravity_forces,&
-    !                                beam%quat,&
-    !                                for_vel,& ! Frame of reference velocity
-    !                                for_acc,& ! Frame of reference acceleration
-    !                                beam%pos_ini,& ! Initial -- unloaded position of the nodes
-    !                                beam%psi_ini,& ! Initial -- unloaded cartertisian rotation vector
-    !                                beam%pos_def,&
-    !                                beam%psi_def,&
-    !                                beam%pos_dot_def,&
-    !                                beam%psi_dot_def,&
-    !                                beam%options)
+
+    call cbeam3_solv_nlndyn_step(beam%Ndofs, &
+                                 beam%NElems,&
+                                 beam%Nnodes,&
+                                 dt,&
+                                 beam%elem,&
+                                 beam%node,&
+                                 beam%static_forces,&
+                                 beam%dynamic_forces,&
+                                 beam%gravity_forces,&
+                                 beam%quat,&
+                                 for_vel,&              ! Frame of reference velocity
+                                 for_acc,&              ! Frame of reference acceleration
+                                 beam%pos_ini,&         ! Initial -- unloaded position of the nodes
+                                 beam%psi_ini,&         ! Initial -- unloaded cartertisian rotation vector
+                                 beam%pos_def,&
+                                 beam%psi_def,&
+                                 beam%pos_dot_def,&
+                                 beam%psi_dot_def,&
+                                 q,&
+                                 dqdt,&
+                                 beam%options)
 
     return
 
