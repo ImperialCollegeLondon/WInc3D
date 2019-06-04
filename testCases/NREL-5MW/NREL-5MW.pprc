@@ -2,9 +2,9 @@
     nx=129
     ny=129
     nz=128
-    xlx = 252           ! Lx (Size of the box in x-direction)
-    yly = 252           ! Ly (Size of the box in y-direction) 
-    zlz = 252           ! Lz (Size of the box in z-direction) 
+    xlx = 504           ! Lx (Size of the box in x-direction)
+    yly = 504           ! Ly (Size of the box in y-direction) 
+    zlz = 504           ! Lz (Size of the box in z-direction) 
     nclx=2
     ncly=1
     nclz=0
