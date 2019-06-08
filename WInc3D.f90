@@ -1,26 +1,18 @@
 !###############################################################################
-!This file is part of Incompact3d.
-!
-!Incompact3d
-!Copyright (c) 2012 Eric Lamballais and Sylvain Laizet
-!eric.lamballais@univ-poitiers.fr / sylvain.laizet@gmail.com
-!
-!    Incompact3d is free software: you can redistribute it and/or modify
-!    it under the terms of the GNU General Public License as published by
-!    the Free Software Foundation.
-!
-!    Incompact3d is distributed in the hope that it will be useful,
-!    but WITHOUT ANY WARRANTY; without even the implied warranty of
-!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-!    GNU General Public License for more details.
-!
-!    You should have received a copy of the GNU General Public License
-!    along with the code.  If not, see <http://www.gnu.org/licenses/>.
+!This file is part of WInc3D.
 !-------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------
-!    We kindly request that you cite Incompact3d in your publications and 
+!    We kindly request that you cite WInc3D in your publications and 
 !    presentations. The following citations are suggested:
 !
+!    Deskos, G., S. Laizet, and M. D. Piggott. “Turbulence-resolving simulations 
+!    of wind turbine wakes”. Renewable Energy 134 (2019), pp. 989 –1002. 
+!
+!    Deskos, G., S. Laizet, and M. D. Piggott. “Development and validation of the 
+!    higher-order finite-difference wind farm simulator, WInc3D”. 3rd International 
+!    Conference on Renewable Energies Offshore (RENEW2018). Lisbon, Portugal, 2018.
+!
+!    For the core numerical solver the following citations are suggested
+! 
 !    1-Laizet S. & Lamballais E., 2009, High-order compact schemes for 
 !    incompressible flows: a simple and efficient method with the quasi-spectral 
 !    accuracy, J. Comp. Phys.,  vol 228 (15), pp 5989-6015
@@ -30,7 +22,7 @@
 !    Methods in Fluids, vol 67 (11), pp 1735-1757
 !################################################################################
 
-PROGRAM incompact3d
+PROGRAM WInc3D
 
 USE decomp_2d
 USE decomp_2d_poisson
@@ -94,11 +86,10 @@ if (nrank==0) then
 print *,'==========================================================='
 print *,'==========================================================='
 print *,'==========================================================='
-print *,'======================Incompact3d=========================='
-print *,'===Copyright (c) 2012 Eric Lamballais and Sylvain Laizet==='
-print *,'eric.lamballais@univ-poitiers.fr / sylvain.laizet@gmail.com'
-print *,'Imperial College London Version: '
-print *,'Currently in development by G. Deskos'
+print *,'======================WInc3D =============================='
+print *,'=== High fidelity Wind farm simulator ====================='
+print *,' Developed by G. Deskos : gdeskosv@gmail.com'
+print *,' Code based on incompact3d'
 print *,'==========================================================='
 print *,'==========================================================='
 print *,'==========================================================='
@@ -430,4 +421,4 @@ if (nrank==0) print *,'Mapping p_row*p_col=',p_row,p_col
 call decomp_2d_finalize
 CALL MPI_FINALIZE(code)
 
-end PROGRAM incompact3d
+end PROGRAM WInc3D 
