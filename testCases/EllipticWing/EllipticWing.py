@@ -28,7 +28,7 @@ with open('EllipticWing_ae'+str(alpha)+'.al','w') as fout:
 
 plt.plot(rR*b,cR*b)
 plt.show()
-exit()
+
 AOA=np.linspace(-180,180,361)
 CL=0.4+2*pi*AOA/180.*pi
 CD=0.*AOA

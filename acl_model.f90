@@ -26,13 +26,14 @@ contains
 
     subroutine actuator_line_model_init(Nturbines,Nactuatorlines,turbines_file,actuatorlines_file,dt)
 
-        use param, only: ialmrestart
+        use param, only: ialmrestart, filealmrestart
 
         implicit none
         integer :: Nturbines, Nactuatorlines
         character(len=80),dimension(100),intent(in) :: turbines_file, actuatorlines_file 
         real(mytype), intent(in) :: dt
         integer :: itur,ial 
+        character(1000) :: ReadLine
         
         if (nrank==0) then        
         write(6,*) '====================================================='
@@ -49,6 +50,16 @@ contains
         endif
         call get_turbine_options(turbines_file)
         if (Ntur>0) then 
+            if (ialmrestart==1) then
+            ! Read the checkpoint information and rotate actuator lines accordingly
+            open(17,file=filealmrestart)
+            ! Read the azimuthal angle 
+            do itur=1,Ntur
+            read(22,'(A)') ReadLine ! Turb ....
+            read(ReadLine,*) turbine(itur)%AzimAngle, turbine(itur)%angularVel,turbine(itur)%cbp
+            end do
+            close(17)
+            endif
             do itur=1,Ntur
             call set_turbine_geometry(Turbine(itur))
             end do

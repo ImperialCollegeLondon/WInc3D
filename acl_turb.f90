@@ -128,12 +128,7 @@ contains
 
     end do
     
-    ! Rotate Blade 1 to form the other blades 
-    if (ialmrestart==1) then
-    ! Read the checkpoint information and rotate actuator lines accordingly
-    endif
-
-    call rotate_actuatorline(turbine%blade(iblade),turbine%blade(iblade)%COR,turbine%RotN,(iblade-1)*theta)   
+    call rotate_actuatorline(turbine%blade(iblade),turbine%blade(iblade)%COR,turbine%RotN,(iblade-1)*theta+turbine%AzimAngle)   
  
     call make_actuatorline_geometry(turbine%blade(iblade))
     

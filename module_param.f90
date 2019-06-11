@@ -79,7 +79,7 @@ real(mytype),dimension(3) :: UG
 integer :: itr,itime
 character :: dirname*80
 character :: filesauve*80, filenoise*80, &
-     nchamp*80,filepath*80, fileturb*80, filevisu*80 
+     nchamp*80,filepath*80, fileturb*80, filevisu*80, filealmrestart*80 
 character,dimension(100) :: turbinesPath*80, ActuatorlinesPath*80 ! Assign a maximum number of 100 turbines and alms
 real(mytype), dimension(5) :: adt,bdt,cdt,gdt
 ! Actuator disc model
