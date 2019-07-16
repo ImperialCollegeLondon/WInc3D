@@ -44,7 +44,7 @@ OBJ =	$(SRC:.f90=.o)
 OBJALM =	$(SRCALM:.f90=.o) 
 endif	
 
-all: incompact3d visualize
+all: winc3d visualize
 
 fileOperation.o: fileOperation.c
 	$(CC) $(CFLAGS) -c $<
@@ -55,7 +55,7 @@ alloc_shm.o: alloc_shm.c
 FreeIPC_c.o: FreeIPC_c.c
 	$(CC) $(CFLAGS) -c $<
 
-incompact3d : $(OBJ)
+winc3d : $(OBJ)
 	$(FC) -O3 -o $@ $(OBJ) $(LIBFFT) $(LIBS) $(DEBUG) 
 
 %.o : %.f90

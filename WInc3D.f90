@@ -58,7 +58,7 @@ CALL MPI_INIT(code)
 ! Handle Input file
 nargin=command_argument_count()
 if (nargin <1) then
-    write(6,*) 'Please call the program with the name of the input file on the command line Ex. incompact3d input.in'
+    write(6,*) 'Please call the program with the name of the input file on the command line Ex. winc3d input.in'
     stop
 endif
 
