@@ -106,46 +106,42 @@ endif
 if (nscheme==4) then
    if ((itime.eq.1).and.(ilit.eq.0)) then
       if (nrank==0) print *,'start with Euler',itime
-      do ijk=1,nxyz !start with Euler
-         ux(ijk,1,1)=dt*ta1(ijk,1,1)+ux(ijk,1,1)
-         uy(ijk,1,1)=dt*tb1(ijk,1,1)+uy(ijk,1,1) 
-         uz(ijk,1,1)=dt*tc1(ijk,1,1)+uz(ijk,1,1)
-         gx(ijk,1,1)=ta1(ijk,1,1)
-         gy(ijk,1,1)=tb1(ijk,1,1)
-         gz(ijk,1,1)=tc1(ijk,1,1)            
-      enddo
+      !start with Euler
+         ux(:,:,:)=dt*ta1(:,:,:)+ux(:,:,:)
+         uy(:,:,:)=dt*tb1(:,:,:)+uy(:,:,:) 
+         uz(:,:,:)=dt*tc1(:,:,:)+uz(:,:,:)
+         gx(:,:,:)=ta1(:,:,:)
+         gy(:,:,:)=tb1(:,:,:)
+         gz(:,:,:)=tc1(:,:,:)            
    else
       if  ((itime.eq.2).and.(ilit.eq.0)) then
           if (nrank==0) print *,'then with AB2',itime
-         do ijk=1,nxyz
-            ux(ijk,1,1)=1.5*dt*ta1(ijk,1,1)-0.5*dt*gx(ijk,1,1)+ux(ijk,1,1)
-            uy(ijk,1,1)=1.5*dt*tb1(ijk,1,1)-0.5*dt*gy(ijk,1,1)+uy(ijk,1,1)
-            uz(ijk,1,1)=1.5*dt*tc1(ijk,1,1)-0.5*dt*gz(ijk,1,1)+uz(ijk,1,1)
-            hx(ijk,1,1)=gx(ijk,1,1)
-            hy(ijk,1,1)=gy(ijk,1,1)
-            hz(ijk,1,1)=gz(ijk,1,1)
-            gx(ijk,1,1)=ta1(ijk,1,1)
-            gy(ijk,1,1)=tb1(ijk,1,1)
-            gz(ijk,1,1)=tc1(ijk,1,1)
-         enddo 
+            ux(:,:,:)=1.5*dt*ta1(:,:,:)-0.5*dt*gx(:,:,:)+ux(:,:,:)
+            uy(:,:,:)=1.5*dt*tb1(:,:,:)-0.5*dt*gy(:,:,:)+uy(:,:,:)
+            uz(:,:,:)=1.5*dt*tc1(:,:,:)-0.5*dt*gz(:,:,:)+uz(:,:,:)
+            hx(:,:,:)=gx(:,:,:)
+            hy(:,:,:)=gy(:,:,:)
+            hz(:,:,:)=gz(:,:,:)
+            gx(:,:,:)=ta1(:,:,:)
+            gy(:,:,:)=tb1(:,:,:)
+            gz(:,:,:)=tc1(:,:,:)
       else
-         do ijk=1,nxyz
-            ux(ijk,1,1)=adt(itr)*ta1(ijk,1,1)+bdt(itr)*gx(ijk,1,1)+&
-                 cdt(itr)*hx(ijk,1,1)+ux(ijk,1,1)
-            uy(ijk,1,1)=adt(itr)*tb1(ijk,1,1)+bdt(itr)*gy(ijk,1,1)+&
-                 cdt(itr)*hy(ijk,1,1)+uy(ijk,1,1)
-            uz(ijk,1,1)=adt(itr)*tc1(ijk,1,1)+bdt(itr)*gz(ijk,1,1)+&
-                 cdt(itr)*hz(ijk,1,1)+uz(ijk,1,1)
-            hx(ijk,1,1)=gx(ijk,1,1)
-            hy(ijk,1,1)=gy(ijk,1,1)
-            hz(ijk,1,1)=gz(ijk,1,1)
-            gx(ijk,1,1)=ta1(ijk,1,1)
-            gy(ijk,1,1)=tb1(ijk,1,1)
-            gz(ijk,1,1)=tc1(ijk,1,1)
-         enddo
+            ux(:,:,:)=adt(itr)*ta1(:,:,:)+bdt(itr)*gx(:,:,:)+&
+                 cdt(itr)*hx(:,:,:)+ux(:,:,:)
+            uy(:,:,:)=adt(itr)*tb1(:,:,:)+bdt(itr)*gy(:,:,:)+&
+                 cdt(itr)*hy(:,:,:)+uy(:,:,:)
+            uz(:,:,:)=adt(itr)*tc1(:,:,:)+bdt(itr)*gz(:,:,:)+&
+                 cdt(itr)*hz(:,:,:)+uz(:,:,:)
+            hx(:,:,:)= gx(:,:,:)
+            hy(:,:,:)= gy(:,:,:)
+            hz(:,:,:)= gz(:,:,:)
+            gx(:,:,:)=ta1(:,:,:)
+            gy(:,:,:)=tb1(:,:,:)
+            gz(:,:,:)=tc1(:,:,:)
       endif
    endif
 endif
+
 
 
 return
@@ -420,16 +416,22 @@ endif
 
 if (itype.eq.3) then
    if (nrank==0) print *,'Reading initial conditions from file'
-   if (NTimeSteps<xsize(1)) then 
-        write(*,*) "Ntimesteps should be at least equal to nx"
-        stop
-   endif
+   !if (NTimeSteps<xsize(1)) then 
+   !     write(*,*) "Ntimesteps should be at least equal to nx"
+   !     stop
+   !endif
    do k=1,xsize(3)
    do j=1,xsize(2)
    do i=1,xsize(1)
+   if (i<=NTimeSteps) then
       ux1(i,j,k)=ux_inflow(NTimeSteps-i+1,j,k)
       uy1(i,j,k)=uy_inflow(NTimeSteps-i+1,j,k)
       uz1(i,j,k)=uz_inflow(NTimeSteps-i+1,j,k)
+   elseif (i>NTimeSteps.and.i<=2*NTimeSteps) then
+      ux1(i,j,k)=ux_inflow(-(NTimeSteps-i)+1,j,k)
+      uy1(i,j,k)=uy_inflow(-(NTimeSteps-i)+1,j,k)
+      uz1(i,j,k)=uz_inflow(-(NTimeSteps-i)+1,j,k)
+   endif
       bxx1(j,k)=0.
       bxy1(j,k)=0.
       bxz1(j,k)=0.
