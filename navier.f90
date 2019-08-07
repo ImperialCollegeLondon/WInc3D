@@ -1023,7 +1023,7 @@ end subroutine body
 
 !****************************************************************************
 !
-subroutine pre_correc(ux,uy,uz,gx)
+subroutine pre_correc(ux,uy,uz)
 !
 !****************************************************************************
 
@@ -1149,6 +1149,7 @@ if (nclx==2) then
    enddo
    enddo
    uty=uty/ysize(1)/ysize(3)
+
    call MPI_ALLREDUCE(uty,uty1,1,real_type,MPI_SUM,MPI_COMM_WORLD,code)
    uty1=uty1/nproc
 
