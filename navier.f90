@@ -1023,7 +1023,7 @@ end subroutine body
 
 !****************************************************************************
 !
-subroutine pre_correc(ux,uy,uz,phi,gx)
+subroutine pre_correc(ux,uy,uz,gx)
 !
 !****************************************************************************
 
@@ -1035,15 +1035,10 @@ USE MPI
 
 implicit none
 
-real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux,uy,uz,phi,nut
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux,uy,uz
 real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: gx
-real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: tauwallxy, tauwallzy
-real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: wallfluxx,wallfluxy,wallfluxz
 integer :: i,j,k,code
 real(mytype) :: ut,ut1,utt,ut11, uty,uty1, delta1, delta2, dux,duz
-real(mytype) :: ux_HAve_local, uz_HAve_local,S_HAve_local
-real(mytype) :: ux_HAve, uz_HAve,S_HAve
-real(mytype),dimension(xsize(1),xsize(3)) :: taux, tauz 
 integer, dimension(2) :: dims, dummy_coords
 logical, dimension(2) :: dummy_periods
 
@@ -1268,101 +1263,6 @@ if (ncly==2) then
    endif
    endif
    
-if (itype.eq.8) then
-   
-   if (nrank==0) print *,'pre_correc in Y'
- 
-   ! determine the processor grid in use
-   call MPI_CART_GET(DECOMP_2D_COMM_CART_X, 2, &
-         dims, dummy_periods, dummy_coords, code)
-
-
-   if (dims(1)==1) then
-      do k=1,xsize(3)
-      do i=1,xsize(1)
-         dpdxy1(i,k)=dpdxy1(i,k)*gdt(itr)
-         dpdzy1(i,k)=dpdzy1(i,k)*gdt(itr)
-      enddo
-      enddo
-      do k=1,xsize(3)
-      do i=1,xsize(1)
-         dpdxyn(i,k)=dpdxyn(i,k)*gdt(itr)
-         dpdzyn(i,k)=dpdzyn(i,k)*gdt(itr)
-      enddo
-      enddo
-   else
-      if (xstart(2)==1) then
-         do k=1,xsize(3)
-         do i=1,xsize(1)
-            dpdxy1(i,k)=dpdxy1(i,k)*gdt(itr)
-            dpdzy1(i,k)=dpdzy1(i,k)*gdt(itr)
-         enddo
-         enddo
-      endif
-      if (ny-(nym/dims(1))==xstart(2)) then
-         do k=1,xsize(3)
-         do i=1,xsize(1)
-            dpdxyn(i,k)=dpdxyn(i,k)*gdt(itr)
-            dpdzyn(i,k)=dpdzyn(i,k)*gdt(itr)
-         enddo
-         enddo
-      endif
-   endif
-
-   if (dims(1)==1) then
-      do k=1,xsize(3)
-      do i=1,xsize(1)
-            ux(i,1,k)=0.+dpdxy1(i,k)
-            uy(i,1,k)=0.
-            uz(i,1,k)=0.+dpdxy1(i,k)
-      enddo
-      enddo
-      do k=1,xsize(3)
-      do i=1,xsize(1)
-            ux(i,xsize(2),k)=ux(i,xsize(2)-1,k)+dpdxyn(i,k)
-            uy(i,xsize(2),k)=uy(i,xsize(2)-1,k)
-            uz(i,xsize(2),k)=uz(i,xsize(2)-1,k)+dpdzyn(i,k)
-      enddo
-      enddo
-   else
-!find j=1 and j=ny 
-
-    if (xstart(2)==1) then
-    if (istret.ne.0) then
-        delta2=(yp(3)-yp(2))
-        delta1=(yp(2)-yp(1))
-    endif
-    
-    if (istret.eq.0) then 
-        delta1=dy
-        delta2=dy
-    endif
-    
-         do k=1,xsize(3)
-         do i=1,xsize(1) 
-            dux=(ux(i,3,k)-ux(i,2,k))/delta2
-            duz=(uz(i,3,k)-uz(i,2,k))/delta2
-            !ux(i,1,k)=ux(i,1,k)-dux*delta1+dpdxy1(i,k)
-            !ux(i,1,k)=4.+dpdxy1(i,k) ! In case a free-slip conditions is applied
-            uy(i,1,k)=0.
-            !uz(i,1,k)=uz(i,2,k)-duz*delta1+dpdxz1(i,k)
-            !uz(i,1,k)=uz(i,1,k)+dpdxz1(i,k) ! In case a free-slip condition is applied
-         enddo
-         enddo
-      endif
-!      print *,nrank,xstart(2),ny-(nym/p_row)
-       if (ny-(nym/dims(1))==xstart(2)) then
-         do k=1,xsize(3)
-         do i=1,xsize(1)
-            ux(i,xsize(2),k)=ux(i,xsize(2)-1,k)+dpdxyn(i,k)
-            uy(i,xsize(2),k)=0.!uy(i,xsize(2)-1,k)
-            uz(i,xsize(2),k)=uz(i,xsize(2)-1,k)+dpdzyn(i,k)
-         enddo
-         enddo
-      endif
- 
-   endif
-   endif
    
 endif
 

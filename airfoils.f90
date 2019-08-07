@@ -29,7 +29,7 @@ module Airfoils
  
   ! Maximum Numbers of Reynolds Number data that can be stored
   ! Globla parameters
-  integer, parameter :: MaxReVals = 50
+  integer, parameter :: MaxReVals = 30
   integer, parameter :: MaxAOAVals = 1000
  
   ! Public subroutines

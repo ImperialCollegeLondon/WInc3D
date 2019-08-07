@@ -27,14 +27,14 @@
     ! Simulation size and parallelisation
     nx=129                 ! X-direction nodes
     ny=129                  ! Y-direction nodes
-    nz=128                 ! Z-direction nodes
+    nz=129                 ! Z-direction nodes
     p_row=4                ! Row partition
     p_col=4                ! Column partition
 
     ! Boundary conditions and mesh 
     nclx = 2              ! nclx (BC)
     ncly = 1              ! ncly (BC) 
-    nclz = 0              ! nclz (BC)
+    nclz = 1              ! nclz (BC)
     istret = 0            ! y mesh refinement (0:no, 1:center, 2:both sides, 3:bottom)
     beta = 0.259065151    ! Refinement parameter (beta) 
 

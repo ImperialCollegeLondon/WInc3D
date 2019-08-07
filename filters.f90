@@ -343,20 +343,20 @@ if (nclz.eq.1) then
    fiffz(2)   =af
    fiffz(nz-2)=af
    fiffz(nz-1)=af
-   fiffz(nz)  =0.
-   fifcz(1)   =1.
-   fifcz(2)   =1.
-   fifcz(nz-2)=1.
-   fifcz(nz-1)=1.
-   fifcz(nz  )=1.
+   fiffz(nz)  =0.0_mytype  
+   fifcz(1)   =1.0_mytype
+   fifcz(2)   =1.0_mytype
+   fifcz(nz-2)=1.0_mytype
+   fifcz(nz-1)=1.0_mytype
+   fifcz(nz  )=1.0_mytype
    fifbz(1)   =af 
    fifbz(2)   =af
    fifbz(nz-2)=af
    fifbz(nz-1)=af+af
-   fifbz(nz  )=0.
+   fifbz(nz  )=0.0_mytype
    do k=3,nz-3
       fiffz(k)=af
-      fifcz(k)=1.
+      fifcz(k)=1.0_mytype
       fifbz(k)=af
    enddo
 endif
@@ -392,6 +392,7 @@ if (nclz.eq.1) then
    fifbz(nz-1)=0.0_mytype
 call prepare (fifbz,fifcz,fiffz,fifsz,fifwz,nz)
 endif
+
 
 return 
 
@@ -861,7 +862,7 @@ if (nclz==1) then
    if (npaire==0) then 
       do j=1,ny 
       do i=1,nx 
-         tz(i,j,1)=fiakz*uz(i,j,1)
+         tz(i,j,1)=0._mytype
          tz(i,j,2)=fiakz*uz(i,j,2)+fibkz*(uz(i,j,3)+uz(i,j,1))& 
                                   +fickz*(uz(i,j,4)-uz(i,j,2))&
                                   +fidkz*(uz(i,j,5)-uz(i,j,3)) 
@@ -881,7 +882,7 @@ if (nclz==1) then
       enddo 
       do j=1,ny 
       do i=1,nx 
-         tz(i,j,nz)  =fiakz*uz(i,j,nz)
+         tz(i,j,nz)  = 0._mytype
          tz(i,j,nz-1)=fiakz*uz(i,j,nz-1)+fibkz*( uz(i,j,nz)  +uz(i,j,nz-2))& 
                                         +fickz*(-uz(i,j,nz-1)+uz(i,j,nz-3))&
                                         +fidkz*(-uz(i,j,nz-2)+uz(i,j,nz-4)) 
