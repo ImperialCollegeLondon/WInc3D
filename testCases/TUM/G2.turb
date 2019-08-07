@@ -1,0 +1,51 @@
+&TurbineSpecs
+!=========================================
+! Aerodynamic parameters                 |
+!=========================================
+name='G2'                              ! Name of the turbine
+origin=8.832,0.825,6.76                            ! Actual location of the turbine
+numblades=3                                  ! number of blades
+blade_geom='G1/G1Blade_N108.al'  ! Blade geometry
+numfoil=18                                    ! Number of airfoil from which the interpolation is done
+afname='G1/Airfoils/newairtable_1.dat','G1/Airfoils/newairtable_6.dat','G1/Airfoils/newairtable_7.dat','G1/Airfoils/newairtable_8.dat','G1/Airfoils/newairtable_9.dat','G1/Airfoils/newairtable_10.dat','G1/Airfoils/newairtable_11.dat','G1/Airfoils/newairtable_12.dat','G1/Airfoils/newairtable_13.dat','G1/Airfoils/newairtable_14.dat','G1/Airfoils/newairtable_15.dat','G1/Airfoils/newairtable_16.dat','G1/Airfoils/newairtable_17.dat','G1/Airfoils/newairtable_18.dat','G1/Airfoils/newairtable_19.dat','G1/Airfoils/newairtable_20.dat','G1/Airfoils/newairtable_21.dat','G1/Airfoils/newairtable_22.dat'
+towerFlag=0                                 ! Tower model ? (0: no, 1: yes)
+towerOffset=0.                              ! Offset of the tower from the axis of rotation
+tower_geom='G1/G1Tower_N14.al'      ! Tower geometry file
+tower_drag=1.0                               ! Tower induced drag
+tower_lift=0.3                               ! Tower induced lift
+tower_strouhal=0.21                          ! Strouhal number of the tower wake (usually taken equal to 0.21)
+TypeFlag=1                                   ! Type of the turbine (1: Horizontal-axis, 2: Vertical-axis turbines)
+AddedMassFlag=0                              ! Enable the added mass model (for the blades only)
+EndEffectsFlag=0                            ! EndEffects Flag (0: no end effects, 1: Glauer, 2: Shen et. al 2005)
+TipCorr=0                                   ! Tip correction model (0: no, 1: yes)
+RootCorr=0                                   ! Root correction model (0: no, 1: yes)
+ShenC1=0.125                                 ! Shen et. al 2005 moedl coefficient (c1)
+ShenC2=21                                    ! Shen et. al 2005 model coefficient (c2)
+yaw_angle=0.                                 ! Rotor Yaw angle (in degrees)
+shaft_tilt_angle=0.                            ! Hub tilt angle (in degrees)
+blade_cone_angle=0.                         ! Blade cone angle (in degrees)
+!=========================================
+! Aeroelasticity parameters              |
+!=========================================
+AeroElastFlag=0                                                                   ! 0: off, 1: on
+!AeroElast_param_file='G1/G1Blade_N28.struct'                             ! 0: Static, 1: Dynamic
+!=========================================
+! Operation/Controller parameters        |
+!=========================================
+OperFlag=1                                   ! Operation flag (1: Prescribed velocity, 2: five region active controller, 3: reading from a list)
+uref=5.6                                     ! Reference velocity
+tsr=8.248550711                                     ! Tip speed ratio (for prescribed velocity)
+RotFlag=1                                    ! 1: Clockwise, 2: Counterclockwise
+BladeInertia=0.                          ! Blade inertia
+GeneratorInertia=0.                     ! Generator Inertia
+GBRatio=0.                                  ! Gear Box ratio
+GBEfficiency=1.                              ! Gear Box Efficiency
+RatedGenSpeed=0.                       ! Rated generator speed in rad/second
+CutInGenSpeed=0.                       ! Cut-in generator speed in rad/second
+RatedLimitGenTorque=0.                  ! Rated Limit Generator Torque
+Region2StartGenSpeed=0.                ! Region 2 starting point generator speed
+Region2EndGenSpeed=0.                  ! Region 2 ending point generator speed
+Kgen=0.                                 ! Region 2 genrator ceofficient
+RatedPower=0.                         ! Rated Power in Watts   ! Rated power
+MaximumTorque=0.                       ! Maximum Torque in N*m
+/End
