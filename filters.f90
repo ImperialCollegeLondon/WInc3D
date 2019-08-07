@@ -826,21 +826,22 @@ if (nclz==1) then
     enddo 
     do j=1,ny 
     do i=1,nx 
-       tz(i,j,nz)=fiakz*uz(i,j,nz)+     fibkz*(uz(i,j,nz)+uz(i,j,nz-1))&
-                                      +fickz*(uz(i,j,nz)+uz(i,j,nz-2))&
-                                      +fidkz*(uz(i,j,nz)+uz(i,j,nz-3))
+       tz(i,j,nz)=fiakz*uz(i,j,nz)    +fibkz*(uz(i,j,nz-1)+uz(i,j,nz-1))& 
+                                      +fickz*(uz(i,j,nz-2)+uz(i,j,nz-2))&
+                                      +fidkz*(uz(i,j,nz-3)+uz(i,j,nz-3)) 
+                                   
        tz(i,j,nz-1)=fiakz*uz(i,j,nz-1)+fibkz*(uz(i,j,nz)+uz(i,j,nz-2))& 
-                                      +fickz*(uz(i,j,nz)+uz(i,j,nz-3))&
-                                      +fidkz*(uz(i,j,nz)+uz(i,j,nz-4)) 
-       tz(i,j,nz-2)=fiakz*uz(i,j,nz-2)+fibkz*(uz(i,j,nz)+uz(i,j,nz-3))& 
+                                      +fickz*(uz(i,j,nz-1)+uz(i,j,nz-3))&
+                                      +fidkz*(uz(i,j,nz-2)+uz(i,j,nz-4)) 
+       tz(i,j,nz-2)=fiakz*uz(i,j,nz-2)+fibkz*(uz(i,j,nz-1)+uz(i,j,nz-3))& 
                                       +fickz*(uz(i,j,nz)+uz(i,j,nz-4))&
-                                      +fidkz*(uz(i,j,nz)+uz(i,j,nz-5)) 
+                                      +fidkz*(uz(i,j,nz-1)+uz(i,j,nz-5)) 
     enddo
     enddo 
     do k=2,nz
     do j=1,ny  
     do i=1,nx 
-       tz(i,j,k)=tz(i,j,k)-tz(i,j,k-1)*fifsz(k) 
+           tz(i,j,k)=tz(i,j,k)-tz(i,j,k-1)*fifsz(k) 
     enddo
     enddo
     enddo 
@@ -850,7 +851,7 @@ if (nclz==1) then
     enddo 
     enddo 
     do k=nz-1,1,-1
-    do j=1,nz  
+    do j=1,ny  
     do i=1,nx 
         tz(i,j,k)=(tz(i,j,k)-fiffz(k)*tz(i,j,k+1))*fifwz(k) 
     enddo 
@@ -864,7 +865,7 @@ if (nclz==1) then
          tz(i,j,2)=fiakz*uz(i,j,2)+fibkz*(uz(i,j,3)+uz(i,j,1))& 
                                   +fickz*(uz(i,j,4)-uz(i,j,2))&
                                   +fidkz*(uz(i,j,5)-uz(i,j,3)) 
-         tz(i,3,k)=fiakz*uz(i,3,k)+fibkz*(uz(i,j,4)+uz(i,j,2))& 
+         tz(i,j,3)=fiakz*uz(i,j,3)+fibkz*(uz(i,j,4)+uz(i,j,2))& 
                                   +fickz*(uz(i,j,5)+uz(i,j,1))&
                                   +fidkz*(uz(i,j,6)-uz(i,j,2)) 
       enddo

@@ -12,12 +12,12 @@ implicit none
 real(mytype),intent(in) :: uxmax,uymax,uzmax
 real(mytype) :: cfl_x_adv,cfl_x_diff,cfl_y_adv,cfl_y_diff,cfl_z_adv,cfl_z_diff
 real(mytype) :: cfl_conv_lim, cfl_diff_lim
-real(mytype) :: sigma_conv(3), sigma_diff(3)
+real(mytype) :: sigma_conv(4), sigma_diff(4)
 real(mytype) :: visc
 
 ! Set the constants (this is true for periodic boundaries)
-sigma_conv=[0.0, sqrt(3.0), 2.85]
-sigma_diff=[2.0, 2.5, 2.9]
+sigma_conv=[0.0, sqrt(3.0), 2.85,1.]
+sigma_diff=[2.0, 2.5, 2.9,1.]
 
 if(jles==1) then
 visc=rxxnu*xnu

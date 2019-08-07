@@ -137,7 +137,7 @@ contains
         ! Dummy variables
         !-------------------------------------
         character(len=100) :: name, blade_geom, tower_geom, dynstall_param_file, AeroElastInputFile, AeroElastSolverFile, list_controller_file
-        character(len=100),dimension(10) :: afname
+        character(len=100),dimension(30) :: afname
         real(mytype), dimension(3) :: origin
         integer :: numblades,numfoil,towerFlag, TypeFlag, OperFlag, RotFlag, AddedMassFlag, DynStallFlag, EndEffectsFlag
         integer :: TipCorr, RootCorr, RandomWalkForcingFlag, AeroElastFlag, AeroElastModel, ConstantCirculationFlag

@@ -81,14 +81,14 @@ module dynstall
         B2=0.2
         eta=0.98
         E0=0.16
-	CNAlpha=6.498  
-	CD0=0.01   
-	alpha1=10.92  
-	S1=0.0483 
-	S2=0.0894 
-	alphaSS=12.49 
-	K1=2.77e-8 
-	K2=-1.43e-6	
+        CNAlpha=6.498  
+        CD0=0.01   
+        alpha1=10.92  
+        S1=0.0483 
+        S2=0.0894 
+        alphaSS=12.49 
+        K1=2.77e-8 
+        K2=-1.43e-6	
 
         ! READ from file
         open(30,file=dynstallfile) 
@@ -105,17 +105,17 @@ module dynstall
         ds%B2=B2
         ds%eta=eta
         ds%E0=E0
-	ds%CNAlpha=CNAlpha  
-	ds%CD0=CD0   
-	ds%Alpha1=Alpha1  
-	ds%S1=S1 
-	ds%S2=S2 
-	ds%AlphaSS=alphaSS 
-	ds%K1=K1
-	ds%K2=K2	
-        
-	! Convert degrees to radians
-	ds%alpha1=ds%alpha1*conrad
+        ds%CNAlpha=CNAlpha  
+        ds%CD0=CD0   
+        ds%Alpha1=Alpha1  
+        ds%S1=S1 
+        ds%S2=S2 
+        ds%AlphaSS=alphaSS 
+        ds%K1=K1
+        ds%K2=K2	
+            
+        ! Convert degrees to radians
+        ds%alpha1=ds%alpha1*conrad
         ds%alphaSS=ds%alphaSS*conrad
         ! Define CN1 using fcrit=0.7 (Hardcoded)
         ds%CN1=ds%CNAlpha*ds%alpha1*(1.+sqrt(0.7)/2.0)**2.

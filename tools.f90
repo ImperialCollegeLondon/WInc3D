@@ -1284,7 +1284,7 @@ call transpose_z_to_y(uzf3,uz2)
 call transpose_y_to_x(ux2,ux1)
 call transpose_y_to_x(uy2,uy1)
 call transpose_y_to_x(uz2,uz1)
-call transpose_y_to_x(phi2,phi1)
+!call transpose_y_to_x(phi2,phi1)
 
 return
 
