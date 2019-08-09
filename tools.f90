@@ -449,6 +449,10 @@ real(mytype) :: xdt
 integer, dimension(2) :: dims, dummy_coords
 logical, dimension(2) :: dummy_periods
 
+if(ifileinflow>NInflows) then ! Recirculate inflows
+    ifileinflow=mod(ifileinflow,NInflows)
+endif
+
 if (iscalar==0) then
     if (nrank==0) print *,'READING INFLOW from ',trim(InflowPath)//'inflow'//trim(int2str(ifileinflow+1)) 
     call MPI_FILE_OPEN(MPI_COMM_WORLD, trim(InflowPath)//'inflow'//trim(int2str(ifileinflow+1)), &

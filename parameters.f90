@@ -51,7 +51,7 @@ character :: a*80
 NAMELIST/FlowParam/itype,iin,NEddies,sem_file,xlx,yly,zlz,re,sc,u1,u2,noise,noise1,itripping,ibuoyancy,icoriolis,Pr,TempRef,CoriolisFreq 
 NAMELIST/NumConfig/nx,ny,nz,p_row,p_col,nclx,ncly,nclz,TurbRadius,ifirst,ilast,nscheme,dt,istret, &
     beta,iskew,iscalar,jles,FSGS,jadv,smagcst,SmagWallDamp,nSmag,iwallmodel,walecst,rxxnu,cnu,dynhypvisc  
-NAMELIST/FileParam/ilit,isave,imodulo,ioutflow,InflowPath, NTimeSteps
+NAMELIST/FileParam/ilit,isave,imodulo,ioutflow,InflowPath, NInflows,NTimeSteps
 NAMELIST/IBMParam/ivirt,ibmshape,cex,cey,cez,ra
 NAMELIST/ALMParam/ialm,ialmrestart,filealmrestart,ialmoutput,NTurbines,TurbinesPath,NActuatorlines,ActuatorlinesPath,eps_factor
 NAMELIST/ADMParam/iadm,Ndiscs,ADMcoords,iverifyadm,iadmmode,CT,aind,fileADM
