@@ -39,7 +39,7 @@ subroutine init_probe_pencil
     use var
     implicit none
     
-    NProbes=nx*4 ! or xsize(1) it should be the same
+    NProbes=nx*6 ! or xsize(1) it should be the same
     ! Allocate the probe locations
     allocate(xprobe(Nprobes),yprobe(Nprobes),zprobe(Nprobes),uprobe(Nprobes),vprobe(Nprobes),wprobe(Nprobes))
     allocate(uprobe_part(Nprobes),vprobe_part(Nprobes),wprobe_part(Nprobes))
