@@ -461,8 +461,8 @@ program visu_paraview
   write(meanfil,*)'                  vwmean.dat'
   write(meanfil,*)'               </DataItem>'
   write(meanfil,*)'            </Attribute>'
-  endif
   write(meanfil,*)'        </Grid>'
+  endif
   write(meanfil,'(/)')
   write(meanfil,*)'    </Grid>'
   write(meanfil,*)'</Domain>'
