@@ -1,12 +1,14 @@
 module actuator_line_controller
 
      use decomp_2d, only: mytype, nrank
-
+     use iso_c_binding
+    
 implicit none
 ! Define some parameters
 real(mytype), parameter :: OnePlusEps= 1.0 + EPSILON(OnePlusEps)       ! The number slighty greater than unity in single precision.
 real(mytype), parameter :: R2D   =  57.295780   ! Factor to convert radians to degrees.
 real(mytype), parameter :: RPM2RPS= 9.5492966   ! Factor to convert radians per second to revolutions per minute.
+
 
 type ControllerType
 ! Input parameters
@@ -61,14 +63,15 @@ real(mytype) :: VS_TrGnSp   =0.0_mytype    ! Transitional generator speed (HSS s
 integer :: iStatus              ! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
 
 ! pointer to the dll controller call
-PROCEDURE(DISCON), POINTER :: dllpointer ! https://software.intel.com/en-us/fortran-compiler-developer-guide-and-reference-procedure-pointers
+!PROCEDURE(DISCON), POINTER :: dllpointer ! https://software.intel.com/en-us/fortran-compiler-developer-guide-and-reference-procedure-pointers
+type(c_funptr) :: proc_addr
 
 end type ControllerType
 
 ! Interface for the TUM controller
 ! https://software.intel.com/en-us/fortran-compiler-developer-guide-and-reference-abstract-interface
 ABSTRACT INTERFACE
-   SUBROUTINE DISCON ( avrSwap, aviFAIL, accINFILE, avcOUTNAME, avcMSG )  BIND(C, NAME='DISCON')
+   SUBROUTINE DISCON ( avrSwap, SCoutput, aviFail, accInfile, avcOutname, avcMsg )  BIND(C)
       USE, INTRINSIC :: ISO_C_Binding
 
       real*8, intent(inout), dimension(121) :: avrSwap
@@ -401,34 +404,40 @@ ENDIF
 
 end subroutine operate_controller
 
-subroutine dllinterface(turb, time, trq_dem, p_com)
+subroutine dllinterface(proc_addr, meas_pitch, meas_rotVel, meas_power, time, trq_dem, p_com)
 
+    ! https://stackoverflow.com/questions/38710099/fortran-dynamic-libraries-load-at-runtime
     implicit none
-    type(TurbineType), intent(in) :: turb
-   	real(mytype), intent(in) :: time
+    !type(TurbineType), intent(in) :: turb
+    
+    type(c_funptr), intent(in) :: proc_addr
+    PROCEDURE(DISCON), POINTER :: dllpointer
+    real(mytype), intent(in) :: meas_pitch, meas_rotVel, meas_power
+    real(mytype), intent(in) :: time
     real(mytype), intent(out) :: trq_dem, p_com
     real*8, dimension(121) :: avrSwap
-    real*8, intent(inout), dimension(1) :: SCoutput ! Not used by TUM
+    real*8, dimension(1) :: SCoutput ! Not used by TUM
     integer :: aviFail! Not used by TUM
     character :: accInfile! Not used by TUM
     character :: avcOutname! Not used by TUM
     character :: avcMsg! Not used by TUM
 
     ! Prepare the input format
-    avrSwap[1] = time
-    avrSwap[3] = turb%Blade(1)%StructuralTwist ! Manage the initial twist
-    avrSwap[20] = turb%angularVel
-    avrSwap[13] = turb%Power
+    avrSwap(1) = time
+    avrSwap(3) = meas_pitch ! Manage the initial twist
+    avrSwap(20) = meas_rotVel
+    avrSwap(13) = meas_power
 
     ! Call the controller
-    call turb%Controller%dllpointer(avrSwap, SCoutput, aviFail, accInfile, avcOutname, avcMsg)
+    call c_f_procpointer(proc_addr , dllpointer)
+    call dllpointer(avrSwap, SCoutput, aviFail, accInfile, avcOutname, avcMsg)
 
     ! Assign the output
-    trq_dem = avrSwap[46]
-    p_com = avrSwap[119]
+    trq_dem = avrSwap(46)
+    p_com = avrSwap(119)
     !p_com = avrSwap[120]
     !p_com = avrSwap[121]
 
 end subroutine dllinterface
 
-module actuator_line_controller
+end module actuator_line_controller
