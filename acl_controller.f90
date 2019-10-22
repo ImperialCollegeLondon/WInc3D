@@ -1,7 +1,7 @@
 module actuator_line_controller
 
      use decomp_2d, only: mytype, nrank
-     
+
 implicit none
 ! Define some parameters
 real(mytype), parameter :: OnePlusEps= 1.0 + EPSILON(OnePlusEps)       ! The number slighty greater than unity in single precision.
@@ -10,10 +10,10 @@ real(mytype), parameter :: RPM2RPS= 9.5492966   ! Factor to convert radians per 
 
 type ControllerType
 ! Input parameters
-real(mytype) :: CornerFreq   =0.0_mytype ! Corner frequency (-3dB point) in the recursive, single-pole, 
+real(mytype) :: CornerFreq   =0.0_mytype ! Corner frequency (-3dB point) in the recursive, single-pole,
 real(mytype) :: PC_DT        =0.0_mytype ! 0.00125 or JASON:THIS CHANGED FOR ITI BARGE: 0.0001 ! Communication interval for pitch  controller, sec.
 real(mytype) :: PC_KI        =0.0_mytype ! Integral gain for pitch controller at rated pitch (zero), (-).
-real(mytype) :: PC_KK        =0.0_mytype ! Pitch angle were the derivative of the aerodynamic power 
+real(mytype) :: PC_KK        =0.0_mytype ! Pitch angle were the derivative of the aerodynamic power
 real(mytype) :: PC_KP        =0.0_mytype ! Proportional gain for pitch controller at rated pitch (zero), sec.
 real(mytype) :: PC_MaxPit    =0.0_mytype ! Maximum pitch setting in pitch controller, rad.
 real(mytype) :: PC_MaxRat    =0.0_mytype ! Maximum pitch  rate (in absolute value) in pitch  controller, rad/s.
@@ -27,7 +27,7 @@ real(mytype) :: VS_Rgn2K     =0.0_mytype ! Generator torque constant in Region 2
 real(mytype) :: VS_Rgn2Sp    =0.0_mytype ! Transitional generator speed (HSS side) between regions 1 1/2 and 2, rad/s.
 real(mytype) :: VS_Rgn3MP    =0.0_mytype ! Minimum pitch angle at which the torque is computed as if we are in region 3 regardless of the generator speed, rad. -- chosen to be 1.0 degree above PC_MinPit
 real(mytype) :: VS_RtGnSp    =0.0_mytype ! Rated generator speed (HSS side), rad/s. -- chosen to be 99% of PC_RefSpd
-real(mytype) :: VS_RtPwr     =0.0_mytype ! Rated generator power in Region 3, Watts. 
+real(mytype) :: VS_RtPwr     =0.0_mytype ! Rated generator power in Region 3, Watts.
 real(mytype) :: VS_SlPc      =0.0_mytype ! Rated generator slip percentage in Region 2 1/2, %.
 real(mytype) :: GearBoxRatio =0.0_mytype ! Gear Box ratio (usually taken 97:1)
 real(mytype) :: IGenerator   =0.0_mytype ! Moment of inertia for the generator
@@ -59,7 +59,26 @@ real(mytype) :: VS_Slope25  =0.0_mytype    ! Torque/speed slope of region 2 1/2 
 real(mytype) :: VS_SySp     =0.0_mytype    ! Synchronous speed of region 2 1/2 induction generator, rad/s.
 real(mytype) :: VS_TrGnSp   =0.0_mytype    ! Transitional generator speed (HSS side) between regions 2 and 2 1/2, rad/s.
 integer :: iStatus              ! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
+
+! pointer to the dll controller call
+PROCEDURE(DISCON), POINTER :: dllpointer ! https://software.intel.com/en-us/fortran-compiler-developer-guide-and-reference-procedure-pointers
+
 end type ControllerType
+
+! Interface for the TUM controller
+! https://software.intel.com/en-us/fortran-compiler-developer-guide-and-reference-abstract-interface
+ABSTRACT INTERFACE
+   SUBROUTINE DISCON ( avrSwap, aviFAIL, accINFILE, avcOUTNAME, avcMSG )  BIND(C, NAME='DISCON')
+      USE, INTRINSIC :: ISO_C_Binding
+
+      real*8, intent(inout), dimension(121) :: avrSwap
+      real*8, intent(inout), dimension(1) :: SCoutput ! Not used by TUM
+      integer :: aviFail! Not used by TUM
+      character :: accInfile! Not used by TUM
+      character :: avcOutname! Not used by TUM
+      character :: avcMsg! Not used by TUM
+   END SUBROUTINE DISCON
+END INTERFACE
 
 contains
 
@@ -72,33 +91,33 @@ subroutine init_controller(control,GeneratorInertia,GBRatio,GBEfficiency,&
     ! Read control parameters
     type(ControllerType), intent(inout) :: control
     real(mytype), intent(in) :: GeneratorInertia,GBRatio,GBEfficiency,RatedGenSpeed,RatedLimitGenTorque,CutInGenSpeed
-    real(mytype), intent(in) :: Region2StartGenSpeed,Region2EndGenSpeed,Kgen,RatedPower,MaximumTorque 
+    real(mytype), intent(in) :: Region2StartGenSpeed,Region2EndGenSpeed,Kgen,RatedPower,MaximumTorque
     integer :: AviFail
-    
+
     control%GearBoxRatio=GBRatio            ! Gear box ratio
     control%IGenerator=GeneratorInertia     ! Moment of Inertia for the Generator
-    control%VS_CtInSp=CutInGenSpeed         ! Cut-in speed   
+    control%VS_CtInSp=CutInGenSpeed         ! Cut-in speed
     control%VS_RtGnSp=RatedGenSpeed         ! In rad/s
     control%VS_MaxRat=RatedLimitGenTorque   ! Rated limit to Generation Torque
     control%VS_Rgn2K=Kgen                   ! Optimal Curve Coefficient
     control%VS_Rgn2Sp=Region2StartGenSpeed  ! In rad/s
     control%VS_SySp=Region2EndGenSpeed      ! In rad/s
-    control%VS_RtPwr=RatedPower             ! Rated generator generator power in Region 3, Watts. 
-    control%VS_MaxTq=MaximumTorque 
+    control%VS_RtPwr=RatedPower             ! Rated generator generator power in Region 3, Watts.
+    control%VS_MaxTq=MaximumTorque
 
-    control%CornerFreq=1.570796_mytype   ! Corner frequency (-3dB point) in the recursive, single-pole, 
-    control%PC_DT=0.00125_mytype         ! 
+    control%CornerFreq=1.570796_mytype   ! Corner frequency (-3dB point) in the recursive, single-pole,
+    control%PC_DT=0.00125_mytype         !
     control%PC_KI=0.008068634_mytype     ! Integral gain for pitch controller at rated pitch (zero), (-).
-    control%PC_KK=0.1099965_mytype       ! Pitch angle were the derivative of the aerodynamic power 
+    control%PC_KK=0.1099965_mytype       ! Pitch angle were the derivative of the aerodynamic power
     control%PC_KP= 0.01882681_mytype     ! Proportional gain for pitch controller at rated pitch (zero), sec.
     control%PC_MaxPit = 1.570796_mytype  ! Maximum pitch setting in pitch controller, rad.
     control%PC_MaxRat = 0.1396263_mytype ! Maximum pitch  rate (in absolute value) in pitch  controller, rad/s.
     control%PC_MinPit = 0.0_mytype       ! Minimum pitch setting in pitch controller, rad.
-    control%PC_RefSpd = 122.9096_mytype  ! Desired (reference) HSS speed for pitch controller, rad/s. 
+    control%PC_RefSpd = 122.9096_mytype  ! Desired (reference) HSS speed for pitch controller, rad/s.
     control%VS_DT = 0.00125_mytype       ! JASON:THIS CHANGED FOR ITI BARGE:0.0001 !Communication interval for torque controller, sec.
     control%VS_Rgn3MP= 0.01745329_mytype ! Minimum pitch angle at which the torque is computed as if we are in region 3 regardless of the generator speed, rad. -- chosen to be 1.0 degree above PC_MinPit
     control%VS_SlPc=10.0_mytype          ! Rated generator slip percentage in Region 2 1/2, %. -- chosen to be 5MW divided by the electrical generator efficiency of 94.4%
- 
+
     ! Read input parameters
     ! Determine some torque control parameters not specified directly:
     control%VS_SySp=control%VS_RtGnSp/(1.0+0.01*control%VS_SlPc)
@@ -111,7 +130,7 @@ subroutine init_controller(control,GeneratorInertia,GBRatio,GBEfficiency,&
     endif
 
     AviFail=1
-    
+
     ! Check validity of input parameters:
     if (control%CornerFreq<= 0.0 )  then
         aviFAIL  = -1
@@ -137,62 +156,62 @@ subroutine init_controller(control,GeneratorInertia,GBRatio,GBEfficiency,&
         aviFAIL  = -1
         if (nrank==0) print *,'VS_SlPc must be greater than zero.'
     ENDIF
-    
+
     IF (control%VS_MaxRat <= 0.0 )  THEN
        aviFAIL  =  -1
        if (nrank==0) print *,'VS_MaxRat must be greater than zero.'
     ENDIF
-    
+
     IF (control%VS_RtPwr  <  0.0 )  THEN
        aviFAIL  = -1
        if (nrank==0) print *,'VS_RtPwr must not be negative.'
     ENDIF
-    
+
     IF (control%VS_Rgn2K  <  0.0 )  THEN
        aviFAIL  = -1
        if (nrank==0) print *,'VS_Rgn2K must not be negative.'
     ENDIF
-    
+
     IF (control%VS_Rgn2K*control%VS_RtGnSp*control%VS_RtGnSp > control%VS_RtPwr/control%VS_RtGnSp )  THEN
        aviFAIL  = -1
        if (nrank==0) print *,'VS_Rgn2K*VS_RtGnSp^2 must not be greater than VS_RtPwr/VS_RtGnSp.'
     ENDIF
-    
+
     IF (control%VS_MaxTq < control%VS_RtPwr/control%VS_RtGnSp )  THEN
        aviFAIL  = -1
        if (nrank==0) print *,'VS_RtPwr/VS_RtGnSp must not be greater than VS_MaxTq.'
     ENDIF
-    
+
     IF (control%PC_DT<= 0.0)  THEN
        aviFAIL  = -1
        if (nrank==0) print *,'PC_DT must be greater than zero.'
     ENDIF
-    
+
     IF (control%PC_KI<= 0.0)  THEN
        aviFAIL  = -1
        if (nrank==0) print*,'PC_KI must be greater than zero.'
     ENDIF
-    
+
     IF (control%PC_KK<= 0.0)  THEN
        aviFAIL  = -1
        if (nrank==0) print*,'PC_KK must be greater than zero.'
     ENDIF
-    
+
     IF (control%PC_RefSpd<=0.0)  THEN
        aviFAIL  = -1
        if (nrank==0) print*,'PC_RefSpd must be greater than zero.'
     ENDIF
-    
+
     IF (control%PC_MaxRat <= 0.0)  THEN
        aviFAIL  = -1
        if (nrank==0) print*,'PC_MaxRat must be greater than zero.'
     ENDIF
-    
+
     IF (control%PC_MinPit >= control%PC_MaxPit)  THEN
        aviFAIL  = -1
        if (nrank==0) print*,'PC_MinPit must be less than PC_MaxPit.'
     ENDIF
-    
+
     if (aviFail<0) stop
 
 ! Inform users that we are using this user-defined routine:
@@ -200,7 +219,7 @@ if(nrank==0) then
 print *, '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
 print *, 'Running with torque and pitch control of the NREL offshore '
 print *, '5MW baseline wind turbine from DISCON.dll as written by J. '
-print *, 'Jonkman of NREL/NWTC for use in the IEA Annex XXIII OC3 '   
+print *, 'Jonkman of NREL/NWTC for use in the IEA Annex XXIII OC3 '
 print *, 'studies.'
 print *, '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
 endif
@@ -221,21 +240,21 @@ subroutine operate_controller(control,time,NumBl,rotSpeed)
     ! the NREL Offshore 5MW baseline wind turbine.  This routine was written by
     ! J. Jonkman of NREL/NWTC for use in the IEA Annex XXIII OC3 studies.
     control%GenSpeed=rotSpeed*control%GearBoxRatio
-    
+
     if(control%iStatus==0) then
     control%GenSpeedF=control%GenSpeed !This will ensure that generator speed filter will use the initial value of the generator speed on the first pass
     control%PitCom=control%BlPitch ! This will ensure that the variable speed controller picks the correct control region and the pitch controller pickes the correct gain on the first call
     control%GK = 1.0/(1.0 + control%PitCom(1)/control%PC_KK) ! This will ensure that the pitch angle is unchanged if the initial SpdErr is zero
     control%IntSpdErr=control%PitCom(1)/(control%GK*control%PC_KI)! This will ensure that the pitch angle is unchanged if the initial SpdErr is zero
     control%LastTime=Time ! This will ensure that generator speed filter will use the initial value of the generator speed on the first pass
-    control%LastTimePC=Time-control%PC_DT  ! This will ensure that the pitch  controller is called on the first pass 
-    control%LastTimeVS =Time-control%VS_DT ! This will ensure that the torque controller is called on the first pass 
-    endif  
-   
+    control%LastTimePC=Time-control%PC_DT  ! This will ensure that the pitch  controller is called on the first pass
+    control%LastTimeVS =Time-control%VS_DT ! This will ensure that the torque controller is called on the first pass
+    endif
+
     IF (control%iStatus>0)  THEN  ! .TRUE. if were want to do control
-    
+
     !Main control calculations:
-     !========================================================================================	
+     !========================================================================================
      ! Filter the HSS (generator) speed measurement:
      ! NOTE: This is a very simple recursive, single-pole, low-pass filter with
     !       exponential smoothing.
@@ -244,29 +263,29 @@ subroutine operate_controller(control,time,NumBl,rotSpeed)
     control%Alpha= EXP((control%LastTime-Time)*control%CornerFreq)
     ! Apply the filter:
     control%GenSpeedF=(1.0-control%Alpha)*control%GenSpeed+control%Alpha*control%GenSpeedF
-    !======================================================================================== 
-    
-    ! Variable-speed torque control:	
-    
+    !========================================================================================
+
+    ! Variable-speed torque control:
+
     ! Compute the elapsed time since the last call to the controller:
     control%ElapTime=Time-control%LastTimeVS
-    
+
     ! Only perform the control calculations if the elapsed time is greater than
     !   or equal to the communication interval of the torque controller:
     ! NOTE: Time is scaled by OnePlusEps to ensure that the contoller is called
     !       at every time step when VS_DT = DT, even in the presence of
     !       numerical precision errors.
-   
+
 
     IF((Time*OnePlusEps-control%LastTimeVS)>=control%VS_DT)  THEN
     ! Compute the generator torque, which depends on which region we are in:
     ! We are in region 3 - power is constant
-    IF((control%GenSpeedF>=control%VS_RtGnSp).OR.(control%PitCom(1)>=control%VS_Rgn3MP)) THEN 
+    IF((control%GenSpeedF>=control%VS_RtGnSp).OR.(control%PitCom(1)>=control%VS_Rgn3MP)) THEN
       control%GenTrq = control%VS_RtPwr/control%GenSpeedF
       if (nrank==0) print *, 'Turbine operates in region 3'
     ELSEIF(control%GenSpeedF<=control%VS_CtInSp)  THEN ! We are in region 1 - torque is zero
       if (nrank==0) print *, 'Turbine operates in region 1'
-    control%GenTrq = 0. 
+    control%GenTrq = 0.
     ELSEIF((control%GenSpeedF>control%VS_CtInSp).and.(control%GenSpeedF<control%VS_Rgn2Sp))  THEN  ! We are in region 1 1/2 - linear ramp in torque from zero to optimal
       if (nrank==0) print *, 'Turbine operates in region 1 1/2'
     control%GenTrq = control%VS_Slope15*(control%GenSpeedF-control%VS_CtInSp)
@@ -346,7 +365,7 @@ subroutine operate_controller(control,time,NumBl,rotSpeed)
          control%PitRate(K) = (control%PitComT - control%BlPitch(K) )/control%ElapTime                 ! Pitch rate of blade K (unsaturated)
          control%PitRate(K) = MIN( MAX( control%PitRate(K), -control%PC_MaxRat ), control%PC_MaxRat)   ! Saturate the pitch rate of blade K using its maximum absolute value
          control%PitCom (K) = control%BlPitch(K) + control%PitRate(K)*control%ElapTime                 ! Saturate the overall command of blade K using the pitch rate limit
-         control%BlPitch(K)=control%PitCom(K) 
+         control%BlPitch(K)=control%PitCom(K)
       ENDDO          ! K - all blades
 
    ! Reset the value of LastTimePC to the current value:
@@ -356,7 +375,7 @@ subroutine operate_controller(control,time,NumBl,rotSpeed)
 !   ! Output debugging information if requested:
 
     !if (nrank==0) then
-    !  print *, Time, control%ElapTime, control%GenSpeed/RPM2RPS, control%GenSpeedF/RPM2RPS, control%GenTrq, rotSpeed 
+    !  print *, Time, control%ElapTime, control%GenSpeed/RPM2RPS, control%GenSpeedF/RPM2RPS, control%GenTrq, rotSpeed
     !endif
 
 ENDIF
@@ -376,10 +395,40 @@ ENDIF
  ! Reset the value of LastTime to the current value:
     control%LastTime = Time
 
-    endif 
+    endif
 
     return
 
 end subroutine operate_controller
 
-end module actuator_line_controller
+subroutine dllinterface(turb, time, trq_dem, p_com)
+
+    implicit none
+    type(TurbineType), intent(in) :: turb
+   	real(mytype), intent(in) :: time
+    real(mytype), intent(out) :: trq_dem, p_com
+    real*8, dimension(121) :: avrSwap
+    real*8, intent(inout), dimension(1) :: SCoutput ! Not used by TUM
+    integer :: aviFail! Not used by TUM
+    character :: accInfile! Not used by TUM
+    character :: avcOutname! Not used by TUM
+    character :: avcMsg! Not used by TUM
+
+    ! Prepare the input format
+    avrSwap[1] = time
+    avrSwap[3] = turb%Blade(1)%StructuralTwist ! Manage the initial twist
+    avrSwap[20] = turb%angularVel
+    avrSwap[13] = turb%Power
+
+    ! Call the controller
+    call turb%Controller%dllpointer(avrSwap, SCoutput, aviFail, accInfile, avcOutname, avcMsg)
+
+    ! Assign the output
+    trq_dem = avrSwap[46]
+    p_com = avrSwap[119]
+    !p_com = avrSwap[120]
+    !p_com = avrSwap[121]
+
+end subroutine dllinterface
+
+module actuator_line_controller

@@ -289,8 +289,10 @@ contains
             Turbine(i)%TSR=tsr
             Turbine(i)%Is_upstreamvel_controlled=.true.
             Turbine(i)%Uref=uref
+        else if (OperFlag == 5) then
+            Turbine(i)%Is_dllcontrolled = .true.
         else
-            write(*,*) "Only constant_rotation (1) and control_based (2) is used"
+            write(*,*) "Only constant_rotation (1), control_based (2) and ddl_controlled (5) can be used"
             stop
         endif
 
@@ -455,6 +457,7 @@ contains
         integer :: i,j,k, Nstation
         real(mytype) :: theta, pitch_angle, deltapitch, pitch_angle_old
         real(mytype) :: WSRotorAve,Omega
+        real(mytype) :: torque_demand, pitch_command
         ! This routine updates the location of the actuator lines
 
         ctime=current_time
@@ -536,6 +539,40 @@ contains
                 Turbine(i)%AzimAngle=Turbine(i)%AzimAngle+theta
                 call rotate_turbine(Turbine(i),Turbine(i)%RotN,theta)
                 call Compute_Turbine_RotVel(Turbine(i))
+            else if (Turbine(i)%Is_dllcontrolled) then
+
+                ! call compute_rotor_upstream_velocity(Turbine(i))
+                ! Call the controller
+                call dllinterface(Turbine(i),ctime, torque_demand, pitch_command)
+
+                ! Pitch the blades
+                do j=1,Turbine(i)%NBlades
+                  if (Turbine(i)%IsClockwise) then
+                      Turbine(i)%cbp=-pitch_command
+                  else
+                    stop
+                  endif
+                  deltapitch=Turbine(i)%cbp-Turbine(i)%cbp_old
+                  ! if(nrank==0) print *, 'Doing Pitch control', -deltapitch*180./pi
+                  call pitch_actuator_line(Turbine(i)%Blade(j),deltapitch)
+                enddo
+                Turbine(i)%cbp_old=Turbine(i)%cbp
+
+                ! Compute the change in velocity (and associated rotation) of the turbine according to the controller commands
+                Turbine(i)%deltaOmega=(Turbine(i)%Torque-Turbine(i)%Controller%GearBoxRatio*torque_demand)/ &
+                                      (Turbine(i)%IRotor+Turbine(i)%Controller%GearBoxRatio**2.*Turbine(i)%Controller%IGenerator)*DeltaT
+                Turbine(i)%angularVel=Turbine(i)%angularVel+Turbine(i)%deltaOmega
+
+                theta=Turbine(i)%angularVel*DeltaT
+                Turbine(i)%AzimAngle=Turbine(i)%AzimAngle+theta
+                call rotate_turbine(Turbine(i),Turbine(i)%RotN,theta)
+
+                ! Compute the rotation velocity along the blade
+                call Compute_Turbine_RotVel(Turbine(i))
+
+                ! After you do both variable speed and pitch control update the status of the controller
+                ! Turbine(i)%Controller%IStatus=Turbine(i)%Controller%IStatus+1
+
             endif
             enddo
 
