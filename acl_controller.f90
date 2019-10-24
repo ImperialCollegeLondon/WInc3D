@@ -408,10 +408,15 @@ subroutine init_dllcontroller(controller, controller_file, GearBoxRatio, Igenera
 
     implicit none
 
+    type(ControllerType), intent(inout) :: controller
+    character(len=100), intent(in) :: controller_file
+    real(mytype), intent(in) :: GearBoxRatio, Igenerator
+    type(c_ptr) :: handle
+
     controller%GearBoxRatio = GearBoxRatio
     controller%IGenerator = IGenerator
 
-    handle = dlopen(controller_file//c_null_char, RTLD_LAZY)
+    handle = dlopen(controller_file//c_null_char)
     controller%proc_addr = dlsym(handle, "DISCON"//c_null_char)
 
 end subroutine init_dllcontroller
