@@ -137,7 +137,7 @@ contains
         !-------------------------------------
         ! Dummy variables
         !-------------------------------------
-        character(len=100) :: name, blade_geom, tower_geom, dynstall_param_file, AeroElastInputFile, AeroElastSolverFile, list_controller_file
+        character(len=100) :: name, blade_geom, tower_geom, dynstall_param_file, AeroElastInputFile, AeroElastSolverFile, controller_file
         character(len=100),dimension(MaxNAirfoils) :: afname
         real(mytype), dimension(3) :: origin
         integer :: numblades,numfoil,towerFlag, TypeFlag, OperFlag, RotFlag, AddedMassFlag, DynStallFlag, EndEffectsFlag
@@ -153,7 +153,7 @@ contains
             ConstantCirculationFlag, GammaCirc, &
             yaw_angle, shaft_tilt_angle, blade_cone_angle,AeroElastFlag, AeroElastModel, AeroElastInputFile, AeroElastSolverFile, &
             BladeInertia, GeneratorInertia, GBRatio, GBEfficiency, RatedGenSpeed, RatedLimitGenTorque, CutInGenSpeed, &
-            Region2StartGenSpeed,Region2EndGenSpeed,Kgen,RatedPower,MaximumTorque,list_controller_file
+            Region2StartGenSpeed,Region2EndGenSpeed,Kgen,RatedPower,MaximumTorque,controller_file
 
         if (nrank==0) then
             write(6,*) 'Loading the turbine options ...'
@@ -284,13 +284,16 @@ contains
             Turbine(i)%TSR=tsr
             Turbine(i)%Is_ListController= .true.
             !> Read the list_controller file
-            call read_list_controller_file(list_controller_file,turbine(i))
+            call read_list_controller_file(controller_file,turbine(i))
         else if(OperFlag==4) then
             Turbine(i)%TSR=tsr
             Turbine(i)%Is_upstreamvel_controlled=.true.
             Turbine(i)%Uref=uref
         else if (OperFlag == 5) then
             Turbine(i)%Is_dllcontrolled = .true.
+
+            call init_dllcontroller(Turbine(i)%Controller, controller_file, GearBoxRatio, Igenerator)
+
         else
             write(*,*) "Only constant_rotation (1), control_based (2) and ddl_controlled (5) can be used"
             stop
@@ -544,7 +547,7 @@ contains
                 ! call compute_rotor_upstream_velocity(Turbine(i))
                 ! Call the controller
                 call dllinterface(Turbine(i)%Controller%proc_addr, Turbine(i)%cbp, Turbine(i)%rotVel, Turbine(i)%Power, ctime, torque_demand, pitch_command)
-                
+
                 ! Pitch the blades
                 do j=1,Turbine(i)%NBlades
                   if (Turbine(i)%IsClockwise) then
