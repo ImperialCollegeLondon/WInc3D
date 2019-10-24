@@ -83,6 +83,33 @@ ABSTRACT INTERFACE
    END SUBROUTINE DISCON
 END INTERFACE
 
+interface
+        function dlopen(filename,mode) bind(c,name="dlopen")
+            ! void *dlopen(const char *filename, int mode);
+            use iso_c_binding
+            implicit none
+            type(c_ptr) :: dlopen
+            character(c_char), intent(in) :: filename(*)
+            integer(c_int), value :: mode
+        end function
+
+        function dlsym(handle,name) bind(c,name="dlsym")
+            ! void *dlsym(void *handle, const char *name);
+            use iso_c_binding
+            implicit none
+            type(c_funptr) :: dlsym
+            type(c_ptr), value :: handle
+            character(c_char), intent(in) :: name(*)
+        end function
+
+        function dlclose(handle) bind(c,name="dlclose")
+            ! int dlclose(void *handle);
+            use iso_c_binding
+            implicit none
+            integer(c_int) :: dlclose
+            type(c_ptr), value :: handle
+        end function
+    end interface
 contains
 
 subroutine init_controller(control,GeneratorInertia,GBRatio,GBEfficiency,&
