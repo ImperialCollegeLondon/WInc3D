@@ -439,12 +439,38 @@ subroutine init_dllcontroller(controller, controller_file, GearBoxRatio, Igenera
     character(len=100), intent(in) :: controller_file
     real(mytype), intent(in) :: GearBoxRatio, Igenerator
     type(c_ptr) :: handle
+    integer(c_int), parameter :: rtld_lazy=1, rtld_now=2
+    !integer :: length    
+
+    !length = 
+    !character(len=) :: controller_file_no_spaces
+    !controller_file_no_spaces = controller_file
 
     controller%GearBoxRatio = GearBoxRatio
     controller%IGenerator = IGenerator
+    
+    !print *, "Trying to load:", controller_file
+    handle = dlopen(trim(controller_file)//c_null_char, rtld_lazy)
+    !handle = dlopen(controller_file//c_null_char, rtld_lazy)
+    !handle = dlopen("/home/arturo/technical_work/34-TUM/test_controller/controller/libtest.so"//c_null_char, rtld_lazy)
+    !handle = dlopen("./controller/libtest.so"//c_null_char, rtld_lazy)
+    if (.not. c_associated(handle))then
+        print*, 'Unable to load DLL'
+        stop
+    end if
 
-    handle = dlopen(controller_file//c_null_char)
     controller%proc_addr = dlsym(handle, "DISCON"//c_null_char)
+    if (.not. c_associated(controller%proc_addr))then
+        write(*,*) 'Unable to load the procedure DISCON'
+        stop
+    end if
+
+
+    !print *, "Initialising dll controller"
+    !print *, "GearBoxRatio:", GearBoxRatio
+    !print *, "GeneratorInertia:", controller%IGenerator
+    !print *, "library handle:", handle
+    !print *, "function address:", controller%proc_addr 
 
 end subroutine init_dllcontroller
 
@@ -473,8 +499,11 @@ subroutine dllinterface(proc_addr, meas_pitch, meas_rotVel, meas_power, time, tr
     avrSwap(13) = meas_power
 
     ! Call the controller
+    !print *, "Calling the dll controller"
     call c_f_procpointer(proc_addr , dllpointer)
+    ! print *, "dllpointer", dllpointer
     call dllpointer(avrSwap, SCoutput, aviFail, accInfile, avcOutname, avcMsg)
+    !print *, "End of call to dll controller"
 
     ! Assign the output
     trq_dem = avrSwap(46)

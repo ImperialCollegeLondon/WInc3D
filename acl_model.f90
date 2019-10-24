@@ -292,7 +292,7 @@ contains
         else if (OperFlag == 5) then
             Turbine(i)%Is_dllcontrolled = .true.
 
-            call init_dllcontroller(Turbine(i)%Controller, controller_file, GearBoxRatio, Igenerator)
+            call init_dllcontroller(Turbine(i)%Controller, controller_file, GBRatio, GeneratorInertia)
 
         else
             write(*,*) "Only constant_rotation (1), control_based (2) and ddl_controlled (5) can be used"
