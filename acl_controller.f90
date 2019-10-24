@@ -2,7 +2,7 @@ module actuator_line_controller
 
      use decomp_2d, only: mytype, nrank
      use iso_c_binding
-    
+
 implicit none
 ! Define some parameters
 real(mytype), parameter :: OnePlusEps= 1.0 + EPSILON(OnePlusEps)       ! The number slighty greater than unity in single precision.
@@ -404,12 +404,24 @@ ENDIF
 
 end subroutine operate_controller
 
+subroutine init_dllcontroller(controller, controller_file, GearBoxRatio, Igenerator)
+
+    implicit none
+
+    controller%GearBoxRatio = GearBoxRatio
+    controller%IGenerator = IGenerator
+
+    handle = dlopen(controller_file//c_null_char, RTLD_LAZY)
+    controller%proc_addr = dlsym(handle, "DISCON"//c_null_char)
+
+end subroutine init_dllcontroller
+
 subroutine dllinterface(proc_addr, meas_pitch, meas_rotVel, meas_power, time, trq_dem, p_com)
 
     ! https://stackoverflow.com/questions/38710099/fortran-dynamic-libraries-load-at-runtime
     implicit none
     !type(TurbineType), intent(in) :: turb
-    
+
     type(c_funptr), intent(in) :: proc_addr
     PROCEDURE(DISCON), POINTER :: dllpointer
     real(mytype), intent(in) :: meas_pitch, meas_rotVel, meas_power
