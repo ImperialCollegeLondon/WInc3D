@@ -294,7 +294,7 @@ contains
             Turbine(i)%Uref=uref
             Turbine(i)%TSR=tsr
 
-            Turbine(i)%cbp = 0.4259*pi/180 ! Initial pitch value. TODO: this should be coded better, but for that pitch and twist should be managed separately 
+            Turbine(i)%cbp = 0.4259*pi/180 ! Initial pitch value. TODO: this should be coded better, but for that pitch and twist should be managed separately
             call init_dllcontroller(Turbine(i)%Controller, controller_file, GBRatio, GeneratorInertia)
 
         else
@@ -553,11 +553,11 @@ contains
                 ! print *, "FORTRAN turbine:", i, " cbp", Turbine(i)%cbp
                 ! print *, "FORTRAN turbine:", i, " angular vel", Turbine(i)%angularVel
                 ! print *, "FORTRAN turbine:", i, " Power", Turbine(i)%Power
-               
+
 
                 call compute_rotor_upstream_velocity(Turbine(i))
                 call dllinterface(Turbine(i)%Controller%proc_addr, Turbine(i)%cbp, Turbine(i)%angularVel, Turbine(i)%Power, ctime, torque_demand, pitch_command)
-                
+
                 ! print *, "FORTRAN turbine:", i, " torque demand", torque_demand
                 ! print *, "FORTRAN turbine:", i, " pitch command", pitch_command
 
