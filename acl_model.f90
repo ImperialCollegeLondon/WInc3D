@@ -291,7 +291,10 @@ contains
             Turbine(i)%Uref=uref
         else if (OperFlag == 5) then
             Turbine(i)%Is_dllcontrolled = .true.
+            Turbine(i)%Uref=uref
+            Turbine(i)%TSR=tsr
 
+            Turbine(i)%cbp = 0.4259*pi/180 ! Initial pitch value. TODO: this should be coded better, but for that pitch and twist should be managed separately 
             call init_dllcontroller(Turbine(i)%Controller, controller_file, GBRatio, GeneratorInertia)
 
         else
@@ -546,20 +549,31 @@ contains
 
                 ! call compute_rotor_upstream_velocity(Turbine(i))
                 ! Call the controller
+                ! print *, "FORTRAN turbine:", i, " cbp", Turbine(i)%cbp
+                ! print *, "FORTRAN turbine:", i, " angular vel", Turbine(i)%angularVel
+                ! print *, "FORTRAN turbine:", i, " Power", Turbine(i)%Power
+               
+
+                call compute_rotor_upstream_velocity(Turbine(i))
                 call dllinterface(Turbine(i)%Controller%proc_addr, Turbine(i)%cbp, Turbine(i)%angularVel, Turbine(i)%Power, ctime, torque_demand, pitch_command)
                 
+                ! print *, "FORTRAN turbine:", i, " torque demand", torque_demand
+                ! print *, "FORTRAN turbine:", i, " pitch command", pitch_command
+
+                deltapitch = Turbine(i)%cbp_old - pitch_command
+
                 ! Pitch the blades
                 do j=1,Turbine(i)%NBlades
                   if (Turbine(i)%IsClockwise) then
-                      Turbine(i)%cbp=-pitch_command
+                      Turbine(i)%cbp = pitch_command ! TODO: careful, I am storing the real pitch (the resto of WInc3D works on the other direction)
                   else
                     stop
                   endif
-                  deltapitch=Turbine(i)%cbp-Turbine(i)%cbp_old
                   ! if(nrank==0) print *, 'Doing Pitch control', -deltapitch*180./pi
                   call pitch_actuator_line(Turbine(i)%Blade(j),deltapitch)
                 enddo
-                Turbine(i)%cbp_old=Turbine(i)%cbp
+
+                Turbine(i)%cbp_old = pitch_command
 
                 ! Compute the change in velocity (and associated rotation) of the turbine according to the controller commands
                 Turbine(i)%deltaOmega=(Turbine(i)%Torque-Turbine(i)%Controller%GearBoxRatio*torque_demand)/ &
