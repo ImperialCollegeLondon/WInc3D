@@ -74,8 +74,8 @@ ABSTRACT INTERFACE
    SUBROUTINE DISCON ( avrSwap, SCoutput, aviFail, accInfile, avcOutname, avcMsg )  BIND(C)
       USE, INTRINSIC :: ISO_C_Binding
 
-      real*8, intent(inout), dimension(121) :: avrSwap
-      real*8, intent(inout), dimension(1) :: SCoutput ! Not used by TUM
+      real(c_float), intent(inout), dimension(121) :: avrSwap
+      real(c_float), intent(inout), dimension(1) :: SCoutput ! Not used by TUM
       integer :: aviFail! Not used by TUM
       character :: accInfile! Not used by TUM
       character :: avcOutname! Not used by TUM
@@ -466,7 +466,7 @@ subroutine init_dllcontroller(controller, controller_file, GearBoxRatio, Igenera
     end if
 
 
-    !print *, "Initialising dll controller"
+    print *, "Initialising dll controller"
     !print *, "GearBoxRatio:", GearBoxRatio
     !print *, "GeneratorInertia:", controller%IGenerator
     !print *, "library handle:", handle
@@ -485,18 +485,18 @@ subroutine dllinterface(proc_addr, meas_pitch, meas_rotVel, meas_power, time, tr
     real(mytype), intent(in) :: meas_pitch, meas_rotVel, meas_power
     real(mytype), intent(in) :: time
     real(mytype), intent(out) :: trq_dem, p_com
-    real*8, dimension(121) :: avrSwap
-    real*8, dimension(1) :: SCoutput ! Not used by TUM
+    real(c_float), dimension(121) :: avrSwap = 0.
+    real(c_float), dimension(1) :: SCoutput ! Not used by TUM
     integer :: aviFail! Not used by TUM
     character :: accInfile! Not used by TUM
     character :: avcOutname! Not used by TUM
     character :: avcMsg! Not used by TUM
 
     ! Prepare the input format
-    avrSwap(1) = time
-    avrSwap(3) = meas_pitch ! Manage the initial twist
-    avrSwap(20) = meas_rotVel
-    avrSwap(13) = meas_power
+    avrSwap(2) = time
+    avrSwap(4) = meas_pitch ! Manage the initial twist
+    avrSwap(21) = meas_rotVel
+    avrSwap(14) = meas_power
 
     ! Call the controller
     !print *, "Calling the dll controller"
@@ -506,8 +506,8 @@ subroutine dllinterface(proc_addr, meas_pitch, meas_rotVel, meas_power, time, tr
     !print *, "End of call to dll controller"
 
     ! Assign the output
-    trq_dem = avrSwap(46)
-    p_com = avrSwap(119)
+    trq_dem = avrSwap(47)
+    p_com = avrSwap(120)
     !p_com = avrSwap[120]
     !p_com = avrSwap[121]
 
