@@ -458,6 +458,7 @@ contains
 
     subroutine actuator_line_model_update(current_time,dt)
 
+        use constants
         implicit none
         real(mytype),intent(inout) :: current_time, dt
         integer :: i,j,k, Nstation

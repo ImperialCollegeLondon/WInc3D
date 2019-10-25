@@ -74,6 +74,7 @@ contains
 
     subroutine set_turbine_geometry(turbine)
     use param, only: ialmrestart
+    use constants
     implicit none
     type(TurbineType),intent(inout) :: turbine
     real(mytype), allocatable :: rR(:),ctoR(:),pitch(:),thick(:)
@@ -317,6 +318,7 @@ contains
 
     subroutine Compute_Turbine_EndEffects(turbine)
 
+    use constants
     implicit none
     type(TurbineType),intent(inout) :: turbine
     integer :: iblade,ielem
