@@ -567,6 +567,7 @@ contains
                 do j=1,Turbine(i)%NBlades
                   if (Turbine(i)%IsClockwise) then
                       Turbine(i)%cbp = pitch_command ! TODO: careful, I am storing the real pitch (the resto of WInc3D works on the other direction)
+                      Turbine(i)%Controller%PitCom(j) = pitch_command
                   else
                     stop
                   endif
@@ -587,6 +588,9 @@ contains
 
                 ! Compute the rotation velocity along the blade
                 call Compute_Turbine_RotVel(Turbine(i))
+
+                Turbine(i)%Controller%GenSpeed = Turbine(i)%angularVel*Turbine(i)%Controller%GearBoxRatio
+                Turbine(i)%Controller%GenTrq = torque_demand
 
                 ! After you do both variable speed and pitch control update the status of the controller
                 ! Turbine(i)%Controller%IStatus=Turbine(i)%Controller%IStatus+1
