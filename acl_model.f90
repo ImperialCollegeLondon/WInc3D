@@ -553,20 +553,21 @@ contains
                 ! print *, "FORTRAN turbine:", i, " cbp", Turbine(i)%cbp
                 ! print *, "FORTRAN turbine:", i, " angular vel", Turbine(i)%angularVel
                 ! print *, "FORTRAN turbine:", i, " Power", Turbine(i)%Power
+                ! if(nrank==0) write(*,*) 'Entering the dll-controlled operation for the turbine', Turbine(i)%name
 
 
                 call compute_rotor_upstream_velocity(Turbine(i))
                 call dllinterface(Turbine(i)%Controller%proc_addr, Turbine(i)%cbp, Turbine(i)%angularVel, Turbine(i)%Power, ctime, torque_demand, pitch_command)
 
                 ! print *, "FORTRAN turbine:", i, " torque demand", torque_demand
-                ! print *, "FORTRAN turbine:", i, " pitch command", pitch_command
+                if(nrank==0) write (*,*) "turbine:", i, " pitch command", pitch_command
 
                 deltapitch = Turbine(i)%cbp_old - pitch_command
+                Turbine(i)%cbp = pitch_command ! TODO: careful, I am storing the real pitch (the resto of WInc3D works on the other direction)
 
                 ! Pitch the blades
                 do j=1,Turbine(i)%NBlades
                   if (Turbine(i)%IsClockwise) then
-                      Turbine(i)%cbp = pitch_command ! TODO: careful, I am storing the real pitch (the resto of WInc3D works on the other direction)
                       Turbine(i)%Controller%PitCom(j) = pitch_command
                   else
                     stop

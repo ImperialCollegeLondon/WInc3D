@@ -440,22 +440,22 @@ subroutine init_dllcontroller(controller, controller_file, GearBoxRatio, Igenera
     real(mytype), intent(in) :: GearBoxRatio, Igenerator
     type(c_ptr) :: handle
     integer(c_int), parameter :: rtld_lazy=1, rtld_now=2
-    !integer :: length    
+    !integer :: length
 
-    !length = 
+    !length =
     !character(len=) :: controller_file_no_spaces
     !controller_file_no_spaces = controller_file
 
     controller%GearBoxRatio = GearBoxRatio
     controller%IGenerator = IGenerator
-    
+
     !print *, "Trying to load:", controller_file
     handle = dlopen(trim(controller_file)//c_null_char, rtld_lazy)
     !handle = dlopen(controller_file//c_null_char, rtld_lazy)
     !handle = dlopen("/home/arturo/technical_work/34-TUM/test_controller/controller/libtest.so"//c_null_char, rtld_lazy)
     !handle = dlopen("./controller/libtest.so"//c_null_char, rtld_lazy)
     if (.not. c_associated(handle))then
-        print*, 'Unable to load DLL'
+        write(*,*) 'Unable to load DLL'
         stop
     end if
 
@@ -466,11 +466,11 @@ subroutine init_dllcontroller(controller, controller_file, GearBoxRatio, Igenera
     end if
 
 
-    print *, "Initialising dll controller"
+    if(nrank==0) write (*,*) "Initialising dll controller"
     !print *, "GearBoxRatio:", GearBoxRatio
     !print *, "GeneratorInertia:", controller%IGenerator
     !print *, "library handle:", handle
-    !print *, "function address:", controller%proc_addr 
+    !print *, "function address:", controller%proc_addr
 
 end subroutine init_dllcontroller
 
