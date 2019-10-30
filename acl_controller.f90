@@ -524,6 +524,7 @@ subroutine dllinterface(proc_addr, meas_pitch, meas_rotVel, meas_power, time, tr
     p_com = avrSwap(120)
     !p_com = avrSwap[120]
     !p_com = avrSwap[121]
+    if(nrank==0) write (*,*) "Controller step done"
 
 end subroutine dllinterface
 

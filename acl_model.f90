@@ -98,7 +98,7 @@ contains
 
         if (Ntur>0) then
             do itur=1,Ntur
-                write(*,*) "before write turbine", itur, "PitCom:", turbine(itur)%controller%PitCom(1), turbine(itur)%controller%PitCom(2), turbine(itur)%controller%PitCom(3)
+                ! write(*,*) "before write turbine", itur, "PitCom:", turbine(itur)%controller%PitCom(1), turbine(itur)%controller%PitCom(2), turbine(itur)%controller%PitCom(3)
                 call actuator_line_turbine_write_output(turbine(itur),dir)
                 do iblade=1,turbine(itur)%NBlades
                  call actuator_line_element_write_output(turbine(itur)%Blade(iblade),dir)
@@ -296,9 +296,9 @@ contains
             Turbine(i)%Uref=uref
             Turbine(i)%TSR=tsr
 
-            if (nrank==0) then
-                write (*,*) "F init turb", i, "with uref", uref, "tsr", tsr, "GBRatio", GBRatio, "GeneratorInertia", GeneratorInertia
-            endif
+            !if (nrank==0) then
+            !    write (*,*) "F init turb", i, "with uref", uref, "tsr", tsr, "GBRatio", GBRatio, "GeneratorInertia", GeneratorInertia
+            !endif
 
             Turbine(i)%cbp = 0.4259*pi/180 ! Initial pitch value. TODO: this should be coded better, but for that pitch and twist should be managed separately
             call init_dllcontroller(Turbine(i)%Controller, controller_file, GBRatio, GeneratorInertia)
@@ -561,26 +561,26 @@ contains
                 ! print *, "FORTRAN turbine:", i, " angular vel", Turbine(i)%angularVel
                 ! print *, "FORTRAN turbine:", i, " Power", Turbine(i)%Power
                 ! if(nrank==0) write(*,*) 'Entering the dll-controlled operation for the turbine', Turbine(i)%name
-                if (nrank==0) then
-                    write (*,*) "F before step turbine", i, "proc_addr", Turbine(i)%Controller%proc_addr, "cbp", Turbine(i)%cbp, "angularvel", Turbine(i)%angularVel
-                    write (*,*) "              ", "power", Turbine(i)%Power, "ctime", ctime, "torque dem", torque_demand, "pit command", pitch_command
-                endif
+                !if (nrank==0) then
+                !    write (*,*) "F before step turbine", i, "proc_addr", Turbine(i)%Controller%proc_addr, "cbp", Turbine(i)%cbp, "angularvel", Turbine(i)%angularVel
+                !    write (*,*) "              ", "power", Turbine(i)%Power, "ctime", ctime, "torque dem", torque_demand, "pit command", pitch_command
+                !endif
 
                 call compute_rotor_upstream_velocity(Turbine(i))
                 call dllinterface(Turbine(i)%Controller%proc_addr, Turbine(i)%cbp, Turbine(i)%angularVel, Turbine(i)%Power, ctime, torque_demand, pitch_command)
 
                 ! print *, "FORTRAN turbine:", i, " torque demand", torque_demand
-                if (nrank==0) then
-                    write (*,*) "F after step turbine", i, "proc_addr", Turbine(i)%Controller%proc_addr, "cbp", Turbine(i)%cbp, "angularvel", Turbine(i)%angularVel
-                    write (*,*) "              ", "power", Turbine(i)%Power, "ctime", ctime, "torque dem", torque_demand, "pit command", pitch_command
-                endif
+                !if (nrank==0) then
+                !    write (*,*) "F after step turbine", i, "proc_addr", Turbine(i)%Controller%proc_addr, "cbp", Turbine(i)%cbp, "angularvel", Turbine(i)%angularVel
+                !    write (*,*) "              ", "power", Turbine(i)%Power, "ctime", ctime, "torque dem", torque_demand, "pit command", pitch_command
+                !endif
 
                 deltapitch = Turbine(i)%cbp_old - pitch_command
                 Turbine(i)%cbp = pitch_command ! TODO: careful, I am storing the real pitch (the resto of WInc3D works on the other direction)
 
-                if (nrank==0) then
-                    write (*,*) "F after step turbine", i, "deltapitch", deltapitch, "cbp", Turbine(i)%cbp
-                endif
+                !if (nrank==0) then
+                !    write (*,*) "F after step turbine", i, "deltapitch", deltapitch, "cbp", Turbine(i)%cbp
+                !endif
 
                 ! Pitch the blades
                 do j=1,Turbine(i)%NBlades
@@ -595,12 +595,12 @@ contains
 
                 Turbine(i)%cbp_old = pitch_command
 
-                if (nrank==0) then
-                    write(*,*) "F before vel control turbine", i, "torque", Turbine(i)%Torque, "GBR", Turbine(i)%Controller%GearBoxRatio, "torque dem", torque_demand
-                    write(*,*) "                            ", "Irotor", Turbine(i)%IRotor, "IGen", Turbine(i)%Controller%IGenerator, "dt", DeltaT
-                    write(*,*) "                            ", "AngularVel", Turbine(i)%angularVel, "deltaOmega", Turbine(i)%deltaOmega, "az angle", Turbine(i)%AzimAngle, "rotn", Turbine(i)%RotN
+                !if (nrank==0) then
+                !    write(*,*) "F before vel control turbine", i, "torque", Turbine(i)%Torque, "GBR", Turbine(i)%Controller%GearBoxRatio, "torque dem", torque_demand
+                !    write(*,*) "                            ", "Irotor", Turbine(i)%IRotor, "IGen", Turbine(i)%Controller%IGenerator, "dt", DeltaT
+                !    write(*,*) "                            ", "AngularVel", Turbine(i)%angularVel, "deltaOmega", Turbine(i)%deltaOmega, "az angle", Turbine(i)%AzimAngle, "rotn", Turbine(i)%RotN
 
-                endif
+                !endif
 
                 ! Compute the change in velocity (and associated rotation) of the turbine according to the controller commands
                 Turbine(i)%deltaOmega=(Turbine(i)%Torque-Turbine(i)%Controller%GearBoxRatio*torque_demand)/ &
@@ -620,7 +620,7 @@ contains
                 ! After you do both variable speed and pitch control update the status of the controller
                 ! Turbine(i)%Controller%IStatus=Turbine(i)%Controller%IStatus+1
                 
-                if(nrank==0) write (*,*) "turbine:", i, " blade pitch command", turbine(i)%controller%PitCom(1), turbine(i)%controller%PitCom(2), turbine(i)%controller%PitCom(3) 
+                !if(nrank==0) write (*,*) "turbine:", i, " blade pitch command", turbine(i)%controller%PitCom(1), turbine(i)%controller%PitCom(2), turbine(i)%controller%PitCom(3) 
 
             endif
             enddo
