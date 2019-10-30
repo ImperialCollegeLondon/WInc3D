@@ -266,7 +266,7 @@ do itime=ifirst,ilast
           write(6,*) 'Unsteady ACtuator Line Model INFO:'
       endif
       call Compute_Momentum_Source_Term_pointwise            
-      call actuator_line_model_update(t,dt)
+      call actuator_line_model_update(t,dt)     
       if (nrank==0) then
           write(6,*) '' 
       endif

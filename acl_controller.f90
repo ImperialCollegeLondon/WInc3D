@@ -93,6 +93,17 @@ interface
             integer(c_int), value :: mode
         end function
 
+        !https://stackoverflow.com/questions/54550150/how-can-i-use-dlmopen-in-fortran        
+        function dlmopen(lmid_t,filename,mode) bind(c,name="dlmopen")
+            ! void *dlmopen (Lmid_t lmid, const char *filename, int flags);
+            use iso_c_binding
+            implicit none
+            type(c_ptr) :: dlmopen
+            integer(c_long), value :: lmid_t
+            character(c_char), intent(in) :: filename(*)
+            integer(c_int), value :: mode
+        end function
+
         function dlsym(handle,name) bind(c,name="dlsym")
             ! void *dlsym(void *handle, const char *name);
             use iso_c_binding
@@ -433,6 +444,7 @@ end subroutine operate_controller
 
 subroutine init_dllcontroller(controller, controller_file, GearBoxRatio, Igenerator)
 
+    use iso_c_binding
     implicit none
 
     type(ControllerType), intent(inout) :: controller
@@ -440,6 +452,7 @@ subroutine init_dllcontroller(controller, controller_file, GearBoxRatio, Igenera
     real(mytype), intent(in) :: GearBoxRatio, Igenerator
     type(c_ptr) :: handle
     integer(c_int), parameter :: rtld_lazy=1, rtld_now=2
+    integer(c_long) :: dlist = -1 !LM_ID_NEWLM: Request new namespace
     !integer :: length
 
     !length =
@@ -450,7 +463,8 @@ subroutine init_dllcontroller(controller, controller_file, GearBoxRatio, Igenera
     controller%IGenerator = IGenerator
 
     !print *, "Trying to load:", controller_file
-    handle = dlopen(trim(controller_file)//c_null_char, rtld_lazy)
+    handle = dlopen(trim(controller_file)//c_null_char, rtld_now)
+    !handle = dlmopen(dlist, trim(controller_file)//c_null_char, rtld_now)
     !handle = dlopen(controller_file//c_null_char, rtld_lazy)
     !handle = dlopen("/home/arturo/technical_work/34-TUM/test_controller/controller/libtest.so"//c_null_char, rtld_lazy)
     !handle = dlopen("./controller/libtest.so"//c_null_char, rtld_lazy)
