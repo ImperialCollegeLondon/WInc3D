@@ -533,7 +533,7 @@ contains
 
         real(mytype) :: x_sampling, y_sampling, z_sampling
         real(mytype) :: u_sampling, v_sampling, w_sampling
-        real(mytype) :: delta_sampling, local_l_vel_sample, max_chord
+        real(mytype) :: delta_sampling, local_l_vel_sample, max_chord, sum_kernel
         integer :: in, it
 
         ! First we need to compute the locations
@@ -583,6 +583,7 @@ contains
           ! Parameters for the sampling
           local_l_vel_sample = l_vel_sample*Sc(isource)
           delta_sampling = local_l_vel_sample/(np_vel_sample - 1)
+          sum_kernel = 0.
 
           Su_part(isource) = 0.0
           Sv_part(isource) = 0.0
@@ -756,7 +757,9 @@ contains
               ! TODO: I think it would be better to make this coherent with the force projection
               dist = sqrt((Sx(isource)-x_sampling)**2+(Sy(isource)-y_sampling)**2+(Sz(isource)-z_sampling)**2)
               epsilon=eps_factor*(dx*dy*dz)**(1.0/3.0)
-              Kernel = 1.0/(epsilon**3.0*pi**1.5)*dexp(-(dist/epsilon)**2.0)
+              ! Kernel = 1.0/(epsilon**3.0*pi**1.5)*dexp(-(dist/epsilon)**2.0)
+              Kernel = dexp(-0.5*(dist/epsilon)**2.0)
+              sum_kernel = sum_kernel + Kernel
               Su_part(isource) = Su_part(isource) + Kernel*u_sampling
               Sv_part(isource) = Sv_part(isource) + Kernel*v_sampling
               Sw_part(isource) = Sw_part(isource) + Kernel*w_sampling
@@ -769,6 +772,9 @@ contains
               endif
             enddo
           enddo ! end do for the velocity sampling loops (normal and tangential)
+          Su_part(isource) = Su_part(isource)/sum_kernel
+          Sv_part(isource) = Sv_part(isource)/sum_kernel
+          Sw_part(isource) = Sw_part(isource)/sum_kernel
       enddo ! isource loop
         !$OMP END PARALLEL DO
 
