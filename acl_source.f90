@@ -581,7 +581,7 @@ contains
 
         do isource=1,NSource
           ! Parameters for the sampling
-          local_l_vel_sample = l_vel_sample*Sc_part(isource)
+          local_l_vel_sample = l_vel_sample*Sc(isource)
           delta_sampling = local_l_vel_sample/(np_vel_sample - 1)
 
           Su_part(isource) = 0.0
