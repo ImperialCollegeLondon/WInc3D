@@ -7,8 +7,8 @@ module actuator_line_source
 
     implicit none
     real(mytype),save :: constant_epsilon, meshFactor, thicknessFactor,chordFactor
-    real(mytype),save, allocatable :: Sx(:),Sy(:),Sz(:),Sc(:),Se(:),Sh(:),Su(:),Sv(:),Sw(:),SFX(:),SFY(:),SFZ(:)
-    real(mytype),save, allocatable :: Su_part(:),Sv_part(:),Sw_part(:)
+    real(mytype),save, allocatable :: Sx(:),Sy(:),Sz(:),Sc(:),Se(:),Sh(:),Su(:),Sv(:),Sw(:),SFX(:),SFY(:),SFZ(:), sum_kernel(:)
+    real(mytype),save, allocatable :: Su_part(:),Sv_part(:),Sw_part(:), sum_kernel_part(:)
     real(mytype),save, allocatable :: Snx(:),Sny(:),Snz(:),Stx(:),Sty(:),Stz(:),Ssx(:),Ssy(:),Ssz(:),Ssegm(:)
     real(mytype),save, allocatable :: A(:,:)
     logical, allocatable :: inside_the_domain(:)
@@ -53,8 +53,8 @@ contains
         end do
     endif
     NSource=counter
-    allocate(Sx(NSource),Sy(NSource),Sz(NSource),Sc(Nsource),Su(NSource),Sv(NSource),Sw(NSource),Se(NSource),Sh(NSource),Sfx(NSource),Sfy(NSource),Sfz(NSource))
-    allocate(Su_part(NSource),Sv_part(NSource),Sw_part(NSource))
+    allocate(Sx(NSource),Sy(NSource),Sz(NSource),Sc(Nsource),Su(NSource),Sv(NSource),Sw(NSource),Se(NSource),Sh(NSource),Sfx(NSource),Sfy(NSource),Sfz(NSource), sum_kernel(Nsource))
+    allocate(Su_part(NSource),Sv_part(NSource),Sw_part(NSource), sum_kernel_part(NSource))
     allocate(Snx(NSource),Sny(NSource),Snz(NSource),Stx(Nsource),Sty(NSource),Stz(NSource),Ssx(NSource),Ssy(NSource),Ssz(NSource),Ssegm(NSource))
     allocate(A(NSource,NSource))
     allocate(inside_the_domain(NSource))
@@ -533,7 +533,7 @@ contains
 
         real(mytype) :: x_sampling, y_sampling, z_sampling
         real(mytype) :: u_sampling, v_sampling, w_sampling
-        real(mytype) :: delta_sampling, local_l_vel_sample, max_chord, sum_kernel
+        real(mytype) :: delta_sampling, local_l_vel_sample, max_chord
         integer :: in, it
 
         ! First we need to compute the locations
@@ -543,6 +543,7 @@ contains
         Su(:)=0.0
         Sv(:)=0.0
         Sw(:)=0.0
+        sum_kernel(:)=0.0
         ! This is not optimum but works
         ! Define the domain
 
@@ -583,7 +584,7 @@ contains
           ! Parameters for the sampling
           local_l_vel_sample = l_vel_sample*Sc(isource)
           delta_sampling = local_l_vel_sample/(np_vel_sample - 1)
-          sum_kernel = 0.
+          sum_kernel_part(isource) = 0.0
 
           Su_part(isource) = 0.0
           Sv_part(isource) = 0.0
@@ -759,7 +760,7 @@ contains
               epsilon=eps_factor*(dx*dy*dz)**(1.0/3.0)
               ! Kernel = 1.0/(epsilon**3.0*pi**1.5)*dexp(-(dist/epsilon)**2.0)
               Kernel = dexp(-0.5*(dist/epsilon)**2.0)
-              sum_kernel = sum_kernel + Kernel
+              sum_kernel_part(isource) = sum_kernel_part(isource) + Kernel
               Su_part(isource) = Su_part(isource) + Kernel*u_sampling
               Sv_part(isource) = Sv_part(isource) + Kernel*v_sampling
               Sw_part(isource) = Sw_part(isource) + Kernel*w_sampling
@@ -772,9 +773,6 @@ contains
               endif
             enddo
           enddo ! end do for the velocity sampling loops (normal and tangential)
-          Su_part(isource) = Su_part(isource)/sum_kernel
-          Sv_part(isource) = Sv_part(isource)/sum_kernel
-          Sw_part(isource) = Sw_part(isource)/sum_kernel
       enddo ! isource loop
         !$OMP END PARALLEL DO
 
@@ -784,6 +782,15 @@ contains
             MPI_COMM_WORLD,ierr)
         call MPI_ALLREDUCE(Sw_part,Sw,Nsource,MPI_REAL8,MPI_SUM, &
             MPI_COMM_WORLD,ierr)
+        call MPI_ALLREDUCE(sum_kernel_part,sum_kernel,Nsource,MPI_REAL8,MPI_SUM, &
+            MPI_COMM_WORLD,ierr)
+
+        do isource=1,Nsource
+            write(*,*) "sum_kernel", sum_kernel(isource)
+            Su(isource) = Su(isource)/sum_kernel(isource)
+            Sv(isource) = Sv(isource)/sum_kernel(isource)
+            Sw(isource) = Sw(isource)/sum_kernel(isource)
+        enddo
 
         ! Zero the Source term at each time step
         FTx(:,:,:)=0.0
