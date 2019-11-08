@@ -533,7 +533,7 @@ contains
 
         real(mytype) :: x_sampling, y_sampling, z_sampling
         real(mytype) :: u_sampling, v_sampling, w_sampling
-        real(mytype) :: delta_sampling, local_l_vel_sample, max_chord
+        real(mytype) :: delta_sampling, local_window_sample, max_chord
         integer :: in, it
 
         ! First we need to compute the locations
@@ -556,6 +556,7 @@ contains
             stop
           endif
         enddo
+        max_chord = 4.*max_chord
 
         !Probably this overlaping is very conservative
         if (istret.eq.0) then
@@ -582,22 +583,25 @@ contains
 
         do isource=1,NSource
           ! Parameters for the sampling
-          local_l_vel_sample = l_vel_sample*Sc(isource)
-          delta_sampling = local_l_vel_sample/(np_vel_sample - 1)
+          local_window_sample = 4.*l_vel_sample*Sc(isource)
+          delta_sampling = local_window_sample/(np_vel_sample - 1)
           sum_kernel_part(isource) = 0.0
 
           Su_part(isource) = 0.0
           Sv_part(isource) = 0.0
           Sw_part(isource) = 0.0
 
+          ! write(*,*) "isource:", isource, "l_vel_sample:", l_vel_sample, "local_window_sample:", local_window_sample, "Sc:", Sc(isource), "np_vel_sample:", np_vel_sample
           ! Loops over the points that will be used for the integration of velocity. Tangential and normal velocities to the chord
           do it=1,np_vel_sample
             do in=1,np_vel_sample
 
               ! Compute the location in the mesh of those points (TODO: move this to a separated subroutine)
-              x_sampling = Sx(isource) - Stx(isource)*local_l_vel_sample/2 - Snx(isource)*local_l_vel_sample/2 + Stx(isource)*delta_sampling*(it-1) + Snx(isource)*delta_sampling*(in-1)
-              y_sampling = Sy(isource) - Sty(isource)*local_l_vel_sample/2 - Sny(isource)*local_l_vel_sample/2 + Sty(isource)*delta_sampling*(it-1) + Sny(isource)*delta_sampling*(in-1)
-              z_sampling = Sz(isource) - Stz(isource)*local_l_vel_sample/2 - Snz(isource)*local_l_vel_sample/2 + Stz(isource)*delta_sampling*(it-1) + Snz(isource)*delta_sampling*(in-1)
+              x_sampling = Sx(isource) - Stx(isource)*local_window_sample/2 - Snx(isource)*local_window_sample/2 + Stx(isource)*delta_sampling*(it-1) + Snx(isource)*delta_sampling*(in-1)
+              y_sampling = Sy(isource) - Sty(isource)*local_window_sample/2 - Sny(isource)*local_window_sample/2 + Sty(isource)*delta_sampling*(it-1) + Sny(isource)*delta_sampling*(in-1)
+              z_sampling = Sz(isource) - Stz(isource)*local_window_sample/2 - Snz(isource)*local_window_sample/2 + Stz(isource)*delta_sampling*(it-1) + Snz(isource)*delta_sampling*(in-1)
+
+              ! write(*,*) "sampling it:", it, "in:", in, "xyz", x_sampling, y_sampling, z_sampling
 
               ! TODO: I think this can be done analitically provided that we have a regular grid
               min_dist=1e6
@@ -622,6 +626,7 @@ contains
                   enddo
                 enddo
 
+                ! write(*,*) "at ijk:", min_i, min_j, min_k
                 ! Checks
                 if(y_sampling>ymax.or.y_sampling<ymin) then
                   write(*,*) 'In processor ', nrank
@@ -754,17 +759,19 @@ contains
                                                   uz1_halo(i_lower,j_upper,k_upper), &
                                                   uz1_halo(i_upper,j_upper,k_upper))
 
+              ! write(*,*) "velocity sampled:", u_sampling, v_sampling, w_sampling
               ! Integrate
               ! TODO: I think it would be better to make this coherent with the force projection
               dist = sqrt((Sx(isource)-x_sampling)**2+(Sy(isource)-y_sampling)**2+(Sz(isource)-z_sampling)**2)
-              epsilon=eps_factor*(dx*dy*dz)**(1.0/3.0)
+              ! epsilon=eps_factor*(dx*dy*dz)**(1.0/3.0)
               ! Kernel = 1.0/(epsilon**3.0*pi**1.5)*dexp(-(dist/epsilon)**2.0)
-              Kernel = dexp(-0.5*(dist/epsilon)**2.0)
+              Kernel = dexp(-(dist/l_vel_sample/Sc(isource))**2.0)
               sum_kernel_part(isource) = sum_kernel_part(isource) + Kernel
               Su_part(isource) = Su_part(isource) + Kernel*u_sampling
               Sv_part(isource) = Sv_part(isource) + Kernel*v_sampling
               Sw_part(isource) = Sw_part(isource) + Kernel*w_sampling
 
+              ! write(*,*) "dist", dist, "to source:", Sx(isource), Sy(isource), Sz(isource)
               else
                 Su_part(isource)=0.0
                 Sv_part(isource)=0.0
@@ -786,10 +793,11 @@ contains
             MPI_COMM_WORLD,ierr)
 
         do isource=1,Nsource
-            write(*,*) "sum_kernel", sum_kernel(isource)
+            ! write(*,*) "sum_kernel", sum_kernel(isource)
             Su(isource) = Su(isource)/sum_kernel(isource)
             Sv(isource) = Sv(isource)/sum_kernel(isource)
             Sw(isource) = Sw(isource)/sum_kernel(isource)
+            ! write(*,*) "isource", isource, "velocity:", Su(isource), Sv(isource), Sw(isource)
         enddo
 
         ! Zero the Source term at each time step
