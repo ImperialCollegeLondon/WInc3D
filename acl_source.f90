@@ -548,34 +548,34 @@ contains
         ! Define the domain
 
         ! Check if the points lie outside the fluid domain
-        max_chord = 0.
+        ! max_chord = 0.
         do isource=1,Nsource
-          if(Sc(isource) > max_chord) max_chord = Sc(isource)
+          ! if(Sc(isource) > max_chord) max_chord = Sc(isource)
           if((Sx(isource)>xlx).or.(Sx(isource)<0).or.(Sy(isource)>yly).or.(Sy(isource)<0).or.(Sz(isource)>zlz).or.(Sz(isource)<0)) then
             print *, 'Point outside the fluid domain'
             stop
           endif
         enddo
-        max_chord = 4.*max_chord
+        ! max_chord = 4.*max_chord
 
         !Probably this overlaping is very conservative
         if (istret.eq.0) then
-          ymin=(xstart(2)-1)*dy - l_vel_sample*max_chord/2
-          ymax=(xend(2)-1)*dy + l_vel_sample*max_chord/2
+          ymin=(xstart(2)-1)*dy - (5*eps_factor+1)*dy
+          ymax=(xend(2)-1)*dy + (5*eps_factor+1)*dy
         else
           ymin=yp(xstart(2))
           ymax=yp(xend(2))
         endif
 
-        zmin=(xstart(3)-1)*dz - l_vel_sample*max_chord/2
-        zmax=(xend(3)-1)*dz + l_vel_sample*max_chord/2
+        zmin=(xstart(3)-1)*dz - (5*eps_factor + 1)*dz
+        zmax=(xend(3)-1)*dz + (5*eps_factor + 1)*dz
 
         !write(*,*) 'Rank=', nrank, 'X index Limits=', xstart(1), xend(1), 'X lims=', (xstart(1)-1)*dx, (xend(1)-1)*dx
         !write(*,*) 'Rank=', nrank, 'Y index Limits=', xstart(2), xend(2), 'Y lims=', ymin, ymax
         !write(*,*) 'Rank=', nrank, 'Z index Limits=', xstart(3), xend(3), 'Z lims=', zmin, zmax
-        call update_halo(ux1,ux1_halo,int(5*eps_factor*dx + 1),opt_global=.true.)
-        call update_halo(uy1,uy1_halo,int(5*eps_factor*dy + 1),opt_global=.true.)
-        call update_halo(uz1,uz1_halo,int(5*eps_factor*dz + 1),opt_global=.true.)
+        call update_halo(ux1,ux1_halo,int(5*eps_factor + 1),opt_global=.true.)
+        call update_halo(uy1,uy1_halo,int(5*eps_factor + 1),opt_global=.true.)
+        call update_halo(uz1,uz1_halo,int(5*eps_factor + 1),opt_global=.true.)
         !print *,  nrank, shape(ux1), shape(ux1_halo)
         !do j=xstart(2),xend(2)
         !print *, nrank, ux1(xstart(1),j,xstart(3)), ux1_halo(xstart(1),j,xstart(3))
