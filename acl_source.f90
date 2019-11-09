@@ -573,9 +573,9 @@ contains
         !write(*,*) 'Rank=', nrank, 'X index Limits=', xstart(1), xend(1), 'X lims=', (xstart(1)-1)*dx, (xend(1)-1)*dx
         !write(*,*) 'Rank=', nrank, 'Y index Limits=', xstart(2), xend(2), 'Y lims=', ymin, ymax
         !write(*,*) 'Rank=', nrank, 'Z index Limits=', xstart(3), xend(3), 'Z lims=', zmin, zmax
-        call update_halo(ux1,ux1_halo,int(l_vel_sample*max_chord/2/dx + 1),opt_global=.true.)
-        call update_halo(uy1,uy1_halo,int(l_vel_sample*max_chord/2/dy + 1),opt_global=.true.)
-        call update_halo(uz1,uz1_halo,int(l_vel_sample*max_chord/2/dz + 1),opt_global=.true.)
+        call update_halo(ux1,ux1_halo,int(5*eps_factor*dx + 1),opt_global=.true.)
+        call update_halo(uy1,uy1_halo,int(5*eps_factor*dy + 1),opt_global=.true.)
+        call update_halo(uz1,uz1_halo,int(5*eps_factor*dz + 1),opt_global=.true.)
         !print *,  nrank, shape(ux1), shape(ux1_halo)
         !do j=xstart(2),xend(2)
         !print *, nrank, ux1(xstart(1),j,xstart(3)), ux1_halo(xstart(1),j,xstart(3))
@@ -583,7 +583,7 @@ contains
 
         do isource=1,NSource
           ! Parameters for the sampling
-          local_window_sample = 4.*l_vel_sample*Sc(isource)
+          local_window_sample = 10*eps_factor*(dx*dy*dz)**(1.0/3.0)
           delta_sampling = local_window_sample/(np_vel_sample - 1)
           sum_kernel_part(isource) = 0.0
 
@@ -763,9 +763,9 @@ contains
               ! Integrate
               ! TODO: I think it would be better to make this coherent with the force projection
               dist = sqrt((Sx(isource)-x_sampling)**2+(Sy(isource)-y_sampling)**2+(Sz(isource)-z_sampling)**2)
-              ! epsilon=eps_factor*(dx*dy*dz)**(1.0/3.0)
+              epsilon=eps_factor*(dx*dy*dz)**(1.0/3.0)
               ! Kernel = 1.0/(epsilon**3.0*pi**1.5)*dexp(-(dist/epsilon)**2.0)
-              Kernel = dexp(-(dist/l_vel_sample/Sc(isource))**2.0)
+              Kernel = dexp(-(dist/epsilon)**2.0)
               sum_kernel_part(isource) = sum_kernel_part(isource) + Kernel
               Su_part(isource) = Su_part(isource) + Kernel*u_sampling
               Sv_part(isource) = Sv_part(isource) + Kernel*v_sampling
