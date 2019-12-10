@@ -605,6 +605,7 @@ contains
 
     subroutine actuator_line_model_compute_forces
 
+	use param, only: rho_air
         implicit none
 
         integer :: i,j
@@ -624,13 +625,13 @@ contains
 
             ! Then compute the coefficients
             do j=1,Turbine(i)%Nblades
-            call Compute_ActuatorLine_Forces(Turbine(i)%Blade(j),visc,deltaT,ctime)
+            call Compute_ActuatorLine_Forces(Turbine(i)%Blade(j),rho_air,visc,deltaT,ctime)    
             end do
             call Compute_performance(Turbine(i))
 
             ! Tower
             if(Turbine(i)%has_tower) then
-                call Compute_Tower_Forces(Turbine(i)%Tower,visc,ctime,Turbine(i)%TowerLift,Turbine(i)%TowerDrag,Turbine(i)%TowerStrouhal)
+                call Compute_Tower_Forces(Turbine(i)%Tower,rho_air,visc,ctime,Turbine(i)%TowerLift,Turbine(i)%TowerDrag,Turbine(i)%TowerStrouhal)
             endif
 
             end do
@@ -638,7 +639,7 @@ contains
 
         if (Nal>0) then
             do i=1,Nal
-            call Compute_ActuatorLine_Forces(ActuatorLine(i),visc,deltaT,ctime)
+            call Compute_ActuatorLine_Forces(ActuatorLine(i),rho_air,visc,deltaT,ctime)
             end do
         end if
 
