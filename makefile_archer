@@ -70,3 +70,4 @@ clean:
 .PHONY: realclean
 realclean: clean
 	rm -f *~ \#*\#
+# module swap PrgEnv-cray PrgEnv-intel
