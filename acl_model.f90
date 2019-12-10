@@ -543,7 +543,7 @@ contains
 
                 ! call compute_rotor_upstream_velocity(Turbine(i))
                 ! Call the controller
-                call dllinterface(Turbine(i)%Controller%proc_addr, Turbine(i)%cbp, Turbine(i)%rotVel, Turbine(i)%Power, ctime, torque_demand, pitch_command)
+                call dllinterface(Turbine(i)%Controller%proc_addr, Turbine(i)%cbp, Turbine(i)%angularVel, Turbine(i)%Power, ctime, torque_demand, pitch_command)
                 
                 ! Pitch the blades
                 do j=1,Turbine(i)%NBlades
