@@ -517,289 +517,144 @@ contains
 
         use decomp_2d, only: mytype, nproc, xstart, xend, xsize, update_halo
         use MPI
-        use param, only: dx,dy,dz,eps_factor,xnu,yp,istret,xlx,yly,zlz, l_vel_sample, np_vel_sample
+        use param, only: dx,dy,dz,eps_factor,xnu,yp,xlx,yly,zlz, istret
         use var, only: ux1, uy1, uz1, FTx, FTy, FTz
 
         implicit none
         real(mytype), allocatable, dimension(:,:,:) :: ux1_halo, uy1_halo, uz1_halo
         real(mytype) :: xmesh, ymesh,zmesh
         real(mytype) :: dist, epsilon, Kernel
-        real(mytype) :: min_dist, ymax,ymin,zmin,zmax
-        real(mytype) :: x0,y0,z0,x1,y1,z1,x,y,z,u000,u100,u001,u101,u010,u110,u011,u111
+        real(mytype) :: min_dist
         real(mytype) :: t1,t2, alm_proj_time
-        integer :: min_i,min_j,min_k
-        integer :: i_lower, j_lower, k_lower, i_upper, j_upper, k_upper
-        integer :: i,j,k, isource, ierr
-
-        real(mytype) :: x_sampling, y_sampling, z_sampling
-        real(mytype) :: u_sampling, v_sampling, w_sampling
-        real(mytype) :: delta_sampling, local_window_sample, max_chord
-        integer :: in, it
-
-        ! First we need to compute the locations
+        integer :: i,j,k, isource, extended_cells
+        integer :: i_source, j_source, k_source, ierr
+        integer :: first_i_sample, last_i_sample, first_j_sample,last_j_sample, first_k_sample,last_k_sample
+        ! use decomp_2d, only: mytype, nproc, xstart, xend, xsize, update_halo
+        ! use MPI
+        ! use param, only: dx,dy,dz,eps_factor,xnu,yp,istret,xlx,yly,zlz, l_vel_sample, np_vel_sample
+        ! use var, only: ux1, uy1, uz1, FTx, FTy, FTz
+        !
+        ! implicit none
+        ! real(mytype), allocatable, dimension(:,:,:) :: ux1_halo, uy1_halo, uz1_halo
+        ! real(mytype) :: xmesh, ymesh,zmesh
+        ! real(mytype) :: dist, epsilon, Kernel
+        ! real(mytype) :: min_dist, ymax,ymin,zmin,zmax
+        ! real(mytype) :: x0,y0,z0,x1,y1,z1,x,y,z,u000,u100,u001,u101,u010,u110,u011,u111
+        ! real(mytype) :: t1,t2, alm_proj_time
+        ! integer :: min_i,min_j,min_k
+        ! integer :: i_lower, j_lower, k_lower, i_upper, j_upper, k_upper
+        ! integer :: i,j,k, isource, ierr
+        !
+        ! real(mytype) :: x_sampling, y_sampling, z_sampling
+        ! real(mytype) :: u_sampling, v_sampling, w_sampling
+        ! real(mytype) :: delta_sampling, local_window_sample, max_chord
+        ! integer :: in, it
+        ! First we need to compute the locations of the AL points (Sx, Sy, Sz ...)
         call get_locations
 
         ! Zero the velocities
         Su(:)=0.0
         Sv(:)=0.0
         Sw(:)=0.0
-        sum_kernel(:)=0.0
+        ! sum_kernel(:)=0.0
         ! This is not optimum but works
         ! Define the domain
 
         ! Check if the points lie outside the fluid domain
-        ! max_chord = 0.
         do isource=1,Nsource
-          ! if(Sc(isource) > max_chord) max_chord = Sc(isource)
           if((Sx(isource)>xlx).or.(Sx(isource)<0).or.(Sy(isource)>yly).or.(Sy(isource)<0).or.(Sz(isource)>zlz).or.(Sz(isource)<0)) then
             print *, 'Point outside the fluid domain'
             stop
           endif
         enddo
-        ! max_chord = 4.*max_chord
 
-        !Probably this overlaping is very conservative
-        if (istret.eq.0) then
-          ymin=(xstart(2)-1)*dy - (5*eps_factor+1)*dy
-          ymax=(xend(2)-1)*dy + (5*eps_factor+1)*dy
-        else
-          ymin=yp(xstart(2))
-          ymax=yp(xend(2))
-        endif
+        ! Compute the epsilon and the number of cells that the pencils should be
+        ! extended to accomodate a minimum of 10 cells around the sources
+        ! I will extend all the directions the same number of cells (conservative)
+        epsilon = eps_factor*(dx*dy*dz)**(1/3)
+        extended_cells = int(5*epsilon/min(dx,dy,dz) + 1)
 
-        zmin=(xstart(3)-1)*dz - (5*eps_factor + 1)*dz
-        zmax=(xend(3)-1)*dz + (5*eps_factor + 1)*dz
+        call update_halo(ux1,ux1_halo,extended_cells,opt_global=.true.)
+        call update_halo(uy1,uy1_halo,extended_cells,opt_global=.true.)
+        call update_halo(uz1,uz1_halo,extended_cells,opt_global=.true.)
 
-        !write(*,*) 'Rank=', nrank, 'X index Limits=', xstart(1), xend(1), 'X lims=', (xstart(1)-1)*dx, (xend(1)-1)*dx
-        !write(*,*) 'Rank=', nrank, 'Y index Limits=', xstart(2), xend(2), 'Y lims=', ymin, ymax
-        !write(*,*) 'Rank=', nrank, 'Z index Limits=', xstart(3), xend(3), 'Z lims=', zmin, zmax
-        call update_halo(ux1,ux1_halo,int(5*eps_factor + 1),opt_global=.true.)
-        call update_halo(uy1,uy1_halo,int(5*eps_factor + 1),opt_global=.true.)
-        call update_halo(uz1,uz1_halo,int(5*eps_factor + 1),opt_global=.true.)
-        !print *,  nrank, shape(ux1), shape(ux1_halo)
-        !do j=xstart(2),xend(2)
-        !print *, nrank, ux1(xstart(1),j,xstart(3)), ux1_halo(xstart(1),j,xstart(3))
-        !enddo
-
+        ! Loop through the sources
         do isource=1,NSource
-          ! Parameters for the sampling
-          local_window_sample = 10*eps_factor*(dx*dy*dz)**(1.0/3.0)
-          delta_sampling = local_window_sample/(np_vel_sample - 1)
-          sum_kernel_part(isource) = 0.0
 
-          Su_part(isource) = 0.0
-          Sv_part(isource) = 0.0
-          Sw_part(isource) = 0.0
+            write(*,*) nrank, "isource", isource
+            write(*,*) nrank, "xstart", xstart
+            write(*,*) nrank, "xend", xend
+            write(*,*) nrank, "xsize", xsize
+            write(*,*) nrank, "position source", Sx(isource), Sy(isource), Sz(isource)
 
-          ! write(*,*) "isource:", isource, "l_vel_sample:", l_vel_sample, "local_window_sample:", local_window_sample, "Sc:", Sc(isource), "np_vel_sample:", np_vel_sample
-          ! Loops over the points that will be used for the integration of velocity. Tangential and normal velocities to the chord
-          do it=1,np_vel_sample
-            do in=1,np_vel_sample
+            ! Indices of the node just before the sampling point
+            i_source = int((Sx(isource) - (xstart(1) - 1)*dx)/dx)
+            j_source = int((Sy(isource) - (xstart(2) - 1)*dy)/dy)
+            k_source = int((Sz(isource) - (xstart(3) - 1)*dz)/dz)
 
-              ! Compute the location in the mesh of those points (TODO: move this to a separated subroutine)
-              x_sampling = Sx(isource) - Stx(isource)*local_window_sample/2 - Snx(isource)*local_window_sample/2 + Stx(isource)*delta_sampling*(it-1) + Snx(isource)*delta_sampling*(in-1)
-              y_sampling = Sy(isource) - Sty(isource)*local_window_sample/2 - Sny(isource)*local_window_sample/2 + Sty(isource)*delta_sampling*(it-1) + Sny(isource)*delta_sampling*(in-1)
-              z_sampling = Sz(isource) - Stz(isource)*local_window_sample/2 - Snz(isource)*local_window_sample/2 + Stz(isource)*delta_sampling*(it-1) + Snz(isource)*delta_sampling*(in-1)
+            write(*,*) nrank, "indices source", i_source, j_source, k_source
 
-              ! write(*,*) "sampling it:", it, "in:", in, "xyz", x_sampling, y_sampling, z_sampling
+            ! Indices of the vertices to sample. check they are inside the halo
+            first_i_sample = max(i_source - (extended_cells - 1), 1)
+            last_i_sample = min(i_source + extended_cells, xsize(1))
+            if((first_i_sample<xstart(1)).or.(last_i_sample>xend(1))) then
+                write(*,*) nrank, 'Point outside the sampling region in the x direction', first_i_sample, last_i_sample
+            endif
 
-              ! TODO: I think this can be done analitically provided that we have a regular grid
-              min_dist=1e6
-              if((y_sampling>=ymin).and.(y_sampling<ymax).and.(z_sampling>=zmin).and.(z_sampling<zmax)) then
-                !write(*,*) 'nrank= ',nrank, 'owns this node'
-                do k=xstart(3),xend(3)
-                  zmesh=(k-1)*dz
-                  do j=xstart(2),xend(2)
-                    if (istret.eq.0) ymesh=(j-1)*dy
-                    if (istret.ne.0) ymesh=yp(j)
-                    do i=xstart(1),xend(1)
-                      xmesh=(i-1)*dx
-                      dist = sqrt((x_sampling-xmesh)**2.+(y_sampling-ymesh)**2.+(z_sampling-zmesh)**2.)
+            first_j_sample =  max(j_source - (extended_cells - 1), 1)
+            last_j_sample = min(j_source + extended_cells, xsize(2))
+            if((first_j_sample<xstart(2)).or.(last_j_sample>xend(2))) then
+                write(*,*) nrank, 'Point outside the sampling region in the y direction', first_j_sample, last_j_sample
+            endif
 
-                      if (dist<min_dist) then
-                          min_dist=dist
-                          min_i=i
-                          min_j=j
-                          min_k=k
-                      endif
+            first_k_sample = max(k_source - (extended_cells - 1), 1)
+            last_k_sample = min(k_source + extended_cells, xsize(3))
+            if((first_k_sample<xstart(3)).or.(last_k_sample>xend(3))) then
+                write(*,*) nrank, 'Point outside the sampling region in the z direction', first_k_sample, last_k_sample
+            endif
+
+            ! Loop through the points
+            write(*,*) nrank, "In source", isource, "summing velocities"
+            write(*,*) nrank, "x loop:", first_i_sample, last_i_sample
+            write(*,*) nrank, "y loop:", first_j_sample, last_j_sample
+            write(*,*) nrank, "z loop:", first_k_sample, last_k_sample
+            do k=first_k_sample, last_k_sample
+                do j=first_j_sample, last_j_sample
+                    do i=first_i_sample, last_i_sample
+                        ! Compute the position of the nodes to be sampled
+                        xmesh = (i - 1)*dx
+                        ymesh = (j - 1)*dy
+                        zmesh = (k - 1)*dz
+
+                        ! write(*,*) "Velocity at indices", i, j, k
+                        ! write(*,*) "Velocity at position", xmesh, ymesh, zmesh
+                        ! Distance from the node to the AL point
+                        dist = sqrt((Sx(isource)-xmesh)**2+(Sy(isource)-ymesh)**2+(Sz(isource)-zmesh)**2)
+                        ! Gaussian Kernel
+                        Kernel= 1.0/(epsilon**3.0*pi**1.5)*dexp(-(dist/epsilon)**2.0)
+                        ! Integration
+                        Su_part(isource) = Su_part(isource) + Kernel*ux1_halo(i, j, k)
+                        Sv_part(isource) = Sv_part(isource) + Kernel*uy1_halo(i, j, k)
+                        Sw_part(isource) = Sw_part(isource) + Kernel*uz1_halo(i, j, k)
                     enddo
-                  enddo
                 enddo
-
-                ! write(*,*) "at ijk:", min_i, min_j, min_k
-                ! Checks
-                if(y_sampling>ymax.or.y_sampling<ymin) then
-                  write(*,*) 'In processor ', nrank
-                  write(*,*) 'y_sampling =', y_sampling,'is not within the', ymin, ymax, 'limits'
-                  stop
-                endif
-                if(z_sampling>zmax.or.z_sampling<zmin) then
-                  write(*,*) 'In processor ', nrank
-                  write(*,*) 'z_sampling =', z_sampling,'is not within the', zmin, zmax, 'limits'
-                  stop
-                endif
-
-                if(x_sampling>(min_i-1)*dx) then
-                    i_lower=min_i
-                    i_upper=min_i+1
-                else if(x_sampling<(min_i-1)*dx) then
-                    i_lower=min_i-1
-                    i_upper=min_i
-                else if(x_sampling==(min_i-1)*dx) then
-                    i_lower=min_i
-                    i_upper=min_i
-                endif
-
-                if (istret.eq.0) then
-                  if(y_sampling>(min_j-1)*dy.and.y_sampling<(xend(2)-1)*dy) then
-                      j_lower=min_j
-                      j_upper=min_j+1
-                  else if(y_sampling>(min_j-1)*dy.and.y_sampling>(xend(2)-1)*dy) then
-                      j_lower=min_j
-                      j_upper=min_j+1 ! THis is in the Halo domain
-                  else if(y_sampling<(min_j-1)*dy.and.y_sampling>(xstart(2)-1)*dy) then
-                      j_lower=min_j-1
-                      j_upper=min_j
-                  else if(y_sampling<(min_j-1)*dy.and.y_sampling<(xstart(2)-1)*dy) then
-                      j_lower=min_j-1 ! THis is in the halo domain
-                      j_upper=min_j
-                  else if (y_sampling==(min_j-1)*dy) then
-                      j_lower=min_j
-                      j_upper=min_j
-                  endif
-                else
-                  if(y_sampling>yp(min_j)) then
-                      j_lower=min_j
-                      j_upper=min_j+1
-                  else if(y_sampling<yp(min_j)) then
-                      j_lower=min_j-1
-                      j_upper=min_j
-                  else if (y_sampling==yp(min_j)) then
-                      j_lower=min_j
-                      j_upper=min_j
-                  endif
-                endif
-
-              if(z_sampling>(min_k-1)*dz.and.z_sampling<(xend(3)-1)*dz) then
-                  k_lower=min_k
-                  k_upper=min_k+1
-              elseif(z_sampling>(min_k-1)*dz.and.z_sampling>(xend(3)-1)*dz) then
-                  k_lower=min_k
-                  k_upper=min_k+1 ! This in the halo doamin
-              else if(z_sampling<(min_k-1)*dz.and.z_sampling>(xstart(3)-1)*dz) then
-                  k_lower=min_k-1
-                  k_upper=min_k
-              else if(z_sampling<(min_k-1)*dz.and.z_sampling<(xstart(3)-1)*dz) then
-                  k_lower=min_k-1 ! This is in the halo domain
-                  k_upper=min_k
-              else if (z_sampling==(min_k-1)*dz) then
-                  k_lower=min_k
-                  k_upper=min_k
-              endif
-
-              ! Prepare for interpolation
-              x0=(i_lower-1)*dx
-              x1=(i_upper-1)*dx
-              if (istret.eq.0) then
-                y0=(j_lower-1)*dy
-                y1=(j_upper-1)*dy
-              else
-                y0=yp(j_lower)
-                y1=yp(j_upper)
-              endif
-              z0=(k_lower-1)*dz
-              z1=(k_upper-1)*dz
-
-              x=x_sampling
-              y=y_sampling
-              z=z_sampling
-
-              !if(x>x1.or.x<x0.or.y>y1.or.y<y0.or.z>z1.or.z<z0) then
-              !    write(*,*) 'x0, x1, x', x0, x1, x
-              !    write(*,*) 'y0, y1, y', y0, y1, y
-              !    write(*,*) 'z0, z1, z', z0, z1, z
-              !    write(*,*) 'Problem with the trilinear interpolation';
-              !    stop
-              !endif
-              ! Apply interpolation kernels from 8 neighboring nodes
-
-              u_sampling = trilinear_interpolation(x0,y0,z0, &
-                                                  x1,y1,z1, &
-                                                  x,y,z, &
-                                                  ux1_halo(i_lower,j_lower,k_lower), &
-                                                  ux1_halo(i_upper,j_lower,k_lower), &
-                                                  ux1_halo(i_lower,j_lower,k_upper), &
-                                                  ux1_halo(i_upper,j_lower,k_upper), &
-                                                  ux1_halo(i_lower,j_upper,k_lower), &
-                                                  ux1_halo(i_upper,j_upper,k_lower), &
-                                                  ux1_halo(i_lower,j_upper,k_upper), &
-                                                  ux1_halo(i_upper,j_upper,k_upper))
-
-              v_sampling = trilinear_interpolation(x0,y0,z0, &
-                                                  x1,y1,z1, &
-                                                  x,y,z, &
-                                                  uy1_halo(i_lower,j_lower,k_lower), &
-                                                  uy1_halo(i_upper,j_lower,k_lower), &
-                                                  uy1_halo(i_lower,j_lower,k_upper), &
-                                                  uy1_halo(i_upper,j_lower,k_upper), &
-                                                  uy1_halo(i_lower,j_upper,k_lower), &
-                                                  uy1_halo(i_upper,j_upper,k_lower), &
-                                                  uy1_halo(i_lower,j_upper,k_upper), &
-                                                  uy1_halo(i_upper,j_upper,k_upper))
-
-              w_sampling = trilinear_interpolation(x0,y0,z0, &
-                                                  x1,y1,z1, &
-                                                  x,y,z, &
-                                                  uz1_halo(i_lower,j_lower,k_lower), &
-                                                  uz1_halo(i_upper,j_lower,k_lower), &
-                                                  uz1_halo(i_lower,j_lower,k_upper), &
-                                                  uz1_halo(i_upper,j_lower,k_upper), &
-                                                  uz1_halo(i_lower,j_upper,k_lower), &
-                                                  uz1_halo(i_upper,j_upper,k_lower), &
-                                                  uz1_halo(i_lower,j_upper,k_upper), &
-                                                  uz1_halo(i_upper,j_upper,k_upper))
-
-              ! write(*,*) "velocity sampled:", u_sampling, v_sampling, w_sampling
-              ! Integrate
-              ! TODO: I think it would be better to make this coherent with the force projection
-              dist = sqrt((Sx(isource)-x_sampling)**2+(Sy(isource)-y_sampling)**2+(Sz(isource)-z_sampling)**2)
-              epsilon=eps_factor*(dx*dy*dz)**(1.0/3.0)
-              ! Kernel = 1.0/(epsilon**3.0*pi**1.5)*dexp(-(dist/epsilon)**2.0)
-              Kernel = dexp(-(dist/epsilon)**2.0)
-              sum_kernel_part(isource) = sum_kernel_part(isource) + Kernel
-              Su_part(isource) = Su_part(isource) + Kernel*u_sampling
-              Sv_part(isource) = Sv_part(isource) + Kernel*v_sampling
-              Sw_part(isource) = Sw_part(isource) + Kernel*w_sampling
-
-              ! write(*,*) "dist", dist, "to source:", Sx(isource), Sy(isource), Sz(isource)
-              else
-                Su_part(isource)=0.0
-                Sv_part(isource)=0.0
-                Sw_part(isource)=0.0
-                !write(*,*) 'Warning: I do not own this node'
-              endif
             enddo
-          enddo ! end do for the velocity sampling loops (normal and tangential)
-      enddo ! isource loop
-        !$OMP END PARALLEL DO
+            write(*,*) nrank, "In source", isource, "sampled vel", Su_part(isource), Sv_part(isource), Sw_part(isource)
+        enddo ! loop through the sources
 
+        ! Retrieve information from all the processes
         call MPI_ALLREDUCE(Su_part,Su,Nsource,MPI_REAL8,MPI_SUM, &
             MPI_COMM_WORLD,ierr)
         call MPI_ALLREDUCE(Sv_part,Sv,Nsource,MPI_REAL8,MPI_SUM, &
             MPI_COMM_WORLD,ierr)
         call MPI_ALLREDUCE(Sw_part,Sw,Nsource,MPI_REAL8,MPI_SUM, &
             MPI_COMM_WORLD,ierr)
-        call MPI_ALLREDUCE(sum_kernel_part,sum_kernel,Nsource,MPI_REAL8,MPI_SUM, &
-            MPI_COMM_WORLD,ierr)
 
-        do isource=1,Nsource
-            ! write(*,*) "sum_kernel", sum_kernel(isource)
-            Su(isource) = Su(isource)/sum_kernel(isource)
-            Sv(isource) = Sv(isource)/sum_kernel(isource)
-            Sw(isource) = Sw(isource)/sum_kernel(isource)
-            ! write(*,*) "isource", isource, "velocity:", Su(isource), Sv(isource), Sw(isource)
+        do isource=1,NSource
+            write(*,*) nrank, "In source", isource, "total sampled vel", Su(isource), Sv(isource), Sw(isource)
         enddo
 
+        ! From here on is the same as the poitnwise function. I think it can be improved
         ! Zero the Source term at each time step
         FTx(:,:,:)=0.0
         FTy(:,:,:)=0.0
