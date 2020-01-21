@@ -18,15 +18,15 @@
 !    along with the code.  If not, see <http://www.gnu.org/licenses/>.
 !-------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------
-!    We kindly request that you cite Incompact3d in your publications and 
+!    We kindly request that you cite Incompact3d in your publications and
 !    presentations. The following citations are suggested:
 !
-!    1-Laizet S. & Lamballais E., 2009, High-order compact schemes for 
-!    incompressible flows: a simple and efficient method with the quasi-spectral 
+!    1-Laizet S. & Lamballais E., 2009, High-order compact schemes for
+!    incompressible flows: a simple and efficient method with the quasi-spectral
 !    accuracy, J. Comp. Phys.,  vol 228 (15), pp 5989-6015
 !
-!    2-Laizet S. & Li N., 2011, Incompact3d: a powerful tool to tackle turbulence 
-!    problems with up to 0(10^5) computational cores, Int. J. of Numerical 
+!    2-Laizet S. & Li N., 2011, Incompact3d: a powerful tool to tackle turbulence
+!    problems with up to 0(10^5) computational cores, Int. J. of Numerical
 !    Methods in Fluids, vol 67 (11), pp 1735-1757
 !################################################################################
 !
@@ -35,33 +35,34 @@
 subroutine parameter(InputFN)
 !
 !********************************************************************
-  
-USE IBM 
+
+USE IBM
 USE param
 USE decomp_2d
 USE constants
 
 implicit none
 
-character(len=*),intent(in):: InputFN 
+character(len=*),intent(in):: InputFN
 real(mytype) :: theta, cfl,cf2
 integer :: longueur ,impi,j
 character :: a*80
 
 ! Have you heard of NAMELISTs ?
-NAMELIST/FlowParam/itype,iin,NEddies,sem_file,xlx,yly,zlz,re,sc,u1,u2,noise,noise1,itripping,ibuoyancy,icoriolis,Pr,TempRef,CoriolisFreq 
+NAMELIST/FlowParam/itype,iin,NEddies,sem_file,xlx,yly,zlz,re,sc,u1,u2,noise,noise1,itripping,ibuoyancy,icoriolis,Pr,TempRef,CoriolisFreq
 NAMELIST/NumConfig/nx,ny,nz,p_row,p_col,nclx,ncly,nclz,TurbRadius,ifirst,ilast,nscheme,dt,istret, &
-    beta,iskew,iscalar,jles,FSGS,jadv,smagcst,SmagWallDamp,nSmag,iwallmodel,walecst,rxxnu,cnu,dynhypvisc  
+    beta,iskew,iscalar,jles,FSGS,jadv,smagcst,SmagWallDamp,nSmag,iwallmodel,walecst,rxxnu,cnu,dynhypvisc
 NAMELIST/FileParam/ilit,isave,imodulo,ioutflow,InflowPath, NInflows,NTimeSteps
 NAMELIST/IBMParam/ivirt,ibmshape,cex,cey,cez,ra
+NAMELIST/ALMParam/ialm,ialmrestart,filealmrestart,ialmoutput,NTurbines,TurbinesPath,NActuatorlines,ActuatorlinesPath,eps_factor, type_vel_sample,np_vel_sample,l_vel_sample
 NAMELIST/ALMParam/ialm,ialmrestart,filealmrestart,ialmoutput,NTurbines,TurbinesPath,NActuatorlines,ActuatorlinesPath,eps_factor, rho_air
 NAMELIST/ADMParam/iadm,Ndiscs,ADMcoords,iverifyadm,iadmmode,CT,aind,fileADM
-NAMELIST/StatParam/spinup_time,nstat,nvisu,iprobe,Probelistfile,nsampling, y_loc_pencil,& 
-                  z_loc_pencil,isnapshot,simin,simax,sjmin,sjmax,skmin,skmax,sfreq 
-NAMELIST/ABLParam/iabl,z_zero,k_roughness,PsiM,ustar,IPressureGradient,Ug,dBL,idampingzone,ifringeregion,FLS,FLE,Imassconserve 
+NAMELIST/StatParam/spinup_time,nstat,nvisu,iprobe,Probelistfile,nsampling, y_loc_pencil,&
+                  z_loc_pencil,isnapshot,simin,simax,sjmin,sjmax,skmin,skmax,sfreq
+NAMELIST/ABLParam/iabl,z_zero,k_roughness,PsiM,ustar,IPressureGradient,Ug,dBL,idampingzone,ifringeregion,FLS,FLE,Imassconserve
 
-! #ifdef DOUBLE_PREC 
-! pi=dacos(-1.d0) 
+! #ifdef DOUBLE_PREC
+! pi=dacos(-1.d0)
 ! #else
 ! pi=acos(-1.)
 ! #endif
@@ -105,6 +106,9 @@ ialm=0
 ialmoutput=50
 ialmrestart=0.
 eps_factor=2.0
+type_vel_sample = 0
+np_vel_sample = 20
+l_vel_sample = 3.
 rho_air=1.0
 rxxnu=1.0
 cnu=0.44
@@ -136,7 +140,7 @@ skmax=nz
 sfreq=100
 
 ! READ PARAMETERS FROM FILE
-open(10,file=InputFN) 
+open(10,file=InputFN)
 read(10,nml=FlowParam)
 read(10,nml=NumConfig)
 read(10,nml=StatParam)
@@ -146,12 +150,9 @@ read(10,nml=ALMParam)
 read(10,nml=ADMParam)
 read(10,nml=ABLParam)
 
-close(10) 
- 
+close(10)
+
 call init_module_parameters()
 
-return  
+return
 end subroutine parameter
-
-
-

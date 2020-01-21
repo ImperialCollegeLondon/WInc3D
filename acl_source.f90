@@ -7,36 +7,36 @@ module actuator_line_source
 
     implicit none
     real(mytype),save :: constant_epsilon, meshFactor, thicknessFactor,chordFactor
-    real(mytype),save, allocatable :: Sx(:),Sy(:),Sz(:),Sc(:),Se(:),Sh(:),Su(:),Sv(:),Sw(:),SFX(:),SFY(:),SFZ(:)
-    real(mytype),save, allocatable :: Su_part(:),Sv_part(:),Sw_part(:)
-    real(mytype),save, allocatable :: Snx(:),Sny(:),Snz(:),Stx(:),Sty(:),Stz(:),Ssx(:),Ssy(:),Ssz(:),Ssegm(:) 
+    real(mytype),save, allocatable :: Sx(:),Sy(:),Sz(:),Sc(:),Se(:),Sh(:),Su(:),Sv(:),Sw(:),SFX(:),SFY(:),SFZ(:), sum_kernel(:)
+    real(mytype),save, allocatable :: Su_part(:),Sv_part(:),Sw_part(:), sum_kernel_part(:)
+    real(mytype),save, allocatable :: Snx(:),Sny(:),Snz(:),Stx(:),Sty(:),Stz(:),Ssx(:),Ssy(:),Ssz(:),Ssegm(:)
     real(mytype),save, allocatable :: A(:,:)
     logical, allocatable :: inside_the_domain(:)
     integer :: NSource
     logical, save :: rbf_interpolation=.false.
     logical, save :: pointwise_interpolation=.false.
-    logical, save :: anisotropic_projection=.false. 
+    logical, save :: anisotropic_projection=.false.
     logical, save :: has_mesh_based_epsilon=.false.
     logical, save :: has_constant_epsilon=.false.
     public get_locations, get_forces, set_vel, initialize_actuator_source
-    
+
 contains
-    
+
     subroutine initialize_actuator_source
 
     implicit none
     integer :: counter,itur,iblade,ielem,ial
-    
+
     counter=0
     if (Ntur>0) then
-        do itur=1,Ntur    
+        do itur=1,Ntur
             ! Blades
             do iblade=1,Turbine(itur)%Nblades
                 do ielem=1,Turbine(itur)%Blade(iblade)%Nelem
                 counter=counter+1
                 end do
             end do
-            ! Tower 
+            ! Tower
             if(turbine(itur)%has_tower) then
                 do ielem=1,Turbine(itur)%Tower%Nelem
                 counter=counter+1
@@ -44,7 +44,7 @@ contains
             endif
         end do
     endif
-    
+
     if (Nal>0) then
         do ial=1,Nal
             do ielem=1,actuatorline(ial)%NElem
@@ -53,16 +53,16 @@ contains
         end do
     endif
     NSource=counter
-    allocate(Sx(NSource),Sy(NSource),Sz(NSource),Sc(Nsource),Su(NSource),Sv(NSource),Sw(NSource),Se(NSource),Sh(NSource),Sfx(NSource),Sfy(NSource),Sfz(NSource))
-    allocate(Su_part(NSource),Sv_part(NSource),Sw_part(NSource))
+    allocate(Sx(NSource),Sy(NSource),Sz(NSource),Sc(Nsource),Su(NSource),Sv(NSource),Sw(NSource),Se(NSource),Sh(NSource),Sfx(NSource),Sfy(NSource),Sfz(NSource), sum_kernel(Nsource))
+    allocate(Su_part(NSource),Sv_part(NSource),Sw_part(NSource), sum_kernel_part(NSource))
     allocate(Snx(NSource),Sny(NSource),Snz(NSource),Stx(Nsource),Sty(NSource),Stz(NSource),Ssx(NSource),Ssy(NSource),Ssz(NSource),Ssegm(NSource))
     allocate(A(NSource,NSource))
     allocate(inside_the_domain(NSource))
-     
+
     end subroutine initialize_actuator_source
 
     subroutine get_locations
-    
+
     implicit none
     integer :: counter,itur,iblade,ielem,ial
 
@@ -89,14 +89,14 @@ contains
 
                 end do
             end do
-                !Tower 
+                !Tower
                 if(turbine(itur)%has_tower) then
                 do ielem=1,Turbine(itur)%Tower%Nelem
                 counter=counter+1
                 Sx(counter)=Turbine(itur)%Tower%PEX(ielem)
                 Sy(counter)=Turbine(itur)%Tower%PEY(ielem)
                 Sz(counter)=Turbine(itur)%Tower%PEZ(ielem)
-                Sc(counter)=Turbine(itur)%Tower%EC(ielem) 
+                Sc(counter)=Turbine(itur)%Tower%EC(ielem)
                 Snx(counter)=Turbine(itur)%Tower%nEx(ielem)
                 Sny(counter)=Turbine(itur)%Tower%nEy(ielem)
                 Snz(counter)=Turbine(itur)%Tower%nEz(ielem)
@@ -108,10 +108,10 @@ contains
                 Ssz(counter)=Turbine(itur)%Tower%sEz(ielem)
                 Ssegm(counter)=Turbine(itur)%Tower%EDS(ielem)
                 end do
-                endif 
+                endif
         end do
     endif
-    
+
     if (Nal>0) then
         do ial=1,Nal
             do ielem=1,actuatorline(ial)%NElem
@@ -133,14 +133,14 @@ contains
             end do
         end do
     endif
- 
+
     end subroutine get_locations
-    
+
     subroutine set_vel
-    
+
     implicit none
     integer :: counter,itur,iblade,ielem,ial
-    
+
     counter=0
     if (Ntur>0) then
         do itur=1,Ntur
@@ -151,7 +151,7 @@ contains
                 Turbine(itur)%Blade(iblade)%EVX(ielem)=Su(counter)
                 Turbine(itur)%Blade(iblade)%EVY(ielem)=Sv(counter)
                 Turbine(itur)%Blade(iblade)%EVZ(ielem)=Sw(counter)
-                Turbine(itur)%Blade(iblade)%Eepsilon(ielem)=Se(counter) 
+                Turbine(itur)%Blade(iblade)%Eepsilon(ielem)=Se(counter)
                 end do
             end do
             ! Tower
@@ -161,12 +161,12 @@ contains
                 Turbine(itur)%Tower%EVX(ielem)=Su(counter)
                 Turbine(itur)%Tower%EVY(ielem)=Sv(counter)
                 Turbine(itur)%Tower%EVZ(ielem)=Sw(counter)
-                Turbine(itur)%Tower%Eepsilon(ielem)=Se(counter) 
+                Turbine(itur)%Tower%Eepsilon(ielem)=Se(counter)
                 end do
             endif
         end do
     endif
-    
+
     if (Nal>0) then
         do ial=1,Nal
             do ielem=1,actuatorline(ial)%NElem
@@ -179,11 +179,11 @@ contains
         end do
     endif
 
-  
+
     end subroutine set_vel
-    
+
     subroutine get_forces
-    
+
     implicit none
     integer :: counter,itur,iblade,ielem,ial
 
@@ -199,8 +199,8 @@ contains
                 Sfz(counter)=Turbine(itur)%Blade(iblade)%EFZ(ielem)
                 end do
             end do
-            
-            !Tower 
+
+            !Tower
             if(turbine(itur)%has_tower) then
                 do ielem=1,Turbine(itur)%Tower%Nelem
                 counter=counter+1
@@ -211,7 +211,7 @@ contains
             endif
         end do
     endif
-    
+
     if (Nal>0) then
         do ial=1,Nal
             do ielem=1,actuatorline(ial)%NElem
@@ -222,21 +222,21 @@ contains
             end do
         end do
     endif
-  
+
     end subroutine get_forces
-    
+
     subroutine Compute_Momentum_Source_Term_pointwise
 
         use decomp_2d, only: mytype, nproc, xstart, xend, xsize, update_halo
         use MPI
         use param, only: dx,dy,dz,eps_factor,xnu,yp,istret,xlx,yly,zlz
         use var, only: ux1, uy1, uz1, FTx, FTy, FTz
-        
+
         implicit none
-        real(mytype), allocatable, dimension(:,:,:) :: ux1_halo, uy1_halo, uz1_halo       
+        real(mytype), allocatable, dimension(:,:,:) :: ux1_halo, uy1_halo, uz1_halo
         real(mytype) :: xmesh, ymesh,zmesh
         real(mytype) :: dist, epsilon, Kernel
-        real(mytype) :: min_dist, ymax,ymin,zmin,zmax 
+        real(mytype) :: min_dist, ymax,ymin,zmin,zmax
         real(mytype) :: x0,y0,z0,x1,y1,z1,x,y,z,u000,u100,u001,u101,u010,u110,u011,u111
         real(mytype) :: t1,t2, alm_proj_time
         integer :: min_i,min_j,min_k
@@ -244,35 +244,35 @@ contains
         integer :: i,j,k, isource, ierr
 
         ! First we need to compute the locations
-        call get_locations 
-       
+        call get_locations
+
         ! Zero the velocities
         Su(:)=0.0
         Sv(:)=0.0
         Sw(:)=0.0
         ! This is not optimum but works
         ! Define the domain
-        
-        if (istret.eq.0) then 
+
+        if (istret.eq.0) then
         ymin=(xstart(2)-1)*dy-dy/2. ! Add -dy/2.0 overlap
         ymax=(xend(2)-1)*dy+dy/2.   ! Add +dy/2.0 overlap
         else
         ymin=yp(xstart(2))
         ymax=yp(xend(2))
         endif
-        
+
         zmin=(xstart(3)-1)*dz-dz/2. ! Add a -dz/2.0 overlap
         zmax=(xend(3)-1)*dz+dz/2.   ! Add a +dz/2.0 overlap
-    
+
         ! Check if the points lie outside the fluid domain
         do isource=1,Nsource
         if((Sx(isource)>xlx).or.(Sx(isource)<0).or.(Sy(isource)>yly).or.(Sy(isource)<0).or.(Sz(isource)>zlz).or.(Sz(isource)<0)) then
             print *, 'Point outside the fluid domain'
             stop
         endif
-        enddo 
+        enddo
         !write(*,*) 'Rank=', nrank, 'X index Limits=', xstart(1), xend(1), 'X lims=', (xstart(1)-1)*dx, (xend(1)-1)*dx
-        !write(*,*) 'Rank=', nrank, 'Y index Limits=', xstart(2), xend(2), 'Y lims=', ymin, ymax 
+        !write(*,*) 'Rank=', nrank, 'Y index Limits=', xstart(2), xend(2), 'Y lims=', ymin, ymax
         !write(*,*) 'Rank=', nrank, 'Z index Limits=', xstart(3), xend(3), 'Z lims=', zmin, zmax
         call update_halo(ux1,ux1_halo,1,opt_global=.true.)
         call update_halo(uy1,uy1_halo,1,opt_global=.true.)
@@ -283,19 +283,19 @@ contains
         !enddo
 
         do isource=1,NSource
-        
+
         min_dist=1e6
         if((Sy(isource)>=ymin).and.(Sy(isource)<ymax).and.(Sz(isource)>=zmin).and.(Sz(isource)<zmax)) then
             !write(*,*) 'nrank= ',nrank, 'owns this node'
             do k=xstart(3),xend(3)
-            zmesh=(k-1)*dz 
+            zmesh=(k-1)*dz
             do j=xstart(2),xend(2)
             if (istret.eq.0) ymesh=(j-1)*dy
             if (istret.ne.0) ymesh=yp(j)
             do i=xstart(1),xend(1)
             xmesh=(i-1)*dx
-            dist = sqrt((Sx(isource)-xmesh)**2.+(Sy(isource)-ymesh)**2.+(Sz(isource)-zmesh)**2.) 
-            
+            dist = sqrt((Sx(isource)-xmesh)**2.+(Sy(isource)-ymesh)**2.+(Sz(isource)-zmesh)**2.)
+
             if (dist<min_dist) then
                 min_dist=dist
                 min_i=i
@@ -306,17 +306,17 @@ contains
             enddo
             enddo
             enddo
-            
+
             if(Sy(isource)>ymax.or.Sy(isource)<ymin) then
             write(*,*) 'In processor ', nrank
             write(*,*) 'Sy =', Sy(isource),'is not within the', ymin, ymax, 'limits'
             stop
-            endif 
+            endif
             if(Sz(isource)>zmax.or.Sz(isource)<zmin) then
             write(*,*) 'In processor ', nrank
             write(*,*) 'Sz =', Sz(isource),'is not within the', zmin, zmax, 'limits'
             stop
-            endif 
+            endif
 
             if(Sx(isource)>(min_i-1)*dx) then
                 i_lower=min_i
@@ -328,26 +328,26 @@ contains
                 i_lower=min_i
                 i_upper=min_i
             endif
-             
-            if (istret.eq.0) then 
+
+            if (istret.eq.0) then
             if(Sy(isource)>(min_j-1)*dy.and.Sy(isource)<(xend(2)-1)*dy) then
                 j_lower=min_j
                 j_upper=min_j+1
             else if(Sy(isource)>(min_j-1)*dy.and.Sy(isource)>(xend(2)-1)*dy) then
                 j_lower=min_j
-                j_upper=min_j+1 ! THis is in the Halo domain 
+                j_upper=min_j+1 ! THis is in the Halo domain
             else if(Sy(isource)<(min_j-1)*dy.and.Sy(isource)>(xstart(2)-1)*dy) then
                 j_lower=min_j-1
                 j_upper=min_j
             else if(Sy(isource)<(min_j-1)*dy.and.Sy(isource)<(xstart(2)-1)*dy) then
                 j_lower=min_j-1 ! THis is in the halo domain
-                j_upper=min_j 
+                j_upper=min_j
             else if (Sy(isource)==(min_j-1)*dy) then
                 j_lower=min_j
                 j_upper=min_j
             endif
             else
-              
+
             if(Sy(isource)>yp(min_j)) then
                 j_lower=min_j
                 j_upper=min_j+1
@@ -359,7 +359,7 @@ contains
                 j_upper=min_j
             endif
             endif
-            
+
             if(Sz(isource)>(min_k-1)*dz.and.Sz(isource)<(xend(3)-1)*dz) then
                 k_lower=min_k
                 k_upper=min_k+1
@@ -393,16 +393,16 @@ contains
             x=Sx(isource)
             y=Sy(isource)
             z=Sz(isource)
-             
-            !if(x>x1.or.x<x0.or.y>y1.or.y<y0.or.z>z1.or.z<z0) then 
+
+            !if(x>x1.or.x<x0.or.y>y1.or.y<y0.or.z>z1.or.z<z0) then
             !    write(*,*) 'x0, x1, x', x0, x1, x
             !    write(*,*) 'y0, y1, y', y0, y1, y
             !    write(*,*) 'z0, z1, z', z0, z1, z
-            !    write(*,*) 'Problem with the trilinear interpolation'; 
+            !    write(*,*) 'Problem with the trilinear interpolation';
             !    stop
             !endif
-            ! Apply interpolation kernels from 8 neighboring nodes 
- 
+            ! Apply interpolation kernels from 8 neighboring nodes
+
             Su_part(isource)= trilinear_interpolation(x0,y0,z0, &
                                                   x1,y1,z1, &
                                                   x,y,z, &
@@ -414,7 +414,7 @@ contains
                                                   ux1_halo(i_upper,j_upper,k_lower), &
                                                   ux1_halo(i_lower,j_upper,k_upper), &
                                                   ux1_halo(i_upper,j_upper,k_upper))
-            
+
              Sv_part(isource)= trilinear_interpolation(x0,y0,z0, &
                                                   x1,y1,z1, &
                                                   x,y,z, &
@@ -426,7 +426,7 @@ contains
                                                   uy1_halo(i_upper,j_upper,k_lower), &
                                                   uy1_halo(i_lower,j_upper,k_upper), &
                                                   uy1_halo(i_upper,j_upper,k_upper))
-          
+
             Sw_part(isource)= trilinear_interpolation(x0,y0,z0, &
                                                   x1,y1,z1, &
                                                   x,y,z, &
@@ -438,12 +438,12 @@ contains
                                                   uz1_halo(i_upper,j_upper,k_lower), &
                                                   uz1_halo(i_lower,j_upper,k_upper), &
                                                   uz1_halo(i_upper,j_upper,k_upper))
- 
+
         else
             Su_part(isource)=0.0
             Sv_part(isource)=0.0
             Sw_part(isource)=0.0
-            !write(*,*) 'Warning: I do not own this node' 
+            !write(*,*) 'Warning: I do not own this node'
         endif
         enddo
         !$OMP END PARALLEL DO
@@ -460,13 +460,13 @@ contains
         FTy(:,:,:)=0.0
         FTz(:,:,:)=0.0
         Visc=xnu
-        !## Send the velocities to the 
+        !## Send the velocities to the
         call set_vel
         !## Compute forces
         call actuator_line_model_compute_forces
         !## Get Forces
         call get_forces
-        
+
         if(nrank==0) then
             write(*,*) 'Projecting the AL Momentum Source term ... '
         endif
@@ -478,26 +478,26 @@ contains
             zmesh=(k+xstart(3)-1-1)*dz
             do j=1,xsize(2)
             if (istret.eq.0) ymesh=(xstart(2)+j-1-1)*dy
-            if (istret.ne.0) ymesh=yp(xstart(2)+j-1) 
+            if (istret.ne.0) ymesh=yp(xstart(2)+j-1)
             do i=1,xsize(1)
             xmesh=(i-1)*dx
 
             do isource=1,NSource
-            
+
             dist = sqrt((Sx(isource)-xmesh)**2+(Sy(isource)-ymesh)**2+(Sz(isource)-zmesh)**2)
-            epsilon=eps_factor*(dx*dy*dz)**(1.0/3.0) 
+            epsilon=eps_factor*(dx*dy*dz)**(1.0/3.0)
             if (dist<10.0*epsilon) then
-                Kernel= 1.0/(epsilon**3.0*pi**1.5)*dexp(-(dist/epsilon)**2.0)            
+                Kernel= 1.0/(epsilon**3.0*pi**1.5)*dexp(-(dist/epsilon)**2.0)
             else
                 Kernel=0.0
             endif
-            ! First apply a constant lift to induce the 
+            ! First apply a constant lift to induce the
             FTx(i,j,k)=FTx(i,j,k)-SFx(isource)*Kernel
             FTy(i,j,k)=FTy(i,j,k)-SFy(isource)*Kernel
             FTz(i,j,k)=FTz(i,j,k)-SFz(isource)*Kernel
-            
+
             enddo
-            
+
             enddo
             enddo
             enddo
@@ -505,13 +505,357 @@ contains
         alm_proj_time=MPI_WTIME()-t1
         call MPI_ALLREDUCE(alm_proj_time,t1,1,MPI_REAL8,MPI_SUM, &
                    MPI_COMM_WORLD,ierr)
-        
+
         if(nrank==0) then
             alm_proj_time=alm_proj_time/float(nproc)
             write(*,*) 'AL Momentum Source term projection completed in :', alm_proj_time ,'seconds'
         endif
-        
+
     end subroutine Compute_Momentum_Source_Term_pointwise
 
-    
+    subroutine Compute_Momentum_Source_Term_integral
+
+        use decomp_2d, only: mytype, nproc, xstart, xend, xsize, update_halo
+        use MPI
+        use param, only: dx,dy,dz,eps_factor,xnu,yp,istret,xlx,yly,zlz, l_vel_sample, np_vel_sample
+        use var, only: ux1, uy1, uz1, FTx, FTy, FTz
+
+        implicit none
+        real(mytype), allocatable, dimension(:,:,:) :: ux1_halo, uy1_halo, uz1_halo
+        real(mytype) :: xmesh, ymesh,zmesh
+        real(mytype) :: dist, epsilon, Kernel
+        real(mytype) :: min_dist, ymax,ymin,zmin,zmax
+        real(mytype) :: x0,y0,z0,x1,y1,z1,x,y,z,u000,u100,u001,u101,u010,u110,u011,u111
+        real(mytype) :: t1,t2, alm_proj_time
+        integer :: min_i,min_j,min_k
+        integer :: i_lower, j_lower, k_lower, i_upper, j_upper, k_upper
+        integer :: i,j,k, isource, ierr
+
+        real(mytype) :: x_sampling, y_sampling, z_sampling
+        real(mytype) :: u_sampling, v_sampling, w_sampling
+        real(mytype) :: delta_sampling, local_window_sample, max_chord
+        integer :: in, it
+
+        ! First we need to compute the locations
+        call get_locations
+
+        ! Zero the velocities
+        Su(:)=0.0
+        Sv(:)=0.0
+        Sw(:)=0.0
+        sum_kernel(:)=0.0
+        ! This is not optimum but works
+        ! Define the domain
+
+        ! Check if the points lie outside the fluid domain
+        ! max_chord = 0.
+        do isource=1,Nsource
+          ! if(Sc(isource) > max_chord) max_chord = Sc(isource)
+          if((Sx(isource)>xlx).or.(Sx(isource)<0).or.(Sy(isource)>yly).or.(Sy(isource)<0).or.(Sz(isource)>zlz).or.(Sz(isource)<0)) then
+            print *, 'Point outside the fluid domain'
+            stop
+          endif
+        enddo
+        ! max_chord = 4.*max_chord
+
+        !Probably this overlaping is very conservative
+        if (istret.eq.0) then
+          ymin=(xstart(2)-1)*dy - (5*eps_factor+1)*dy
+          ymax=(xend(2)-1)*dy + (5*eps_factor+1)*dy
+        else
+          ymin=yp(xstart(2))
+          ymax=yp(xend(2))
+        endif
+
+        zmin=(xstart(3)-1)*dz - (5*eps_factor + 1)*dz
+        zmax=(xend(3)-1)*dz + (5*eps_factor + 1)*dz
+
+        !write(*,*) 'Rank=', nrank, 'X index Limits=', xstart(1), xend(1), 'X lims=', (xstart(1)-1)*dx, (xend(1)-1)*dx
+        !write(*,*) 'Rank=', nrank, 'Y index Limits=', xstart(2), xend(2), 'Y lims=', ymin, ymax
+        !write(*,*) 'Rank=', nrank, 'Z index Limits=', xstart(3), xend(3), 'Z lims=', zmin, zmax
+        call update_halo(ux1,ux1_halo,int(5*eps_factor + 1),opt_global=.true.)
+        call update_halo(uy1,uy1_halo,int(5*eps_factor + 1),opt_global=.true.)
+        call update_halo(uz1,uz1_halo,int(5*eps_factor + 1),opt_global=.true.)
+        !print *,  nrank, shape(ux1), shape(ux1_halo)
+        !do j=xstart(2),xend(2)
+        !print *, nrank, ux1(xstart(1),j,xstart(3)), ux1_halo(xstart(1),j,xstart(3))
+        !enddo
+
+        do isource=1,NSource
+          ! Parameters for the sampling
+          local_window_sample = 10*eps_factor*(dx*dy*dz)**(1.0/3.0)
+          delta_sampling = local_window_sample/(np_vel_sample - 1)
+          sum_kernel_part(isource) = 0.0
+
+          Su_part(isource) = 0.0
+          Sv_part(isource) = 0.0
+          Sw_part(isource) = 0.0
+
+          ! write(*,*) "isource:", isource, "l_vel_sample:", l_vel_sample, "local_window_sample:", local_window_sample, "Sc:", Sc(isource), "np_vel_sample:", np_vel_sample
+          ! Loops over the points that will be used for the integration of velocity. Tangential and normal velocities to the chord
+          do it=1,np_vel_sample
+            do in=1,np_vel_sample
+
+              ! Compute the location in the mesh of those points (TODO: move this to a separated subroutine)
+              x_sampling = Sx(isource) - Stx(isource)*local_window_sample/2 - Snx(isource)*local_window_sample/2 + Stx(isource)*delta_sampling*(it-1) + Snx(isource)*delta_sampling*(in-1)
+              y_sampling = Sy(isource) - Sty(isource)*local_window_sample/2 - Sny(isource)*local_window_sample/2 + Sty(isource)*delta_sampling*(it-1) + Sny(isource)*delta_sampling*(in-1)
+              z_sampling = Sz(isource) - Stz(isource)*local_window_sample/2 - Snz(isource)*local_window_sample/2 + Stz(isource)*delta_sampling*(it-1) + Snz(isource)*delta_sampling*(in-1)
+
+              ! write(*,*) "sampling it:", it, "in:", in, "xyz", x_sampling, y_sampling, z_sampling
+
+              ! TODO: I think this can be done analitically provided that we have a regular grid
+              min_dist=1e6
+              if((y_sampling>=ymin).and.(y_sampling<ymax).and.(z_sampling>=zmin).and.(z_sampling<zmax)) then
+                !write(*,*) 'nrank= ',nrank, 'owns this node'
+                do k=xstart(3),xend(3)
+                  zmesh=(k-1)*dz
+                  do j=xstart(2),xend(2)
+                    if (istret.eq.0) ymesh=(j-1)*dy
+                    if (istret.ne.0) ymesh=yp(j)
+                    do i=xstart(1),xend(1)
+                      xmesh=(i-1)*dx
+                      dist = sqrt((x_sampling-xmesh)**2.+(y_sampling-ymesh)**2.+(z_sampling-zmesh)**2.)
+
+                      if (dist<min_dist) then
+                          min_dist=dist
+                          min_i=i
+                          min_j=j
+                          min_k=k
+                      endif
+                    enddo
+                  enddo
+                enddo
+
+                ! write(*,*) "at ijk:", min_i, min_j, min_k
+                ! Checks
+                if(y_sampling>ymax.or.y_sampling<ymin) then
+                  write(*,*) 'In processor ', nrank
+                  write(*,*) 'y_sampling =', y_sampling,'is not within the', ymin, ymax, 'limits'
+                  stop
+                endif
+                if(z_sampling>zmax.or.z_sampling<zmin) then
+                  write(*,*) 'In processor ', nrank
+                  write(*,*) 'z_sampling =', z_sampling,'is not within the', zmin, zmax, 'limits'
+                  stop
+                endif
+
+                if(x_sampling>(min_i-1)*dx) then
+                    i_lower=min_i
+                    i_upper=min_i+1
+                else if(x_sampling<(min_i-1)*dx) then
+                    i_lower=min_i-1
+                    i_upper=min_i
+                else if(x_sampling==(min_i-1)*dx) then
+                    i_lower=min_i
+                    i_upper=min_i
+                endif
+
+                if (istret.eq.0) then
+                  if(y_sampling>(min_j-1)*dy.and.y_sampling<(xend(2)-1)*dy) then
+                      j_lower=min_j
+                      j_upper=min_j+1
+                  else if(y_sampling>(min_j-1)*dy.and.y_sampling>(xend(2)-1)*dy) then
+                      j_lower=min_j
+                      j_upper=min_j+1 ! THis is in the Halo domain
+                  else if(y_sampling<(min_j-1)*dy.and.y_sampling>(xstart(2)-1)*dy) then
+                      j_lower=min_j-1
+                      j_upper=min_j
+                  else if(y_sampling<(min_j-1)*dy.and.y_sampling<(xstart(2)-1)*dy) then
+                      j_lower=min_j-1 ! THis is in the halo domain
+                      j_upper=min_j
+                  else if (y_sampling==(min_j-1)*dy) then
+                      j_lower=min_j
+                      j_upper=min_j
+                  endif
+                else
+                  if(y_sampling>yp(min_j)) then
+                      j_lower=min_j
+                      j_upper=min_j+1
+                  else if(y_sampling<yp(min_j)) then
+                      j_lower=min_j-1
+                      j_upper=min_j
+                  else if (y_sampling==yp(min_j)) then
+                      j_lower=min_j
+                      j_upper=min_j
+                  endif
+                endif
+
+              if(z_sampling>(min_k-1)*dz.and.z_sampling<(xend(3)-1)*dz) then
+                  k_lower=min_k
+                  k_upper=min_k+1
+              elseif(z_sampling>(min_k-1)*dz.and.z_sampling>(xend(3)-1)*dz) then
+                  k_lower=min_k
+                  k_upper=min_k+1 ! This in the halo doamin
+              else if(z_sampling<(min_k-1)*dz.and.z_sampling>(xstart(3)-1)*dz) then
+                  k_lower=min_k-1
+                  k_upper=min_k
+              else if(z_sampling<(min_k-1)*dz.and.z_sampling<(xstart(3)-1)*dz) then
+                  k_lower=min_k-1 ! This is in the halo domain
+                  k_upper=min_k
+              else if (z_sampling==(min_k-1)*dz) then
+                  k_lower=min_k
+                  k_upper=min_k
+              endif
+
+              ! Prepare for interpolation
+              x0=(i_lower-1)*dx
+              x1=(i_upper-1)*dx
+              if (istret.eq.0) then
+                y0=(j_lower-1)*dy
+                y1=(j_upper-1)*dy
+              else
+                y0=yp(j_lower)
+                y1=yp(j_upper)
+              endif
+              z0=(k_lower-1)*dz
+              z1=(k_upper-1)*dz
+
+              x=x_sampling
+              y=y_sampling
+              z=z_sampling
+
+              !if(x>x1.or.x<x0.or.y>y1.or.y<y0.or.z>z1.or.z<z0) then
+              !    write(*,*) 'x0, x1, x', x0, x1, x
+              !    write(*,*) 'y0, y1, y', y0, y1, y
+              !    write(*,*) 'z0, z1, z', z0, z1, z
+              !    write(*,*) 'Problem with the trilinear interpolation';
+              !    stop
+              !endif
+              ! Apply interpolation kernels from 8 neighboring nodes
+
+              u_sampling = trilinear_interpolation(x0,y0,z0, &
+                                                  x1,y1,z1, &
+                                                  x,y,z, &
+                                                  ux1_halo(i_lower,j_lower,k_lower), &
+                                                  ux1_halo(i_upper,j_lower,k_lower), &
+                                                  ux1_halo(i_lower,j_lower,k_upper), &
+                                                  ux1_halo(i_upper,j_lower,k_upper), &
+                                                  ux1_halo(i_lower,j_upper,k_lower), &
+                                                  ux1_halo(i_upper,j_upper,k_lower), &
+                                                  ux1_halo(i_lower,j_upper,k_upper), &
+                                                  ux1_halo(i_upper,j_upper,k_upper))
+
+              v_sampling = trilinear_interpolation(x0,y0,z0, &
+                                                  x1,y1,z1, &
+                                                  x,y,z, &
+                                                  uy1_halo(i_lower,j_lower,k_lower), &
+                                                  uy1_halo(i_upper,j_lower,k_lower), &
+                                                  uy1_halo(i_lower,j_lower,k_upper), &
+                                                  uy1_halo(i_upper,j_lower,k_upper), &
+                                                  uy1_halo(i_lower,j_upper,k_lower), &
+                                                  uy1_halo(i_upper,j_upper,k_lower), &
+                                                  uy1_halo(i_lower,j_upper,k_upper), &
+                                                  uy1_halo(i_upper,j_upper,k_upper))
+
+              w_sampling = trilinear_interpolation(x0,y0,z0, &
+                                                  x1,y1,z1, &
+                                                  x,y,z, &
+                                                  uz1_halo(i_lower,j_lower,k_lower), &
+                                                  uz1_halo(i_upper,j_lower,k_lower), &
+                                                  uz1_halo(i_lower,j_lower,k_upper), &
+                                                  uz1_halo(i_upper,j_lower,k_upper), &
+                                                  uz1_halo(i_lower,j_upper,k_lower), &
+                                                  uz1_halo(i_upper,j_upper,k_lower), &
+                                                  uz1_halo(i_lower,j_upper,k_upper), &
+                                                  uz1_halo(i_upper,j_upper,k_upper))
+
+              ! write(*,*) "velocity sampled:", u_sampling, v_sampling, w_sampling
+              ! Integrate
+              ! TODO: I think it would be better to make this coherent with the force projection
+              dist = sqrt((Sx(isource)-x_sampling)**2+(Sy(isource)-y_sampling)**2+(Sz(isource)-z_sampling)**2)
+              epsilon=eps_factor*(dx*dy*dz)**(1.0/3.0)
+              ! Kernel = 1.0/(epsilon**3.0*pi**1.5)*dexp(-(dist/epsilon)**2.0)
+              Kernel = dexp(-(dist/epsilon)**2.0)
+              sum_kernel_part(isource) = sum_kernel_part(isource) + Kernel
+              Su_part(isource) = Su_part(isource) + Kernel*u_sampling
+              Sv_part(isource) = Sv_part(isource) + Kernel*v_sampling
+              Sw_part(isource) = Sw_part(isource) + Kernel*w_sampling
+
+              ! write(*,*) "dist", dist, "to source:", Sx(isource), Sy(isource), Sz(isource)
+              else
+                Su_part(isource)=0.0
+                Sv_part(isource)=0.0
+                Sw_part(isource)=0.0
+                !write(*,*) 'Warning: I do not own this node'
+              endif
+            enddo
+          enddo ! end do for the velocity sampling loops (normal and tangential)
+      enddo ! isource loop
+        !$OMP END PARALLEL DO
+
+        call MPI_ALLREDUCE(Su_part,Su,Nsource,MPI_REAL8,MPI_SUM, &
+            MPI_COMM_WORLD,ierr)
+        call MPI_ALLREDUCE(Sv_part,Sv,Nsource,MPI_REAL8,MPI_SUM, &
+            MPI_COMM_WORLD,ierr)
+        call MPI_ALLREDUCE(Sw_part,Sw,Nsource,MPI_REAL8,MPI_SUM, &
+            MPI_COMM_WORLD,ierr)
+        call MPI_ALLREDUCE(sum_kernel_part,sum_kernel,Nsource,MPI_REAL8,MPI_SUM, &
+            MPI_COMM_WORLD,ierr)
+
+        do isource=1,Nsource
+            ! write(*,*) "sum_kernel", sum_kernel(isource)
+            Su(isource) = Su(isource)/sum_kernel(isource)
+            Sv(isource) = Sv(isource)/sum_kernel(isource)
+            Sw(isource) = Sw(isource)/sum_kernel(isource)
+            ! write(*,*) "isource", isource, "velocity:", Su(isource), Sv(isource), Sw(isource)
+        enddo
+
+        ! Zero the Source term at each time step
+        FTx(:,:,:)=0.0
+        FTy(:,:,:)=0.0
+        FTz(:,:,:)=0.0
+        Visc=xnu
+        !## Send the velocities to the
+        call set_vel
+        !## Compute forces
+        call actuator_line_model_compute_forces
+        !## Get Forces
+        call get_forces
+
+        if(nrank==0) then
+            write(*,*) 'Projecting the AL Momentum Source term ... '
+        endif
+        t1 = MPI_WTIME()
+
+
+            !## Add the source term
+            do k=1,xsize(3)
+            zmesh=(k+xstart(3)-1-1)*dz
+            do j=1,xsize(2)
+            if (istret.eq.0) ymesh=(xstart(2)+j-1-1)*dy
+            if (istret.ne.0) ymesh=yp(xstart(2)+j-1)
+            do i=1,xsize(1)
+            xmesh=(i-1)*dx
+
+            do isource=1,NSource
+
+            dist = sqrt((Sx(isource)-xmesh)**2+(Sy(isource)-ymesh)**2+(Sz(isource)-zmesh)**2)
+            epsilon=eps_factor*(dx*dy*dz)**(1.0/3.0)
+            if (dist<10.0*epsilon) then
+                Kernel= 1.0/(epsilon**3.0*pi**1.5)*dexp(-(dist/epsilon)**2.0)
+            else
+                Kernel=0.0
+            endif
+            ! First apply a constant lift to induce the
+            FTx(i,j,k)=FTx(i,j,k)-SFx(isource)*Kernel
+            FTy(i,j,k)=FTy(i,j,k)-SFy(isource)*Kernel
+            FTz(i,j,k)=FTz(i,j,k)-SFz(isource)*Kernel
+
+            enddo
+
+            enddo
+            enddo
+            enddo
+
+        alm_proj_time=MPI_WTIME()-t1
+        call MPI_ALLREDUCE(alm_proj_time,t1,1,MPI_REAL8,MPI_SUM, &
+                   MPI_COMM_WORLD,ierr)
+
+        if(nrank==0) then
+            alm_proj_time=alm_proj_time/float(nproc)
+            write(*,*) 'AL Momentum Source term projection completed in :', alm_proj_time ,'seconds'
+        endif
+
+    end subroutine Compute_Momentum_Source_Term_integral
+
 end module actuator_line_source

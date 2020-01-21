@@ -73,6 +73,8 @@ real(mytype) :: dt,xnu,noise,noise1,twopi,u1,u2,re,sc,Pr,TempRef,CoriolisFreq
 real(mytype) :: t,xxk1,xxk2, spinup_time
 real(mytype) :: smagcst, nSmag, walecst,dys, FSGS, rxxnu, cnu, dynhypvisc
 real(mytype) :: eps_factor ! Smoothing factor
+integer :: type_vel_sample, np_vel_sample ! Type of velocity sampling. 0:pointwise, 1:integral. Number of points used for velocity sampling
+real(mytype) :: l_vel_sample !Chord-lengths in integral velocity sampling
 real(mytype) :: rho_air ! Density of air 
 real(mytype) :: TurbRadius,z_zero,k_roughness,PsiM,ustar,u_shear, dBL
 integer :: IPressureGradient,idampingzone,ifringeregion,Imassconserve

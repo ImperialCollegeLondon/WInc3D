@@ -229,7 +229,11 @@ itime=ifirst-1
 if (ialm==1) then
   call actuator_line_model_init(Nturbines,Nactuatorlines,TurbinesPath,ActuatorlinesPath,dt)  
   call initialize_actuator_source 
-  call Compute_Momentum_Source_Term_pointwise            
+  if(type_vel_sample==0) then
+    call Compute_Momentum_Source_Term_pointwise            
+  else if(type_vel_sample==1) then
+    call Compute_Momentum_Source_Term_integral            
+  endif
 endif
 if (iadm==1) then
   call actuator_disc_model_init(Ndiscs,admCoords,iadmmode,CT,aind,fileADM)
@@ -265,8 +269,12 @@ do itime=ifirst,ilast
           write(6,*) '' 
           write(6,*) 'Unsteady ACtuator Line Model INFO:'
       endif
-      call Compute_Momentum_Source_Term_pointwise            
-      call actuator_line_model_update(t,dt)
+      if(type_vel_sample==0) then
+        call Compute_Momentum_Source_Term_pointwise            
+      else if(type_vel_sample==1) then
+        call Compute_Momentum_Source_Term_integral            
+      endif
+      call actuator_line_model_update(t,dt)     
       if (nrank==0) then
           write(6,*) '' 
       endif
