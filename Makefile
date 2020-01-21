@@ -65,7 +65,7 @@ visualize :
 	mpif90 paraview_incompact3d.f90 -o visualize
 .PHONY: clean
 clean:
-	rm -f *.o *.mod incompact3d visualize
+	rm -f *.o *.mod winc3d visualize
 
 .PHONY: realclean
 realclean: clean
