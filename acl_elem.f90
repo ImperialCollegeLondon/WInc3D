@@ -217,11 +217,11 @@ end type ActuatorLineType
 
     end subroutine set_actuatorline_geometry
     
-    subroutine Compute_ActuatorLine_Forces(act_line,visc,dt,time)
+    subroutine Compute_ActuatorLine_Forces(act_line,rho_air,visc,dt,time)
        
     implicit none
     type(ActuatorLineType),intent(inout) :: act_line
-    real(mytype),intent(in) ::visc,dt,time
+    real(mytype),intent(in) :: rho_air,visc,dt,time
     real(mytype) :: wRotX,wRotY,wRotZ,ub,vb,wb,u,v,w
     real(mytype) :: xe,ye,ze,nxe,nye,nze,txe,tye,tze,sxe,sye,sze,ElemArea,ElemChord
     real(mytype) :: urdn,urdc,ur,alpha,ds
@@ -359,9 +359,9 @@ end type ActuatorLineType
     !========================================================
     ! Apply Coeffs to calculate tangential and normal Forces
     !========================================================
-    FN=0.5*CN*ElemArea*ur**2.0
-    FT=0.5*CT*ElemArea*ur**2.0
-    MS=0.5*CM25*ElemChord*ElemArea*ur**2.0
+    FN=0.5*rho_air*CN*ElemArea*ur**2.0
+    FT=0.5*rho_air*CT*ElemArea*ur**2.0
+    MS=0.5*rho_air*CM25*ElemChord*ElemArea*ur**2.0
     
     FN=FN*act_line%EEndeffects_factor(ielem)
     FT=FT*act_line%EEndeffects_factor(ielem)
@@ -404,10 +404,10 @@ end type ActuatorLineType
 
     end subroutine compute_Actuatorline_Forces
 
-    subroutine compute_Tower_Forces(tower,visc,time,CL,CD,Str)
+    subroutine compute_Tower_Forces(tower,rho_air,visc,time,CL,CD,Str)
         implicit none
         type(ActuatorLineType),intent(inout) :: tower
-        real(mytype),intent(in) ::visc, time, CL, CD, Str
+        real(mytype),intent(in) :: rho_air,visc, time, CL, CD, Str
         real(mytype) :: rand(3000)
         real(mytype) :: xe,ye,ze,nxe,nye,nze,txe,tye,tze,sxe,sye,sze,ElemArea
         real(mytype) :: u,v,w,ub,vb,wb,urdn,urdc,ur,Diameter,freq,alpha
