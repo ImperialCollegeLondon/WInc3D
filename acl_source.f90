@@ -517,7 +517,7 @@ contains
 
         use decomp_2d, only: mytype, nproc, xstart, xend, xsize, update_halo
         use MPI
-        use param, only: dx,dy,dz,eps_factor,xnu,yp,xlx,yly,zlz, istret
+        use param, only: dx,dy,dz,eps_factor,xnu,yp,xlx,yly,zlz, istret, nx, ny, nz
         use var, only: ux1, uy1, uz1, FTx, FTy, FTz
 
         implicit none
@@ -556,7 +556,7 @@ contains
         Su(:)=0.0
         Sv(:)=0.0
         Sw(:)=0.0
-        ! sum_kernel(:)=0.0
+        sum_kernel(:)=0.0
         ! This is not optimum but works
         ! Define the domain
 
@@ -574,9 +574,13 @@ contains
         epsilon = eps_factor*(dx*dy*dz)**(1/3)
         extended_cells = int(5*epsilon/min(dx,dy,dz) + 1)
 
-        call update_halo(ux1,ux1_halo,extended_cells,opt_global=.true.)
-        call update_halo(uy1,uy1_halo,extended_cells,opt_global=.true.)
-        call update_halo(uz1,uz1_halo,extended_cells,opt_global=.true.)
+        ! write (*,*) nrank, "TEST BEFORE xstart", xstart
+
+        ! call update_halo(ux1,ux1_halo,1,opt_global=.true.)
+        ! call update_halo(uy1,uy1_halo,1,opt_global=.true.)
+        ! call update_halo(uz1,uz1_halo,1,opt_global=.true.)
+
+        ! write (*,*) nrank, "TEST AFTER xstart", xstart
 
         ! Loop through the sources
         do isource=1,NSource
@@ -588,30 +592,44 @@ contains
             write(*,*) nrank, "position source", Sx(isource), Sy(isource), Sz(isource)
 
             ! Indices of the node just before the sampling point
-            i_source = int((Sx(isource) - (xstart(1) - 1)*dx)/dx)
-            j_source = int((Sy(isource) - (xstart(2) - 1)*dy)/dy)
-            k_source = int((Sz(isource) - (xstart(3) - 1)*dz)/dz)
+            ! Indices used in the whole domain and the pencils
+            i_source = int(Sx(isource)/dx)
+            j_source = int(Sy(isource)/dy)
+            k_source = int(Sz(isource)/dz)
 
             write(*,*) nrank, "indices source", i_source, j_source, k_source
 
-            ! Indices of the vertices to sample. check they are inside the halo
-            first_i_sample = max(i_source - (extended_cells - 1), 1)
-            last_i_sample = min(i_source + extended_cells, xsize(1))
-            if((first_i_sample<xstart(1)).or.(last_i_sample>xend(1))) then
-                write(*,*) nrank, 'Point outside the sampling region in the x direction', first_i_sample, last_i_sample
+            ! Indices of the vertices to sample.
+            ! Make sure I only take the last one if its the last pencil.
+            first_i_sample = max(i_source - (extended_cells - 1), xstart(1))
+            if(xend(1).eq.nx) then
+                last_i_sample = min(i_source + extended_cells, xend(1) - 1)
+            else
+                last_i_sample = min(i_source + extended_cells, xend(1))
             endif
+            ! if((first_i_sample<xstart(1)).or.(last_i_sample>xend(1))) then
+            !     write(*,*) nrank, 'Point outside the sampling region in the x direction', first_i_sample, last_i_sample
+            ! endif
 
-            first_j_sample =  max(j_source - (extended_cells - 1), 1)
-            last_j_sample = min(j_source + extended_cells, xsize(2))
-            if((first_j_sample<xstart(2)).or.(last_j_sample>xend(2))) then
-                write(*,*) nrank, 'Point outside the sampling region in the y direction', first_j_sample, last_j_sample
+            first_j_sample =  max(j_source - (extended_cells - 1), xstart(2))
+            if(xend(2).eq.ny) then
+                last_j_sample = min(j_source + extended_cells, xend(2) - 1)
+            else
+                last_j_sample = min(j_source + extended_cells, xend(2))
             endif
+            ! if((first_j_sample<xstart(2)).or.(last_j_sample>xend(2))) then
+                ! write(*,*) nrank, 'Point outside the sampling region in the y direction', first_j_sample, last_j_sample
+            ! endif
 
-            first_k_sample = max(k_source - (extended_cells - 1), 1)
-            last_k_sample = min(k_source + extended_cells, xsize(3))
-            if((first_k_sample<xstart(3)).or.(last_k_sample>xend(3))) then
-                write(*,*) nrank, 'Point outside the sampling region in the z direction', first_k_sample, last_k_sample
+            first_k_sample = max(k_source - (extended_cells - 1), xstart(3))
+            if(xend(3).eq.nz) then
+                last_k_sample = min(k_source + extended_cells, xend(3) - 1)
+            else
+                last_k_sample = min(k_source + extended_cells, xend(3))
             endif
+            ! if((first_k_sample<xstart(3)).or.(last_k_sample>xend(3))) then
+                ! write(*,*) nrank, 'Point outside the sampling region in the z direction', first_k_sample, last_k_sample
+            ! endif
 
             ! Loop through the points
             write(*,*) nrank, "In source", isource, "summing velocities"
@@ -632,10 +650,17 @@ contains
                         dist = sqrt((Sx(isource)-xmesh)**2+(Sy(isource)-ymesh)**2+(Sz(isource)-zmesh)**2)
                         ! Gaussian Kernel
                         Kernel= 1.0/(epsilon**3.0*pi**1.5)*dexp(-(dist/epsilon)**2.0)
+                        sum_Kernel_part(isource) = sum_Kernel_part(isource) + Kernel
                         ! Integration
-                        Su_part(isource) = Su_part(isource) + Kernel*ux1_halo(i, j, k)
-                        Sv_part(isource) = Sv_part(isource) + Kernel*uy1_halo(i, j, k)
-                        Sw_part(isource) = Sw_part(isource) + Kernel*uz1_halo(i, j, k)
+                        ! Su_part(isource) = Su_part(isource) + Kernel*ux1_halo(i, j, k)
+                        ! Sv_part(isource) = Sv_part(isource) + Kernel*uy1_halo(i, j, k)
+                        ! Sw_part(isource) = Sw_part(isource) + Kernel*uz1_halo(i, j, k)
+                        if((k.eq.k_source).and.(j.eq.j_source).and.(k.eq.k_source)) then
+                            write(*,*) "close vel", ux1(i,j,k), "dist", dist, "K", Kernel
+                        endif
+                        Su_part(isource) = Su_part(isource) + Kernel*ux1(i, j, k)
+                        Sv_part(isource) = Sv_part(isource) + Kernel*uy1(i, j, k)
+                        Sw_part(isource) = Sw_part(isource) + Kernel*uz1(i, j, k)
                     enddo
                 enddo
             enddo
@@ -650,8 +675,16 @@ contains
         call MPI_ALLREDUCE(Sw_part,Sw,Nsource,MPI_REAL8,MPI_SUM, &
             MPI_COMM_WORLD,ierr)
 
+        call MPI_ALLREDUCE(sum_kernel_part,sum_kernel,Nsource,MPI_REAL8,MPI_SUM, &
+            MPI_COMM_WORLD,ierr)
+
         do isource=1,NSource
             write(*,*) nrank, "In source", isource, "total sampled vel", Su(isource), Sv(isource), Sw(isource)
+            write(*,*) nrank, "sum kernel", sum_kernel(isource)
+            Su(isource) = Su(isource)/sum_kernel(isource)
+            Sv(isource) = Sv(isource)/sum_kernel(isource)
+            Sw(isource) = Sw(isource)/sum_kernel(isource)
+            write(*,*) nrank, "In source", isource, "total sampled vel ker", Su(isource), Sv(isource), Sw(isource)
         enddo
 
         ! From here on is the same as the poitnwise function. I think it can be improved
