@@ -1,5 +1,6 @@
 *.o
 *.mod
+winc3d
 incompact3d
 uALM
 visualize
