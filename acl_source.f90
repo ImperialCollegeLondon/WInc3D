@@ -633,6 +633,9 @@ contains
         FTx(:,:,:)=0.0
         FTy(:,:,:)=0.0
         FTz(:,:,:)=0.0
+        FTx_part(:,:,:)=0.0
+        FTy_part(:,:,:)=0.0
+        FTz_part(:,:,:)=0.0
         Visc=xnu
         !## Send the velocities to the
         call set_vel
@@ -686,13 +689,20 @@ contains
                         dist = sqrt((Sx(isource)-xmesh)**2+(Sy(isource)-ymesh)**2+(Sz(isource)-zmesh)**2)
                         ! Gaussian Kernel
                         Kernel= 1.0/(epsilon**3.0*pi**1.5)*dexp(-(dist/epsilon)**2.0)
-                        FTx(i,j,k)=FTx(i,j,k)-SFx(isource)*Kernel/sum_kernel(isource)
-                        FTy(i,j,k)=FTy(i,j,k)-SFy(isource)*Kernel/sum_kernel(isource)
-                        FTz(i,j,k)=FTz(i,j,k)-SFz(isource)*Kernel/sum_kernel(isource)
+                        FTx_part(i,j,k)=FTx_part(i,j,k)-SFx(isource)*Kernel/sum_kernel(isource)
+                        FTy_part(i,j,k)=FTy_part(i,j,k)-SFy(isource)*Kernel/sum_kernel(isource)
+                        FTz_part(i,j,k)=FTz_part(i,j,k)-SFz(isource)*Kernel/sum_kernel(isource)
                     enddo
                 enddo
             enddo
         enddo ! loop through the sources
+
+        call MPI_ALLREDUCE(FTx_part,FTx,Nsource,MPI_REAL8,MPI_SUM, &
+            MPI_COMM_WORLD,ierr)
+        call MPI_ALLREDUCE(FTy_part,FTy,Nsource,MPI_REAL8,MPI_SUM, &
+            MPI_COMM_WORLD,ierr)
+        call MPI_ALLREDUCE(FTz_part,FTz,Nsource,MPI_REAL8,MPI_SUM, &
+            MPI_COMM_WORLD,ierr)
 
     end subroutine Compute_Momentum_Source_Term_integral
 
