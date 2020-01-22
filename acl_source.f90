@@ -472,6 +472,10 @@ contains
         integer :: i,j,k, isource, extended_cells
         integer :: i_source, j_source, k_source, ierr
         integer :: first_i_sample, last_i_sample, first_j_sample,last_j_sample, first_k_sample,last_k_sample
+
+        real(mytype) :: sum_fx_grid, sum_fy_grid, sum_fz_grid, sum_fx_al, sum_fy_al, sum_fz_al
+        real(mytype) :: sum_fx_grid_part, sum_fy_grid_part, sum_fz_grid_part
+
         ! use decomp_2d, only: mytype, nproc, xstart, xend, xsize, update_halo
         ! use MPI
         ! use param, only: dx,dy,dz,eps_factor,xnu,yp,istret,xlx,yly,zlz, l_vel_sample, np_vel_sample
@@ -697,12 +701,47 @@ contains
             enddo
         enddo ! loop through the sources
 
-        call MPI_ALLREDUCE(FTx_part,FTx,Nsource,MPI_REAL8,MPI_SUM, &
+        call MPI_ALLREDUCE(FTx_part,FTx,,MPI_REAL8,MPI_SUM, &
             MPI_COMM_WORLD,ierr)
-        call MPI_ALLREDUCE(FTy_part,FTy,Nsource,MPI_REAL8,MPI_SUM, &
+        call MPI_ALLREDUCE(FTy_part,FTy,,MPI_REAL8,MPI_SUM, &
             MPI_COMM_WORLD,ierr)
-        call MPI_ALLREDUCE(FTz_part,FTz,Nsource,MPI_REAL8,MPI_SUM, &
+        call MPI_ALLREDUCE(FTz_part,FTz,,MPI_REAL8,MPI_SUM, &
             MPI_COMM_WORLD,ierr)
+
+        sum_fx_al = 0.0
+        sum_fy_al = 0.0
+        sum_fz_al = 0.0
+        sum_fx_grid_part = 0.0
+        sum_fy_grid_part = 0.0
+        sum_fz_grid_part = 0.0
+
+        do isource=1,Nsource
+            sum_fx_al = sum_fx_al + SFx(isource)
+            sum_fy_al = sum_fy_al + SFy(isource)
+            sum_fz_al = sum_fz_al + SFz(isource)
+        enddo
+
+        do k=xstart(3),xend(3)
+            do j=xstart(2),xend(2)
+                do i=xstart(1),xend(1)
+                    sum_fx_grid_part = sum_fx_grid_part + FTx(i,j,k)
+                    sum_fy_grid_part = sum_fy_grid_part + FTy(i,j,k)
+                    sum_fz_grid_part = sum_fz_grid_part + FTz(i,j,k)
+                enddo
+            enddo
+        enddo
+
+        call MPI_ALLREDUCE(sum_fx_grid_part,sum_fx_grid,1,MPI_REAL8,MPI_SUM, &
+            MPI_COMM_WORLD,ierr)
+        call MPI_ALLREDUCE(sum_fy_grid_part,sum_fy_grid,1,MPI_REAL8,MPI_SUM, &
+            MPI_COMM_WORLD,ierr)
+        call MPI_ALLREDUCE(sum_fz_grid_part,sum_fz_grid,1,MPI_REAL8,MPI_SUM, &
+            MPI_COMM_WORLD,ierr)
+
+        write(*,*) "Check fx", sum_fx_al, sum_fx_grid
+        write(*,*) "Check fy", sum_fy_al, sum_fy_grid
+        write(*,*) "Check fz", sum_fz_al, sum_fz_grid
+
 
     end subroutine Compute_Momentum_Source_Term_integral
 
