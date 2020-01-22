@@ -503,7 +503,11 @@ contains
         Su(:)=0.0
         Sv(:)=0.0
         Sw(:)=0.0
+        Su_part(:)=0.0
+        Sv_part(:)=0.0
+        Sw_part(:)=0.0
         sum_kernel(:)=0.0
+        sum_kernel_part(:)=0.0
 
         ! Check if the points lie outside the fluid domain
         do isource=1,Nsource
@@ -547,31 +551,31 @@ contains
             ! Indices of the vertices to sample.
             ! Make sure I only take the last one if its the last pencil.
             first_i_sample = max(i_source - (extended_cells - 1), xstart(1))
-            if(xend(1).eq.nx) then
-                last_i_sample = min(i_source + extended_cells, xend(1) - 1)
-            else
+            ! if(xend(1).eq.nx) then
+            !     last_i_sample = min(i_source + extended_cells, xend(1) - 1)
+            ! else
                 last_i_sample = min(i_source + extended_cells, xend(1))
-            endif
+            ! endif
             ! if((first_i_sample<xstart(1)).or.(last_i_sample>xend(1))) then
             !     write(*,*) nrank, 'Point outside the sampling region in the x direction', first_i_sample, last_i_sample
             ! endif
 
             first_j_sample =  max(j_source - (extended_cells - 1), xstart(2))
-            if(xend(2).eq.ny) then
-                last_j_sample = min(j_source + extended_cells, xend(2) - 1)
-            else
+            ! if(xend(2).eq.ny) then
+            !     last_j_sample = min(j_source + extended_cells, xend(2) - 1)
+            ! else
                 last_j_sample = min(j_source + extended_cells, xend(2))
-            endif
+            ! endif
             ! if((first_j_sample<xstart(2)).or.(last_j_sample>xend(2))) then
                 ! write(*,*) nrank, 'Point outside the sampling region in the y direction', first_j_sample, last_j_sample
             ! endif
 
             first_k_sample = max(k_source - (extended_cells - 1), xstart(3))
-            if(xend(3).eq.nz) then
-                last_k_sample = min(k_source + extended_cells, xend(3) - 1)
-            else
+            ! if(xend(3).eq.nz) then
+            !     last_k_sample = min(k_source + extended_cells, xend(3) - 1)
+            ! else
                 last_k_sample = min(k_source + extended_cells, xend(3))
-            endif
+            ! endif
             ! if((first_k_sample<xstart(3)).or.(last_k_sample>xend(3))) then
                 ! write(*,*) nrank, 'Point outside the sampling region in the z direction', first_k_sample, last_k_sample
             ! endif
@@ -637,9 +641,9 @@ contains
         FTx(:,:,:)=0.0
         FTy(:,:,:)=0.0
         FTz(:,:,:)=0.0
-        FTx_part(:,:,:)=0.0
-        FTy_part(:,:,:)=0.0
-        FTz_part(:,:,:)=0.0
+        SFx(:)=0.0
+        SFy(:)=0.0
+        SFz(:)=0.0
         Visc=xnu
         !## Send the velocities to the
         call set_vel
@@ -648,65 +652,34 @@ contains
         !## Get Forces
         call get_forces
 
-        ! Loop through the sources
-        do isource=1,NSource
+        ! Loop through all the nodes of the domain
+        ! Each process through theirs
+        ! write(*,*) nrank, "xstart", xstart
+        ! write(*,*) nrank, "xend", xend
+        ! write(*,*) nrank, "ftx", size(FTx)
+        do k=1,xsize(3)
+            do j=1,xsize(2)
+                do i=1,xsize(1)
+                    ! write(*,*) nrank, "ijk", i, j, k
+                    xmesh = (i + xstart(1) - 1)*dx
+                    ymesh = (j + xstart(2) - 1)*dy
+                    zmesh = (k + xstart(3) - 1)*dz
 
-            ! Indices of the node just before the sampling point
-            ! Indices used in the whole domain and the pencils
-            i_source = int(Sx(isource)/dx)
-            j_source = int(Sy(isource)/dy)
-            k_source = int(Sz(isource)/dz)
-
-            ! Indices of the vertices to sample.
-            ! Make sure I only take the last one if its the last pencil.
-            first_i_sample = max(i_source - (extended_cells - 1), xstart(1))
-            if(xend(1).eq.nx) then
-                last_i_sample = min(i_source + extended_cells, xend(1) - 1)
-            else
-                last_i_sample = min(i_source + extended_cells, xend(1))
-            endif
-
-            first_j_sample =  max(j_source - (extended_cells - 1), xstart(2))
-            if(xend(2).eq.ny) then
-                last_j_sample = min(j_source + extended_cells, xend(2) - 1)
-            else
-                last_j_sample = min(j_source + extended_cells, xend(2))
-            endif
-
-            first_k_sample = max(k_source - (extended_cells - 1), xstart(3))
-            if(xend(3).eq.nz) then
-                last_k_sample = min(k_source + extended_cells, xend(3) - 1)
-            else
-                last_k_sample = min(k_source + extended_cells, xend(3))
-            endif
-
-            ! Loop through the points
-            do k=first_k_sample, last_k_sample
-                do j=first_j_sample, last_j_sample
-                    do i=first_i_sample, last_i_sample
-                        ! Compute the position of the nodes to be sampled
-                        xmesh = (i - 1)*dx
-                        ymesh = (j - 1)*dy
-                        zmesh = (k - 1)*dz
-
+                    do isource=1,Nsource
                         ! Distance from the node to the AL point
                         dist = sqrt((Sx(isource)-xmesh)**2+(Sy(isource)-ymesh)**2+(Sz(isource)-zmesh)**2)
                         ! Gaussian Kernel
+                        ! I see this dangerous anyway
+                        if(dist.lt.(extended_cells*min(dx,dy,dz))) then
                         Kernel= 1.0/(epsilon**3.0*pi**1.5)*dexp(-(dist/epsilon)**2.0)
-                        FTx_part(i,j,k)=FTx_part(i,j,k)-SFx(isource)*Kernel/sum_kernel(isource)
-                        FTy_part(i,j,k)=FTy_part(i,j,k)-SFy(isource)*Kernel/sum_kernel(isource)
-                        FTz_part(i,j,k)=FTz_part(i,j,k)-SFz(isource)*Kernel/sum_kernel(isource)
+                        FTx(i,j,k)=FTx(i,j,k)-SFx(isource)*Kernel/sum_kernel(isource)
+                        FTy(i,j,k)=FTy(i,j,k)-SFy(isource)*Kernel/sum_kernel(isource)
+                        FTz(i,j,k)=FTz(i,j,k)-SFz(isource)*Kernel/sum_kernel(isource)
+                        endif
                     enddo
                 enddo
             enddo
-        enddo ! loop through the sources
-
-        call MPI_ALLREDUCE(FTx_part,FTx,,MPI_REAL8,MPI_SUM, &
-            MPI_COMM_WORLD,ierr)
-        call MPI_ALLREDUCE(FTy_part,FTy,,MPI_REAL8,MPI_SUM, &
-            MPI_COMM_WORLD,ierr)
-        call MPI_ALLREDUCE(FTz_part,FTz,,MPI_REAL8,MPI_SUM, &
-            MPI_COMM_WORLD,ierr)
+        enddo
 
         sum_fx_al = 0.0
         sum_fy_al = 0.0
@@ -715,15 +688,23 @@ contains
         sum_fy_grid_part = 0.0
         sum_fz_grid_part = 0.0
 
+        write(*,*) nrank, "SFx", SFx
+        write(*,*) nrank, "SFy", SFy
+        write(*,*) nrank, "SFz", SFz
+
         do isource=1,Nsource
             sum_fx_al = sum_fx_al + SFx(isource)
             sum_fy_al = sum_fy_al + SFy(isource)
             sum_fz_al = sum_fz_al + SFz(isource)
         enddo
 
-        do k=xstart(3),xend(3)
-            do j=xstart(2),xend(2)
-                do i=xstart(1),xend(1)
+        write(*,*) nrank, "sum_fx_al", sum_fx_al
+        write(*,*) nrank, "sum_fy_al", sum_fy_al
+        write(*,*) nrank, "sum_fz_al", sum_fz_al
+
+        do k=1,xsize(3)
+            do j=1,xsize(2)
+                do i=1,xsize(1)
                     sum_fx_grid_part = sum_fx_grid_part + FTx(i,j,k)
                     sum_fy_grid_part = sum_fy_grid_part + FTy(i,j,k)
                     sum_fz_grid_part = sum_fz_grid_part + FTz(i,j,k)
@@ -731,12 +712,17 @@ contains
             enddo
         enddo
 
+        write(*,*) nrank, "part fx grid", sum_fx_grid_part
+        write(*,*) nrank, "part fy grid", sum_fy_grid_part
+        write(*,*) nrank, "part fx grid", sum_fz_grid_part
+
         call MPI_ALLREDUCE(sum_fx_grid_part,sum_fx_grid,1,MPI_REAL8,MPI_SUM, &
             MPI_COMM_WORLD,ierr)
         call MPI_ALLREDUCE(sum_fy_grid_part,sum_fy_grid,1,MPI_REAL8,MPI_SUM, &
             MPI_COMM_WORLD,ierr)
         call MPI_ALLREDUCE(sum_fz_grid_part,sum_fz_grid,1,MPI_REAL8,MPI_SUM, &
             MPI_COMM_WORLD,ierr)
+
 
         write(*,*) "Check fx", sum_fx_al, sum_fx_grid
         write(*,*) "Check fy", sum_fy_al, sum_fy_grid
