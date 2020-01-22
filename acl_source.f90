@@ -515,17 +515,14 @@ contains
 
     subroutine Compute_Momentum_Source_Term_integral
 
-        use decomp_2d, only: mytype, nproc, xstart, xend, xsize, update_halo
+        use decomp_2d, only: mytype, nproc, xstart, xend, xsize
         use MPI
         use param, only: dx,dy,dz,eps_factor,xnu,yp,xlx,yly,zlz, istret, nx, ny, nz
         use var, only: ux1, uy1, uz1, FTx, FTy, FTz
 
         implicit none
-        real(mytype), allocatable, dimension(:,:,:) :: ux1_halo, uy1_halo, uz1_halo
         real(mytype) :: xmesh, ymesh,zmesh
         real(mytype) :: dist, epsilon, Kernel
-        real(mytype) :: min_dist
-        real(mytype) :: t1,t2, alm_proj_time
         integer :: i,j,k, isource, extended_cells
         integer :: i_source, j_source, k_source, ierr
         integer :: first_i_sample, last_i_sample, first_j_sample,last_j_sample, first_k_sample,last_k_sample
