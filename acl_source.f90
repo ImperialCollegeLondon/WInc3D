@@ -700,49 +700,58 @@ contains
         !## Get Forces
         call get_forces
 
-        if(nrank==0) then
-            write(*,*) 'Projecting the AL Momentum Source term ... '
-        endif
-        t1 = MPI_WTIME()
+        ! Loop through the sources
+        do isource=1,NSource
 
+            ! Indices of the node just before the sampling point
+            ! Indices used in the whole domain and the pencils
+            i_source = int(Sx(isource)/dx)
+            j_source = int(Sy(isource)/dy)
+            k_source = int(Sz(isource)/dz)
 
-            !## Add the source term
-            do k=1,xsize(3)
-            zmesh=(k+xstart(3)-1-1)*dz
-            do j=1,xsize(2)
-            if (istret.eq.0) ymesh=(xstart(2)+j-1-1)*dy
-            if (istret.ne.0) ymesh=yp(xstart(2)+j-1)
-            do i=1,xsize(1)
-            xmesh=(i-1)*dx
-
-            do isource=1,NSource
-
-            dist = sqrt((Sx(isource)-xmesh)**2+(Sy(isource)-ymesh)**2+(Sz(isource)-zmesh)**2)
-            epsilon=eps_factor*(dx*dy*dz)**(1.0/3.0)
-            if (dist<10.0*epsilon) then
-                Kernel= 1.0/(epsilon**3.0*pi**1.5)*dexp(-(dist/epsilon)**2.0)
+            ! Indices of the vertices to sample.
+            ! Make sure I only take the last one if its the last pencil.
+            first_i_sample = max(i_source - (extended_cells - 1), xstart(1))
+            if(xend(1).eq.nx) then
+                last_i_sample = min(i_source + extended_cells, xend(1) - 1)
             else
-                Kernel=0.0
+                last_i_sample = min(i_source + extended_cells, xend(1))
             endif
-            ! First apply a constant lift to induce the
-            FTx(i,j,k)=FTx(i,j,k)-SFx(isource)*Kernel
-            FTy(i,j,k)=FTy(i,j,k)-SFy(isource)*Kernel
-            FTz(i,j,k)=FTz(i,j,k)-SFz(isource)*Kernel
 
-            enddo
+            first_j_sample =  max(j_source - (extended_cells - 1), xstart(2))
+            if(xend(2).eq.ny) then
+                last_j_sample = min(j_source + extended_cells, xend(2) - 1)
+            else
+                last_j_sample = min(j_source + extended_cells, xend(2))
+            endif
 
-            enddo
-            enddo
-            enddo
+            first_k_sample = max(k_source - (extended_cells - 1), xstart(3))
+            if(xend(3).eq.nz) then
+                last_k_sample = min(k_source + extended_cells, xend(3) - 1)
+            else
+                last_k_sample = min(k_source + extended_cells, xend(3))
+            endif
 
-        alm_proj_time=MPI_WTIME()-t1
-        call MPI_ALLREDUCE(alm_proj_time,t1,1,MPI_REAL8,MPI_SUM, &
-                   MPI_COMM_WORLD,ierr)
+            ! Loop through the points
+            do k=first_k_sample, last_k_sample
+                do j=first_j_sample, last_j_sample
+                    do i=first_i_sample, last_i_sample
+                        ! Compute the position of the nodes to be sampled
+                        xmesh = (i - 1)*dx
+                        ymesh = (j - 1)*dy
+                        zmesh = (k - 1)*dz
 
-        if(nrank==0) then
-            alm_proj_time=alm_proj_time/float(nproc)
-            write(*,*) 'AL Momentum Source term projection completed in :', alm_proj_time ,'seconds'
-        endif
+                        ! Distance from the node to the AL point
+                        dist = sqrt((Sx(isource)-xmesh)**2+(Sy(isource)-ymesh)**2+(Sz(isource)-zmesh)**2)
+                        ! Gaussian Kernel
+                        Kernel= 1.0/(epsilon**3.0*pi**1.5)*dexp(-(dist/epsilon)**2.0)
+                        FTx(i,j,k)=FTx(i,j,k)-SFx(isource)*Kernel/sum_kernel(isource)
+                        FTy(i,j,k)=FTy(i,j,k)-SFy(isource)*Kernel/sum_kernel(isource)
+                        FTz(i,j,k)=FTz(i,j,k)-SFz(isource)*Kernel/sum_kernel(isource)
+                    enddo
+                enddo
+            enddo
+        enddo ! loop through the sources
 
     end subroutine Compute_Momentum_Source_Term_integral
 
