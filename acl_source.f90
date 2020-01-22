@@ -241,16 +241,14 @@ contains
         integer :: i_source, j_source, k_source, ierr
         integer :: first_i_sample, last_i_sample, first_j_sample,last_j_sample, first_k_sample,last_k_sample
 
-        real(mytype) :: sum_fx_grid, sum_fy_grid, sum_fz_grid, sum_fx_al, sum_fy_al, sum_fz_al
-        real(mytype) :: sum_fx_grid_part, sum_fy_grid_part, sum_fz_grid_part
+        ! Checks
+        ! real(mytype) :: sum_fx_grid, sum_fy_grid, sum_fz_grid, sum_fx_al, sum_fy_al, sum_fz_al
+        ! real(mytype) :: sum_fx_grid_part, sum_fy_grid_part, sum_fz_grid_part
 
-        ! First we need to compute the locations
+        ! First we need to compute the locations of the AL points
         call get_locations
 
-
-
-
-        ! Zero the velocities
+        ! Zero the velocities and other variables
         Su(:)=0.0
         Sv(:)=0.0
         Sw(:)=0.0
@@ -265,9 +263,11 @@ contains
             endif
         enddo
 
+        ! Compute the variables of the Gaussian function
         epsilon = eps_factor*(dx*dy*dz)**(1/3)
         extended_cells = int(5*epsilon/min(dx,dy,dz) + 1)
 
+        ! VELOCITY SAMPLING
         do isource=1,NSource
 
             i_source = int(Sx(isource)/dx)
@@ -333,60 +333,25 @@ contains
         call MPI_ALLREDUCE(Sw_part,Sw,Nsource,MPI_REAL8,MPI_SUM, &
             MPI_COMM_WORLD,ierr)
 
-        ! Loop through the sources
+        ! COMPUTATION OF THE INTEGRAL OF THE INTEGRATION KERNEL
         do isource=1,NSource
-
-            write(*,*) nrank, "isource", isource
-            write(*,*) nrank, "xstart", xstart
-            write(*,*) nrank, "xend", xend
-            write(*,*) nrank, "xsize", xsize
-            write(*,*) nrank, "position source", Sx(isource), Sy(isource), Sz(isource)
-
             ! Indices of the node just before the sampling point
             ! Indices used in the whole domain and the pencils
             i_source = int(Sx(isource)/dx)
             j_source = int(Sy(isource)/dy)
             k_source = int(Sz(isource)/dz)
 
-            write(*,*) nrank, "indices source", i_source, j_source, k_source
-
             ! Indices of the vertices to sample.
-            ! Make sure I only take the last one if its the last pencil.
             first_i_sample = max(i_source - (extended_cells - 1), xstart(1))
-            ! if(xend(1).eq.nx) then
-            !     last_i_sample = min(i_source + extended_cells, xend(1) - 1)
-            ! else
-                last_i_sample = min(i_source + extended_cells, xend(1))
-            ! endif
-            ! if((first_i_sample<xstart(1)).or.(last_i_sample>xend(1))) then
-            !     write(*,*) nrank, 'Point outside the sampling region in the x direction', first_i_sample, last_i_sample
-            ! endif
+            last_i_sample = min(i_source + extended_cells, xend(1))
 
             first_j_sample =  max(j_source - (extended_cells - 1), xstart(2))
-            ! if(xend(2).eq.ny) then
-            !     last_j_sample = min(j_source + extended_cells, xend(2) - 1)
-            ! else
-                last_j_sample = min(j_source + extended_cells, xend(2))
-            ! endif
-            ! if((first_j_sample<xstart(2)).or.(last_j_sample>xend(2))) then
-                ! write(*,*) nrank, 'Point outside the sampling region in the y direction', first_j_sample, last_j_sample
-            ! endif
+            last_j_sample = min(j_source + extended_cells, xend(2))
 
             first_k_sample = max(k_source - (extended_cells - 1), xstart(3))
-            ! if(xend(3).eq.nz) then
-            !     last_k_sample = min(k_source + extended_cells, xend(3) - 1)
-            ! else
-                last_k_sample = min(k_source + extended_cells, xend(3))
-            ! endif
-            ! if((first_k_sample<xstart(3)).or.(last_k_sample>xend(3))) then
-                ! write(*,*) nrank, 'Point outside the sampling region in the z direction', first_k_sample, last_k_sample
-            ! endif
+            last_k_sample = min(k_source + extended_cells, xend(3))
 
             ! Loop through the points
-            write(*,*) nrank, "In source", isource, "summing velocities"
-            write(*,*) nrank, "x loop:", first_i_sample, last_i_sample
-            write(*,*) nrank, "y loop:", first_j_sample, last_j_sample
-            write(*,*) nrank, "z loop:", first_k_sample, last_k_sample
             do k=first_k_sample, last_k_sample
                 do j=first_j_sample, last_j_sample
                     do i=first_i_sample, last_i_sample
@@ -395,31 +360,19 @@ contains
                         ymesh = (j - 1)*dy
                         zmesh = (k - 1)*dz
 
-                        ! write(*,*) "Velocity at indices", i, j, k
-                        ! write(*,*) "Velocity at position", xmesh, ymesh, zmesh
-                        ! Distance from the node to the AL point
                         dist = sqrt((Sx(isource)-xmesh)**2+(Sy(isource)-ymesh)**2+(Sz(isource)-zmesh)**2)
-                        ! Gaussian Kernel
                         Kernel= 1.0/(epsilon**3.0*pi**1.5)*dexp(-(dist/epsilon)**2.0)
                         sum_Kernel_part(isource) = sum_Kernel_part(isource) + Kernel
-                        ! Integration
-                        ! Su_part(isource) = Su_part(isource) + Kernel*ux1_halo(i, j, k)
-                        ! Sv_part(isource) = Sv_part(isource) + Kernel*uy1_halo(i, j, k)
-                        ! Sw_part(isource) = Sw_part(isource) + Kernel*uz1_halo(i, j, k)
-                        if((k.eq.k_source).and.(j.eq.j_source).and.(k.eq.k_source)) then
-                            write(*,*) "close vel", ux1(i,j,k), "dist", dist, "K", Kernel
-                        endif
                     enddo
                 enddo
             enddo
-            write(*,*) nrank, "In source", isource, "sampled vel", Su_part(isource), Sv_part(isource), Sw_part(isource)
         enddo ! loop through the sources
 
+        ! Sum the kernel
         call MPI_ALLREDUCE(sum_kernel_part,sum_kernel,Nsource,MPI_REAL8,MPI_SUM, &
             MPI_COMM_WORLD,ierr)
 
-        ! From here on is the same as the poitnwise function. I think it can be improved
-        ! Zero the Source term at each time step
+        ! PROJECT THE FORCES
         FTx(:,:,:)=0.0
         FTy(:,:,:)=0.0
         FTz(:,:,:)=0.0
@@ -436,13 +389,9 @@ contains
 
         ! Loop through all the nodes of the domain
         ! Each process through theirs
-        ! write(*,*) nrank, "xstart", xstart
-        ! write(*,*) nrank, "xend", xend
-        ! write(*,*) nrank, "ftx", size(FTx)
         do k=1,xsize(3)
             do j=1,xsize(2)
                 do i=1,xsize(1)
-                    ! write(*,*) nrank, "ijk", i, j, k
                     xmesh = (i + xstart(1) - 1)*dx
                     ymesh = (j + xstart(2) - 1)*dy
                     zmesh = (k + xstart(3) - 1)*dz
@@ -463,52 +412,40 @@ contains
             enddo
         enddo
 
-        sum_fx_al = 0.0
-        sum_fy_al = 0.0
-        sum_fz_al = 0.0
-        sum_fx_grid_part = 0.0
-        sum_fy_grid_part = 0.0
-        sum_fz_grid_part = 0.0
+        ! checks
+        ! sum_fx_al = 0.0
+        ! sum_fy_al = 0.0
+        ! sum_fz_al = 0.0
+        ! sum_fx_grid_part = 0.0
+        ! sum_fy_grid_part = 0.0
+        ! sum_fz_grid_part = 0.0
 
-        write(*,*) nrank, "SFx", SFx
-        write(*,*) nrank, "SFy", SFy
-        write(*,*) nrank, "SFz", SFz
+        ! do isource=1,Nsource
+        !     sum_fx_al = sum_fx_al + SFx(isource)
+        !     sum_fy_al = sum_fy_al + SFy(isource)
+        !     sum_fz_al = sum_fz_al + SFz(isource)
+        ! enddo
 
-        do isource=1,Nsource
-            sum_fx_al = sum_fx_al + SFx(isource)
-            sum_fy_al = sum_fy_al + SFy(isource)
-            sum_fz_al = sum_fz_al + SFz(isource)
-        enddo
+        ! do k=1,xsize(3)
+        !     do j=1,xsize(2)
+        !         do i=1,xsize(1)
+        !             sum_fx_grid_part = sum_fx_grid_part + FTx(i,j,k)
+        !             sum_fy_grid_part = sum_fy_grid_part + FTy(i,j,k)
+        !             sum_fz_grid_part = sum_fz_grid_part + FTz(i,j,k)
+        !         enddo
+        !     enddo
+        ! enddo
 
-        write(*,*) nrank, "sum_fx_al", sum_fx_al
-        write(*,*) nrank, "sum_fy_al", sum_fy_al
-        write(*,*) nrank, "sum_fz_al", sum_fz_al
+        ! call MPI_ALLREDUCE(sum_fx_grid_part,sum_fx_grid,1,MPI_REAL8,MPI_SUM, &
+        !     MPI_COMM_WORLD,ierr)
+        ! call MPI_ALLREDUCE(sum_fy_grid_part,sum_fy_grid,1,MPI_REAL8,MPI_SUM, &
+        !     MPI_COMM_WORLD,ierr)
+        ! call MPI_ALLREDUCE(sum_fz_grid_part,sum_fz_grid,1,MPI_REAL8,MPI_SUM, &
+        !     MPI_COMM_WORLD,ierr)
 
-        do k=1,xsize(3)
-            do j=1,xsize(2)
-                do i=1,xsize(1)
-                    sum_fx_grid_part = sum_fx_grid_part + FTx(i,j,k)
-                    sum_fy_grid_part = sum_fy_grid_part + FTy(i,j,k)
-                    sum_fz_grid_part = sum_fz_grid_part + FTz(i,j,k)
-                enddo
-            enddo
-        enddo
-
-        write(*,*) nrank, "part fx grid", sum_fx_grid_part
-        write(*,*) nrank, "part fy grid", sum_fy_grid_part
-        write(*,*) nrank, "part fx grid", sum_fz_grid_part
-
-        call MPI_ALLREDUCE(sum_fx_grid_part,sum_fx_grid,1,MPI_REAL8,MPI_SUM, &
-            MPI_COMM_WORLD,ierr)
-        call MPI_ALLREDUCE(sum_fy_grid_part,sum_fy_grid,1,MPI_REAL8,MPI_SUM, &
-            MPI_COMM_WORLD,ierr)
-        call MPI_ALLREDUCE(sum_fz_grid_part,sum_fz_grid,1,MPI_REAL8,MPI_SUM, &
-            MPI_COMM_WORLD,ierr)
-
-
-        write(*,*) "Check fx", sum_fx_al, sum_fx_grid
-        write(*,*) "Check fy", sum_fy_al, sum_fy_grid
-        write(*,*) "Check fz", sum_fz_al, sum_fz_grid
+        ! write(*,*) "Check fx", sum_fx_al, sum_fx_grid
+        ! write(*,*) "Check fy", sum_fy_al, sum_fy_grid
+        ! write(*,*) "Check fz", sum_fz_al, sum_fz_grid
 
     end subroutine Compute_Momentum_Source_Term_pointwise
 
@@ -526,29 +463,10 @@ contains
         integer :: i_source, j_source, k_source, ierr
         integer :: first_i_sample, last_i_sample, first_j_sample,last_j_sample, first_k_sample,last_k_sample
 
+        ! Checks
         real(mytype) :: sum_fx_grid, sum_fy_grid, sum_fz_grid, sum_fx_al, sum_fy_al, sum_fz_al
         real(mytype) :: sum_fx_grid_part, sum_fy_grid_part, sum_fz_grid_part
 
-        ! use decomp_2d, only: mytype, nproc, xstart, xend, xsize, update_halo
-        ! use MPI
-        ! use param, only: dx,dy,dz,eps_factor,xnu,yp,istret,xlx,yly,zlz, l_vel_sample, np_vel_sample
-        ! use var, only: ux1, uy1, uz1, FTx, FTy, FTz
-        !
-        ! implicit none
-        ! real(mytype), allocatable, dimension(:,:,:) :: ux1_halo, uy1_halo, uz1_halo
-        ! real(mytype) :: xmesh, ymesh,zmesh
-        ! real(mytype) :: dist, epsilon, Kernel
-        ! real(mytype) :: min_dist, ymax,ymin,zmin,zmax
-        ! real(mytype) :: x0,y0,z0,x1,y1,z1,x,y,z,u000,u100,u001,u101,u010,u110,u011,u111
-        ! real(mytype) :: t1,t2, alm_proj_time
-        ! integer :: min_i,min_j,min_k
-        ! integer :: i_lower, j_lower, k_lower, i_upper, j_upper, k_upper
-        ! integer :: i,j,k, isource, ierr
-        !
-        ! real(mytype) :: x_sampling, y_sampling, z_sampling
-        ! real(mytype) :: u_sampling, v_sampling, w_sampling
-        ! real(mytype) :: delta_sampling, local_window_sample, max_chord
-        ! integer :: in, it
         ! First we need to compute the locations of the AL points (Sx, Sy, Sz ...)
         call get_locations
 
@@ -576,22 +494,9 @@ contains
         epsilon = eps_factor*(dx*dy*dz)**(1/3)
         extended_cells = int(5*epsilon/min(dx,dy,dz) + 1)
 
-        ! write (*,*) nrank, "TEST BEFORE xstart", xstart
-
-        ! call update_halo(ux1,ux1_halo,1,opt_global=.true.)
-        ! call update_halo(uy1,uy1_halo,1,opt_global=.true.)
-        ! call update_halo(uz1,uz1_halo,1,opt_global=.true.)
-
-        ! write (*,*) nrank, "TEST AFTER xstart", xstart
-
+        ! SAMPLE VELOCITIES AND COMPUTE THE INTEGRATION OF THE KERNEL
         ! Loop through the sources
         do isource=1,NSource
-
-            write(*,*) nrank, "isource", isource
-            write(*,*) nrank, "xstart", xstart
-            write(*,*) nrank, "xend", xend
-            write(*,*) nrank, "xsize", xsize
-            write(*,*) nrank, "position source", Sx(isource), Sy(isource), Sz(isource)
 
             ! Indices of the node just before the sampling point
             ! Indices used in the whole domain and the pencils
@@ -599,45 +504,17 @@ contains
             j_source = int(Sy(isource)/dy)
             k_source = int(Sz(isource)/dz)
 
-            write(*,*) nrank, "indices source", i_source, j_source, k_source
-
             ! Indices of the vertices to sample.
-            ! Make sure I only take the last one if its the last pencil.
             first_i_sample = max(i_source - (extended_cells - 1), xstart(1))
-            ! if(xend(1).eq.nx) then
-            !     last_i_sample = min(i_source + extended_cells, xend(1) - 1)
-            ! else
-                last_i_sample = min(i_source + extended_cells, xend(1))
-            ! endif
-            ! if((first_i_sample<xstart(1)).or.(last_i_sample>xend(1))) then
-            !     write(*,*) nrank, 'Point outside the sampling region in the x direction', first_i_sample, last_i_sample
-            ! endif
+            last_i_sample = min(i_source + extended_cells, xend(1))
 
             first_j_sample =  max(j_source - (extended_cells - 1), xstart(2))
-            ! if(xend(2).eq.ny) then
-            !     last_j_sample = min(j_source + extended_cells, xend(2) - 1)
-            ! else
-                last_j_sample = min(j_source + extended_cells, xend(2))
-            ! endif
-            ! if((first_j_sample<xstart(2)).or.(last_j_sample>xend(2))) then
-                ! write(*,*) nrank, 'Point outside the sampling region in the y direction', first_j_sample, last_j_sample
-            ! endif
+            last_j_sample = min(j_source + extended_cells, xend(2))
 
             first_k_sample = max(k_source - (extended_cells - 1), xstart(3))
-            ! if(xend(3).eq.nz) then
-            !     last_k_sample = min(k_source + extended_cells, xend(3) - 1)
-            ! else
-                last_k_sample = min(k_source + extended_cells, xend(3))
-            ! endif
-            ! if((first_k_sample<xstart(3)).or.(last_k_sample>xend(3))) then
-                ! write(*,*) nrank, 'Point outside the sampling region in the z direction', first_k_sample, last_k_sample
-            ! endif
+            last_k_sample = min(k_source + extended_cells, xend(3))
 
             ! Loop through the points
-            write(*,*) nrank, "In source", isource, "summing velocities"
-            write(*,*) nrank, "x loop:", first_i_sample, last_i_sample
-            write(*,*) nrank, "y loop:", first_j_sample, last_j_sample
-            write(*,*) nrank, "z loop:", first_k_sample, last_k_sample
             do k=first_k_sample, last_k_sample
                 do j=first_j_sample, last_j_sample
                     do i=first_i_sample, last_i_sample
@@ -646,27 +523,18 @@ contains
                         ymesh = (j - 1)*dy
                         zmesh = (k - 1)*dz
 
-                        ! write(*,*) "Velocity at indices", i, j, k
-                        ! write(*,*) "Velocity at position", xmesh, ymesh, zmesh
                         ! Distance from the node to the AL point
                         dist = sqrt((Sx(isource)-xmesh)**2+(Sy(isource)-ymesh)**2+(Sz(isource)-zmesh)**2)
                         ! Gaussian Kernel
                         Kernel= 1.0/(epsilon**3.0*pi**1.5)*dexp(-(dist/epsilon)**2.0)
                         sum_Kernel_part(isource) = sum_Kernel_part(isource) + Kernel
                         ! Integration
-                        ! Su_part(isource) = Su_part(isource) + Kernel*ux1_halo(i, j, k)
-                        ! Sv_part(isource) = Sv_part(isource) + Kernel*uy1_halo(i, j, k)
-                        ! Sw_part(isource) = Sw_part(isource) + Kernel*uz1_halo(i, j, k)
-                        if((k.eq.k_source).and.(j.eq.j_source).and.(k.eq.k_source)) then
-                            write(*,*) "close vel", ux1(i,j,k), "dist", dist, "K", Kernel
-                        endif
                         Su_part(isource) = Su_part(isource) + Kernel*ux1(i, j, k)
                         Sv_part(isource) = Sv_part(isource) + Kernel*uy1(i, j, k)
                         Sw_part(isource) = Sw_part(isource) + Kernel*uz1(i, j, k)
                     enddo
                 enddo
             enddo
-            write(*,*) nrank, "In source", isource, "sampled vel", Su_part(isource), Sv_part(isource), Sw_part(isource)
         enddo ! loop through the sources
 
         ! Retrieve information from all the processes
@@ -680,16 +548,16 @@ contains
         call MPI_ALLREDUCE(sum_kernel_part,sum_kernel,Nsource,MPI_REAL8,MPI_SUM, &
             MPI_COMM_WORLD,ierr)
 
+        ! Apply the integration kernel
         do isource=1,NSource
-            write(*,*) nrank, "In source", isource, "total sampled vel", Su(isource), Sv(isource), Sw(isource)
-            write(*,*) nrank, "sum kernel", sum_kernel(isource)
             Su(isource) = Su(isource)/sum_kernel(isource)
             Sv(isource) = Sv(isource)/sum_kernel(isource)
             Sw(isource) = Sw(isource)/sum_kernel(isource)
-            write(*,*) nrank, "In source", isource, "total sampled vel ker", Su(isource), Sv(isource), Sw(isource)
         enddo
 
-        ! From here on is the same as the poitnwise function. I think it can be improved
+        ! COMPUTE FORCES
+        ! From here on is the same as the poitnwise function except that here the kernel is already computed
+        ! Probably it would be a good idea to integrate them.
         ! Zero the Source term at each time step
         FTx(:,:,:)=0.0
         FTy(:,:,:)=0.0
@@ -707,13 +575,9 @@ contains
 
         ! Loop through all the nodes of the domain
         ! Each process through theirs
-        ! write(*,*) nrank, "xstart", xstart
-        ! write(*,*) nrank, "xend", xend
-        ! write(*,*) nrank, "ftx", size(FTx)
         do k=1,xsize(3)
             do j=1,xsize(2)
                 do i=1,xsize(1)
-                    ! write(*,*) nrank, "ijk", i, j, k
                     xmesh = (i + xstart(1) - 1)*dx
                     ymesh = (j + xstart(2) - 1)*dy
                     zmesh = (k + xstart(3) - 1)*dz
@@ -734,52 +598,39 @@ contains
             enddo
         enddo
 
-        sum_fx_al = 0.0
-        sum_fy_al = 0.0
-        sum_fz_al = 0.0
-        sum_fx_grid_part = 0.0
-        sum_fy_grid_part = 0.0
-        sum_fz_grid_part = 0.0
-
-        write(*,*) nrank, "SFx", SFx
-        write(*,*) nrank, "SFy", SFy
-        write(*,*) nrank, "SFz", SFz
-
-        do isource=1,Nsource
-            sum_fx_al = sum_fx_al + SFx(isource)
-            sum_fy_al = sum_fy_al + SFy(isource)
-            sum_fz_al = sum_fz_al + SFz(isource)
-        enddo
-
-        write(*,*) nrank, "sum_fx_al", sum_fx_al
-        write(*,*) nrank, "sum_fy_al", sum_fy_al
-        write(*,*) nrank, "sum_fz_al", sum_fz_al
-
-        do k=1,xsize(3)
-            do j=1,xsize(2)
-                do i=1,xsize(1)
-                    sum_fx_grid_part = sum_fx_grid_part + FTx(i,j,k)
-                    sum_fy_grid_part = sum_fy_grid_part + FTy(i,j,k)
-                    sum_fz_grid_part = sum_fz_grid_part + FTz(i,j,k)
-                enddo
-            enddo
-        enddo
-
-        write(*,*) nrank, "part fx grid", sum_fx_grid_part
-        write(*,*) nrank, "part fy grid", sum_fy_grid_part
-        write(*,*) nrank, "part fx grid", sum_fz_grid_part
-
-        call MPI_ALLREDUCE(sum_fx_grid_part,sum_fx_grid,1,MPI_REAL8,MPI_SUM, &
-            MPI_COMM_WORLD,ierr)
-        call MPI_ALLREDUCE(sum_fy_grid_part,sum_fy_grid,1,MPI_REAL8,MPI_SUM, &
-            MPI_COMM_WORLD,ierr)
-        call MPI_ALLREDUCE(sum_fz_grid_part,sum_fz_grid,1,MPI_REAL8,MPI_SUM, &
-            MPI_COMM_WORLD,ierr)
-
-
-        write(*,*) "Check fx", sum_fx_al, sum_fx_grid
-        write(*,*) "Check fy", sum_fy_al, sum_fy_grid
-        write(*,*) "Check fz", sum_fz_al, sum_fz_grid
+        ! sum_fx_al = 0.0
+        ! sum_fy_al = 0.0
+        ! sum_fz_al = 0.0
+        ! sum_fx_grid_part = 0.0
+        ! sum_fy_grid_part = 0.0
+        ! sum_fz_grid_part = 0.0
+        !
+        ! do isource=1,Nsource
+        !     sum_fx_al = sum_fx_al + SFx(isource)
+        !     sum_fy_al = sum_fy_al + SFy(isource)
+        !     sum_fz_al = sum_fz_al + SFz(isource)
+        ! enddo
+        !
+        ! do k=1,xsize(3)
+        !     do j=1,xsize(2)
+        !         do i=1,xsize(1)
+        !             sum_fx_grid_part = sum_fx_grid_part + FTx(i,j,k)
+        !             sum_fy_grid_part = sum_fy_grid_part + FTy(i,j,k)
+        !             sum_fz_grid_part = sum_fz_grid_part + FTz(i,j,k)
+        !         enddo
+        !     enddo
+        ! enddo
+        !
+        ! call MPI_ALLREDUCE(sum_fx_grid_part,sum_fx_grid,1,MPI_REAL8,MPI_SUM, &
+        !     MPI_COMM_WORLD,ierr)
+        ! call MPI_ALLREDUCE(sum_fy_grid_part,sum_fy_grid,1,MPI_REAL8,MPI_SUM, &
+        !     MPI_COMM_WORLD,ierr)
+        ! call MPI_ALLREDUCE(sum_fz_grid_part,sum_fz_grid,1,MPI_REAL8,MPI_SUM, &
+        !     MPI_COMM_WORLD,ierr)
+        !
+        ! write(*,*) "Check fx", sum_fx_al, sum_fx_grid
+        ! write(*,*) "Check fy", sum_fy_al, sum_fy_grid
+        ! write(*,*) "Check fz", sum_fz_al, sum_fz_grid
 
 
     end subroutine Compute_Momentum_Source_Term_integral
