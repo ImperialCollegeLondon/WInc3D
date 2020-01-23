@@ -374,7 +374,8 @@ contains
         !-------------------------------------
         ! Dummy variables
         !-------------------------------------
-        character(len=100) :: name, actuatorline_geom, afname, dynstall_param_file
+        character(len=100) :: name, actuatorline_geom, dynstall_param_file
+        character(len=100*MaxNAirfoils) :: afname
         real(mytype), dimension(3) :: origin
         real(mytype) :: PitchStartTime, PitchEndTime, PitchAngleInit, PitchAmp, AngularPitchFreq
         integer :: numfoil, AddedMassFlag, DynStallFlag, EndEffectsFlag, RandomWalkForcingFlag, PitchControlFlag
@@ -588,7 +589,7 @@ contains
 
             ! Then compute the coefficients
             do j=1,Turbine(i)%Nblades
-            call Compute_ActuatorLine_Forces(Turbine(i)%Blade(j),rho_air,visc,deltaT,ctime)    
+            call Compute_ActuatorLine_Forces(Turbine(i)%Blade(j),rho_air,visc,deltaT,ctime)
             end do
             call Compute_performance(Turbine(i))
 
