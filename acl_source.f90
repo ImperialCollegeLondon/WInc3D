@@ -492,7 +492,7 @@ contains
 
         real(mytype), dimension(Nsource) :: sum_kernel, sum_kernel_part
 
-        constant = dx*dy*dz/rho_air
+        constant = dx*dy*dz*rho_air
         ! First we need to compute the locations
         call get_locations
 
