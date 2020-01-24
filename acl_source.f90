@@ -476,7 +476,7 @@ contains
 
         use decomp_2d, only: mytype, nproc, xstart, xend, xsize, update_halo
         use MPI
-        use param, only: dx,dy,dz,eps_factor,xnu,yp,istret,xlx,yly,zlz
+        use param, only: dx,dy,dz,eps_factor,xnu,yp,istret,xlx,yly,zlz, rho_air
         use var, only: ux1, uy1, uz1, FTx, FTy, FTz
 
         implicit none
@@ -485,13 +485,14 @@ contains
         real(mytype) :: dist, epsilon, Kernel
         real(mytype) :: min_dist, ymax,ymin,zmin,zmax
         real(mytype) :: x0,y0,z0,x1,y1,z1,x,y,z,u000,u100,u001,u101,u010,u110,u011,u111
-        real(mytype) :: t1,t2, alm_proj_time
+        real(mytype) :: t1,t2, alm_proj_time, constant
         integer :: min_i,min_j,min_k
         integer :: i_lower, j_lower, k_lower, i_upper, j_upper, k_upper
         integer :: i,j,k, isource, ierr
 
         real(mytype), dimension(Nsource) :: sum_kernel, sum_kernel_part
 
+        constant = dx*dy*dz/rho_air
         ! First we need to compute the locations
         call get_locations
 
@@ -768,9 +769,9 @@ contains
                 Kernel=0.0
             endif
             ! First apply a constant lift to induce the
-            FTx(i,j,k)=FTx(i,j,k)-SFx(isource)*Kernel/sum_kernel(isource)
-            FTy(i,j,k)=FTy(i,j,k)-SFy(isource)*Kernel/sum_kernel(isource)
-            FTz(i,j,k)=FTz(i,j,k)-SFz(isource)*Kernel/sum_kernel(isource)
+            FTx(i,j,k)=FTx(i,j,k)-SFx(isource)*Kernel/sum_kernel(isource)/constant
+            FTy(i,j,k)=FTy(i,j,k)-SFy(isource)*Kernel/sum_kernel(isource)/constant
+            FTz(i,j,k)=FTz(i,j,k)-SFz(isource)*Kernel/sum_kernel(isource)/constant
 
             enddo
 
