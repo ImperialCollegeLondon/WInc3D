@@ -79,22 +79,22 @@ subroutine probe_pencil(ux,uy,uz,phi)
         if (ix==0) ix=xsize(1)
         xprobe(ipr)=(ix-1)*dx
 
-        iy=ipr/xsize(1)+1
+        iy=ipr/xsize(1)+1 ! Check the operations with integers
         if (mod(ipr,xsize(1))==0) iy=ipr/xsize(1)
         yprobe(ipr)=y_loc_pencil(iy)*dy
         zprobe(ipr)=z_loc_pencil(iy)*dz
 
     if((yprobe(ipr)>=ymin).and.(yprobe(ipr)<=ymax).and.(zprobe(ipr)>=zmin).and.(zprobe(ipr)<=zmax)) then
         min_dist=1e6
-        do k=1,xsize(3)
+        do k=xstart(3),xend(3)
         zmesh=(k-1)*dz
-        do j=1,xsize(2)
+        do j=xstart(2),xend(2)
 
 
         if (istret.eq.0) ymesh=(j-1)*dy
         if (istret.ne.0) ymesh=yp(j)
 
-        do i=1,xsize(1)
+        do i=xstart(1),xend(1)
         xmesh=(i-1)*dx
         dist = sqrt((xprobe(ipr)-xmesh)**2.+(yprobe(ipr)-ymesh)**2.+(zprobe(ipr)-zmesh)**2.)
 
