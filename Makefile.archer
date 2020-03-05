@@ -1,53 +1,58 @@
 #=======================================================================
-# Makefile for incompact3D
+# Makefile for Incompact3D
 #=======================================================================
-# module swap PrgEnv-cray PrgEnv-intel
+#SET COMPILER AND VERSION BASED ON WHETHER a HPC or local PC is used
 OPTIONS = -DDOUBLE_PREC
 
-# Choose an FFT engine, available options are:
-#   fftw3      - FFTW version 3.x
-#   generic    - A general FFT algorithm (no 3rd-party library needed)
-FFT= generic
+FFT =generic
+FFTW3_INCLUDE = -I/apps/fftw/3.3.4/include
+FFTW3_LIB = -L/apps/fftw/3.3.4/lib -lfftw3 -lfftw3f
 
-# Paths to xbeam
-xbeam_PATH=/home/yorgos/xbeam
-xbeam_INCLUDE=-I$(xbeam_PATH)/src
-xbeam_LIB=-L$(xbeam_PATH)/lib
-
-# Paths to FFTW 3
-FFTW3_PATH=   # full path of FFTW installation if using fftw3 engine above
-FFTW3_INCLUDE = -I$(FFTW3_PATH)/include
-FFTW3_LIB = -L$(FFTW3_PATH)/lib -lfftw3 -lfftw3f
-
-# GNU
 FC = ftn
-OPTFC = -O3 -funroll-loops -ftree-vectorize -fcray-pointer -cpp -ffree-line-length-0 -g -fbacktrace -fcheck=all -fcheck=bounds -ffpe-trap=invalid,zero
-CC = mpicc
-CFLAGS = -O3
-# LIBS = -fopenmp -llapack -lblas
+OPTFC = -O3 -xAVX -cpp -heap-arrays -g -traceback #-xHost-fp-model fast=2
+CC=cc
+CFLAGS= -O3 -xAVX
 
-# include PATH
-ifeq ($(FFT),generic)
-  INC=
-else ifeq ($(FFT),fftw3)
-  INC=
-endif
+#include PATH
+ ifeq ($(FFT),generic)
+   INC=
+ else ifeq ($(FFT),fftw3)
+   INC=$(FFTW3_INCLUDE)
+ else ifeq ($(FFT),essl)
+   INC=$(ESSL_INCLUDE)
+ endif
 
-SRC = decomp_2d.f90 glassman.f90 fft_$(FFT).f90 constants.f90 module_param.f90 io.f90 variables.f90 poisson.f90 les_models.f90 SVV.f90 schemes.f90 convdiff.f90 acl_utils.f90 airfoils.f90 dynstall.f90 dynstall_legacy.f90 acl_elem.f90 acl_controller.f90 acl_turb.f90 acl_out.f90 acl_farm_controller.f90 acl_model.f90 acl_source.f90 adm.f90  WInc3D.f90 navier.f90 filters.f90 derive.f90 parameters.f90 tools.f90 visu.f90 probe.f90 cfl.f90 ABL.f90
+ # library path
+ ifeq ($(FFT),generic)
+    LIBFFT=
+ else ifeq ($(FFT),fftw3)
+    LIBFFT=$(FFTW3_LIB)
+ else ifeq ($(FFT),essl)
+    LIBFFT=$(ESSL_LIB)
+ endif
+
+SRC = decomp_2d.f90 glassman.f90 fft_$(FFT).f90 constants.f90 module_param.f90 io.f90 variables.f90 poisson.f90 les_models.f90 SVV.f90 schemes.f90 convdiff.f90 acl_utils.f90 airfoils.f90 dynstall_legacy.f90 dynstall.f90 acl_elem.f90 acl_controller.f90 acl_turb.f90 acl_out.f90 acl_model.f90 acl_source.f90 adm.f90 WInc3D.f90 navier.f90 filters.f90 derive.f90 parameters.f90 tools.f90 visu.f90 probe.f90 cfl.f90 ABL.f90 
 
 ifneq (,$(findstring DSHM,$(OPTIONS)))
-SRC := FreeIPC.f90 $(SRC) $(SRCALM)
+SRC := FreeIPC.f90 $(SRC)
 OBJ =	$(SRC:.f90=.o) alloc_shm.o FreeIPC_c.o
-OBJALM =	$(SRCALM:.f90=.o) alloc_shm.o FreeIPC_c.o
 else
 OBJ =	$(SRC:.f90=.o)
-OBJALM =	$(SRCALM:.f90=.o)
 endif
 
-all: winc3d visualize
+OPTION=$(OPTIONS)
+from:=-D
+to:=-WF,-D
+TMP=$(subst $(from),$(to),$(OPTIONS))
+ifeq ($(PLATFORM),bgp_xlf)
+   OPTION=$(TMP)
+endif
+ifeq ($(PLATFORM),bgq_xlf)
+   OPTION=$(TMP)
+endif
 
-fileOperation.o: fileOperation.c
-	$(CC) $(CFLAGS) -c $<
+
+all: winc3d
 
 alloc_shm.o: alloc_shm.c
 	$(CC) $(CFLAGS) -c $<
@@ -56,13 +61,11 @@ FreeIPC_c.o: FreeIPC_c.c
 	$(CC) $(CFLAGS) -c $<
 
 winc3d : $(OBJ)
-	$(FC) -O3 -o $@ $(OBJ) $(LIBFFT) $(LIBS) $(DEBUG)
+	$(FC) -O3 -o $@ $(OBJ) $(LIBFFT)
 
 %.o : %.f90
-	$(FC) $(OPTFC) $(OPTIONS) $(INC) $(DEBUG) -c $<
+	$(FC) $(OPTFC) $(OPTIONS) $(INC) -c $<
 
-visualize :
-	$(FC) paraview_incompact3d.f90 -o visualize
 .PHONY: clean
 clean:
 	rm -f *.o *.mod winc3d visualize
