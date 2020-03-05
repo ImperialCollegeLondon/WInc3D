@@ -2,14 +2,14 @@ module actuator_disc_model
 
     ! Use the actuator_line Modules
     use decomp_2d, only: mytype, nrank
-    use actuator_line_model_utils 
+    use actuator_line_model_utils
     use airfoils
 
     implicit none
-    
+
     type ActuatorDiscType
         integer :: ID                       ! Actuator disk ID
-        real(mytype) :: D                   ! Actuator disk diameter 
+        real(mytype) :: D                   ! Actuator disk diameter
         real(mytype) :: COR(3)              ! Center of Rotation
         real(mytype) :: RotN(3)             ! axis of rotation
         real(mytype) :: CT                  ! Thrust coefficient
@@ -23,12 +23,12 @@ module actuator_disc_model
     end type ActuatorDiscType
 
     type(ActuatorDiscType), allocatable, save :: ActuatorDisc(:)
-    integer,save :: Nad ! Number of the actuator disk turbines 
+    integer,save :: Nad ! Number of the actuator disk turbines
 
 contains
 
     subroutine actuator_disc_model_init(Ndiscs,admCoords,iadmmode,CT,aind,fileADM)
-        
+
         USE var, only: Fdiscx, Fdiscy, Fdiscz, GammaDisc
         USE decomp_2d
         USE decomp_2d_io
@@ -48,17 +48,19 @@ contains
         print *, " The actuator disc model is enabled"
         print *, 'Number of Actuator discs : ', Nad
         endif
-        if (Nad>0) then 
+        if (Nad>0) then
             allocate(ActuatorDisc(Nad))
             open(15,file=admCoords)
             do idisc=1,Nad
             actuatordisc(idisc)%ID=idisc
             read(15,'(A)') ReadLine
-            read(Readline,*) ActuatorDisc(idisc)%COR(1),ActuatorDisc(idisc)%COR(2),ActuatorDisc(idisc)%COR(3),ActuatorDisc(idisc)%RotN(1),ActuatorDisc(idisc)%RotN(2),ActuatorDisc(idisc)%RotN(3),ActuatorDisc(idisc)%D 
+            read(Readline,*) ActuatorDisc(idisc)%COR(1),ActuatorDisc(idisc)%COR(2),ActuatorDisc(idisc)%COR(3),&
+                             ActuatorDisc(idisc)%RotN(1),ActuatorDisc(idisc)%RotN(2),ActuatorDisc(idisc)%RotN(3),&
+                             ActuatorDisc(idisc)%D
             !if (nrank==0) then
-            !    print *, 'actuator ', idisc, ' --> (X,Y,Z)=  ',ActuatorDisc(idisc)%COR(1), ActuatorDisc(idisc)%COR(2),ActuatorDisc(idisc)%COR(3) 
-            !    print *, '                          Axis =   ',ActuatorDisc(idisc)%RotN(1), ActuatorDisc(idisc)%RotN(2),ActuatorDisc(idisc)%RotN(3) 
-            !    print *, '                          Diameter =   ',ActuatorDisc(idisc)%D 
+            !    print *, 'actuator ', idisc, ' --> (X,Y,Z)=  ',ActuatorDisc(idisc)%COR(1), ActuatorDisc(idisc)%COR(2),ActuatorDisc(idisc)%COR(3)
+            !    print *, '                          Axis =   ',ActuatorDisc(idisc)%RotN(1), ActuatorDisc(idisc)%RotN(2),ActuatorDisc(idisc)%RotN(3)
+            !    print *, '                          Diameter =   ',ActuatorDisc(idisc)%D
             !endif
             if(iadmmode==0) then
                 ActuatorDisc(idisc)%CT=CT
@@ -76,14 +78,14 @@ contains
     end subroutine actuator_disc_model_init
 
     subroutine actuator_disc_model_compute_source(ux1,uy1,uz1)
-        
+
         use decomp_2d, only: mytype, nproc, xstart, xend, xsize, update_halo
         use MPI
         use param, only: dx,dy,dz,eps_factor,xnu,yp,istret,xlx,yly,zlz,dt,u1,u2,iverifyadm,itime,ustar,dBL, spinup_time
         use var, only: FDiscx, FDiscy, FDiscz, GammaDisc
-        
+
         implicit none
-        real(mytype), dimension(xsize(1),xsize(2),xsize(3)) :: ux1, uy1, uz1       
+        real(mytype), dimension(xsize(1),xsize(2),xsize(3)) :: ux1, uy1, uz1
         real(mytype) :: xmesh, ymesh,zmesh,deltax,deltay,deltaz,deltar,dr,gamma_disc_partial,Heaviside,DiscsTotalArea
         real(mytype) :: uave,CTprime, T_relax, alpha_relax, Uinf, CTave,Ratio,sumforce,Sumforce_partial
         real(mytype) :: Delta, DeltaSmoothing
@@ -96,7 +98,7 @@ contains
         do idisc=1,Nad
 
         do k=1,xsize(3)
-        zmesh=(xstart(3)+k-1-1)*dz 
+        zmesh=(xstart(3)+k-1-1)*dz
         do j=1,xsize(2)
         if (istret.eq.0) ymesh=(xstart(2)+j-1-1)*dy
         if (istret.ne.0) ymesh=yp(xstart(2)+j)
@@ -109,36 +111,36 @@ contains
         Delta=sqrt(dy**2.+dz**2.)
         DeltaSmoothing=2.5*Delta
         dr=sqrt(dy**2.+dz**2.)
-        
-        if(deltax>dx/2.) then 
+
+        if(deltax>dx/2.) then
             GammaDisc(i,j,k)=0.
         elseif (deltax<=dx/2.) then
             if(deltar<=actuatordisc(idisc)%D/2.0) then
                 GammaDisc(i,j,k)=1.
             elseif(deltar>actuatordisc(idisc)%D/2..and. deltar<=actuatordisc(idisc)%D/2.+dr) then
-                GammaDisc(i,j,k)=1.-(deltar-actuatordisc(idisc)%D/2.)/dr    
+                GammaDisc(i,j,k)=1.-(deltar-actuatordisc(idisc)%D/2.)/dr
             else
                 GammaDisc(i,j,k)=0.
             endif
         endif
-        
+
         enddo
         enddo
         enddo
-            
+
         enddo
-        
+
         ! Then compute disc-averaged velocity
         allocate(Udisc_partial(Nad))
         allocate(counter(Nad))
         allocate(counter_total(Nad))
-     
+
         do idisc=1,Nad
         uave=0.
         counter(idisc)=0
         counter_total(idisc)=0.
         do k=1,xsize(3)
-        zmesh=(xstart(3)+k-1-1)*dz 
+        zmesh=(xstart(3)+k-1-1)*dz
         do j=1,xsize(2)
         if (istret.eq.0) ymesh=(xstart(2)+j-1-2)*dy
         if (istret.ne.0) ymesh=yp(xstart(2)+j)
@@ -176,7 +178,7 @@ contains
         actuatordisc(idisc)%Udisc=actuatordisc(idisc)%Udisc/counter_total(idisc)
         if (nrank==0) print *, actuatordisc(idisc)%Udisc
         enddo
-        
+
         deallocate(Udisc_partial,counter,counter_total)
 
         ! Time relaxation -- low pass filter
@@ -202,11 +204,11 @@ contains
         actuatordisc(idisc)%Power=0.5_mytype*CTprime*actuatordisc(idisc)%UF**2.0_mytype*actuatordisc(idisc)%Udisc&
                                   *pi*actuatordisc(idisc)%D**2._mytype/4._mytype*0.432_mytype/0.56_mytype
         Fdiscx(:,:,:)=-0.5_mytype*CTprime*actuatordisc(idisc)%UF**2.0_mytype*GammaDisc(:,:,:)/dx
-        Fdiscy(:,:,:)=0.  
+        Fdiscy(:,:,:)=0.
         Fdiscz(:,:,:)=0.
         enddo
-        
-        ! Check if the total disc actuator disc F_t is equal to 
+
+        ! Check if the total disc actuator disc F_t is equal to
         if(iverifyadm.eq.1) then
             sumforce=0.
             do k=1,xsize(3)
@@ -227,19 +229,19 @@ contains
             Ratio=sumforce*dx*dy*dz/(-0.5*CTprime*Uinf**2*DiscsTotalArea)
             if (nrank==0) print *, 'ADM verification ratio', Ratio
         endif
-        
+
         ! Compute the average values after spin_up time
         if(itime*dt>=spinup_time) then
             do idisc=1,Nad
-             actuatordisc(idisc)%Udisc_ave=actuatordisc(idisc)%Udisc_ave+actuatordisc(idisc)%Udisc  
-             actuatordisc(idisc)%Power_ave=actuatordisc(idisc)%Power_ave+actuatordisc(idisc)%Power   
+             actuatordisc(idisc)%Udisc_ave=actuatordisc(idisc)%Udisc_ave+actuatordisc(idisc)%Udisc
+             actuatordisc(idisc)%Power_ave=actuatordisc(idisc)%Power_ave+actuatordisc(idisc)%Power
             enddo
         endif
 
         return
     end subroutine actuator_disc_model_compute_source
 
- 
+
     subroutine actuator_disc_model_write_output(dump_no)
 
         implicit none
@@ -252,11 +254,12 @@ contains
         write(2020,*) 'Udisc, CT, Power, Udisc_ave, Power_ave'
             Format="(5(E14.7,A))"
             do idisc=1,Nad
-            write(2020,Format) actuatordisc(idisc)%Udisc,',',actuatordisc(idisc)%CT,',',actuatordisc(idisc)%Power,',',actuatordisc(idisc)%Udisc_ave,',',actuatordisc(idisc)%Power_ave
+            write(2020,Format) actuatordisc(idisc)%Udisc,',',actuatordisc(idisc)%CT,',',actuatordisc(idisc)%Power,',',&
+                               actuatordisc(idisc)%Udisc_ave,',',actuatordisc(idisc)%Power_ave
             end do
         close(2020)
         endif
 
-        return 
+        return
     end subroutine actuator_disc_model_write_output
 end module actuator_disc_model

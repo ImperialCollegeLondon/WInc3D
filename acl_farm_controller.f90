@@ -1,5 +1,5 @@
 subroutine GebraadController(Turbine,Ntur,time)
-    
+
     use actuator_line_model_utils
     use actuator_line_turbine
     use actuator_line_controller
@@ -30,12 +30,14 @@ subroutine GebraadController(Turbine,Ntur,time)
     call rotate_turbine(turbine(i),(/0.0d0,1.0d0,0.0d0/),turbine(i)%yaw_angle*pi/180.0d0)
     ! Tilt
     call rotate_turbine(turbine(i),(/0.0d0,0.0d0,1.0d0/),-turbine(i)%shaft_tilt_angle*pi/180.0d0)
-   
+
     ! Set the rotational axis
-    call QuatRot(turbine(i)%RotN(1),turbine(i)%RotN(2),turbine(i)%RotN(3),turbine(i)%yaw_angle*pi/180.0d0,0.0d0,1.0d0,0.0d0,0.0d0,0.0d0,0.d0,&
-            turbine(i)%RotN(1),turbine(i)%RotN(2),turbine(i)%RotN(3))
-    call QuatRot(turbine(i)%RotN(1),turbine(i)%RotN(2),turbine(i)%RotN(3),-turbine(i)%shaft_tilt_angle*pi/180.0d0,0.0d0,0.0d0,1.0d0,0.0d0,0.0d0,0.d0,&
-            turbine(i)%RotN(1),turbine(i)%RotN(2),turbine(i)%RotN(3))
+    call QuatRot(turbine(i)%RotN(1),turbine(i)%RotN(2),turbine(i)%RotN(3),&
+                 turbine(i)%yaw_angle*pi/180.0d0,0.0d0,1.0d0,0.0d0,0.0d0,0.0d0,0.d0,&
+                 turbine(i)%RotN(1),turbine(i)%RotN(2),turbine(i)%RotN(3))
+    call QuatRot(turbine(i)%RotN(1),turbine(i)%RotN(2),turbine(i)%RotN(3),&
+                 -turbine(i)%shaft_tilt_angle*pi/180.0d0,0.0d0,0.0d0,1.0d0,0.0d0,0.0d0,0.d0,&
+                 turbine(i)%RotN(1),turbine(i)%RotN(2),turbine(i)%RotN(3))
     enddo
 
-end subroutine GebraadController        
+end subroutine GebraadController

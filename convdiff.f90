@@ -18,15 +18,15 @@
 !    along with the code.  If not, see <http://www.gnu.org/licenses/>.
 !-------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------
-!    We kindly request that you cite Incompact3d in your publications and 
+!    We kindly request that you cite Incompact3d in your publications and
 !    presentations. The following citations are suggested:
 !
-!    1-Laizet S. & Lamballais E., 2009, High-order compact schemes for 
-!    incompressible flows: a simple and efficient method with the quasi-spectral 
+!    1-Laizet S. & Lamballais E., 2009, High-order compact schemes for
+!    incompressible flows: a simple and efficient method with the quasi-spectral
 !    accuracy, J. Comp. Phys.,  vol 228 (15), pp 5989-6015
 !
-!    2-Laizet S. & Li N., 2011, Incompact3d: a powerful tool to tackle turbulence 
-!    problems with up to 0(10^5) computational cores, Int. J. of Numerical 
+!    2-Laizet S. & Li N., 2011, Incompact3d: a powerful tool to tackle turbulence
+!    problems with up to 0(10^5) computational cores, Int. J. of Numerical
 !    Methods in Fluids, vol 67 (11), pp 1735-1757
 !################################################################################
 
@@ -48,7 +48,7 @@ implicit none
 ! GLOBAL ARRAYS
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ux1,uy1,uz1,phi1,ep1,deltaphi1
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: ta1,tb1,tc1,td1,te1,tf1,tf1_abl,tg1,th1,ti1,di1
-real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: ux2,uy2,uz2,phi2,deltaphi2 
+real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: ux2,uy2,uz2,phi2,deltaphi2
 real(mytype),dimension(ysize(1),ysize(2),ysize(3)) :: ta2,tb2,tc2,td2,te2,tf2,tf2_abl,ta2_abl,tg2,th2,ti2,tj2,di2
 real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: ux3,uy3,uz3,phi3
 real(mytype),dimension(zsize(1),zsize(2),zsize(3)) :: ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3,ta3_abl
@@ -68,13 +68,13 @@ real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: dsmagcst
 !STATISTICS Arrays
 real(mytype),dimension(xszV(1),xszV(2),xszV(3)) :: uvisu
 
-! Buoyancy 
+! Buoyancy
 real(mytype),dimension(ysize(2)) :: tmpphi, phiPlaneAve !Horizontally-averaged potential temperature
 
 !ABL boundary conditions
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: tablx1, tably1, tablz1
 real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: wallfluxx1,wallfluxy1,wallfluxz1,wallfluxphi1
-real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: tauwallxy1, tauwallzy1 
+real(mytype),dimension(xsize(1),xsize(2),xsize(3)) :: tauwallxy1, tauwallzy1
 
 integer, dimension(2) :: dims, dummy_coords
 logical, dimension(2) :: dummy_periods
@@ -99,8 +99,8 @@ if (iskew==0) then !UROTU!
    call transpose_x_to_y(ta1,ta2)
    call transpose_x_to_y(tb1,tb2)
 !WORK Y-PENCILS
-   call dery (tc2,ux2,di2,sy,ffyp,fsyp,fwyp,ppy,ysize(1),ysize(2),ysize(3),1) 
-   call dery (td2,uz2,di2,sy,ffyp,fsyp,fwyp,ppy,ysize(1),ysize(2),ysize(3),1) 
+   call dery (tc2,ux2,di2,sy,ffyp,fsyp,fwyp,ppy,ysize(1),ysize(2),ysize(3),1)
+   call dery (td2,uz2,di2,sy,ffyp,fsyp,fwyp,ppy,ysize(1),ysize(2),ysize(3),1)
    call transpose_y_to_z(ux2,ux3)
    call transpose_y_to_z(uy2,uy3)
    call transpose_y_to_z(uz2,uz3)
@@ -145,7 +145,7 @@ call lesdiff(ux1,uy1,uz1,phi1,gxx1,gyy1,gzz1,gxy1,gxz1,gyz1,gyx1,gzx1,gzy1,nut1,
 elseif (jLES == 3) then !WALE
 sgsx1=0.;sgsy1=0.;sgsz1=0.
 dsmagcst=0.
-    
+
 ! First Calculating classic Smagorinsky everywhere in the domain
 call smag(ux1,uy1,uz1,gxx1,gyx1,gzx1,gxy1,gyy1,gzy1,gxz1,gyz1,gzz1,&
 sxx1,syy1,szz1,sxy1,sxz1,syz1,srt_smag,nut1,ta2,ta3,di1,di2,di3)
@@ -191,7 +191,7 @@ td3=0.;te3=0.;tf3=0.
    ta1(:,:,:)=ux1(:,:,:)*ux1(:,:,:)
    tb1(:,:,:)=ux1(:,:,:)*uy1(:,:,:)
    tc1(:,:,:)=ux1(:,:,:)*uz1(:,:,:)
-   
+
    call derx (td1,ta1,di1,sx,ffxp,fsxp,fwxp,xsize(1),xsize(2),xsize(3),1)
    call derx (te1,tb1,di1,sx,ffx,fsx,fwx,xsize(1),xsize(2),xsize(3),0)
    call derx (tf1,tc1,di1,sx,ffx,fsx,fwx,xsize(1),xsize(2),xsize(3),0)
@@ -214,18 +214,18 @@ td3=0.;te3=0.;tf3=0.
    td2(:,:,:)=ux2(:,:,:)*uy2(:,:,:)
    te2(:,:,:)=uy2(:,:,:)*uy2(:,:,:)
    tf2(:,:,:)=uz2(:,:,:)*uy2(:,:,:)
-   
+
    call dery (tg2,td2,di2,sy,ffy,fsy,fwy,ppy,ysize(1),ysize(2),ysize(3),0)
    call dery (th2,te2,di2,sy,ffyp,fsyp,fwyp,ppy,ysize(1),ysize(2),ysize(3),1)
    call dery (ti2,tf2,di2,sy,ffy,fsy,fwy,ppy,ysize(1),ysize(2),ysize(3),0)
    call dery (td2,ux2,di2,sy,ffyp,fsyp,fwyp,ppy,ysize(1),ysize(2),ysize(3),1)
    call dery (te2,uy2,di2,sy,ffy,fsy,fwy,ppy,ysize(1),ysize(2),ysize(3),0)
    call dery (tf2,uz2,di2,sy,ffyp,fsyp,fwyp,ppy,ysize(1),ysize(2),ysize(3),1)
-   
+
    ta2(:,:,:)=ta2(:,:,:)+0.5*tg2(:,:,:)+0.5*uy2(:,:,:)*td2(:,:,:)
    tb2(:,:,:)=tb2(:,:,:)+0.5*th2(:,:,:)+0.5*uy2(:,:,:)*te2(:,:,:)
    tc2(:,:,:)=tc2(:,:,:)+0.5*ti2(:,:,:)+0.5*uy2(:,:,:)*tf2(:,:,:)
-   
+
    call transpose_y_to_z(ux2,ux3)
    call transpose_y_to_z(uy2,uy3)
    call transpose_y_to_z(uz2,uz3)
@@ -233,11 +233,11 @@ td3=0.;te3=0.;tf3=0.
    call transpose_y_to_z(tb2,tb3)
    call transpose_y_to_z(tc2,tc3)
 !WORK Z-PENCILS
-   
+
    td3(:,:,:)=ux3(:,:,:)*uz3(:,:,:)
    te3(:,:,:)=uy3(:,:,:)*uz3(:,:,:)
    tf3(:,:,:)=uz3(:,:,:)*uz3(:,:,:)
-   
+
    call derz (tg3,td3,di3,sz,ffz,fsz,fwz,zsize(1),zsize(2),zsize(3),0)
    call derz (th3,te3,di3,sz,ffz,fsz,fwz,zsize(1),zsize(2),zsize(3),0)
    call derz (ti3,tf3,di3,sz,ffzp,fszp,fwzp,zsize(1),zsize(2),zsize(3),1)
@@ -342,8 +342,8 @@ if (istret.ne.0) then
    enddo
 else
     if(jLES==1) then
-        call deryy_iles (tf2,uz2,di2,sy,sfyp,ssyp,swyp,ysize(1),ysize(2),ysize(3),1) 
-    else 
+        call deryy_iles (tf2,uz2,di2,sy,sfyp,ssyp,swyp,ysize(1),ysize(2),ysize(3),1)
+    else
         call deryy (tf2,uz2,di2,sy,sfyp,ssyp,swyp,ysize(1),ysize(2),ysize(3),1)
     endif
 endif
@@ -381,8 +381,8 @@ tb1(:,:,:)=tb1(:,:,:)+te1(:,:,:)
 tc1(:,:,:)=tc1(:,:,:)+tf1(:,:,:)
 
 if (iabl==1) then
-    ! In case of ABL set to zero the SGS model at level 1 (This will be computed later by the 
-    ! SGS wall stress model    
+    ! In case of ABL set to zero the SGS model at level 1 (This will be computed later by the
+    ! SGS wall stress model
     if (xstart(2)==1) then
     sgsx1(:,1,:)=0.
     sgsy1(:,1,:)=0.
@@ -391,12 +391,12 @@ if (iabl==1) then
 endif
 
 !FINAL SUM: DIFF TERMS + CONV TERMS
-if(jLES==0) then ! DNS 
+if(jLES==0) then ! DNS
     ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)
     tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)
     tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)
-elseif (jLES==1) then ! implicit LES 
-    if(dynhypvisc==1) then ! use the dynamic definition of nu0/nu 
+elseif (jLES==1) then ! implicit LES
+    if(dynhypvisc==1) then ! use the dynamic definition of nu0/nu
     ta1(:,:,:)=xnu*shrt_coeff(:,:,:)*ta1(:,:,:)-tg1(:,:,:)
     tb1(:,:,:)=xnu*shrt_coeff(:,:,:)*tb1(:,:,:)-th1(:,:,:)
     tc1(:,:,:)=xnu*shrt_coeff(:,:,:)*tc1(:,:,:)-ti1(:,:,:)
@@ -409,11 +409,11 @@ elseif (jLES==2) then ! Classic Smagorisnky Model
     ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)+sgsx1(:,:,:)
     tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)+sgsy1(:,:,:)
     tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)+sgsz1(:,:,:)
-elseif (jLES==3) then ! WALE 
+elseif (jLES==3) then ! WALE
     ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)+sgsx1(:,:,:)
     tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)+sgsy1(:,:,:)
-    tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)+sgsz1(:,:,:) 
-elseif(jLES==4) then ! dynamic Smagorinsky 
+    tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)+sgsz1(:,:,:)
+elseif(jLES==4) then ! dynamic Smagorinsky
     ta1(:,:,:)=xnu*ta1(:,:,:)-tg1(:,:,:)+sgsx1(:,:,:)
     tb1(:,:,:)=xnu*tb1(:,:,:)-th1(:,:,:)+sgsy1(:,:,:)
     tc1(:,:,:)=xnu*tc1(:,:,:)-ti1(:,:,:)+sgsz1(:,:,:)
@@ -431,7 +431,7 @@ endif
 !***************************************
 ! Compute additional Models
 !***************************************
-! 
+!
 if (iabl==1) then
     call wall_sgs(ux1,uy1,uz1,nut1,sxy1,syz1,tauwallxy1,tauwallzy1,wallfluxx1,wallfluxy1,wallfluxz1)
     ta1(:,:,:)=ta1(:,:,:)+wallfluxx1(:,:,:)
@@ -440,7 +440,7 @@ if (iabl==1) then
 endif
 
 ! Buoyancy Effects
-if (ibuoyancy==1) then     
+if (ibuoyancy==1) then
     ! Average quantities over the x-z plane
     deltaphi1(:,:,:)=(phi1(:,:,:)-TempRef)/TempRef
     tb1(:,:,:)=tb1(:,:,:) + 9.81*deltaphi1(:,:,:)
@@ -451,7 +451,7 @@ if (IPressureGradient==1) then
 endif
 
 ! Coriolis Effects
-if (icoriolis==1) then    
+if (icoriolis==1) then
     ta1(:,:,:)=ta1(:,:,:)+CoriolisFreq*uz1(:,:,:) ! This is the stream-wise direction
     tc1(:,:,:)=tc1(:,:,:)-CoriolisFreq*ux1(:,:,:) ! This is not the vertical direction but the lateral horizontal
 endif
@@ -469,14 +469,14 @@ if (y>=1.1*dBL) then
     lambda=1.0
 elseif (y>=dBL.and.y<1.1*dBL) then
     lambda=0.5*(1-cos(pi*(y-dBL)/(0.1*dBL)))
-else 
+else
     lambda=0.
 endif
 !if (y>=yly-(yly-dBL)/4.) then
 !    lambda=1.0
 !elseif (y>=dBL.and.y<yly-(yly-dBL)/4.) then
 !    lambda=0.5*(1.-cos(pi*(y-dBL)/(yly-(yly-dBL)/4.-dBL)))
-!else 
+!else
 !    lambda=0.
 !endif
 if(ifringeregion==1.and.x.ge.xlx/4.) lambda=0 ! Apply if using the fring region with half domain
@@ -553,9 +553,9 @@ ta2(:,:,:)=uy2(:,:,:)*phi2(:,:,:)
 call dery(tb2,ta2,di2,sy,ffy,fsy,fwy,ppy,ysize(1),ysize(2),ysize(3),0)
 call dery(td2,nut2,di2,sy,ffy,fsy,fwy,ppy,ysize(1),ysize(2),ysize(3),0)
 
-if (istret.ne.0) then         
+if (istret.ne.0) then
     call dery(tc2,phi2,di2,sy,ffy,fsy,fwy,ppy,ysize(1),ysize(2),ysize(3),0)
-    
+
     if (jles==1) then
         call deryy_iles (ta2,phi2,di2,sy,sfyp,ssyp,swyp,ysize(1),ysize(2),ysize(3),1)
     else
@@ -571,9 +571,9 @@ if (istret.ne.0) then
         sgsphi2=sgsphi2+td2/Pr+nut1/Pr*ta2
 else
     if (jles==1) then
-        call deryy_iles (ta2,phi2,di2,sy,sfyp,ssyp,swyp,ysize(1),ysize(2),ysize(3),1) 
+        call deryy_iles (ta2,phi2,di2,sy,sfyp,ssyp,swyp,ysize(1),ysize(2),ysize(3),1)
     else
-        call deryy (ta2,phi2,di2,sy,sfyp,ssyp,swyp,ysize(1),ysize(2),ysize(3),1) 
+        call deryy (ta2,phi2,di2,sy,sfyp,ssyp,swyp,ysize(1),ysize(2),ysize(3),1)
         sgsphi2=sgsphi2+td2/Pr*tc2+nut2/Pr*ta2
     endif
 endif
@@ -585,7 +585,10 @@ do k=1,ysize(3)
 do i=1,ysize(1)
 PsiH=0!-7.8*delta/ObukhovL
 sgsphi2(i,1,k) = -(-1./2.*(-2.*nut2(i,3,k)*tc2(i,3,k))/Pr+&
-        2.*(-2.*nut2(i,2,k)*tc2(i,2,k))/Pr-3./2.*(u_shear*k_roughness*(phi2(i,1,k)-0.5*(phi2(i,1,k)+phi2(i,2,k)))/(log(delta/z_zero)-PsiH)))/(2.*delta)
+                   2.*(-2.*nut2(i,2,k)*tc2(i,2,k))/Pr-&
+                   3./2.*(u_shear*k_roughness*(phi2(i,1,k)-&
+                   0.5*(phi2(i,1,k)+phi2(i,2,k)))/(log(delta/z_zero)-&
+                   PsiH)))/(2.*delta)
     enddo
     enddo
 endif
@@ -626,11 +629,11 @@ call transpose_y_to_x(sgsphi2,sgsphi1)
 !X PENCILS ADD TERMS
 ta1(:,:,:)=ta1(:,:,:)+tc1(:,:,:) !SECOND DERIVATIVE
 tb1(:,:,:)=tb1(:,:,:)+td1(:,:,:) !FIRST DERIVATIVE
- 
+
 if(jles.le.1) then
-ta1(:,:,:)=xnu/Pr*ta1(:,:,:)-tb1(:,:,:) 
+ta1(:,:,:)=xnu/Pr*ta1(:,:,:)-tb1(:,:,:)
 else
-ta1(:,:,:)=xnu/Pr*ta1(:,:,:)-tb1(:,:,:)+sgsphi1(:,:,:) 
+ta1(:,:,:)=xnu/Pr*ta1(:,:,:)-tb1(:,:,:)+sgsphi1(:,:,:)
 endif
 
 
@@ -640,14 +643,14 @@ if ((nscheme.eq.1).or.(nscheme.eq.2)) then
    if ((nscheme.eq.1.and.itime.eq.1.and.ilit.eq.0).or.&
         (nscheme.eq.2.and.itr.eq.1)) then
         phi1(:,:,:)=gdt(itr)*ta1(:,:,:)+phi1(:,:,:)
-        phis1(:,:,:)=ta1(:,:,:)          
+        phis1(:,:,:)=ta1(:,:,:)
    else
          phi1(:,:,:)=adt(itr)*ta1(:,:,:)+bdt(itr)*phis1(:,:,:)+phi1(:,:,:)
-         phis1(:,:,:)=ta1(:,:,:)          
+         phis1(:,:,:)=ta1(:,:,:)
 endif
 endif
 
-if (nscheme.eq.3) then 
+if (nscheme.eq.3) then
 endif
 
 if (nscheme==4) then
@@ -655,7 +658,7 @@ if (nscheme==4) then
       if (nrank==0) print *,'start with Euler',itime
       do ijk=1,nxyz !start with Euler
          phi1(ijk,1,1)=dt*ta1(ijk,1,1)+phi1(ijk,1,1)
-         phis1(ijk,1,1)=ta1(ijk,1,1)          
+         phis1(ijk,1,1)=ta1(ijk,1,1)
       enddo
    else
       if  ((itime.eq.2).and.(ilit.eq.0)) then
@@ -664,7 +667,7 @@ if (nscheme==4) then
             phi1(ijk,1,1)=1.5*dt*ta1(ijk,1,1)-0.5*dt*phis1(ijk,1,1)+phi1(ijk,1,1)
             phiss1(ijk,1,1)=phis1(ijk,1,1)
             phis1(ijk,1,1)=ta1(ijk,1,1)
-         enddo 
+         enddo
       else
          do ijk=1,nxyz
             phi1(ijk,1,1)=adt(itr)*ta1(ijk,1,1)+bdt(itr)*phis1(ijk,1,1)+&
@@ -676,4 +679,3 @@ if (nscheme==4) then
    endif
 endif
 end subroutine PotentialTemperature
-

@@ -126,8 +126,8 @@ contains
 
     subroutine get_turbine_options(turbines_path)
 
-    use param, only: u1,u2
-    use constants
+        use param, only: u1,u2
+        use constants
         implicit none
 
         character(len=80),dimension(100),intent(in) :: turbines_path
@@ -137,7 +137,8 @@ contains
         !-------------------------------------
         ! Dummy variables
         !-------------------------------------
-        character(len=100) :: name, blade_geom, tower_geom, dynstall_param_file, AeroElastInputFile, AeroElastSolverFile, list_controller_file
+        character(len=100) :: name, blade_geom, tower_geom, dynstall_param_file, AeroElastInputFile, AeroElastSolverFile,&
+                              list_controller_file
         character(len=100),dimension(MaxNAirfoils) :: afname
         real(mytype), dimension(3) :: origin
         integer :: numblades,numfoil,towerFlag, TypeFlag, OperFlag, RotFlag, AddedMassFlag, DynStallFlag, EndEffectsFlag
@@ -146,7 +147,7 @@ contains
         real(mytype) :: BladeInertia, GeneratorInertia, GBRatio, GBEfficiency, RatedGenSpeed
         real(mytype) :: RatedLimitGenTorque, CutInGenSpeed, Region2StartGenSpeed, Region2EndGenSpeed,Kgen
         real(mytype) :: RatedPower, MaximumTorque
-	real(mytype) :: yaw_angle, shaft_tilt_angle, blade_cone_angle
+        real(mytype) :: yaw_angle, shaft_tilt_angle, blade_cone_angle
         NAMELIST/TurbineSpecs/name,origin,numblades,blade_geom,numfoil,afname,towerFlag,towerOffset, &
             tower_geom,tower_drag,tower_lift,tower_strouhal,TypeFlag, OperFlag, tsr, uref,RotFlag, AddedMassFlag, &
             RandomWalkForcingFlag, DynStallFlag,dynstall_param_file,EndEffectsFlag,TipCorr, RootCorr,ShenC1, ShenC2, &
@@ -479,7 +480,8 @@ contains
                 ! First do control
                 call compute_rotor_upstream_velocity(Turbine(i))
                 call operate_controller(Turbine(i)%Controller,ctime,Turbine(i)%NBlades,Turbine(i)%angularVel)
-                Turbine(i)%deltaOmega=(Turbine(i)%Torque-Turbine(i)%Controller%GearBoxRatio*Turbine(i)%Controller%GenTrq)/(Turbine(i)%IRotor+Turbine(i)%Controller%GearBoxRatio**2.*Turbine(i)%Controller%IGenerator)*DeltaT
+                Turbine(i)%deltaOmega=(Turbine(i)%Torque-Turbine(i)%Controller%GearBoxRatio*Turbine(i)%Controller%GenTrq)/&
+                              (Turbine(i)%IRotor+Turbine(i)%Controller%GearBoxRatio**2.*Turbine(i)%Controller%IGenerator)*DeltaT
                 Turbine(i)%angularVel=Turbine(i)%angularVel+Turbine(i)%deltaOmega
                 ! Then Calculate the angular velocity and compute the DeltaTheta  and AzimAngle
                 theta=Turbine(i)%angularVel*DeltaT
@@ -550,7 +552,8 @@ contains
                 !> Do harmonic pitch control for all elements of the actuator line
                 Nstation=ActuatorLine(i)%NElem+1
                 do j=1,Nstation
-                ActuatorLine(i)%pitch(j)=actuatorline(i)%pitchAmp*sin(actuatorline(i)%angular_pitch_freq*(ctime-ActuatorLine(i)%pitch_start_time))
+                ActuatorLine(i)%pitch(j)=actuatorline(i)%pitchAmp*sin(actuatorline(i)%angular_pitch_freq*(ctime-&
+                                             ActuatorLine(i)%pitch_start_time))
                 end do
                 if(nrank==0) then
                 print *, '-----------------------'
@@ -569,7 +572,7 @@ contains
 
     subroutine actuator_line_model_compute_forces
 
-	use param, only: rho_air
+        use param, only: rho_air
         implicit none
 
         integer :: i,j
@@ -595,7 +598,8 @@ contains
 
             ! Tower
             if(Turbine(i)%has_tower) then
-                call Compute_Tower_Forces(Turbine(i)%Tower,rho_air,visc,ctime,Turbine(i)%TowerLift,Turbine(i)%TowerDrag,Turbine(i)%TowerStrouhal)
+                call Compute_Tower_Forces(Turbine(i)%Tower,rho_air,visc,ctime,Turbine(i)%TowerLift,Turbine(i)%TowerDrag,&
+                                          Turbine(i)%TowerStrouhal)
             endif
 
             end do

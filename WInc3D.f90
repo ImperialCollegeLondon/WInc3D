@@ -1,24 +1,24 @@
 !###############################################################################
 !This file is part of WInc3D.
 !-------------------------------------------------------------------------------
-!    We kindly request that you cite WInc3D in your publications and 
+!    We kindly request that you cite WInc3D in your publications and
 !    presentations. The following citations are suggested:
 !
-!    Deskos, G., S. Laizet, and M. D. Piggott. “Turbulence-resolving simulations 
-!    of wind turbine wakes”. Renewable Energy 134 (2019), pp. 989 –1002. 
+!    Deskos, G., S. Laizet, and M. D. Piggott. “Turbulence-resolving simulations
+!    of wind turbine wakes”. Renewable Energy 134 (2019), pp. 989 –1002.
 !
-!    Deskos, G., S. Laizet, and M. D. Piggott. “Development and validation of the 
-!    higher-order finite-difference wind farm simulator, WInc3D”. 3rd International 
+!    Deskos, G., S. Laizet, and M. D. Piggott. “Development and validation of the
+!    higher-order finite-difference wind farm simulator, WInc3D”. 3rd International
 !    Conference on Renewable Energies Offshore (RENEW2018). Lisbon, Portugal, 2018.
 !
 !    For the core numerical solver the following citations are suggested
-! 
-!    1-Laizet S. & Lamballais E., 2009, High-order compact schemes for 
-!    incompressible flows: a simple and efficient method with the quasi-spectral 
+!
+!    1-Laizet S. & Lamballais E., 2009, High-order compact schemes for
+!    incompressible flows: a simple and efficient method with the quasi-spectral
 !    accuracy, J. Comp. Phys.,  vol 228 (15), pp 5989-6015
 !
-!    2-Laizet S. & Li N., 2011, Incompact3d: a powerful tool to tackle turbulence 
-!    problems with up to 0(10^5) computational cores, Int. J. of Numerical 
+!    2-Laizet S. & Li N., 2011, Incompact3d: a powerful tool to tackle turbulence
+!    problems with up to 0(10^5) computational cores, Int. J. of Numerical
 !    Methods in Fluids, vol 67 (11), pp 1735-1757
 !################################################################################
 
@@ -35,7 +35,7 @@ USE derivX
 USE derivZ
 
 !>>GD INTRODUCE THE actuator_line_modules
-use actuator_line_model 
+use actuator_line_model
 use actuator_line_source
 !>>GD INTRODUCE THE actuator_disc_modules
 use actuator_disc_model
@@ -73,7 +73,7 @@ end if
 
 call parameter(InputFN)
 
-! Decompose the problem into rows and columns 
+! Decompose the problem into rows and columns
 call decomp_2d_init(nx,ny,nz,p_row,p_col)
 
 call init_coarser_mesh_statS(nstat,nstat,nstat,.true.)
@@ -81,7 +81,7 @@ call init_coarser_mesh_statV(nvisu,nvisu,nvisu,.true.)
 
 call init_variables
 
-! Print out the parameters  
+! Print out the parameters
 if (nrank==0) then
 print *,'==========================================================='
 print *,'==========================================================='
@@ -98,7 +98,8 @@ print *,''
 print *,''
 if (itype.eq.1) print *,'Fluid flow problem : Constant flow field/wake in a confined domain'
 if (itype.eq.2) print *,'Fluid flow problem : Smooth turbulent channel flow -- periodic domain'
-if (itype.eq.3) print *,'Fluid flow problem : Various configurations: Flow field is imported from a precursor simulation through planes'
+if (itype.eq.3) print *,&
+                 'Fluid flow problem : Various configurations: Flow field is imported from a precursor simulation through planes'
 if (itype.eq.4) print *,'Fluid flow problem : Smooth/rough developing boundary layer'
 if (itype.eq.5) print *,'Fluid flow problem : Not defined yet'
 if (itype.eq.6) print *,'Fluid flow problem : Taylor Green vortices'
@@ -106,9 +107,9 @@ if (itype.eq.7) print *,'Fluid flow problem : 3D cavity flow'
 if (itype.eq.8) print *,'Fluid flow problem : Atmospheric Boundary Layer'
 if (itype.eq.9) print *,'Fluid flow problem : Not defined yet'
 write(*,1101) nx,ny,nz
-write(*,1103) xlx,yly,zlz 
-write(*,1102) nclx,ncly,nclz 
-write(*,1104) u1,u2 
+write(*,1103) xlx,yly,zlz
+write(*,1102) nclx,ncly,nclz
+write(*,1104) u1,u2
 write(*,1105) re
 write(*,1106) dt
 if (nscheme.eq.1) print *,'Temporal scheme   : Adams-Bashforth 2'
@@ -152,8 +153,8 @@ else if (jLES==1) then
         if (dynhypvisc==0) print *, 'iSVV-LES with xxnu = 1 / ', rxxnu, ' and cnu = ', cnu
         if (dynhypvisc==1) print *, 'Dynamic iSVV-LES with xxnu = 1 / ', rxxnu, ' and cnu = ', cnu
     endif
-else if (jLES==2.OR.jLES==3.OR.jLES==4.OR.jLES==5) then 
-    call init_explicit_les() 
+else if (jLES==2.OR.jLES==3.OR.jLES==4.OR.jLES==5) then
+    call init_explicit_les()
     call schemes_dns()
 endif
 ! ================================================
@@ -180,14 +181,14 @@ call decomp_2d_poisson_init(bcx,bcy,bcz)
 call decomp_info_init(nxm,nym,nzm,phG)
 
 ! ======================================================
-! Initialise flow in the domain -- init or restart 
+! Initialise flow in the domain -- init or restart
 ! ======================================================
 ! Initialise inflow file
 if (iin==3) then
     call read_inflow(ux_inflow,uy_inflow,uz_inflow,0)
 endif
 
-if (ilit==0) call init(ux1,uy1,uz1,ep1,phi1,gx1,gy1,gz1,phis1,hx1,hy1,hz1,phiss1)  
+if (ilit==0) call init(ux1,uy1,uz1,ep1,phi1,gx1,gy1,gz1,phis1,hx1,hy1,hz1,phiss1)
 if (ilit==1) call restart(ux1,uy1,uz1,ep1,pp3,phi1,gx1,gy1,gz1,&
         px1,py1,pz1,phis1,hx1,hy1,hz1,phiss1,phG,0)
 call test_speed_min_max(ux1,uy1,uz1)
@@ -206,8 +207,8 @@ call decomp_info_init(nxm, nym, nzm, ph1)
 call decomp_info_init(nxm, ny, nz, ph4)
 
 !gradp: nxm nym nzm -> nxm nym nz --> nxm ny nz --> nx ny nz
-call decomp_info_init(nxm, ny, nz, ph2)  
-call decomp_info_init(nxm, nym, nz, ph3) 
+call decomp_info_init(nxm, ny, nz, ph2)
+call decomp_info_init(nxm, nym, nz, ph3)
 
 
 ! Initialise the Probe inside the domain
@@ -241,13 +242,13 @@ if (mod(itime,imodulo)==0) then
         ta2,tb2,tc2,td2,te2,tf2,tg2,th2,ti2,tj2,di2,&
         ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3,phG,uvisu)
    call VISU_PRE (pp3,ta1,tb1,di1,ta2,tb2,di2,&
-        ta3,di3,nxmsize,nymsize,nzmsize,phG,ph2,ph3,uvisu) 
+        ta3,di3,nxmsize,nymsize,nzmsize,phG,ph2,ph3,uvisu)
 endif
 if (ialm==1) then
     if (nrank==0.and.mod(itime,ialmoutput)==0) then
    call actuator_line_model_write_output(itime/ialmoutput) ! Write the Rotor output
 end if
-endif 
+endif
 
 
 do itime=ifirst,ilast
@@ -262,20 +263,20 @@ do itime=ifirst,ilast
 
    if(ialm==1) then
       if (nrank==0) then
-          write(6,*) '' 
+          write(6,*) ''
           write(6,*) 'Unsteady ACtuator Line Model INFO:'
       endif
       call Compute_Momentum_Source_Term_pointwise            
       call actuator_line_model_update(t,dt)
       if (nrank==0) then
-          write(6,*) '' 
+          write(6,*) ''
       endif
    endif
    if(iadm==1) then
     call actuator_disc_model_compute_source(ux1,uy1,uz1)
    endif
 
-   if(itripping==1.or.itripping==2) call radial_tripping(t) 
+   if(itripping==1.or.itripping==2) call radial_tripping(t)
 
     if (iin==3.and.mod(itime,NTimeSteps)==0) then
     ! Read new inflow
@@ -285,14 +286,14 @@ do itime=ifirst,ilast
     if (jLES.ge.2) then
     call filter(0.49_mytype)
     call apply_spatial_filter(ux1,uy1,uz1,phi1,ux2,uy2,uz2,phi2,ux3,uy3,uz3,phi3)
-    endif         
-   
+    endif
+
    do itr=1,iadvance_time
 
       if (nclx.eq.2) then
          call inflow (ux1,uy1,uz1,phi1) !X PENCILS
-         call outflow(ux1,uy1,uz1,phi1) !X PENCILS 
-      endif 
+         call outflow(ux1,uy1,uz1,phi1) !X PENCILS
+      endif
 
       ! Do filtering here
       call convdiff(ux1,uy1,uz1,phi1,ep1,ta1,tb1,tc1,&
@@ -302,14 +303,14 @@ do itime=ifirst,ilast
       ! Potential Temperature -- to be computed after the convdiff
       if (ibuoyancy==1) then
           call PotentialTemperature(ux1,uy1,uz1,nut1,phi1,phis1,phiss1,di1,tg1,th1,ti1,td1,&
-              uy2,uz2,phi2,di2,ta2,tb2,tc2,td2,uz3,phi3,di3,ta3,tb3,tc3,td2,ep1)  
+              uy2,uz2,phi2,di2,ta2,tb2,tc2,td2,uz3,phi3,di3,ta3,tb3,tc3,td2,ep1)
       endif
-       
+
       !X PENCILS
-      call intt (ux1,uy1,uz1,gx1,gy1,gz1,hx1,hy1,hz1,ta1,tb1,tc1) 
- 
+      call intt (ux1,uy1,uz1,gx1,gy1,gz1,hx1,hy1,hz1,ta1,tb1,tc1)
+
       call pre_correc(ux1,uy1,uz1)
-      
+
       if (ivirt==1) then !solid body old school
          !we are in X-pencil
          call corgp_IBM(ux1,uy1,uz1,px1,py1,pz1,1)
@@ -320,9 +321,9 @@ do itime=ifirst,ilast
       !X-->Y-->Z
       call divergence (ux1,uy1,uz1,ep1,ta1,tb1,tc1,di1,td1,te1,tf1,&
            td2,te2,tf2,di2,ta2,tb2,tc2,ta3,tb3,tc3,di3,td3,te3,tf3,pp3,&
-           nxmsize,nymsize,nzmsize,ph1,ph3,ph4,1)       
+           nxmsize,nymsize,nzmsize,ph1,ph3,ph4,1)
 
-      !POISSON Z-->Z 
+      !POISSON Z-->Z
       call decomp_2d_poisson_stg(pp3,bcx,bcy,bcz)
 
       !Z-->Y-->X
@@ -330,8 +331,8 @@ do itime=ifirst,ilast
            ta3,tc3,di3,pp3,nxmsize,nymsize,nzmsize,ph2,ph3)
 
       !X PENCILS
-      call corgp(ux1,ux2,uy1,uy2,uz1,uz2,px1,py1,pz1) 
-      
+      call corgp(ux1,ux2,uy1,uy2,uz1,uz2,px1,py1,pz1)
+
      !does not matter -->output=DIV U=0 (in dv3)
      !call divergence (ux1,uy1,uz1,ep1,ta1,tb1,tc1,di1,td1,te1,tf1,&
      !     td2,te2,tf2,di2,ta2,tb2,tc2,ta3,tb3,tc3,di3,td3,te3,tf3,dv3,&
@@ -340,26 +341,26 @@ do itime=ifirst,ilast
 
       call test_speed_min_max(ux1,uy1,uz1)
       if (iscalar==1) call test_scalar_min_max(phi1)
-        
+
     enddo
-       
+
 
 
         if (t>=spinup_time) then
         call STATISTIC(ux1,uy1,uz1,phi1,ta1,umean,vmean,wmean,phimean,uumean,vvmean,wwmean,&
            uvmean,uwmean,vwmean,phiphimean,tmean)
-        
+
         if(ialm==1) call actuator_line_statistics()
 
         if(iprobe==1) then
            if (mod(itime,nsampling)==0) then
                call probe(ux1,uy1,uz1,phi1)
-               call write_probe(itime/nsampling) 
+               call write_probe(itime/nsampling)
            endif
         elseif(iprobe==2) then
            if (mod(itime,nsampling)==0) then
                call probe_pencil(ux1,uy1,uz1,phi1)
-               call write_probe(itime/nsampling) 
+               call write_probe(itime/nsampling)
            endif
         endif
 
@@ -367,46 +368,46 @@ do itime=ifirst,ilast
             ! WRITE SNAPSHOTS
             call VISU_SNAP(ux1,uy1,uz1,uvisu)
         endif
-   
+
         endif
 
    if (mod(itime,isave)==0) call restart(ux1,uy1,uz1,ep1,pp3,phi1,gx1,gy1,gz1,&
         px1,py1,pz1,phis1,hx1,hy1,hz1,phiss1,phG,1)
-     
+
    if (mod(itime,imodulo)==0) then
       call VISU_INSTA(ux1,uy1,uz1,phi1,ta1,tb1,tc1,td1,te1,tf1,tg1,th1,ti1,di1,&
            ta2,tb2,tc2,td2,te2,tf2,tg2,th2,ti2,tj2,di2,&
            ta3,tb3,tc3,td3,te3,tf3,tg3,th3,ti3,di3,phG,uvisu)
       call VISU_PRE (pp3,ta1,tb1,di1,ta2,tb2,di2,&
-           ta3,di3,nxmsize,nymsize,nzmsize,phG,ph2,ph3,uvisu) 
+           ta3,di3,nxmsize,nymsize,nzmsize,phG,ph2,ph3,uvisu)
    endif
 
    if (ialm==1) then
     if (nrank==0.and.mod(itime,ialmoutput)==0) then
        call actuator_line_model_write_output(itime/ialmoutput) ! Write the Rotor output
     end if
-   endif 
+   endif
    if (iadm==1) then
-    if (nrank==0.and.mod(itime,imodulo)==0) then 
+    if (nrank==0.and.mod(itime,imodulo)==0) then
        call actuator_disc_model_write_output(itime/imodulo) ! Write the disc output
     end if
    endif
 
     if(ioutflow==1) then
-      
+
       output_counter=output_counter+1
-      call append_outflow(ux1,uy1,uz1,output_counter)  
-    
-      if (mod(itime,NTimeSteps)==0) then 
-          call write_outflow(itime/NTimeSteps)  
+      call append_outflow(ux1,uy1,uz1,output_counter)
+
+      if (mod(itime,NTimeSteps)==0) then
+          call write_outflow(itime/NTimeSteps)
           output_counter=0
       endif
     endif
 
 
 enddo
-    ! Write Outflow 
-    
+    ! Write Outflow
+
 
 t2=MPI_WTIME()-t1
 call MPI_ALLREDUCE(t2,t1,1,MPI_REAL8,MPI_SUM, &
@@ -421,4 +422,4 @@ if (nrank==0) print *,'Mapping p_row*p_col=',p_row,p_col
 call decomp_2d_finalize
 CALL MPI_FINALIZE(code)
 
-end PROGRAM WInc3D 
+end PROGRAM WInc3D

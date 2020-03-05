@@ -53,9 +53,11 @@ contains
         end do
     endif
     NSource=counter
-    allocate(Sx(NSource),Sy(NSource),Sz(NSource),Sc(Nsource),Su(NSource),Sv(NSource),Sw(NSource),Se(NSource),Sh(NSource),Sfx(NSource),Sfy(NSource),Sfz(NSource))
-    allocate(Su_part(NSource),Sv_part(NSource),Sw_part(NSource))
-    allocate(Snx(NSource),Sny(NSource),Snz(NSource),Stx(Nsource),Sty(NSource),Stz(NSource),Ssx(NSource),Ssy(NSource),Ssz(NSource),Ssegm(NSource))
+    allocate(Sx(NSource),Sy(NSource),Sz(NSource),Sc(Nsource),Su(NSource),Sv(NSource),Sw(NSource),Se(NSource),Sh(NSource),&
+             Sfx(NSource),Sfy(NSource),Sfz(NSource), sum_kernel(Nsource))
+    allocate(Su_part(NSource),Sv_part(NSource),Sw_part(NSource), sum_kernel_part(NSource))
+    allocate(Snx(NSource),Sny(NSource),Snz(NSource),Stx(Nsource),Sty(NSource),Stz(NSource),&
+             Ssx(NSource),Ssy(NSource),Ssz(NSource),Ssegm(NSource))
     allocate(A(NSource,NSource))
     allocate(inside_the_domain(NSource))
      
@@ -266,7 +268,8 @@ contains
     
         ! Check if the points lie outside the fluid domain
         do isource=1,Nsource
-        if((Sx(isource)>xlx).or.(Sx(isource)<0).or.(Sy(isource)>yly).or.(Sy(isource)<0).or.(Sz(isource)>zlz).or.(Sz(isource)<0)) then
+        if((Sx(isource)>xlx).or.(Sx(isource)<0).or.(Sy(isource)>yly).or.(Sy(isource)<0).or.&
+           &(Sz(isource)>zlz).or.(Sz(isource)<0)) then
             print *, 'Point outside the fluid domain'
             stop
         endif

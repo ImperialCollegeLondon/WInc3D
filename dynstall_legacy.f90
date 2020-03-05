@@ -3,18 +3,18 @@ module dynstall_legacy
     use airfoils
 
     implicit none
-       
+
     ! Leishman-Beddoes model parameters
     type LB_Type
-    
+
     logical :: StallFlag = .false.
-   
+
     real(mytype) :: dp
     real(mytype) :: dF
     real(mytype) :: dCNv
     real(mytype) :: sLEv
     integer :: LESepState
-    real(mytype) :: CLRef 
+    real(mytype) :: CLRef
     real(mytype) :: CLRefLE
     real(mytype) :: CLA
     real(mytype) :: CLCritP
@@ -32,7 +32,7 @@ module dynstall_legacy
     ! Additional LB diagnostic output
     integer, dimension(9) :: LB_LogicOutputs
     integer :: Logic_W(9)=[1,1,1,1,1,3,2,1,1]
-    
+
     end type LB_Type
 
     Type(LB_Type) :: lb
@@ -40,11 +40,11 @@ module dynstall_legacy
     contains
 
     subroutine dystl_init_LB(lb,dynstallfile)
-        
+
         implicit none
         type(LB_Type) :: lb
         character :: dynstallfile*80
-	real(mytype) :: CLcritp, CLcritn, CLalpha 
+        real(mytype) :: CLcritp, CLcritn, CLalpha
         NAMELIST/LBParam/CLcritp,CLcritn,CLalpha
 
         lb%StallFlag = .true.
@@ -56,19 +56,19 @@ module dynstall_legacy
         lb%CLRef_Last=0.0
         lb%CLRefLE_Last=0.0
         lb%Fstat_Last=1.0
-        lb%cv_Last=0.0 
+        lb%cv_Last=0.0
         lb%LB_LogicOutputs(:)=0
-        
-        open(30,file=dynstallfile) 
+
+        open(30,file=dynstallfile)
         read(30,nml=LBParam)
         close(30)
-	
-	lb%CLCritP=CLcritp
-	lb%CLCritN=CLcritn
-	lb%CLA=CLalpha
-		
-	return
-	
+
+        lb%CLCritP=CLcritp
+        lb%CLCritN=CLcritn
+        lb%CLA=CLalpha
+
+        return
+
     end subroutine dystl_init_LB
 
     subroutine LB_EvalIdealCL(AOA,AOA0,CLa,RefFlag,CLID)
@@ -109,11 +109,11 @@ module dynstall_legacy
             CLID=IDS*(CLaI*(aIDc-1.0/d1*sin(d1*aIDc))+CLaI/d1*sin(d1*aID))
         end if
     end if
-    
+
     end subroutine LB_EvalIdealCL
 
     subroutine Force180(a)
-    
+
         implicit none
 
         real(mytype) :: a
@@ -124,7 +124,7 @@ module dynstall_legacy
             a=a+2.0*pi
         endif
     end subroutine Force180
-    
+
     SUBROUTINE LB_UpdateStates(lb,airfoil,Re,ds)
 
         implicit none
@@ -146,7 +146,7 @@ module dynstall_legacy
     ! Note: CLCrit is critical (ideal) CL value for LE separation. This is
     ! approximately equal to the CL that would exist at the angle of attack at
     ! max CL if the CL curve had remained linear
-    
+
     if (lb%LESepState==0 .AND. (lb%CLRefLE>lb%CLCritP .OR. lb%CLRefLE<lb%CLCritN)) then
         ! In LE separation state
         lb%LESepState=1
@@ -186,7 +186,7 @@ module dynstall_legacy
             lb%LB_LogicOutputs(7)=1
         else if (lb%sLEv<2.0*TvL) then
             if (lb%CLRateFlag>0) then
-                ! orig 
+                ! orig
                 !Tf=1.0/3.0*TfRef
                 !Tv=1.0/4.0*TvRef
                 Tf=2.0*TfRef
@@ -199,11 +199,11 @@ module dynstall_legacy
                 Tv=1.0/2.0*TvRef
 
                 ! Set logic state flags (for model diagnosis output)
-                lb%LB_LogicOutputs(8)=4                                                        
+                lb%LB_LogicOutputs(8)=4
             end if
 
             ! Set logic state flags (for model diagnosis output)
-            lb%LB_LogicOutputs(7)=2                                                
+            lb%LB_LogicOutputs(7)=2
         else
             ! orig
             !Tf=4.0*TfRef
@@ -251,13 +251,13 @@ module dynstall_legacy
     ! update lagged values
     lb%CLRef_Last=lb%CLRef
     lb%CLRefLE_Last=lb%CLRefLE
-    lb%Fstat_Last=lb%Fstat 
+    lb%Fstat_Last=lb%Fstat
     lb%cv_Last=lb%cv
 
     End SUBROUTINE LB_UpdateStates
 
     SUBROUTINE LB_LogicChecksum(LBCheck)
-    
+
         implicit none
 
         integer :: LBCheck
@@ -275,7 +275,7 @@ End SUBROUTINE LB_LogicChecksum
 subroutine LB_DynStall(airfoil,lb,CLstat,CDstat,alphaL,alpha5,Re,CL,CD)
     ! GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG
     ! Routine that computes the Leishmann-Beddoes dynamic stall model
-    ! with incompressible reductionand returns corrected values for 
+    ! with incompressible reductionand returns corrected values for
     ! CL and CD having taken into account the dynamic stall effects
     ! GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG
 
@@ -283,19 +283,19 @@ subroutine LB_DynStall(airfoil,lb,CLstat,CDstat,alphaL,alpha5,Re,CL,CD)
     type(AirfoilType) :: airfoil       ! Airfoil structure
     type(LB_Type) :: lb                ! Leishmann-Beddoes model structure
     real(mytype) :: CLstat, CDstat, alphaL, alpha5, Re, CL, CD
-    real(mytype) :: AOA0, CLID, Trans, dCLRefLE, dAOARefLE, AOARefLE, CLstatF, C, C1, CLIDF 
+    real(mytype) :: AOA0, CLID, Trans, dCLRefLE, dAOARefLE, AOARefLE, CLstatF, C, C1, CLIDF
     real(mytype) :: CLRatio, CLsep, CLF, dCDF, KD, CLa, NOF, dCLv, dCDv, acut, CLCritP, CLCritN
 
     ! Airfoil data
     AOA0=airfoil%alzer
-    
+
     ! Model constants
     KD=0.1          ! Trailing Edge separation drag factor
 
     ! Evaluate the ideal CL curve at current AOA
-    call LB_EvalIdealCL(alphaL,AOA0,lb%CLa,1,lb%CLRef) 
+    call LB_EvalIdealCL(alphaL,AOA0,lb%CLa,1,lb%CLRef)
     call LB_EvalIdealCL(alphaL,AOA0,lb%CLa,0,CLID)
-    
+
     ! calc lagged ideal CL for comparison with critical LE separation CL
     Trans=(cos(alphaL-AOA0))**2 ! fair effect to zero at 90 deg. AOA...
     dCLRefLE=Trans*lb%dp  ! dp is lagged CLRef change
@@ -321,7 +321,7 @@ subroutine LB_DynStall(airfoil,lb,CLstat,CDstat,alphaL,alpha5,Re,CL,CD)
     end if
 
     if (CLRatio > 0.25) then
-        lb%Fstat=min((sqrt(4.0*CLRatio)-1.0)**2,1.0)
+        lb%Fstat=min((sqrt(4.0*CLRatio)-1.0)**2,1.0_mytype)
 
         ! Test logic
         lb%LB_LogicOutputs(1)=1
@@ -334,7 +334,7 @@ subroutine LB_DynStall(airfoil,lb,CLstat,CDstat,alphaL,alpha5,Re,CL,CD)
     ! calc lagged Fstat to represent dynamic TE separation point
     lb%F=lb%Fstat-lb%dF
     ! force limits on lagged F (needed due to discretization error...)
-    lb%F=min(max(lb%F,0.0),1.0)
+    lb%F=min(max(lb%F,0.0_mytype),1.0_mytype)
 
     ! Calc dynamic CL due to TE separation as fairing between fully attached and fully separated predictions from the Kirchoff approximation at current AOA
     if (abs(CLID)<0.001) then
@@ -372,7 +372,7 @@ subroutine LB_DynStall(airfoil,lb,CLstat,CDstat,alphaL,alpha5,Re,CL,CD)
     ! difference between the ideal lift and the lift including dynamic separation effects.
     lb%cv=CLID-CLF
     lb%dcv=lb%cv-lb%cv_Last
-    ! If the sign of dcv is opposite the reference LE CL, set to zero to disallow negative vorticity from shedding from the leading edge. Also, limit the model 
+    ! If the sign of dcv is opposite the reference LE CL, set to zero to disallow negative vorticity from shedding from the leading edge. Also, limit the model
     ! at AOA>acut or if the magnitude of the reference CL is decreasing...
     acut=50.0*conrad
     if (sign(1.0d0,lb%dcv*lb%CLRefLE)<0 .OR. abs(alphaL-AOA0)>acut .OR. lb%CLRateFlag<0) then
@@ -385,7 +385,7 @@ subroutine LB_DynStall(airfoil,lb,CLstat,CDstat,alphaL,alpha5,Re,CL,CD)
     ! Total lift and drag
     CL=CLF+dCLv
     CD=CDstat+dCDF+dCDv
-    
+
     return
 
     end subroutine LB_DynStall
