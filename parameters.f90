@@ -39,6 +39,7 @@ subroutine parameter(InputFN)
 USE IBM 
 USE param
 USE decomp_2d
+USE constants
 
 implicit none
 
@@ -59,11 +60,11 @@ NAMELIST/StatParam/spinup_time,nstat,nvisu,iprobe,Probelistfile,nsampling, y_loc
                   z_loc_pencil,isnapshot,simin,simax,sjmin,sjmax,skmin,skmax,sfreq 
 NAMELIST/ABLParam/iabl,z_zero,k_roughness,PsiM,ustar,IPressureGradient,Ug,dBL,idampingzone,ifringeregion,FLS,FLE,Imassconserve 
 
-#ifdef DOUBLE_PREC 
-pi=dacos(-1.d0) 
-#else
-pi=acos(-1.)
-#endif
+! #ifdef DOUBLE_PREC 
+! pi=dacos(-1.d0) 
+! #else
+! pi=acos(-1.)
+! #endif
 
 twopi=2.*pi
 
