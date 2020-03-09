@@ -237,10 +237,11 @@ contains
 
     end subroutine set_turbine_geometry
 
-    subroutine compute_performance(turbine)
+    subroutine compute_performance(turbine, rho_air)
 
     implicit none
     type(TurbineType), intent(inout) :: turbine
+    real(mytype), intent(in) :: rho_air
     real(mytype) :: Torque_i,FX_i,FY_i,FZ_i,fx_tot,fy_tot,fz_tot,torq_tot
     real(mytype) :: xe,ye,ze,o1,o2,o3,fx,fy,fz,trx,try,trz,te,ms,sxe,sye,sze
     real(mytype) :: rotx,roty,rotz
@@ -296,13 +297,13 @@ contains
 
 
     ! Coefficients and Absolute values
-    turbine%CFx=FX_tot/(0.5*turbine%A*turbine%Uref**2)
-    turbine%CFy=FY_tot/(0.5*turbine%A*turbine%Uref**2)
-    turbine%CFz=Fz_tot/(0.5*turbine%A*turbine%Uref**2)
+    turbine%CFx=FX_tot/(0.5*rho_air*turbine%A*turbine%Uref**2)
+    turbine%CFy=FY_tot/(0.5*rho_air*turbine%A*turbine%Uref**2)
+    turbine%CFz=Fz_tot/(0.5*rho_air*turbine%A*turbine%Uref**2)
     turbine%Thrust=sqrt(FX_tot**2.0+FY_tot**2.0+FZ_tot**2.0)
     turbine%CT=sqrt(turbine%CFx**2.0+turbine%CFy**2.0+turbine%CFz**2.0)
     turbine%torque=Torq_tot
-    turbine%CTR=Torq_tot/(0.5*turbine%A*turbine%Rmax*turbine%Uref**2.0)
+    turbine%CTR=Torq_tot/(0.5*rho_air*turbine%A*turbine%Rmax*turbine%Uref**2.0)
     turbine%Power=abs(Torq_tot)*turbine%angularVel
     turbine%CP= abs(turbine%CTR)*turbine%TSR
 

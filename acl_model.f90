@@ -594,7 +594,7 @@ contains
             do j=1,Turbine(i)%Nblades
             call Compute_ActuatorLine_Forces(Turbine(i)%Blade(j),rho_air,visc,deltaT,ctime)
             end do
-            call Compute_performance(Turbine(i))
+            call compute_performance(Turbine(i), rho_air)
 
             ! Tower
             if(Turbine(i)%has_tower) then
