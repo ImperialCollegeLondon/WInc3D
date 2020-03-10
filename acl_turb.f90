@@ -244,13 +244,14 @@ contains
     real(mytype), intent(in) :: rho_air
     real(mytype) :: Torque_i,FX_i,FY_i,FZ_i,fx_tot,fy_tot,fz_tot,torq_tot
     real(mytype) :: xe,ye,ze,o1,o2,o3,fx,fy,fz,trx,try,trz,te,ms,sxe,sye,sze
-    real(mytype) :: rotx,roty,rotz
+    real(mytype) :: rotx,roty,rotz,rot_vel_mod
     integer :: iblade, ielem
     !write(*,*) 'In calculate_performance'
 
     RotX=turbine%RotN(1)
     RotY=turbine%RotN(2)
     RotZ=turbine%RotN(3)
+    rot_vel_mod = sqrt(RotX*RotX + RotY*RotY + RotZ*RotZ)
 
     ! Compute Torque for each Blade
         Fx_tot=0.
@@ -258,7 +259,7 @@ contains
         Fz_tot=0.
         Torq_tot=0
 
-        do iblade=1,turbine%Nblades
+    do iblade=1,turbine%Nblades
         Fx_i=0.
         Fy_i=0.
         Fz_i=0.
@@ -300,8 +301,8 @@ contains
     turbine%CFx=FX_tot/(0.5*rho_air*turbine%A*turbine%Uref**2)
     turbine%CFy=FY_tot/(0.5*rho_air*turbine%A*turbine%Uref**2)
     turbine%CFz=Fz_tot/(0.5*rho_air*turbine%A*turbine%Uref**2)
-    turbine%Thrust=sqrt(FX_tot**2.0+FY_tot**2.0+FZ_tot**2.0)
-    turbine%CT=sqrt(turbine%CFx**2.0+turbine%CFy**2.0+turbine%CFz**2.0)
+    turbine%Thrust = (Fx_tot*RotX + Fy_tot*RotY + Fz_tot*RotZ)/rot_vel_mod
+    turbine%CT= turbine%Thrust/(0.5*rho_air*turbine%A*turbine%Uref**2)
     turbine%torque=Torq_tot
     turbine%CTR=Torq_tot/(0.5*rho_air*turbine%A*turbine%Rmax*turbine%Uref**2.0)
     turbine%Power=abs(Torq_tot)*turbine%angularVel
