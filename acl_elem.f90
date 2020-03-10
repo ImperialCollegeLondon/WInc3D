@@ -159,7 +159,7 @@ end type ActuatorLineType
     actuatorline%L=length
 
     ! The directions of vectors etc are just hacked ...
-    actuatorline%Nelem=Nstations-1
+    actuatorline%Nelem=Nstations
     do istation=1,Nstations
     actuatorline%QCx(istation)=rR(istation)*length*Svec(1)+actuatorline%COR(1)
     actuatorline%QCy(istation)=rR(istation)*length*Svec(2)+actuatorline%COR(2)
@@ -493,7 +493,7 @@ end type ActuatorLineType
     integer :: istation, Nstation
 
     !> Change the pitch angle by changing n,t and s unit vectors
-    Nstation=act_line%Nelem+1
+    Nstation=act_line%Nelem
 
 
     !> Compute the blade--wise unit vector
@@ -602,7 +602,7 @@ end type ActuatorLineType
     pz=origin(3)
 
 
-    do ielem=1,actuatorline%Nelem+1
+    do ielem=1,actuatorline%Nelem
     ! Blade end locations (quarter chord). xBE(MaxSegEnds)
         xtmp=actuatorline%QCx(ielem)
         ytmp=actuatorline%QCy(ielem)
@@ -680,82 +680,93 @@ end type ActuatorLineType
     nbe=blade%NElem
 
     do j=1,nbe
-    nej=1+j
+    nej=j
 
     ! Element center locations
-    blade%PEx(nej-1)=(blade%QCx(nej)+blade%QCx(nej-1))/2.0
-    blade%PEy(nej-1)=(blade%QCy(nej)+blade%QCy(nej-1))/2.0
-    blade%PEz(nej-1)=(blade%QCz(nej)+blade%QCz(nej-1))/2.0
-    blade%ERdist(nej-1)=sqrt((blade%PEX(nej-1)-blade%COR(1))**2 +(blade%PEY(nej-1)-blade%COR(2))**2+&
-                             (blade%PEZ(nej-1)-blade%COR(3))**2)    ! Element length
+    blade%PEx(nej)=blade%QCx(nej)
+    blade%PEy(nej)=blade%QCy(nej)
+    blade%PEz(nej)=blade%QCz(nej)
+    blade%ERdist(nej)=sqrt((blade%PEX(nej)-blade%COR(1))**2 +(blade%PEY(nej)-blade%COR(2))**2+&
+                             (blade%PEZ(nej)-blade%COR(3))**2)    ! Element length
 
     ! Set spannwise and tangential vectors
     ! sE: nominal element spanwise direction set opposite to QC line
-    sE=(/blade%QCx(nej)-blade%QCx(nej-1),blade%QCy(nej)-blade%QCy(nej-1),blade%QCz(nej)-blade%QCz(nej-1)/)
+    if (nej==1) then
+        sE=0.5*(/blade%QCx(nej+1) - blade%QCx(nej), blade%QCy(nej+1) - blade%QCy(nej), blade%QCz(nej+1) - blade%QCz(nej)/)
+    else if (nej==nbe) then
+        sE=0.5*(/blade%QCx(nej) - blade%QCx(nej-1), blade%QCy(nej) - blade%QCy(nej-1), blade%QCz(nej) - blade%QCz(nej-1)/)
+    else
+        sE=0.5*(/blade%QCx(nej+1) - blade%QCx(nej-1), blade%QCy(nej+1) - blade%QCy(nej-1), blade%QCz(nej+1) - blade%QCz(nej-1)/)
+    endif
     sEM=sqrt(dot_product(sE,sE))
-
-    blade%EDS(nej-1) = sEM
-
+    blade%EDS(nej) = sEM
     sE=sE/sEM
-    tE=(/blade%tx(nej)+blade%tx(nej-1),blade%ty(nej)+blade%ty(nej-1),blade%tz(nej)+blade%tz(nej-1)/)/2.0
+
+    tE=(/blade%tx(nej),blade%ty(nej),blade%tz(nej)/)
     ! Force tE normal to sE
     tE=tE-dot_product(tE,sE)*sE
     tEM=sqrt(dot_product(tE,tE))
     tE=tE/tEM
-    blade%sEx(nej-1)=sE(1)
-    blade%sEy(nej-1)=sE(2)
-    blade%sEz(nej-1)=sE(3)
-    blade%tEx(nej-1)=tE(1)
-    blade%tEy(nej-1)=tE(2)
-    blade%tEz(nej-1)=tE(3)
+
+    blade%sEx(nej)=sE(1)
+    blade%sEy(nej)=sE(2)
+    blade%sEz(nej)=sE(3)
+    blade%tEx(nej)=tE(1)
+    blade%tEy(nej)=tE(2)
+    blade%tEz(nej)=tE(3)
 
     ! Calc normal vector
     Call cross(sE(1),sE(2),sE(3),tE(1),tE(2),tE(3),normE(1),normE(2),normE(3))
     nEM=sqrt(dot_product(normE,normE))
     normE=normE/nEM
-    blade%nEx(nej-1)=normE(1)
-    blade%nEy(nej-1)=normE(2)
-    blade%nEz(nej-1)=normE(3)
+    blade%nEx(nej)=normE(1)
+    blade%nEy(nej)=normE(2)
+    blade%nEz(nej)=normE(3)
 
     if (blade%FlipN) then
-    blade%nEx(nej-1)=-blade%nEx(nej-1)
-    blade%nEy(nej-1)=-blade%nEy(nej-1)
-    blade%nEz(nej-1)=-blade%nEz(nej-1)
-    blade%sEx(nej-1)=-blade%sEx(nej-1)
-    blade%sEy(nej-1)=-blade%sEy(nej-1)
-    blade%sEz(nej-1)=-blade%sEz(nej-1)
+    blade%nEx(nej)=-blade%nEx(nej)
+    blade%nEy(nej)=-blade%nEy(nej)
+    blade%nEz(nej)=-blade%nEz(nej)
+    blade%sEx(nej)=-blade%sEx(nej)
+    blade%sEy(nej)=-blade%sEy(nej)
+    blade%sEz(nej)=-blade%sEz(nej)
     endif
     ! Calc element area and chord
-    P1=(/blade%QCx(nej-1)-0.25*blade%C(nej-1)*blade%tx(nej-1),&
-         blade%QCy(nej-1)-0.25*blade%C(nej-1)*blade%ty(nej-1),&
-         blade%QCz(nej-1)-0.25*blade%C(nej-1)*blade%tz(nej-1)/)
+    ! P1=(/blade%QCx(nej-1)-0.25*blade%C(nej-1)*blade%tx(nej-1),&
+    !      blade%QCy(nej-1)-0.25*blade%C(nej-1)*blade%ty(nej-1),&
+    !      blade%QCz(nej-1)-0.25*blade%C(nej-1)*blade%tz(nej-1)/)
+    !
+    ! P2=(/blade%QCx(nej-1)+0.75*blade%C(nej-1)*blade%tx(nej-1),&
+    !      blade%QCy(nej-1)+0.75*blade%C(nej-1)*blade%ty(nej-1),&
+    !      blade%QCz(nej-1)+0.75*blade%C(nej-1)*blade%tz(nej-1)/)
+    !
+    ! P3=(/blade%QCx(nej)+0.75*blade%C(nej)*blade%tx(nej),&
+    !      blade%QCy(nej)+0.75*blade%C(nej)*blade%ty(nej),&
+    !      blade%QCz(nej)+0.75*blade%C(nej)*blade%tz(nej)/)
+    !
+    ! P4=(/blade%QCx(nej)-0.25*blade%C(nej)*blade%tx(nej),&
+    !      blade%QCy(nej)-0.25*blade%C(nej)*blade%ty(nej),&
+    !      blade%QCz(nej)-0.25*blade%C(nej)*blade%tz(nej)/)
+    !
+    ! V1=P2-P1
+    ! V2=P3-P2
+    ! V3=P4-P3
+    ! V4=P1-P4
+    ! ! Calc quad area from two triangular facets
+    ! Call cross(V1(1),V1(2),V1(3),V2(1),V2(2),V2(3),A1(1),A1(2),A1(3))
+    ! A1=A1/2.0
+    ! Call cross(V3(1),V3(2),V3(3),V4(1),V4(2),V4(3),A2(1),A2(2),A2(3))
+    ! A2=A2/2.0
+    ! blade%EArea(nej-1)=sqrt(dot_product(A1,A1))+sqrt(dot_product(A2,A2))
+    ! ! Calc average element chord from area and span
+    ! blade%EC(nej-1)=blade%EArea(nej-1)/sEM
+    ! blade%ETtoC(nej-1)=0.5*(blade%thick(nej)+blade%thick(nej-1))
+    ! blade%Epitch(nej-1)=0.5*(blade%pitch(nej)+blade%pitch(nej-1))
 
-    P2=(/blade%QCx(nej-1)+0.75*blade%C(nej-1)*blade%tx(nej-1),&
-         blade%QCy(nej-1)+0.75*blade%C(nej-1)*blade%ty(nej-1),&
-         blade%QCz(nej-1)+0.75*blade%C(nej-1)*blade%tz(nej-1)/)
-
-    P3=(/blade%QCx(nej)+0.75*blade%C(nej)*blade%tx(nej),&
-         blade%QCy(nej)+0.75*blade%C(nej)*blade%ty(nej),&
-         blade%QCz(nej)+0.75*blade%C(nej)*blade%tz(nej)/)
-
-    P4=(/blade%QCx(nej)-0.25*blade%C(nej)*blade%tx(nej),&
-         blade%QCy(nej)-0.25*blade%C(nej)*blade%ty(nej),&
-         blade%QCz(nej)-0.25*blade%C(nej)*blade%tz(nej)/)
-
-    V1=P2-P1
-    V2=P3-P2
-    V3=P4-P3
-    V4=P1-P4
-    ! Calc quad area from two triangular facets
-    Call cross(V1(1),V1(2),V1(3),V2(1),V2(2),V2(3),A1(1),A1(2),A1(3))
-    A1=A1/2.0
-    Call cross(V3(1),V3(2),V3(3),V4(1),V4(2),V4(3),A2(1),A2(2),A2(3))
-    A2=A2/2.0
-    blade%EArea(nej-1)=sqrt(dot_product(A1,A1))+sqrt(dot_product(A2,A2))
-    ! Calc average element chord from area and span
-    blade%EC(nej-1)=blade%EArea(nej-1)/sEM
-    blade%ETtoC(nej-1)=0.5*(blade%thick(nej)+blade%thick(nej-1))
-    blade%Epitch(nej-1)=0.5*(blade%pitch(nej)+blade%pitch(nej-1))
+    blade%EC(nej) = blade%C(nej)
+    blade%ETtoC(nej) = blade%thick(nej)
+    blade%EPitch(nej) = blade%pitch(nej)
+    blade%EArea(nej) = blade%C(nej)*blade%EDS(nej)
 
     end do
 
@@ -770,18 +781,18 @@ end type ActuatorLineType
     integer,intent(in) :: Nstations
     integer :: NElem
 
-    Nelem=Nstations-1
+    Nelem=Nstations
     actuatorline%Nelem = Nelem
 
-    allocate(actuatorline%QCx(NElem+1))
-    allocate(actuatorline%QCy(NElem+1))
-    allocate(actuatorline%QCz(NElem+1))
-    allocate(actuatorline%tx(NElem+1))
-    allocate(actuatorline%ty(NElem+1))
-    allocate(actuatorline%tz(NElem+1))
-    allocate(actuatorline%C(NElem+1))
-    allocate(actuatorline%thick(NElem+1))
-    allocate(actuatorline%pitch(NElem+1))
+    allocate(actuatorline%QCx(NElem))
+    allocate(actuatorline%QCy(NElem))
+    allocate(actuatorline%QCz(NElem))
+    allocate(actuatorline%tx(NElem))
+    allocate(actuatorline%ty(NElem))
+    allocate(actuatorline%tz(NElem))
+    allocate(actuatorline%C(NElem))
+    allocate(actuatorline%thick(NElem))
+    allocate(actuatorline%pitch(NElem))
     allocate(actuatorline%PEx(NElem))
     allocate(actuatorline%PEy(NElem))
     allocate(actuatorline%PEz(NElem))

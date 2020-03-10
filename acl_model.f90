@@ -550,7 +550,7 @@ contains
             do i=1,Nal
     if(ActuatorLine(i)%pitch_control.and.ctime > ActuatorLine(i)%pitch_start_time.and.ctime < ActuatorLine(i)%pitch_end_time) then
                 !> Do harmonic pitch control for all elements of the actuator line
-                Nstation=ActuatorLine(i)%NElem+1
+                Nstation=ActuatorLine(i)%NElem
                 do j=1,Nstation
                 ActuatorLine(i)%pitch(j)=actuatorline(i)%pitchAmp*sin(actuatorline(i)%angular_pitch_freq*(ctime-&
                                              ActuatorLine(i)%pitch_start_time))
@@ -559,7 +559,7 @@ contains
                 print *, '-----------------------'
                 print *, ' Harmonic pitch :'
                 print *, '-----------------------'
-                print *, 'Current pitch angle : ', sum(ActuatorLine(i)%pitch)/(ActuatorLine%Nelem+1)
+                print *, 'Current pitch angle : ', sum(ActuatorLine(i)%pitch)/(ActuatorLine%Nelem)
                 endif
 
                 call pitch_actuator_line(actuatorline(i),ActuatorLine(i)%pitch(j))

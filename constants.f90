@@ -10,7 +10,7 @@ module constants
     ! Definition of maximum size of arrays
     integer, parameter :: MaxNPencils = 90 ! Maximum number of pencils (in each XY direction) to be read from the input file
 
-    integer, parameter :: MaxNAirfoils = 30 ! Maximum number of airfoils to be read
+    integer, parameter :: MaxNAirfoils = 90 ! Maximum number of airfoils to be read
     integer, parameter :: MaxReVals = 10 ! Maximum number of tables (one per Reynolds number) that will be read
     integer, parameter :: MaxAOAVals = 1000 ! Maximum number of angles of attack in each polar that will be read
 

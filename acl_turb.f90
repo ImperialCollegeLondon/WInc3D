@@ -91,7 +91,7 @@ contains
 
     turbine%blade(iblade)%COR(1:3)=turbine%origin(1:3)
     turbine%blade(iblade)%L=turbine%Rmax
-    turbine%blade(iblade)%NElem=Nstations-1
+    turbine%blade(iblade)%NElem=Nstations
 
     do istation=1,Nstations
     turbine%blade(iblade)%QCx(istation)=rR(istation)*turbine%Rmax*Svec(1)!+turbine%blade(iblade)%COR(1)+turbine%dist_from_axis
@@ -191,7 +191,7 @@ contains
     turbine%tower%name=trim(turbine%name)//'_tower'
 
     turbine%Tower%COR=turbine%origin
-    turbine%Tower%NElem=Nstations-1
+    turbine%Tower%NElem=Nstations
     turbine%Tower%L=turbine%Towerheight
 
     do istation=1,Nstations
@@ -431,7 +431,7 @@ contains
 
 
     do j=1,turbine%NBlades
-        do ielem=1,turbine%Blade(j)%Nelem+1
+        do ielem=1,turbine%Blade(j)%Nelem
         ! Blade end locations (quarter chord). xBE(MaxSegEnds)
         xtmp=turbine%Blade(j)%QCx(ielem)
         ytmp=turbine%Blade(J)%QCy(ielem)
