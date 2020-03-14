@@ -19,9 +19,11 @@ Deskos, G., S. Laizet, and M. D. Piggott. “Turbulence-resolving simulations of
 wind turbine wakes”. Renewable Energy 134 (2019), pp. 989 –1002. doi: 10.1016/
 j.renene.2018.11.084.
 
-Deskos, G., S. Laizet, and M. D. Piggott. “Development and validation of the
-higher-order finite-difference wind farm simulator, WInc3D”. 3rd International Conference
-on Renewable Energies Offshore (RENEW2018). Lisbon, Portugal, 2018.
+Deskos G., S. Laizet, and R. Palacios. “WInc3D: A novel framework for turbulence-resolving 
+simulations of wind farm wake interactions”. Wind Energy 23.3 (2020), pp. 779–794.doi:10.1002/we.2458.
 
 ### Support or Contact
-g.deskos14@imperial.ac.uk
+Georgios.Deskos@nrel.gov 
+s.laizet@imperial.ac.uk
+r.palacios@imperial.ac.uk
+
