@@ -4,7 +4,7 @@
     iin = 0               ! Inflow conditions (1: classic, 2: turbinit)
     
     ! Domain and scaling
-    xlx = 10.            ! Lx (Size of the box in x-direction)
+    xlx = 20.            ! Lx (Size of the box in x-direction)
     yly = 10.            ! Ly (Size of the box in y-direction) 
     zlz = 10.            ! Lz (Size of the box in z-direction) 
     re  = 100000           ! nu=1/re (Kinematic Viscosity)
@@ -13,22 +13,24 @@
     u2  = 1.              ! u2 (min velocity) (for inflow condition) 
     noise  = 0.125        ! Turbulence intensity (1=100%) !! Initial condition
     noise1 = 0.0          ! Turbulence intensity (1=100%) !! Inflow condition
-    
+     
     ! Additional effects  
     ibuoyancy=0           ! Buoyancy flag (0: No buoyanancy 1: Buoyancy)
     Pr=0.333                ! Prandtl number
     TempRef=265           ! Reference potential Temperature in Kelvin 
     icoriolis=0           ! Coriolis flag (0: No buoyanancy 1: Buoyancy)
     CoriolisFreq=1.39e-4  ! Corolios frequency in rad/second
+    
+
     itripping = 1           ! radial tripping
 /End
 
 ! Numerical Configuration
 &NumConfig
     ! Simulation size and parallelisation
-    nx=65                 ! X-direction nodes
-    ny=64               ! Y-direction nodes
-    nz=64                 ! Z-direction nodes
+    nx=1025                 ! X-direction nodes
+    ny=512               ! Y-direction nodes
+    nz=512                 ! Z-direction nodes
     p_row=4              ! Row partition
     p_col=4              ! Column partition
 
@@ -64,17 +66,17 @@
     spinup_time=25.	  ! Time after which statistics are collected (in seconds)
     nstat=1               ! Size arrays for statistic collection 
     nvisu=1               ! Size for visualisation collection 
-    iprobe = 2            ! Set probe
+    iprobe = 0            ! Set probe
     y_loc_pencil=3,7,32,48	    
     z_loc_pencil=32,32,32,32	    
     ! Snapshot parameters
     isnapshot=1
-    simin=51
-    simax=129
-    sjmin=39
-    sjmax=91
-    skmin=39
-    skmax=91
+    simin=101
+    simax=1025
+    sjmin=138
+    sjmax=462
+    skmin=138
+    skmax=462
     sfreq=50
     !Probelistfile='WakeList.prob'
     nsampling=10
@@ -100,7 +102,7 @@
 ialm=1                    ! ialm (0: turbine model off, 1: turbine model on)
 eps_factor=2.2            ! Smoothing parameter factor
 Nturbines=1               ! Number of Turbines
-TurbinesPath='Tjaereborg.turb'
+TurbinesPath='JoukowskiRotor.turb'
 /End
 
 &ADMParam

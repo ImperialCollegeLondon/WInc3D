@@ -2,19 +2,19 @@
 !=========================================
 ! Aerodynamic parameters                 |
 !=========================================
-name='Tjaereborg'                              ! Name of the turbine
+name='JoukowskiRotor'                              ! Name of the turbine
 origin=2,5,5                            ! Actual location of the turbine 
 numblades=3                                  ! number of blades
 blade_geom='Tjaereborg_N97.al'  ! Blade geometry
-numfoil=2                                    ! Number of airfoil from which the interpolation is done
-afname='NACA4424.air','NACA4412.air'
+numfoil=1                                    ! Number of airfoil from which the interpolation is done
+afname='PotentialFlow.air'
 towerFlag=0                                  ! Tower model ? (0: no, 1: yes)
 TypeFlag=1                                   ! Type of the turbine (1: Horizontal-axis, 2: Vertical-axis turbines)
 EndEffectsFlag=2                             ! EndEffects Flag (0: no end effects, 1: Glauer, 2: Shen et. al 2005)
 TipCorr=1                                    ! Tip correction model (0: no, 1: yes)
 RootCorr=0                                   ! Root correction model (0: no, 1: yes)
 yaw_angle=0.                                 ! Rotor Yaw angle (in degrees)
-ConstantCirculationFlag=0
+ConstantCirculationFlag=1
 GammaCirc=0.130
 OperFlag=1                                   ! Operation flag (1: Prescribed velocity, 2: five region active controller, 3: reading from a list)  
 RotFlag=1
