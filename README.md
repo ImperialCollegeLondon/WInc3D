@@ -1,7 +1,7 @@
 ## Description
 WInc3D provides an integrated wind farm simulation framework that allows detailed analyses of wake–to–wake and turbine–to–wake interactions. The code is built upon the high–order finite difference
 numerical solver incompact3D (Laizet and Lamballais, 2009) which makes use of an efficient 2D domain decomposition algorithm (Laizet and Li, 2011) that allows the code to scale on up to O(10$^5$)
-computational cores. WInc3D offers a number of built-in models, including a native actuator line model (ALM). The models have been validated using both wind tunnel data (Deskos et al 2019) and supervisory control and data acquisition (SCADA) measurements from a utility–scale offshore wind farm (Deskos et al 2018)
+computational cores. WInc3D offers a number of built-in models, including a native actuator line model (ALM). The models have been validated using both wind tunnel data (Deskos et al 2019) and supervisory control and data acquisition (SCADA) measurements from a utility–scale offshore wind farm (Deskos et al 2020)
 ### This repository 
 
 
