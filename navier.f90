@@ -552,9 +552,9 @@ call random_seed(put = code+63946*nrank*(/ (i - 1, i = 1, ii) /)) !
    do k=1,xsize(3)
    do j=1,xsize(2)
    do i=1,xsize(1)
-      ux1(i,j,k)=noise*ux1(i,j,k)
-      uy1(i,j,k)=noise*uy1(i,j,k)
-      uz1(i,j,k)=noise*uz1(i,j,k)
+      ux1(i,j,k)=noise*(ux1(i,j,k)*2-1)
+      uy1(i,j,k)=noise*(uy1(i,j,k)*2-1)
+      uz1(i,j,k)=noise*(uz1(i,j,k)*2-1)
    enddo
    enddo
    enddo
